@@ -17,7 +17,7 @@
 
 `define		MCOC_TOP_NAME	mcoc115mn0408
 `define		MCOC_CODE_ED	"MN"
-`define		MCOC_VERS		16'hb199
+`define		MCOC_VERS		16'h0200
 
 
 // Compile option

@@ -694,7 +694,7 @@ assign	rom_dat2[31:0]=32'h0;
 `endif	//	MCOC_MCVM_DUAL
 
 
-// data select
+// bus output
 assign	fdat1[31:0]=(bootmd)? fdat_bt[31:0]: fdat1_rom[31:0];
 assign	fdat2[31:0]=(bootmd)? 32'h0001_0000: fdat2_rom[31:0];
 
@@ -908,7 +908,7 @@ output	[15:0]	bdatr);
 //		(c) 2023	1YEN Toru
 //
 //
-//	2023/07/13	ver.1.01b2
+//	2023/09/23	ver.1.02
 //		Distributed RAM macro -> general RTL
 //
 //	2023/07/08	ver.1.00
