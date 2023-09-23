@@ -1,0 +1,65 @@
+// ================================
+//	Moscovium i2c communication library
+//		(c) 2021	1YEN Toru
+//		slave driver module
+// ================================
+
+// ================================
+// i2c communication slave driver
+//		You need to initialize:
+//			- set mcvm_wire_isr to iv
+//				or jmp to mcvm_wire_isr in your ISR if SRAR is asserted
+//			- enable interrupt SRAR
+//			- set slave address to stwsadr, stwsmsk
+//		Program under described events
+//			mcvm_wire_onstar:
+//			mcvm_wire_onadrb:
+//			mcvm_wire_onrecv:
+//			mcvm_wire_onstop:
+//			initially r0 holds the received data.
+//			return by "rtn" instruction from events.
+//			bank 3 registers do not have to be saved, in events.
+//		the use of bank 3 within mcvm_wire_isr is reserved.
+// ================================
+mcvm_wire_isr:
+ldcl	sr,sreg_bk_3
+// received data
+ldwi	r7,stwsdatr
+ldw		r0,[r7]
+// flag
+mov		r1,r0
+lsfti	r1,-8-1
+bcs		mcvm_wire_isr_stop
+lsfti	r1,-1
+bcs		mcvm_wire_isr_sadr
+lsfti	r1,-1
+bcs		mcvm_wire_isr_start
+
+// ================================
+// receive data
+jalwr7	mcvm_wire_onrecv
+bra		mcvm_wire_isr_return
+
+// ================================
+// STOP condition
+mcvm_wire_isr_stop:
+jalwr7	mcvm_wire_onstop
+bra		mcvm_wire_isr_return
+
+// ================================
+// receive address byte
+mcvm_wire_isr_sadr:
+jalwr7	mcvm_wire_onadrb
+bra		mcvm_wire_isr_return
+
+// ================================
+// START condition
+mcvm_wire_isr_start:
+jalwr7	mcvm_wire_onstar
+bra		mcvm_wire_isr_return
+
+// ================================
+// return from interrupt
+mcvm_wire_isr_return:
+rti
+

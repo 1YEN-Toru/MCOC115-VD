@@ -1,0 +1,28 @@
+# ================================
+#	Moscovium i2c communication library
+#		(c) 2021	1YEN Toru
+#		definition module
+#
+#		2021/08/21	ver.1.00
+#
+# ================================
+# master driver (mcvm_wire) constants
+equ		wire_send,0x4000				// i2c frame: send command
+equ		wire_recv,0x8000				// i2c frame: receive command
+equ		wire_stop,0x0000				// i2c frame: STOP condition, end mark
+equ		wire_star,0x0100				// i2c frame: START condition
+equ		wire_nack,0x0200				// i2c frame: NACK response
+equ		wire_dmsk,0x00ff				// i2c frame: data mask
+equ		wire_adrr,0x0001				// i2c frame: address byte R
+equ		wire_adrw,0x0000				// i2c frame: address byte ~W
+# slave driver (mcvm_wire_isr) constants
+equ		wire_ssta,0x0400				// received data: SSTA bit
+equ		wire_sadr,0x0200				// received data: SADR bit
+equ		wire_sstp,0x0100				// received data: SSTP bit
+# error code
+equ		wire_err_no,0					// WireErrNo
+equ		wire_err_bad_fram,1				// WireErrBadFram
+equ		wire_err_nack,2					// WireErrNack
+equ		wire_err_bus_err,3				// WireErrBusErr
+# ================================
+

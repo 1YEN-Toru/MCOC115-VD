@@ -1,0 +1,2478 @@
+model	"Moscovium series macro assembler"
+{
+	macro	prog_name="Moscovium series macro assembler";
+	macro	prog_vers="1.34";
+// ================================
+// Moscovium series macro assembler
+//		(c) 2021	1YEN Toru
+//
+//
+//		2023/09/23	ver.1.34
+//			bug fixed: "[lac]s[lr]i", 2nd operand
+//			change: equ evaluation order
+//
+//		2023/08/04	ver.1.32
+//			string macro: target_mc, target_nh, target_ts
+//			string macro: target_mn=target_mc | target_nh
+//
+//		2023/07/08	ver.1.30
+//			corresponding to Tennessine core
+//			instruction: adcz, sbbz, cmbz
+//			integrated macro: lsli, lsri, asli, asri, csli, csri
+//				{Logical/Arithmetical/rotate with C} Shift
+//					{Left/Right} Immediate; Rd,imm8; imm8>=0
+//			<output_file>.mem: same as <output_file>.datw
+//
+//		2023/05/20	ver.1.28
+//			instruction: divlqr, divlrr, mulsr, mulur, divsr, divur
+//
+//		2023/03/18	ver.1.26
+//			instruction: jall, rtnl, pushcl, popcl
+//			instruction: jalw, rtnw, pushcw, popcw
+//			alias: jal, rtn, pushc, popc
+//			integrated macro: pushlm, poplm, jalwrX, jallrX
+//
+//		2023/02/11	ver.1.24
+//			instruction:
+//				fadd, fsub, fmul, fdiv, fneg, fsngl, fuint, ffrac,
+//				fmvsg, fsat, fcmp, fdown,
+//			pseudo: equf, datf, fldi
+//
+//		2022/10/22	ver.1.22
+//			pseudo: srbk, srie
+//
+//		2022/06/04	ver.1.20
+//			instruction: csft, csfti
+//
+//		2022/04/09	ver.1.18
+//			corresponding to Nihonium core
+//			instruction:
+//				link, unlk, brn, ldli, cendl, pushl, popl,
+//				exsgl, exzrl, ldl, stl, ldlsp, stlsp
+//			instruction:
+//				cendw, exsgw, pushw, popw, ldwsp, stwsp, ldbiu, ldbil, ldbih
+//			alias:
+//				cend, exsg, push, pop, ldsp, stsp, ldiu, ldil, ldih
+//			pseudo: datl, ldwi, pushwm, popwm, pushlm, poplm
+//			pseudo: align; address alignment for program area
+//			pseudo: asm; "moscovium" and "nihonium" option
+//
+//		2022/02/19	ver.1.16
+//			instruction: ldbx, stbx, ldwx, stwx
+//
+//		2021/10/16	ver.1.14
+//			do_preproc: not output "#" comment line
+//			pseudo: org; "align" option
+//			pseudo: dats: executed at the end of preprocess
+//
+//		2021/08/21	ver.1.12
+//			improved tolerance for uppercase source code
+//			however, lowercase source code is recommended
+//
+//		2021/08/14	ver.1.10
+//			corresponding to user macro
+//			corresponding to string macro
+//			corresponding to repeat expansion
+//			corresponding to S-JIS code in dats pseudo instruction
+//			pseudo: incl; add search directory "INCL/"
+//			pseudo: macro~endm, def, rept~endr
+//
+//		2021/07/10	ver.1.08
+//			instruction: hcmp, cmb
+//			dats: new escape sequence "\xhh"
+//
+//		2021/06/12	ver.1.06
+//			corresponding to half precision fpu
+//			instruction: hadd, hsub, hmul, hdiv, hneg,
+//							hhalf, huint, hfrac, hmvsg, hsat
+//			pseudo: equh, dath
+//			integrated macro: hldi
+//
+//		2021/05/15	ver.1.04
+//			corresponding to multiply and divide co-processor
+//			instruction: muls, mulu, divs, divu, divls, divlu, divlq, divlr
+//
+//		2021/04/24	ver.1.02
+//			corresponding to interrupts
+//			instruction: pause, rti, sesrh, sesrl, clsrh, clsrl, ldsp, stsp
+//			pseudo instruction: sesr, clsr, seie, clie
+//
+//		2021/03/20	ver.1.00
+//
+// ================================
+
+	// constants
+	var		HEX=true;					// true=hexadecimal / false=binary
+	var		DFMIF=0;					// output data format: MIF
+	var		DFVLOG=1;					// output data format: Verilog RTL
+	var		DFDATW=2;					// output data format: $readmemh()
+	var		DFDAT=3;					// output data format: BRAM Editor DAT
+	var		DFDAT2=4;					// output data format: boot mode DAT
+	var		TGTANY=0;					// target core: any
+	var		TGTMCVM=1;					// target core: Moscovium
+	var		TGTNIHO=2;					// target core: Nihonium
+	var		TGTTNSN=3;					// target core: Tennessine
+	var		MAX_NO=14;					// maximum index of NO instructions
+	var		MAX_BR=27;					// maximum index of BR instructions
+	var		MAX_RR=87;					// maximum index of RR instructions
+	var		MAX_R=113;					// maximum index of R instructions
+	var		MAX_RI=127;					// maximum index of RI instructions
+	var		MSIZ=6;						// maximum mnemonic size
+	macro	mnem=
+			"nop   "
+			"pause "
+			"rtnw  "
+			"rti   "
+			"divlu "
+			"divls "
+			"divlq "
+			"divlr "
+			"link  "
+			"unlk  "
+			"brn   "
+			"rtnl  "
+			"divlqr"
+			"divlrr"
+			"bra   "
+			"bne   "
+			"beq   "
+			"bcc   "
+			"bhs   "
+			"bcs   "
+			"blo   "
+			"bpl   "
+			"bmi   "
+			"bvc   "
+			"bvs   "
+			"bge   "
+			"blt   "
+			"fadd  "
+			"fsub  "
+			"fmul  "
+			"fdiv  "
+			"fneg  "
+			"fsngl "
+			"fuint "
+			"ffrac "
+			"fmvsg "
+			"fsat  "
+			"fcmp  "
+			"fdown "
+			"hadd  "
+			"hsub  "
+			"hmul  "
+			"hdiv  "
+			"hneg  "
+			"hhalf "
+			"huint "
+			"hfrac "
+			"hmvsg "
+			"hsat  "
+			"hcmp  "
+			"mulur "
+			"mulsr "
+			"divur "
+			"divsr "
+			"csft  "
+			"ldl   "
+			"stl   "
+			"ldlsp "
+			"stlsp "
+			"ldbx  "
+			"stbx  "
+			"ldwx  "
+			"stwx  "
+			"or    "
+			"and   "
+			"eor   "
+			"mov   "
+			"movtc "
+			"movfc "
+			"add   "
+			"adc   "
+			"sub   "
+			"sbb   "
+			"cmp   "
+			"cmb   "
+			"ldb   "
+			"stb   "
+			"ldw   "
+			"stw   "
+			"lsft  "
+			"asft  "
+			"ldwsp "
+			"stwsp "
+			"mulu  "
+			"muls  "
+			"divu  "
+			"divs  "
+			"sbbz  "
+			"cmbz  "
+			"ldli  "
+			"cendl "
+			"pushl "
+			"popl  "
+			"pushcl"
+			"popcl "
+			"adcz  "
+			"jall  "
+			"jmp   "
+			"jalw  "
+			"sesrl "
+			"sesrh "
+			"clsrl "
+			"clsrh "
+			"exsgl "
+			"exzrl "
+			"neg   "
+			"not   "
+			"cendw "
+			"exsgw "
+			"pushw "
+			"popw  "
+			"pushcw"
+			"popcw "
+			"ori   "
+			"andi  "
+			"eori  "
+			"addi  "
+			"subi  "
+			"cmpi  "
+			"ldbiu "
+			"ldbil "
+			"ldbih "
+			"ldcl  "
+			"ldch  "
+			"lsfti "
+			"asfti "
+			"csfti "
+			"org   "
+			"datw  "
+			"align "
+			"srbk0 "
+			"srbk1 "
+			"srie0 "
+			"srie1 ";
+	macro	opcd=
+			"0000 "
+			"0001 "
+			"0002 "
+			"0003 "
+			"0004m"
+			"0005m"
+			"0006m"
+			"0007m"
+			"0008n"
+			"0009n"
+			"000A "
+			"000Bn"
+			"000Cm"
+			"000Dm"
+			"0800 "
+			"1000 "
+			"1800 "
+			"2000 "
+			"2000 "
+			"2800 "
+			"2800 "
+			"3000 "
+			"3800 "
+			"4000 "
+			"4800 "
+			"5000 "
+			"5800 "
+			"7000n"
+			"7040n"
+			"7080n"
+			"70C0n"
+			"7100n"
+			"7140n"
+			"7180n"
+			"71C0n"
+			"7200n"
+			"7240n"
+			"7280n"
+			"72C0n"
+			"7000t"
+			"7040t"
+			"7080t"
+			"70C0t"
+			"7100t"
+			"7140t"
+			"7180t"
+			"71C0t"
+			"7200t"
+			"7240t"
+			"7280t"
+			"7400 "
+			"7440 "
+			"7480t"
+			"74C0t"
+			"75C0 "
+			"7600n"
+			"7640n"
+			"7680n"
+			"76C0n"
+			"7700t"
+			"7740t"
+			"7780t"
+			"77C0t"
+			"7800 "
+			"7840 "
+			"7880 "
+			"78C0 "
+			"7900 "
+			"7940 "
+			"7980 "
+			"79C0 "
+			"7A00 "
+			"7A40 "
+			"7A80 "
+			"7AC0 "
+			"7B00 "
+			"7B40 "
+			"7B80 "
+			"7BC0 "
+			"7C00 "
+			"7C40 "
+			"7C80t"
+			"7CC0t"
+			"7D00 "
+			"7D40 "
+			"7D80t"
+			"7DC0t"
+			"7F00 "
+			"7F08 "
+			"7F40n"
+			"7F48n"
+			"7F50n"
+			"7F58n"
+			"7F60n"
+			"7F68n"
+			"7F70 "
+			"7F78n"
+			"7F80 "
+			"7F88 "
+			"7F90 "
+			"7F98 "
+			"7FA0 "
+			"7FA8 "
+			"7FB0 "
+			"7FB8 "
+			"7FC0 "
+			"7FC8 "
+			"7FD0 "
+			"7FD8 "
+			"7FE0 "
+			"7FE8 "
+			"7FF0 "
+			"7FF8 "
+			"8000 "
+			"8800 "
+			"9000 "
+			"9800 "
+			"A000 "
+			"A800 "
+			"B000 "
+			"B800 "
+			"C000 "
+			"C800 "
+			"D000 "
+			"D800 "
+			"E000 "
+			"E800 ";
+
+
+	// variables
+	var		DATFMT=DFDATW;				// output data file format
+	var		ROMSIZ=4096;				// DFDAT: ROM size [byte]
+	var		ROMUNT=4096;				// DFDAT: ROM unit size [byte]
+	var		LISOUT=false;				// true=output .lis file
+	var		TGTCORE=TGTANY;				// TGTANY=all
+	var		ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));		// CL-ROM addr. bits
+	macro	incl_dir="INCL";
+	macro	dir,file,ext;
+	pathsplit	$(pathname), dir,file,ext;
+	zero	1e-40;						// strengthen zero threshold
+
+
+	// procedures
+	procedure	dbl2half	dbl
+	{
+		// 浮動小数点数値dblをhalf型のバイナリデータに変換する
+		var		sx,ex,fx;
+
+		// sign
+		sx=0;
+		if (dbl<0)
+		{
+			sx=1;
+		}
+		elif (dbl=0)
+		{
+			dbl2half=0;
+			mlet	dbl2half="0x0000";
+			return;
+		}
+		// exponent and fraction
+		ex=0;
+		fx=abs (dbl);
+		while (fx<1)
+		{
+			fx=fx*2;
+			ex=ex - 1;
+		}
+		while (fx>=2)
+		{
+			fx=fx/2;
+			ex=ex + 1;
+		}
+		if (ex<-14)
+		{
+			// zero
+			ex=-15;
+			fx=0;
+		}
+		elif (ex>15)
+		{
+			// INF
+			ex=16;
+			fx=0;
+		}
+		// convert fx to 11 bits binary
+		fx=floor (fx*0x0400);
+		fx=@(fx&0x03ff);
+		// half type
+		dbl2half=sx*0x8000 + (ex + 15)*0x0400 + fx;
+		num2str		dbl2half=dbl2half,"%04x";
+		psub	"^","0x",dbl2half;
+	}
+	procedure	dbl2sngl	dbl
+	{
+		// 浮動小数点数値dblをfloat型のバイナリデータに変換する
+		var		sx,ex,fx;
+
+		// sign
+		sx=0;
+		if (dbl<0)
+		{
+			sx=1;
+		}
+		elif (dbl=0)
+		{
+			dbl2sngl=0;
+			mlet	dbl2sngl="0x00000000";
+			return;
+		}
+		// exponent and fraction
+		ex=0;
+		fx=abs (dbl);
+		while (fx<1)
+		{
+			fx=fx*2;
+			ex=ex - 1;
+		}
+		while (fx>=2)
+		{
+			fx=fx/2;
+			ex=ex + 1;
+		}
+		if (ex<-126)
+		{
+			// zero
+			ex=-127;
+			fx=0;
+		}
+		elif (ex>127)
+		{
+			// INF
+			ex=128;
+			fx=0;
+		}
+		// convert fx to 24 bits binary
+		fx=floor (fx*0x0080_0000);
+		fx=@(fx&0x007f_ffff);
+		// float type
+		dbl2sngl=sx*0x8000_0000 + (ex + 127)*0x0080_0000 + fx;
+		num2str		dbl2sngl=dbl2sngl,"%08x";
+		psub	"^","0x",dbl2sngl;
+	}
+	procedure	def_strmcr	$$opr1,$$opr2
+	{
+		// define string macro $(opr1) as $(opr2)
+		//	If string macro $(opr1) is already defined,
+		//		$(opr1) will be overwritten by string $(opr2).
+		var		idx2;
+
+		// search for the string macro $(opr1) in the list
+		while (idx2<n_def)
+		{
+			strcmp	cmp=$(def_lst#(idx2)),$(opr1);
+			if (cmp=0)
+			{
+				break;
+			}
+			// continue
+			idx2=idx2 + 1;
+		}
+		// define or overwrite
+		static : nmacro	def_lst#(idx2);
+		static : nmacro	def_str#(idx2);
+		mlet	def_lst#(idx2)=$(opr1);
+		mlet	def_str#(idx2)=$(opr2);
+		if (idx2>=n_def)
+		{
+			n_def=n_def + 1;
+		}
+	}
+	procedure	do_preproc
+	{
+		// preprocess
+		procedure	skip_space
+		{
+			var		ptr;
+			macro	chr;
+			nmacro	delm=" ,	";
+
+			while (true)
+			{
+				substr	chr=$(lbuf),idx,1;
+				strcmp	ptr=$(chr),"";
+				if (ptr=0)
+				{
+					break;
+				}
+				index	ptr=$(delm),$(chr);
+				if (ptr<=0)
+				{
+					break;
+				}
+				// continue;
+				idx=idx + 1;
+			}
+		}
+		procedure	get_word
+		{
+			var		ptr;
+			var		cod;
+			var		quo;
+			macro	chr;
+			nmacro	delm=" ,	";
+
+			quo=false;
+			while (true)
+			{
+				substr	chr=$(lbuf),idx,1;
+				strcmp	ptr=$(chr),"";
+				if (ptr=0)
+				{
+					break;
+				}
+				index	ptr=$(delm),$(chr);
+				if (ptr>0)
+				{
+					break;
+				}
+				strcmp	ptr=$(chr),$";
+				if (ptr=0)
+				{
+					quo=true;
+					idx=idx + 1;
+					while (true)
+					{
+						substr	chr=$(lbuf),idx,1;
+						strcmp	ptr=$(chr),"";
+						if (ptr=0)
+						{
+							break;
+						}
+						strcmp	ptr=$(chr),$";
+						if (ptr=0)
+						{
+							idx=idx + 1;
+							break;
+						}
+						strcmp	ptr=$(chr),"\";
+						if (ptr=0)
+						{
+							strcat	get_word,$(chr);
+							idx=idx + 1;
+							substr	chr=$(lbuf),idx,1;
+						}
+						chr2num		cod=$(chr);
+						if (cod>255)
+						{
+							idx=idx + 1;
+						}
+						strcat	get_word,$(chr);
+						// continue
+						idx=idx + 1;
+					}
+					break;
+				}
+				strcat	get_word,$(chr);
+				// continue;
+				idx=idx + 1;
+			}
+			if (!quo)
+			{
+				psub	"#.*","",get_word;
+				psub	"//.*","",get_word;
+			}
+		}
+		procedure	get_chr_cod
+		{
+			var		cmp;
+			macro	chr;
+
+			substr	chr=$(get_word),idx,1;
+			idx=idx + 1;
+			chr2num		get_chr_cod=$(chr);
+			strcmp	cmp=$(chr),"\";
+			if (cmp=0)
+			{
+				substr	chr=$(get_word),idx,1;
+				chr2num		get_chr_cod=$(chr);
+				idx=idx + 1;
+				strcmp	cmp=$(chr),"0";
+				if (cmp=0)
+				{
+					get_chr_cod=0;
+				}
+				strcmp	cmp=$(chr),"t";
+				if (cmp=0)
+				{
+					get_chr_cod=9;
+				}
+				strcmp	cmp=$(chr),"n";
+				if (cmp=0)
+				{
+					get_chr_cod=10;
+				}
+				strcmp	cmp=$(chr),"r";
+				if (cmp=0)
+				{
+					get_chr_cod=13;
+				}
+				strcmp	cmp=$(chr),"x";
+				if (cmp=0)
+				{
+					macro	chr2;
+					substr	chr=$(get_word),idx,1;
+					idx=idx + 1;
+					substr	chr2=$(get_word),idx,1;
+					idx=idx + 1;
+					get_chr_cod="0x"$(chr)$(chr2);
+				}
+			}
+		}
+		procedure	get_newline
+		{
+			// get line
+			static : fgetl	fin,lbuf;
+			do_preproc=status;
+			if (do_preproc)
+			{
+				return;
+			}
+			// string macro replacement
+			index	idx=$(lbuf),"$(";
+			if (idx>0)
+			{
+				var		idx2;
+				while (idx2<n_def)
+				{
+					gsub	"$("$(def_lst#(idx2))")",$(def_str#(idx2)),lbuf;
+					if (status>0)
+					{
+						redo_pp=true;
+					}
+					// continue
+					idx2=idx2 + 1;
+				}
+			}
+			// ignore "#" comment line
+			pindex	idx=$(lbuf),"^[ \t]*#";
+			if (idx>0)
+			{
+				get_newline;
+			}
+			// initialize
+			idx=1;
+			skip_space;
+		}
+
+		var		idx;
+		var		ptr;
+		var		cmp;
+		macro	chr;
+		macro	scod;
+		macro	mnem;
+		macro	opr1;
+		macro	opr2;
+
+		get_newline;
+		if (do_preproc)
+		{
+			return;
+		}
+		get_word;
+		tolower		get_word;
+		mlet	mnem=$(get_word);
+
+		// pseudo instructions
+		strcmp	ptr=$(mnem),"asm";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	fnam_out=$(dir)$/$(get_word);
+			DATFMT=DFMIF;
+			pindex	ptr=$(fnam_out),"\.[Mm][Ii][Ff]$";
+			if (ptr>0)
+			{
+				DATFMT=DFMIF;
+			}
+			pindex	ptr=$(fnam_out),"\.[Vv]$";
+			if (ptr>0)
+			{
+				DATFMT=DFVLOG;
+			}
+			pindex	ptr=$(fnam_out),"\.[Dd][Aa][Tt]$";
+			if (ptr>0)
+			{
+				DATFMT=DFDAT;
+			}
+			pindex	ptr=$(fnam_out),"\.[Dd][Aa][Tt][Ww]$";
+			if (ptr>0)
+			{
+				DATFMT=DFDATW;
+			}
+			pindex	ptr=$(fnam_out),"\.[Mm][Ee][Mm]$";
+			if (ptr>0)
+			{
+				DATFMT=DFDATW;
+			}
+			pindex	ptr=$(fnam_out),"\.[Dd][Aa][Tt]2$";
+			if (ptr>0)
+			{
+				DATFMT=DFDAT2;
+			}
+			// option
+			LISOUT=false;
+			while (true)
+			{
+				idx=idx + 1;
+				skip_space;
+				get_word;
+				strcmp	cmp=$(get_word),"";
+				if (cmp=0)
+				{
+					break;
+				}
+				strcmp	cmp=$(get_word),"list";
+				if (cmp=0)
+				{
+					LISOUT=true;
+				}
+				strcmp	cmp=$(get_word),"moscovium", ics_match;
+				if (cmp=0)
+				{
+					TGTCORE=TGTMCVM;
+					def_strmcr	"target_mc","";
+					def_strmcr	"target_nh","#";
+					def_strmcr	"target_ts","#";
+					def_strmcr	"target_mn","";
+				}
+				strcmp	cmp=$(get_word),"nihonium", ics_match;
+				if (cmp=0)
+				{
+					TGTCORE=TGTNIHO;
+					def_strmcr	"target_mc","#";
+					def_strmcr	"target_nh","";
+					def_strmcr	"target_ts","#";
+					def_strmcr	"target_mn","";
+				}
+				strcmp	cmp=$(get_word),"tennessine", ics_match;
+				if (cmp=0)
+				{
+					TGTCORE=TGTTNSN;
+					def_strmcr	"target_mc","#";
+					def_strmcr	"target_nh","#";
+					def_strmcr	"target_ts","";
+					def_strmcr	"target_mn","#";
+				}
+			}
+
+			return;
+		}
+		strcmp	ptr=$(mnem),"romsiz";
+		if (ptr=0)
+		{
+			// ROMSIZ
+			skip_space;
+			get_word;
+			ROMSIZ=$(get_word);
+			// ROMUNT
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			strcmp	cmp=$(get_word),"";
+			if (cmp!=0)
+			{
+				ROMUNT=$(get_word);
+			}
+			ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));
+
+			return;
+		}
+		strcmp	ptr=$(mnem),"incl";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			ifnacc	$(dir)$/$(get_word)
+			{
+				ifacc	$(dir)$/$(incl_dir)$/$(get_word)
+				{
+					mlet	get_word=$(incl_dir)$/$(get_word);
+				}
+				else
+				{
+					// ERROR:
+					errmsg	"incl: open file:"$,$(dir)$/$(get_word);
+					leave	stop_error;
+				}
+			}
+			var		fin2;
+			fopen	fin2,$(dir)$/$(get_word),"r";
+			fgets	fin2,tbuf;
+			while (status=0)
+			{
+				fputl	fout,$(tbuf);
+				// continue
+				fgets	fin2,tbuf;
+			}
+			fclose	fin2;
+			redo_pp=true;
+			return;
+		}
+		strcmp	ptr=$(mnem),"equ";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			pindex	cmp=$(opr2),"^[0-9_]+$";
+			if (cmp=0)
+			{
+				pindex	cmp=$(opr2),"^0[xX][0-9a-fA-F_]+$";
+			}
+			if (cmp=0)
+			{
+				pindex	cmp=$(opr2),"^0[bB][01_]+$";
+			}
+			if (cmp>0)
+			{
+				fprint	fout,"## const (#)"$(opr1)"="$(opr2)$,,cmp;
+				static : nvar	$(opr1)=@($(opr2));
+			}
+			else
+			{
+				fprint	fout,"@static : nvar	"$(opr1)"; "
+						$(opr1)"=@("$(opr2)");"$,;
+			}
+			fprint	flab,$(opr1)$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"equh";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			dbl2half	$(opr2);
+			tolower		opr1;
+			fprint	fout,"@static : nvar	"$(opr1)"; "
+					$(opr1)"="$(dbl2half)";"$,;
+			fprint	flab,$(opr1)$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"equf";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			dbl2sngl	$(opr2);
+			tolower		opr1;
+			fprint	fout,"@static : nvar	"$(opr1)"; "
+					$(opr1)"="$(dbl2sngl)";"$,;
+			fprint	flab,$(opr1)$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"def";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			tolower		opr1;
+			strcmp	cmp=$(opr1),"";
+			if (cmp=0)
+			{
+				// ERROR: empty string macro name
+				errmsg	"def: empty string macro name";
+				leave	stop_error;
+			}
+			def_strmcr	$(opr1),$(opr2);
+			return;
+		}
+		strcmp	ptr=$(mnem),"dats";
+		if (ptr=0)
+		{
+			var		len;
+			var		cod;
+			macro	cmnt;
+
+			if (redo_pp)
+			{
+				pgsub	"#","##",lbuf;
+				fprint	fout,$(lbuf)$,;
+				return;
+			}
+
+			skip_space;
+			get_word;
+			// convert dats to datw
+			strlen	len=$(get_word);
+			var		cod_nx;
+			idx=1;
+			while (idx<=len)
+			{
+				mlet	cmnt="";
+				// even
+				if (!cod_nx)
+				{
+					get_chr_cod;
+					cod_nx=get_chr_cod;
+				}
+				if (cod_nx>255)
+				{
+					// multi-byte character
+					num2chr		chr=cod_nx;
+					num2str		scod=cod_nx,"%04x";
+					fprint	fout,"datw 0x"$(scod)"	// "$(chr)$,;
+					// continue
+					idx=idx + 1;
+					cod_nx=0;
+					continue;
+				}
+				num2chr		chr=cod_nx;
+				strcat	cmnt,$(chr);
+				cod=@(cod_nx<<8);
+				cod_nx=0;
+				// odd
+				get_chr_cod;
+				if (get_chr_cod>255)
+				{
+					// multi-byte character (odd position)
+					cod_nx=@(get_chr_cod&0xff);
+					get_chr_cod=@(get_chr_cod>>8);
+					idx=idx + 1;
+				}
+				num2chr		chr=get_chr_cod;
+				strcat	cmnt,$(chr);
+				cod=cod + get_chr_cod;
+				// datw
+				pgsub	"#","##",cmnt;
+				num2str		scod=cod,"%04x";
+				fprint	fout,"datw 0x"$(scod)"	// "$(cmnt)$,;
+			}
+			if (cod_nx)
+			{
+				num2chr		chr=cod_nx;
+				num2str		scod=@(cod_nx<<8),"%04x";
+				fprint	fout,"datw 0x"$(scod)"	// "$(chr)$,;
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"datb";
+		if (ptr=0)
+		{
+			var		cod;
+
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			// convert datb to datw
+			while (true)
+			{
+				// even
+				var		dat;
+				skip_space;
+				get_word;
+				strcmp	cmp=$(get_word),"";
+				if (cmp=0)
+				{
+					break;
+				}
+				dat=@($(get_word));
+				if (dat<-128 | 255<dat)
+				{
+					errmsg	"datb outof range: "$(get_word)"=#",dat;
+					leave	stop_error;
+				}
+				cod=@((dat&0xff)<<8);
+				idx=idx + 1;
+				// odd
+				skip_space;
+				get_word;
+				idx=idx + 1;
+				dat=@($(get_word));
+				if (dat<-128 | 255<dat)
+				{
+					errmsg	"datb outof range: "$(get_word)"=#",dat;
+					leave	stop_error;
+				}
+				cod=cod + @(dat);
+				// datw
+				num2str		scod=@(cod&0xffff),"%04x";
+				fprint	fout,"datw 0x"$(scod)$,;
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"datw";
+		if (ptr=0)
+		{
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			// convert datw to datw
+			while (true)
+			{
+				var		dat;
+
+				skip_space;
+				get_word;
+				strcmp	cmp=$(get_word),"";
+				if (cmp=0)
+				{
+					break;
+				}
+				idx=idx + 1;
+				// datw
+				index	cmp=$(get_word),"@(";
+				if (cmp>0)
+				{
+					fprint	fout,"datw	"$(get_word)$,;
+				}
+				else
+				{
+					fprint	fout,"datw	0+@("$(get_word)")"$,;
+				}
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"datl";
+		if (ptr=0)
+		{
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			// convert datl to datw
+			while (true)
+			{
+				skip_space;
+				get_word;
+				strcmp	cmp=$(get_word),"";
+				if (cmp=0)
+				{
+					break;
+				}
+				idx=idx + 1;
+				// datw
+				fprint	fout,"datw	0+@(("$(get_word)")>>16)"$,;
+				fprint	fout,"datw	0+@(("$(get_word)")&0xffff)"$,;
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"dath";
+		if (ptr=0)
+		{
+			var		cod;
+
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			// convert dath to datw
+			while (true)
+			{
+				var		dat;
+
+				skip_space;
+				get_word;
+				strcmp	cmp=$(get_word),"";
+				if (cmp=0)
+				{
+					break;
+				}
+				idx=idx + 1;
+				dbl2half	$(get_word);
+				// datw
+				fprint	fout,"datw	"$(dbl2half)$,;
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"datf";
+		if (ptr=0)
+		{
+			var		cod;
+
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			// convert datf to datw
+			while (true)
+			{
+				var		dat;
+
+				skip_space;
+				get_word;
+				strcmp	cmp=$(get_word),"";
+				if (cmp=0)
+				{
+					break;
+				}
+				idx=idx + 1;
+				dbl2sngl	$(get_word);
+				// datw
+				psub	"^0x(....)","0x\1"$,"datw	0x",dbl2sngl;
+				fprint	fout,"datw	"$(dbl2sngl)$,;
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"rept";
+		if (ptr=0)
+		{
+			var		num;
+			macro	tbdy;
+
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+
+			skip_space;
+			// repeat count
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			num=@($(get_word));
+			maxv	num=0;
+			// repeat body
+			get_newline;
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			mlet	mnem=$(get_word);
+			strcmp	ptr=$(get_word),"endr";
+			while (ptr)
+			{
+				strcmp	ptr=$(get_word),"rept";
+				if (ptr=0)
+				{
+					// ERROR: repeat in repeat definition
+					errmsg	"repeat: repeat in repeat definition";
+					leave	stop_error;
+				}
+				psub	"#.*","",lbuf;
+				strcat	tbdy,$(lbuf)$,;
+				// continue
+				get_newline;
+				if (do_preproc)
+				{
+					// ERROR: EOF detected
+					errmsg	"repeat: EOF detected";
+					leave	stop_error;
+				}
+				get_word;
+				idx=idx + 1;
+				tolower		get_word;
+				mlet	mnem=$(get_word);
+				strcmp	ptr=$(get_word),"endr";
+			}
+			tolower		tbdy;
+			// expansion
+			macro	tbuf;
+			var		idx2;
+			while (idx2<num)
+			{
+				mlet	tbuf=$(tbdy);
+				gsub	"$(reptn)",#(num),tbuf;
+				gsub	"$(repti)",#(idx2),tbuf;
+				gsub	"$(reptr)",#(num - 1 - idx2),tbuf;
+				fprint	fout,$(tbuf);
+				// continue
+				idx2=idx2 + 1;
+			}
+			redo_pp=true;
+			return;
+		}
+
+		// integrated macro instructions
+		strcmp	ptr=$(mnem),"ldi";
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"ldc";
+		}
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"ldwi";
+			if (ptr=0)
+			{
+				mlet	mnem="ldi";
+			}
+		}
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			fprint	fout,$(mnem)"h	"$(opr1)",(("$(opr2)")>>8)&0xff"$,;
+			fprint	fout,$(mnem)"l	"$(opr1)",("$(opr2)")&0xff"$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"hldi";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			dbl2half	$(opr2);
+			fprint	fout,"ldih	"$(opr1)",(("$(dbl2half)")>>8)&0xff"$,;
+			fprint	fout,"ldil	"$(opr1)",("$(dbl2half)")&0xff"$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"fldi";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			dbl2sngl	$(opr2);
+			// ldli
+			fprint	fout,"ldli	"$(opr1)$,;
+			// datw
+			fprint	fout,"datw	0+@(("$(dbl2sngl)")>>16)"$,;
+			fprint	fout,"datw	0+@(("$(dbl2sngl)")&0xffff)"$,;
+			return;
+		}
+		pindex	ptr=$(mnem),"^jalr[0-7]$";
+		if (ptr<=0)
+		{
+			pindex	ptr=$(mnem),"^jalwr[0-7]$";
+		}
+		if (ptr<=0)
+		{
+			pindex	ptr=$(mnem),"^jallr[0-7]$";
+		}
+		if (ptr<=0)
+		{
+			pindex	ptr=$(mnem),"^jmpr[0-7]$";
+		}
+		if (ptr>0)
+		{
+			mlet	opr1=$(mnem);
+			psub	"[jalmpw]*(r[0-7])","\1",opr1;
+			psub	"r[0-7]$","",mnem;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			fprint	fout,"ldih	"$(opr1)",(lab_"$(opr2)")>>8"$,;
+			fprint	fout,"ldil	"$(opr1)",(lab_"$(opr2)")&0xff"$,;
+			fprint	fout,$(mnem)"	"$(opr1)$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"pushm";
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"pushwm";
+		}
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"pushlm";
+		}
+		if (ptr=0)
+		{
+			var		ptr;
+			macro	stk_siz;
+
+			mlet	stk_siz=$(mnem);
+			psub	"push([^m]*)m","\1",stk_siz;
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			while (true)
+			{
+				skip_space;
+				get_word;
+				strcmp	ptr=$(get_word),"";
+				if (ptr=0)
+				{
+					break;
+				}
+				idx=idx + 1;
+				// push
+				tolower		get_word;
+				pindex	ptr=$(get_word),"^r[0-7]$";
+				if (ptr>0)
+				{
+					fprint	fout,"push"$(stk_siz)"	"$(get_word)$,;
+				}
+				else
+				{
+					strcmp	ptr=$(get_word),"sr";
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"pc";
+					}
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"sp";
+					}
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"iv";
+					}
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"tr";
+					}
+					if (ptr)
+					{
+						errmsg	"push"$(stk_siz)"m: bad register name";
+						leave	stop_error;
+					}
+					fprint	fout,"pushc"$(stk_siz)"	"$(get_word)$,;
+				}
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"popm";
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"popwm";
+		}
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"poplm";
+		}
+		if (ptr=0)
+		{
+			var		ptr;
+			macro	stk_siz;
+
+			mlet	stk_siz=$(mnem);
+			psub	"pop([^m]*)m","\1",stk_siz;
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			while (true)
+			{
+				skip_space;
+				get_word;
+				strcmp	ptr=$(get_word),"";
+				if (ptr=0)
+				{
+					break;
+				}
+				idx=idx + 1;
+				// push
+				tolower		get_word;
+				pindex	ptr=$(get_word),"^r[0-7]$";
+				if (ptr>0)
+				{
+					fprint	fout,"pop"$(stk_siz)"	"$(get_word)$,;
+				}
+				else
+				{
+					strcmp	ptr=$(get_word),"sr";
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"pc";
+					}
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"sp";
+					}
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"iv";
+					}
+					if (ptr)
+					{
+						strcmp	ptr=$(get_word),"tr";
+					}
+					if (ptr)
+					{
+						errmsg	"pop"$(stk_siz)"m: bad register name";
+						leave	stop_error;
+					}
+					fprint	fout,"popc"$(stk_siz)"	"$(get_word)$,;
+				}
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"sesr";
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"clsr";
+		}
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			fprint	fout,$(mnem)"l	"$(opr1)$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"seie";
+		if (ptr=0)
+		{
+			fprint	fout,"sesrl	3"$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"clie";
+		if (ptr=0)
+		{
+			fprint	fout,"clsrl	3"$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"srbk";
+		if (ptr)
+		{
+			strcmp	ptr=$(mnem),"srie";
+		}
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			fprint	fout,$(mnem)"1	("$(opr1)")>>1"$,;
+			fprint	fout,$(mnem)"0	("$(opr1)")&0x05"$,;
+			return;
+		}
+		pindex	ptr=$(mnem),"^[acl]s[lr]i$";
+		if (ptr>0)
+		{
+			// integrated macro: lsli, lsri, asli, asri, csli, csri
+			macro	sft_typ=$(mnem);
+			psub	"^([acl]).*","\1",sft_typ;
+			macro	sft_dir=$(mnem);
+			psub	".*([lr])i$","\1",sft_dir;
+			sub		"l","",sft_dir;
+			sub		"r","-",sft_dir;
+			skip_space;
+			get_word;
+			mlet	opr1=$(get_word);
+			idx=idx + 1;
+			skip_space;
+			get_word;
+			mlet	opr2=$(get_word);
+			idx=idx + 1;
+			fprint	fout,$(sft_typ)"sfti""	"$(opr1)","
+					$(sft_dir)"("$(opr2)")"$,;
+			return;
+		}
+		strcmp	ptr=$(mnem),"ldli";
+		if (ptr=0)
+		{
+			skip_space;
+			get_word;
+			fprint	fout,$(mnem)" "$(get_word)$,;
+			skip_space;
+			get_word;
+			strcmp	ptr=$(get_word),"";
+			if (ptr)
+			{
+				// datw
+				fprint	fout,"datw	0+@(("$(get_word)")>>16)"$,;
+				fprint	fout,"datw	0+@(("$(get_word)")&0xffff)"$,;
+			}
+			return;
+		}
+		strcmp	ptr=$(mnem),"link";
+		if (ptr=0)
+		{
+			fprint	fout,$(mnem)$,;
+			skip_space;
+			get_word;
+			strcmp	ptr=$(get_word),"";
+			if (ptr)
+			{
+				// datw
+				fprint	fout,"datw	0+@(("$(get_word)")&0xffff)"$,;
+			}
+			return;
+		}
+
+		// user macro definition
+		strcmp	ptr=$(mnem),"macro";
+		if (ptr=0)
+		{
+			macro	tmcr;
+			macro	tbdy;
+
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+
+			skip_space;
+			// macro name
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			strcmp	ptr=$(get_word),"";
+			if (ptr=0)
+			{
+				// ERROR: no macro name
+				errmsg	"macro: no macro name";
+				leave	stop_error;
+			}
+			strcat	tmcr,$(get_word)" ";
+			// search <macro_name>
+			var		idx2;
+			while (idx2<n_mcr)
+			{
+				strcmp	ptr=$(mcr_lst#(idx2)),$(tmcr),left;
+				if (ptr=0)
+				{
+					// <macro_name> already defined, over write it
+					break;
+				}
+				// continue
+				idx2=idx2 + 1;
+			}
+			// parameter
+			skip_space;
+			get_word;
+			idx=idx + 1;
+			strcmp	ptr=$(get_word),"";
+			while (ptr)
+			{
+				strcat	tmcr,$(get_word)" ";
+				// continue
+				skip_space;
+				get_word;
+				idx=idx + 1;
+				strcmp	ptr=$(get_word),"";
+			}
+			tolower		tmcr;
+			// macro body
+			get_newline;
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			mlet	mnem=$(get_word);
+			strcmp	ptr=$(get_word),"endm";
+			while (ptr)
+			{
+				strcmp	ptr=$(get_word),"macro";
+				if (ptr=0)
+				{
+					// ERROR: macro in macro definition
+					errmsg	"macro: macro in macro definition";
+					leave	stop_error;
+				}
+				psub	"#.*","",lbuf;
+				strcat	tbdy,$(lbuf)$,;
+				// continue
+				get_newline;
+				if (do_preproc)
+				{
+					// ERROR: EOF detected
+					errmsg	"macro: EOF detected";
+					leave	stop_error;
+				}
+				get_word;
+				idx=idx + 1;
+				tolower		get_word;
+				mlet	mnem=$(get_word);
+				strcmp	ptr=$(get_word),"endm";
+			}
+			tolower		tbdy;
+			// define
+			static : macro	mcr_lst#(idx2)=$(tmcr);
+			static : macro	mcr_bdy#(idx2)=$(tbdy);
+			if (idx2>=n_mcr)
+			{
+				n_mcr=n_mcr + 1;
+			}
+			return;
+		}
+
+		// user macro expansion
+		var		idx2;
+		while (idx2<n_mcr)
+		{
+			strcmp	ptr=$(mcr_lst#(idx2)),$(mnem)" ",left;
+			if (ptr=0)
+			{
+				break;
+			}
+			// continue
+			idx2=idx2 + 1;
+		}
+		if (idx2<n_mcr)
+		{
+			// expansion
+			var		num;
+			macro	tmcr=$(mcr_lst#(idx2));
+			macro	tbdy=$(mcr_bdy#(idx2));
+			field	num=tmcr;
+			// macro id
+			macro	tmcr_id;
+			num2str		tmcr_id=mcr_cnt,"%04x";
+			gsub	"$(macro)",$(tmcr_id),tbdy;
+			mcr_cnt=mcr_cnt + 1;
+			// parameter
+			idx=idx + 1;
+			var		idx3;
+			while (idx3<num - 2)
+			{
+				// get param
+				skip_space;
+				get_word;
+				idx=idx + 1;
+				// replace
+				gsub	"$("$(tmcr#(idx3 + 2))")",$(get_word),tbdy;
+				// continue
+				idx3=idx3 + 1;
+			}
+			fprint	fout,$(tbdy);
+			redo_pp=true;
+			return;
+		}
+
+		pindex	idx="^[ 	]*#",$(lbuf);
+		if (idx>0)
+		{
+			return;
+		}
+		pgsub	"#","##",lbuf;
+		fprint	fout,$(lbuf)$,;
+	}
+	procedure	do_1_line
+	{
+		var		cod;
+		var		rno;
+		var		cmp;
+		var		num;
+		var		idx;
+		var		tgt_core;
+		macro	swd;
+		macro	buf;
+		macro	scod;
+		macro	cmnt;
+		macro	mpcnt;
+
+		// comment line
+		mlet	cmnt="";
+		pindex	idx=$(lbuf),"^[ 	]*//";
+		if (idx>0)
+		{
+			mlet	cmnt=$(lbuf);
+			psub	"^[ 	]*//","//",cmnt;
+			pgsub	"#","##",cmnt;
+			fprint	fout,$(cmnt)$,;
+			return;
+		}
+
+		// preprocess
+		tolower		lbuf;
+		pgsub	"#.*","",lbuf;			// comment
+		pgsub	"//.*","",lbuf;			// comment
+		pgsub	"^[ 	]*","",lbuf;	// left side space
+		pgsub	"[ 	]*$","",lbuf;		// right side space
+		pgsub	","," ",lbuf;			// comma
+		pgsub	"[ 	]+"," ",lbuf;		// space
+		pgsub	"\[(r[0-7])\]","\1",lbuf;	// register indirect
+		pgsub	"\[sp[,+ ](r[0-7])\]","\1",lbuf;	// sp relative indirect
+		pgsub	"\[tr[,: ](r[0-7])\]","\1",lbuf;	// tr register pair
+		// empty line
+		strcmp	cmp=$(lbuf),"";
+		if (cmp=0)
+		{
+			return;
+		}
+		// MODELA line
+		strcmp	cmp=$(lbuf),"@", left;
+		if (cmp=0)
+		{
+			substr	lbuf=$(lbuf),2;
+			eval	$(lbuf);
+			return;
+		}
+
+		field	num=lbuf;
+
+		// label
+		num2str		mpcnt=pcnt,"%04x";
+		mlet	mpcnt="0x"$(mpcnt);
+		strcmp	cmp=$(lbuf1),":",right;
+		if(cmp=0)
+		{
+			fprint	fout,$(mpcnt)"	"$(lbuf1)$,;
+			psub	":$","",lbuf1;
+			ifvar	lab_$(lbuf1)
+			{
+				errmsg	"label ("$(lbuf1)") is already defined";
+				leave	stop_error;
+			}
+			static : var	lab_$(lbuf1)=pcnt;
+			psub	":$","",lbuf;
+			fprint	flab,"lab_"$(lbuf)$,;
+			return;
+		}
+
+		// alias
+		psub	"^rtn$","rtnw",lbuf1;
+		psub	"^jal$","jalw",lbuf1;
+		psub	"^cend$","cendw",lbuf1;
+		psub	"^exsg$","exsgw",lbuf1;
+		psub	"^push$","pushw",lbuf1;
+		psub	"^pop$","popw",lbuf1;
+		psub	"^pushc$","pushcw",lbuf1;
+		psub	"^popc$","popcw",lbuf1;
+		sub		"ldsp","ldwsp",lbuf1;
+		sub		"stsp","stwsp",lbuf1;
+		sub		"ldiu","ldbiu",lbuf1;
+		sub		"ldil","ldbil",lbuf1;
+		sub		"ldih","ldbih",lbuf1;
+		// mnemonic
+		substr	swd=$(lbuf1)"      ",1,MSIZ;
+		index	idx=$(mnem),$(swd);
+		if (idx<=0 | (idx - 1)%MSIZ)
+		{
+			errmsg	"bad mnemonic: # "$(lbuf),idx;
+			leave	stop_error;
+		}
+		idx=int ((idx - 1)/MSIZ);
+		substr	scod=$(opcd),5*idx + 1,4;
+		cod="0x"$(scod);
+		substr	buf=$(opcd),5*idx + 5,1;
+		chr2num		tgt_core=$(buf);
+		if (TGTCORE=TGTNIHO & tgt_core=0am)
+		{
+			macro	msg;
+			mlet	msg="WARNING: !Nihonium code ("$(swd)") generated.";
+			message		$(msg);
+			fprint	fout,"## "$(mpcnt)" "$(msg)$,;
+		}
+		elif (TGTCORE=TGTMCVM & tgt_core=0an)
+		{
+			macro	msg;
+			mlet	msg="WARNING: !Moscovium code ("$(swd)") generated.";
+			message		$(msg);
+			fprint	fout,"## "$(mpcnt)" "$(msg)$,;
+		}
+		elif (TGTCORE=TGTTNSN & (tgt_core=0an | tgt_core=0am | tgt_core=0at))
+		{
+			macro	msg;
+			mlet	msg="WARNING: !Tennessine code ("$(swd)") generated.";
+			message		$(msg);
+			fprint	fout,"## "$(mpcnt)" "$(msg)$,;
+		}
+		if (idx<MAX_NO)
+		{
+			// NO
+			num2bin		cod;
+			mlet	scod=$(num2bin);
+			fprint	fout,$(mpcnt)"	0x"$(scod)"	// "$(swd)$,;
+		}
+		elif (idx<MAX_BR)
+		{
+			// BR
+			num2bin		cod;
+			mlet	scod=$(num2bin);
+			fprint	fout,$(mpcnt)"	0x"
+					$(scod)"+@(((lab_"$(lbuf2)"-#)/2)&0x07ff)	// "
+					$(swd)" "$(lbuf2)$,,pcnt + 2;
+		}
+		elif (idx<MAX_RR)
+		{
+			// RR
+			// Rd
+			mlet	buf=$(lbuf2);
+			sub		"sr","r0",buf;
+			sub		"pc","r1",buf;
+			sub		"sp","r2",buf;
+			sub		"iv","r3",buf;
+			sub		"tr","r4",buf;
+			pindex	idx=$(buf),"^r[0-7]$";
+			if (idx<=0)
+			{
+				errmsg	"bad register name (Rd): "$(lbuf);
+				leave	stop_error;
+			}
+			psub	"^r([0-7])$","\1",buf;
+			cod=cod + @($(buf)<<3);
+			// Rs
+			nmacro	lbuf3="";
+			mlet	buf=$(lbuf3);
+			sub		"sr","r0",buf;
+			sub		"pc","r1",buf;
+			sub		"sp","r2",buf;
+			sub		"iv","r3",buf;
+			sub		"tr","r4",buf;
+			pindex	idx=$(buf),"^r[0-7]$";
+			if (idx<=0)
+			{
+				errmsg	"bad register name (Rs): "$(lbuf);
+				leave	stop_error;
+			}
+			psub	"^r([0-7])$","\1",buf;
+			cod=cod + @($(buf));
+			num2bin		cod;
+			mlet	scod=$(num2bin);
+			fprint	fout,$(mpcnt)"	0x"$(scod)"	// "$(swd)" "$(lbuf2)","
+					$(lbuf3)$,;
+		}
+		elif (idx<MAX_R)
+		{
+			// R
+			mlet	buf=$(lbuf2);
+			sub		"sr","r0",buf;
+			sub		"pc","r1",buf;
+			sub		"sp","r2",buf;
+			sub		"iv","r3",buf;
+			sub		"tr","r4",buf;
+			pindex	idx=$(buf),"^r[0-7]$";
+			if (idx<=0)
+			{
+				// imm4?
+				var		imm4;
+				imm4=$(lbuf2);
+				if (0<=imm4 & imm4<16)
+				{
+					if (imm4>7)
+					{
+						if (@(cod&0x08)=0)
+						{
+							// xxxl & imm4>7 -> xxxh, imm4 - 8
+							cod=cod + 0x08;
+							imm4=imm4 - 8;
+							psub	"l( *)$","h\1",swd;
+						}
+						else
+						{
+							// xxxh & imm4>7 -> xxxh, imm4 - 8
+							imm4=imm4 - 8;
+						}
+					}
+					mlet	buf="r"#(imm4);
+				}
+				else
+				{
+					// ERROR:
+					errmsg	"bad register name:"$,$(lbuf);
+					leave	stop_error;
+				}
+			}
+			psub	"^r([0-7])$","\1",buf;
+			cod=cod + $(buf);
+			num2bin		cod;
+			mlet	scod=$(num2bin);
+			fprint	fout,$(mpcnt)"	0x"$(scod)"	// "$(swd)" "$(lbuf2)$,;
+		}
+		elif (idx<MAX_RI)
+		{
+			// RI
+			// Rd
+			mlet	buf=$(lbuf2);
+			sub		"sr","r0",buf;
+			sub		"pc","r1",buf;
+			sub		"sp","r2",buf;
+			sub		"iv","r3",buf;
+			sub		"tr","r4",buf;
+			pindex	idx=$(buf),"^r[0-7]$";
+			if (idx<=0)
+			{
+				errmsg	"bad register name: "$(lbuf);
+				leave	stop_error;
+			}
+			psub	"^r([0-7])$","\1",buf;
+			cod=cod + @($(buf)<<8);
+			// imm8
+			index	idx=$(lbuf3),"lab_";
+			if (idx<=0)
+			{
+				var		imm8=@($(lbuf3));
+				if (imm8<0 | 255<imm8)
+				{
+					fprint	fout,"## "$(mpcnt)" WARNING: imm8 range over"$,;
+				}
+				cod=cod + @(imm8&0xff);
+			}
+			else
+			{
+				psub	"@\((.*)\)","\1",lbuf3;
+			}
+			num2bin		cod;
+			mlet	scod=$(num2bin);
+			if (idx<=0)
+			{
+				fprint	fout,$(mpcnt)"	0x"$(scod)"	// "$(swd)" "$(lbuf2)","
+						$(lbuf3)$,;
+			}
+			else
+			{
+				fprint	fout,$(mpcnt)"	0x"$(scod)"+@(("$(lbuf3)")&0xff)	// "
+						$(swd)" "$(lbuf2)","$(lbuf3)$,;
+			}
+		}
+		else
+		{
+			idx=idx - MAX_RI;
+			if (idx=0)
+			{
+				// org
+				strcmp	cmp=$(lbuf3),"align";
+				if (cmp=0)
+				{
+					var		algn=$(lbuf2);
+					pcnt=int ((pcnt + algn - 1)/algn)*algn;
+				}
+				else
+				{
+					pcnt=$(lbuf2);
+				}
+				if (pcnt<0 | 0xffff<pcnt | pcnt%2=1)
+				{
+					errmsg	"illegal org address: "$(lbuf);
+					leave	stop_error;
+				}
+				continue;
+			}
+			if (idx=1)
+			{
+				// datw
+				macro	chr1;
+				macro	chr2;
+				macro	stmp;
+
+				index	cmp=$(lbuf2),"lab_";
+				if (cmp>0)
+				{
+					mlet	stmp=$(lbuf2);
+					psub	"0\+@\((.*)\)","\1", stmp;
+					fprint	fout,$(mpcnt)"	"$(lbuf2)"	// datw   "$(stmp)$,;
+				}
+				else
+				{
+					cod=$(lbuf2);
+					cod=@(cod&0xffff);
+					num2chr		chr1=@(cod>>8);
+					num2chr		chr2=@(cod&0xff);
+					num2str		stmp=cod,"%04x";
+					gsub	"#","##",chr1;
+					gsub	"#","##",chr2;
+					substr	chr1=$(chr1)" ",1,1;
+					substr	chr2=$(chr2)" ",1,1;
+					mlet	chr1=$(chr1)$(chr2);
+					num2str		scod=cod,"%04x";
+					num2chr		chr2=cod;
+					strcmp	cmp=$(chr2),"";
+					if (cmp)
+					{
+						mlet	chr1=$(chr2);
+					}
+					gsub	"#","##",chr1;
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	"
+							"// datw   0x"$(stmp)"  "$(chr1)$,;
+				}
+			}
+			if (idx=2)
+			{
+				// align
+				var		algn=$(lbuf2);
+				var		pcnt_cur=pcnt;
+				pcnt=int ((pcnt + algn - 1)/algn)*algn;
+				if (pcnt<0 | 0xffff<pcnt | pcnt%2=1)
+				{
+					errmsg	"illegal align address: "$(lbuf);
+					leave	stop_error;
+				}
+				if (num<3)
+				{
+					cod=0x0000;			// omitted, default=nop code
+				}
+				else
+				{
+					cod=$(lbuf3);
+				}
+				num2str		scod=cod,"%04x";
+				while (pcnt_cur<pcnt)
+				{
+					num2str		mpcnt=pcnt_cur,"%04x";
+					mlet	mpcnt="0x"$(mpcnt);
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// align 0x"$(scod)$,;
+					// continue
+					pcnt_cur=pcnt_cur + 2;
+				}
+				continue;
+			}
+			if (3<=idx & idx<=6)
+			{
+				// srbk1 / srbk0 / srie1 / srie0
+				var		opr1=@($(lbuf2));
+				psub	"[01]","",swd;
+				psub	"\(([^)]*)\).*","("$(swd)"\1)",lbuf2;
+				if (@(opr1&0x05))
+				{
+					cod=0x7f90 + idx - 3;	// sesrl
+					num2bin		cod;
+					mlet	scod=$(num2bin);
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// sesrl  # "
+							$(lbuf2)$,,idx - 3;
+				}
+				else
+				{
+					cod=0x7fa0 + idx - 3;	// clsrl
+					num2bin		cod;
+					mlet	scod=$(num2bin);
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// clsrl  # "
+							$(lbuf2)$,,idx - 3;
+				}
+				//pcnt=pcnt + 2;
+				//continue;
+			}
+		}
+		pcnt=pcnt + 2;
+	}
+	procedure	num2bin		cod
+	{
+		// convert cod to 16 bits binary number string
+		var		idx;
+
+		if (HEX)
+		{
+			num2str		num2bin=cod,"%04x";
+			return;
+		}
+
+		idx=0;
+		while (idx<16)
+		{
+			cod=@@16(cod);
+			if (@(cod&0x8000))
+			{
+				strcat	num2bin, "1";
+			}
+			else
+			{
+				strcat	num2bin, "0";
+			}
+			cod=@(cod<<1);
+			// continue
+			idx=idx + 1;
+		}
+	}
+
+
+	// input file
+var		asm_start,asm_end;
+vtime	asm_start;
+	macro	fnam_inp=$(file)".asm";
+	var		rtn;
+	gui		openfile, rtn, "入力ファイル","入力ファイルを指定",fnam_inp;
+	if (rtn!=guiOK)
+	{
+		ifnacc	$(fnam_inp)
+		{
+			mlet	fnam_inp=$(file)".txt";
+		}
+		ifnacc	$(fnam_inp)
+		{
+			leave	stop_error;
+		}
+	}
+	pathsplit	$(fnam_inp), dir,file,ext;
+	macro	fnam_tmp=$(dir)$/$(file)".tmp";
+	macro	fnam_tmp2=$(dir)$/$(file)"_2.tmp";
+	macro	fnam_lst=$(dir)$/$(file)".lst";
+	macro	fnam_out=$(dir)$/$(file)".datw";
+	macro	fnam_lab=$(dir)$/$(file)".lab";
+
+
+	// open file
+	var		fin;
+	fopen	fin,$(fnam_inp),"r";
+	var		fout;
+	fopen	fout,$(fnam_tmp),"w";
+	var		redo_pp=true;
+	var		flab;
+	fopen	flab,$(fnam_lab),"w";
+
+	// init macro
+	var		n_def;
+	var		n_mcr;
+	var		mcr_cnt;
+
+	// pass 1 (preprocess)
+	fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+	while (redo_pp)
+	{
+		redo_pp=false;
+
+		// preprocessor
+		var		pcnt;
+		repeat
+		{
+			do_preproc;
+		} until (do_preproc!=0);
+
+		// close file
+		fclose	fout;
+		fclose	fin;
+
+		if (redo_pp)
+		{
+			fmove	$(fnam_tmp),$(fnam_tmp2), force;
+			fopen	fin,$(fnam_tmp2),"r";
+			fopen	fout,$(fnam_tmp),"w";
+		}
+	}
+
+
+	// open file
+	var		fin;
+	fopen	fin,$(fnam_tmp),"r";
+	var		fout;
+	fopen	fout,$(fnam_lst),"w";
+
+	// pass 2 (address label)
+	var		pcnt;
+	var		stat;
+	repeat
+	{
+		fgetl	fin,lbuf;
+		stat=status;
+		if (stat=0)
+		{
+			do_1_line;
+		}
+	} until (stat!=0);
+
+	// label list
+	fclose	flab;
+	fsort	$(fnam_lab),"",uniq;
+	fopen	flab,$(fnam_lab),"r";
+	fprint	fout,"## ================================"$,;
+	fprint	fout,"## label lists"$,;
+	fgetl	flab,lbuf;
+	while (fNF>0)
+	{
+		var		cmp;
+		macro	tbuf;
+		tolower		lbuf;
+		num2str		tbuf=@($(lbuf)),"%08x";
+		strcmp	cmp=$(tbuf),"0000", left;
+		if (false & cmp)
+		{
+			strcmp	cmp=$(tbuf),"ffff", ics_left;
+		}
+		if (cmp=0)
+		{
+			num2str		tbuf=@(($(lbuf))&0xffff),"%04x";
+		}
+		fprint	fout,"##	0x"$(tbuf)"	"$(lbuf)$,;
+		// continue
+		fgetl	flab,lbuf;
+	}
+	fclose	flab;
+
+	// string macro list
+	fprint	fout,"## string macro lists"$,;
+	var		ptr;
+	var		idx=0;
+	while (idx<n_def)
+	{
+		mlet	lbuf=$(def_lst#(idx))"	"$"$(def_str#(idx))$";
+		gsub	"#","##",lbuf;
+		index	ptr=$(lbuf),"	";
+		if (4 - (ptr - 1)%4<3)
+		{
+			sub		"	","		",lbuf;
+		}
+		fprint	fout,"##	"$(lbuf)$,;
+		// continue
+		idx=idx + 1;
+	}
+
+	// macro list
+	fprint	fout,"## user macro lists"$,;
+	idx=0;
+	while (idx<n_mcr)
+	{
+		mlet	lbuf=$(mcr_lst#(idx));
+		sub		" ","	",lbuf;
+		index	ptr=$(lbuf),"	";
+		if (4 - (ptr - 1)%4<3)
+		{
+			sub		"	","		",lbuf;
+		}
+		pgsub	"[ 	]*$","",lbuf;
+		fprint	fout,"##	"$(lbuf)$,;
+		// continue
+		idx=idx + 1;
+	}
+	fprint	fout,"## ================================"$,;
+
+	// close file
+	fclose	fout;
+	fclose	fin;
+
+	// open file
+	fopen	fin,$(fnam_lst),"r";
+	fopen	fout,$(fnam_out),"w";
+	mlet	fFS="	";
+
+	// pass 3 (code generation)
+	var		idx;
+	var		cod;
+	var		siz;
+	macro	buf;
+	varray	rom:1,#(ROMSIZ/2)=-1;
+	if (DATFMT=DFMIF)
+	{
+		fprint	fout,"DEPTH = #;"$,,ROMSIZ/2;
+		fprint	fout,"WIDTH = 16;"$,;
+		fprint	fout,"ADDRESS_RADIX = HEX;"$,;
+		fprint	fout,"DATA_RADIX = HEX;"$,;
+		fprint	fout,"CONTENT"$,;
+		fprint	fout,"BEGIN"$,;
+		num2str		buf=@(ROMSIZ/2 - 1),"%04x";
+		fprint	fout,"[0000.."$(buf)"] : ffff;"$,;
+	}
+	elif (DATFMT=DFVLOG)
+	{
+		macro	td,tfile,te;
+		pathsplit	$(fnam_out), td,tfile,te;
+		fprint	fout,"module	"$(tfile)" (adr,dat,romsiz);"$,;
+		fprint	fout,"input	[#:0]	adr;"$,,ROMBIT - 2;
+		fprint	fout,"output	[15:0]	dat;"$,;
+		fprint	fout,"output	[15:0]	romsiz;"$,;
+		fprint	fout,"reg		[15:0]	dat;"$,;
+		fprint	fout,"always	@(adr[#:0])"$,,ROMBIT - 2;
+		fprint	fout,"	case ({ adr[#:0],1'b0 })"$,,ROMBIT - 2;
+	}
+	repeat
+	{
+		fgetl	fin,lbuf;
+		stat=status;
+		if (stat=0)
+		{
+			// skip
+			strcmp	idx=$(lbuf),"#", left;
+			if (idx=0)
+			{
+				continue;
+			}
+			// comment
+			strcmp	idx=$(lbuf),"//", left;
+			if (idx=0)
+			{
+				pgsub	"#","##",lbuf;
+				if (DATFMT=DFMIF)
+				{
+					gsub	"//","--",lbuf;
+					fprint	fout,"	"$(lbuf)$,;
+				}
+				elif (DATFMT=DFVLOG | DATFMT=DFDATW)
+				{
+					fprint	fout,"	"$(lbuf)$,;
+				}
+				continue;
+			}
+			// label
+			pindex	idx=$(lbuf2),":$";
+			if (idx>0)
+			{
+				if (DATFMT=DFMIF)
+				{
+					fprint	fout,"		-- "$(lbuf2)$,;
+				}
+				elif (DATFMT=DFVLOG | DATFMT=DFDATW)
+				{
+					fprint	fout,"		// "$(lbuf2)$,;
+				}
+				continue;
+			}
+			var		lab_pcnt=@($(lbuf1)) + 2;
+			// branch
+			pindex	idx=$(lbuf2),"\+@";
+			if (idx>0)
+			{
+				// range check
+				pindex	idx=$(lbuf2),"\)&0x07ff\)$";
+				if (idx>0)
+				{
+					mlet	buf=$(lbuf2);
+					psub	".*@","@@",buf;
+					psub	"0x07ff","0xf800",buf;
+					cod=$(buf);
+					if (cod!=0 & cod!=0xf800)
+					{
+						pgsub	"#","##",lbuf;
+						errmsg	"branch too far: "$,$(lbuf);
+						fprint	fout,$(mpcnt)"ERROR: branch too far"
+							$,$(lbuf)$,;
+						leave	stop_error;
+					}
+				}
+				// relative address
+				cod=$(lbuf2);
+				num2bin		cod;
+				mlet	lbuf2=$(num2bin);
+			}
+			else
+			{
+				sub		"0x","",lbuf2;
+			}
+			siz=int ($(lbuf1));
+			rom#(siz/2 + 1)="0x"$(lbuf2);
+			if (DATFMT=DFMIF)
+			{
+				num2str		buf=siz/2,"%04x";
+				fprint	fout,$(buf)" : "$(lbuf2)";";
+				num2str		buf=siz,"%04x";
+				sub		"// ","-- "$(buf)"    ",lbuf3;
+				gsub	"#","##",lbuf3;
+				fprint	fout,"	"$(lbuf3)$,;
+			}
+			elif (DATFMT=DFVLOG)
+			{
+				num2str		buf=siz,"%0"#(ceil (ROMBIT/4))"x";
+				gsub	"#","##",lbuf3;
+				fprint	fout,"	#'h"$(buf)": dat[15:0]=16'h"$(lbuf2)";	"
+						$(lbuf3)$,,ROMBIT;
+			}
+			elif (DATFMT=DFDATW)
+			{
+				num2str		buf=$(lbuf1)/2,"%04x";
+				fprint	fout,"@"$(buf)"	"$(lbuf2);
+				num2str		buf=siz,"%04x";
+				sub		"// ","// "$(buf)"    ",lbuf3;
+				gsub	"#","##",lbuf3;
+				fprint	fout,"	"$(lbuf3)$,;
+			}
+		}
+	} until (stat!=0);
+	num2str		buf=siz + 2,"%04x";
+	if (DATFMT=DFMIF)
+	{
+		fprint	fout,"END;"$,;
+	}
+	elif (DATFMT=DFVLOG)
+	{
+		fprint	fout,"	default: dat[15:0]=16'hffff;"$,;
+		fprint	fout,"	endcase"$,;
+		fprint	fout,"	assign	romsiz[15:0]=16'h"$(buf)";	// # bytes"
+				$,,siz + 2;
+		fprint	fout,"endmodule"$,;
+	}
+	elif (DATFMT=DFDAT | DATFMT=DFDAT2)
+	{
+		var		num=1;
+		var		prev_adr=-1;
+		siz=0;
+		idx=1;
+		while (idx<=ROMSIZ/2)
+		{
+			if (DATFMT=DFDAT & siz>=ROMUNT)
+			{
+				// change output file
+				fclose	fout;
+				num=num + 1;
+				macro	td,tf,te;
+				pathsplit	$(fnam_out), td,tf,te;
+				fopen	fout,$(tf)"."#(num)"."$(te),"w";
+				siz=0;
+			}
+			if (DATFMT=DFDAT2)
+			{
+				if (rom#(idx)<0)
+				{
+					// continue
+					siz=siz + 2;
+					idx=idx + 1;
+					continue;
+				}
+				if (prev_adr + 1!=idx)
+				{
+					num2str		buf=(idx - 1)*2,"%04x";
+					fprint	fout,"@"$(buf)$,;
+				}
+				prev_adr=idx;
+			}
+			num2str		buf=rom#(idx),"%04x";
+			if (DATFMT=DFDAT)
+			{
+				if (rom#(idx)<0)
+				{
+					mlet	buf="ffff";
+				}
+				psub	"^(..)(..)","\2"$,"\1",buf;		// WORD.BE→BYTE.LE
+			}
+			fprint	fout,$(buf)$,;
+			// continue
+			siz=siz + 2;
+			idx=idx + 1;
+		}
+	}
+
+	// close file
+vtime	asm_end;
+if (false & DATFMT=DFDATW)
+{
+	fprint	fout,"// assemble time: # [s]"$,,(asm_end - asm_start)*24*3600;
+}
+	fclose	fout;
+	fclose	fin;
+
+
+	// delete temporary file
+	fdel	$(fnam_tmp);
+	fdel	$(fnam_tmp2);
+	fdel	$(fnam_lab);
+	if (!LISOUT)
+	{
+		fdel	$(fnam_lst);
+	}
+
+
+	leave	stop_error;
+}
+

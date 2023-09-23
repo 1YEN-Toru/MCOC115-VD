@@ -1,0 +1,625 @@
+# ================================
+# MxOC115 / NxOC113 / TSOC117 constants, I/O register address
+#		(c) 2021	1YEN Toru
+# ================================
+equ		simfnsh,0xf028					// simulation finish condition
+equ		simpass,0x8006
+equ		simfail,0xfff5
+equ		simneut,0xb333
+equ		simintr,0xf000					// simulation interrupt condition
+equ		simc_int0_0,0x1000				// simintr[INT0] field
+equ		simc_int0_1,0x1100
+equ		simc_int1_0,0x2000				// simintr[INT1] field
+equ		simc_int1_1,0x2200
+equ		simpord,0xf002					// simulation port direction
+equ		simpori,0xf004					// simulation port input
+equ		simusrd,0xf006					// simulation user port direction
+equ		simusri,0xf008					// simulation user port input
+equ		simctrl,0xf00a					// simulation control
+equ		simc_noto,0x0001				// simctrl[NOTO] bit
+equ		simc_rtck,0x0002				// simctrl[RTCK] bit
+equ		simc_tsim,0x0004				// simctrl[TSIM] bit
+equ		princtl,0xfff0					// simulation print unit
+equ		princhr,0xfff2
+equ		prindec,0xfff4
+equ		prinhex,0xfff6
+equ		prinhlf,0xfff8					// need: princtl[FLT]=0b00
+equ		prinflt,0xfff8					// need: princtl[FLT]!=0b00
+equ		prinhxl,0xfffc					// need: princtl[DEC]=0
+equ		prindcl,0xfffc					// need: princtl[DEC]=1
+equ		prin_nld,0x0001					// princtl[NLD] bit
+equ		prin_dec,0x0002					// princtl[DEC] bit
+equ		prin_flt_0,0x0000				// princtl[FLT] field
+equ		prin_flt_1,0x0004				//	"%f"
+equ		prin_flt_2,0x0008				//	"%e"
+equ		prin_flt_3,0x000c				//	"%g"
+# ================================
+equ		iramtop,0x4000					// iram top address
+equ		ramtop,0x5000					// ram top address
+equ		fcpu,24000000					// cpu clock speed [Hz]
+equ		led_builtin,0x07				// led built-in: port mask
+equ		led_builtin_g,0x04				// led built-in: green port
+equ		led_builtin_r,0x02				// led built-in: red port
+equ		led_builtin_b,0x01				// led built-in: blue port
+equ		sreg_b_id1,13					// sr: ID1 bit number
+equ		sreg_b_id0,12					// sr: ID0 bit number
+equ		sreg_b_ml,11					// sr register: ML bit number
+equ		sreg_b_dr,10					// sr register: DR bit number
+equ		sreg_b_sd,9						// sr register: SD bit number
+equ		sreg_b_nh,8						// sr register: NH bit number
+equ		sreg_b_nf,7						// sr: N flag bit number
+equ		sreg_b_cf,6						// sr: C flag bit number
+equ		sreg_b_vf,5						// sr: V flag bit number
+equ		sreg_b_zf,4						// sr: Z flag bit number
+equ		sreg_b_ie,3						// sr: IE bit number
+equ		sreg_b_ie1,3					// sr: IE1 bit number
+equ		sreg_b_ie0,2					// sr: IE0 bit number
+equ		sreg_b_bk1,1					// sr: BK1 bit number
+equ		sreg_b_bk0,0					// sr: BK0 bit number
+equ		sreg_b_b1,1						// sr: BK1 bit number
+equ		sreg_b_b0,0						// sr: BK0 bit number
+equ		sreg_id_0,0x0000				// sr[IDn] field
+equ		sreg_id_1,0x1000
+equ		sreg_id_2,0x2000
+equ		sreg_id_3,0x3000
+equ		sreg_ml,0x0800					// sr[ML] bit
+equ		sreg_dr,0x0400					// sr[DR] bit
+equ		sreg_sd,0x0200					// sr[SD] bit
+equ		sreg_nh,0x0100					// sr[NH] bit
+equ		sreg_fg,0x00f0					// sr[NCVZ] bit mask
+equ		sreg_nf,0x0080					// sr[N] bit
+equ		sreg_cf,0x0040					// sr[C] bit
+equ		sreg_vf,0x0020					// sr[V] bit
+equ		sreg_zf,0x0010					// sr[Z] bit
+equ		sreg_ie,0x0008					// sr[IE] bit
+equ		sreg_ie_0,0x0000				// sr[IEn] field
+equ		sreg_ie_1,0x0004
+equ		sreg_ie_2,0x0008
+equ		sreg_ie_3,0x000c
+equ		sreg_bk_0,0x0000				// sr[BKn] field
+equ		sreg_bk_1,0x0001
+equ		sreg_bk_2,0x0002
+equ		sreg_bk_3,0x0003
+equ		ivec_ve,0x0001					// iv[VE] bit
+equ		half_zer,0x0000					// hfpu, 0
+equ		half_zer_n,0x8000				// hfpu, -0
+equ		half_min,0x0400					// hfpu, 6.10e-05
+equ		half_min_n,0x8400				// hfpu, -6.10e-05
+equ		half_max,0x7bff					// hfpu, 65504
+equ		half_max_n,0xfbff				// hfpu, -65504
+equ		half_inf,0x7c00					// hfpu, +inf
+equ		half_inf_n,0xfc00				// hfpu, -inf
+equ		half_nan,0xfe00					// hfpu, nan
+equ		half_mpi,0x4248					// hfpu, pi
+equ		sngl_zer,0x0000_0000			// sfpu, 0
+equ		sngl_zer_n,0x8000_0000			// sfpu, -0
+equ		sngl_min,0x0080_0000			// sfpu, 1.1754944e-38
+equ		sngl_min_n,0x8080_0000			// sfpu, -1.1754944e-38
+equ		sngl_max,0x7f7f_ffff			// sfpu, 3.4028235e+38
+equ		sngl_max_n,0xff7f_ffff			// sfpu, -3.4028235e+38
+equ		sngl_inf,0x7f80_0000			// sfpu, +inf
+equ		sngl_inf_n,0xff80_0000			// sfpu, -inf
+equ		sngl_nan,0xffc0_0000			// sfpu, nan
+equ		sngl_mpi,0x4049_0fdb			// sfpu, pi
+# ================================
+# IDREG
+equ		idrgcode,0xf000					// idrg, R, word
+equ		idrgvers,0xf002					// idrg, R, word
+equ		idrgfcpu,0xf004					// idrg, R, word
+equ		idrgedit,0xf006					// idrg, R, word
+equ		idrgromt,0xf008					// idrg, R, word
+equ		idrgroms,0xf00a					// idrg, R, word
+equ		idrgramt,0xf00c					// idrg, R, word
+equ		idrgrams,0xf00e					// idrg, R, word
+# SYSTIM
+equ		sytmctl,0xf010					// sytm, RW, word
+equ		sytmtckh,0xf014					// sytm, R, word
+equ		sytmtckl,0xf016					// sytm, R, word
+equ		sytmmcrh,0xf018					// sytm, R, word
+equ		sytmmcrl,0xf01a					// sytm, R, word
+equ		sytmmilh,0xf01c					// sytm, R, word
+equ		sytmmill,0xf01e					// sytm, R, word
+equ		sytm_simu,0x8000				// sytmctl[SIMU] bit
+equ		sytm_tcoe,0x0080				// sytmctl[TCOE] bit
+equ		sytm_mcoe,0x0040				// sytmctl[MCOE] bit
+equ		sytm_mloe,0x0020				// sytmctl[MLOE] bit
+equ		sytm_rst,0x0001					// sytmctl[RST] bit
+# PORT8I8O#0
+equ		porin,0xf020					// port, R, word
+equ		porind,0xf022					// port, R, word
+equ		porsel,0xf024					// port, RW, word
+equ		pordir,0xf026					// port, RW, word
+equ		porout,0xf028					// port, RW, word
+equ		porset,0xf02a					// port, W, word
+equ		porclr,0xf02c					// port, W, word
+equ		porode,0xf02e					// port, RW, word
+# UART8N1#0
+equ		uartctl,0xf030					// uart, RW, word
+equ		uartbaud,0xf032					// uart, RW, word
+equ		uarttdat,0xf034					// uart, W, word
+equ		uartrdat,0xf036					// uart, R, word
+equ		uartbres,0xf03e					// uart, R, word
+equ		uart_ravl,0x0080				// uartctl[RAVL] bit
+equ		uart_rful,0x0040				// uartctl[RFUL] bit
+equ		uart_brdf,0x0020				// uartctl[BRDF] bit
+equ		uart_tful,0x0010				// uartctl[TFUL] bit
+equ		uart_frst,0x0008				// uartctl[FRST] bit
+equ		uart_rxe,0x0002					// uartctl[RXE] bit
+equ		uart_txe,0x0001					// uartctl[TXE] bit
+# TIM162#0
+equ		timctl0,0xf040					// tim0, RW, word
+equ		timflg0,0xf042					// tim0, RW, word
+equ		timpsc0,0xf044					// tim0, RW, word
+equ		timcnt0,0xf046					// tim0, RW, word
+equ		timprd0,0xf048					// tim0, RW, word
+equ		timcma0,0xf04a					// tim0, RW, word
+equ		timcmb0,0xf04c					// tim0, RW, word
+equ		timr_ocma_0,0x0000				// timctl[OCMA] field
+equ		timr_ocma_1,0x0040
+equ		timr_ocma_2,0x0080
+equ		timr_ocma_3,0x00c0
+equ		timr_ocmb_0,0x0000				// timctl[OCMB] field
+equ		timr_ocmb_1,0x0010
+equ		timr_ocmb_2,0x0020
+equ		timr_ocmb_3,0x0030
+equ		timr_cnte,0x0001				// timctl[CNTE] bit
+equ		timr_ovff,0x0080				// timflg[OVFF] bit
+equ		timr_cmaf,0x0040				// timflg[CMAF] bit
+equ		timr_cmbf,0x0020				// timflg[CMBF] bit
+equ		timr_ovfe,0x0008				// timflg[OVFE] bit
+equ		timr_cmae,0x0004				// timflg[CMAE] bit
+equ		timr_cmbe,0x0002				// timflg[CMBE] bit
+# TIM162#1
+equ		timctl1,0xf050					// tim1, RW, word
+equ		timflg1,0xf052					// tim1, RW, word
+equ		timpsc1,0xf054					// tim1, RW, word
+equ		timcnt1,0xf056					// tim1, RW, word
+equ		timprd1,0xf058					// tim1, RW, word
+equ		timcma1,0xf05a					// tim1, RW, word
+equ		timcmb1,0xf05c					// tim1, RW, word
+# INTC322D
+equ		intnum,0xf060					// intc, R, word
+equ		intofs,0xf060					// intc, W, word
+equ		intext,0xf062					// intc, RW, word
+equ		intcpu,0xf064					// intc, RW, word
+equ		intctl,0xf066					// intc, RW, word
+equ		intfcth,0xf068					// intc, R, word
+equ		intfct,0xf06a					// intc, R, word
+equ		intmskh,0xf06c					// intc, RW, word
+equ		intmsk,0xf06e					// intc, RW, word
+equ		intlev3,0xf138					// intc, RW, word
+equ		intlev2,0xf13a					// intc, RW, word
+equ		intlev1,0xf13c					// intc, RW, word
+equ		intlev0,0xf13e					// intc, RW, word
+equ		intc_fran2,32					// intnum: FRAR2 number
+equ		intc_ftan2,31					// intnum: FTAR2 number
+equ		intc_smrn2,30					// intnum: SMRR2 number
+equ		intc_smun2,29					// intnum: SMUR2 number
+equ		intc_fran1,28					// intnum: FRAR1 number
+equ		intc_ftan1,27					// intnum: FTAR1 number
+equ		intc_smrn1,26					// intnum: SMRR1 number
+equ		intc_smun1,25					// intnum: SMUR1 number
+equ		intc_cenn,24					// intbum: CENR number
+equ		intc_rtcn,23					// intbum: RTCR number
+equ		intc_ovfn1,16					// intnum: OVFR1 number
+equ		intc_cman1,15					// intnum: CMAR1 number
+equ		intc_cmbn1,14					// intnum: CMBR1 number
+equ		intc_ovfn0,12					// intnum: OVFR0 number
+equ		intc_cman0,11					// intnum: CMAR0 number
+equ		intc_cmbn0,10					// intnum: CMBR0 number
+equ		intc_mten,8						// intnum: MTER number
+equ		intc_mran,7						// intnum: MRAR number
+equ		intc_stan,6						// intnum: STAR number
+equ		intc_sran,5						// intnum: SRAR number
+equ		intc_ein1,4						// intnum: EIR1 number
+equ		intc_ein0,3						// intnum: EIR0 number
+equ		intc_icn2,2						// intnum: ICR2 number
+equ		intc_icn1,1						// intnum: ICR1 number
+equ		intc_eif1,0x0080				// intext[EIF1] bit
+equ		intc_eif0,0x0040				// intext[EIF0] bit
+equ		intc_eie1,0x0020				// intext[EIE1] bit
+equ		intc_eie0,0x0010				// intext[EIE0] bit
+equ		intc_eit1_0,0x0000				// intext[EIT1] field
+equ		intc_eit1_1,0x0004
+equ		intc_eit1_2,0x0008
+equ		intc_eit1_3,0x000c
+equ		intc_eit0_0,0x0000				// intext[EIT0] field
+equ		intc_eit0_1,0x0001
+equ		intc_eit0_2,0x0002
+equ		intc_eit0_3,0x0003
+equ		intc_icf,0x0080					// intcpu[ICF] bit
+equ		intc_ice,0x0008					// intcpu[ICE] bit
+equ		intc_icrq,0x0001				// intcpu[ICRQ] bit
+equ		intc_leve,0x0001				// intctl[LEVE] bit
+equ		intc_frar2,0x8000				// intfcth[FRAR2] bit
+equ		intc_ftar2,0x4000				// intfcth[FTAR2] bit
+equ		intc_smrr2,0x2000				// intfcth[SMRR2] bit
+equ		intc_smur2,0x1000				// intfcth[SMUR2] bit
+equ		intc_frar1,0x0800				// intfcth[FRAR1] bit
+equ		intc_ftar1,0x0400				// intfcth[FTAR1] bit
+equ		intc_smrr1,0x0200				// intfcth[SMRR1] bit
+equ		intc_smur1,0x0100				// intfcth[SMUR1] bit
+equ		intc_cenr,0x0080				// intfcth[CENR] bit
+equ		intc_rtcr,0x0040				// intfcth[RTCR] bit
+equ		intc_ovfr1,0x8000				// intfct[OVFR1] bit
+equ		intc_cmar1,0x4000				// intfct[CMAR1] bit
+equ		intc_cmbr1,0x2000				// intfct[CMBR1] bit
+equ		intc_ovfr0,0x0800				// intfct[OVFR0] bit
+equ		intc_cmar0,0x0400				// intfct[CMAR0] bit
+equ		intc_cmbr0,0x0200				// intfct[CMBR0] bit
+equ		intc_mter,0x0080				// intfct[MTER] bit
+equ		intc_mrar,0x0040				// intfct[MRAR] bit
+equ		intc_star,0x0020				// intfct[STAR] bit
+equ		intc_srar,0x0010				// intfct[SRAR] bit
+equ		intc_eir1,0x0008				// intfct[EIR1] bit
+equ		intc_eir0,0x0004				// intfct[EIR0] bit
+equ		intc_icr2,0x0002				// intfct[ICR2] bit
+equ		intc_icr1,0x0001				// intfct[ICR1] bit
+equ		intc_fram2,0x8000				// intmskh[FRAM2] bit
+equ		intc_ftam2,0x4000				// intmskh[FTAM2] bit
+equ		intc_smrm2,0x2000				// intmskh[SMRM2] bit
+equ		intc_smum2,0x1000				// intmskh[SMUM2] bit
+equ		intc_fram1,0x0800				// intmskh[FRAM1] bit
+equ		intc_ftam1,0x0400				// intmskh[FTAM1] bit
+equ		intc_smrm1,0x0200				// intmskh[SMRM1] bit
+equ		intc_smum1,0x0100				// intmskh[SMUM1] bit
+equ		intc_cenm,0x0080				// intmskh[CENM] bit
+equ		intc_rtcm,0x0040				// intmskh[RTCM] bit
+equ		intc_ovfm1,0x8000				// intmsk[OVFM1] bit
+equ		intc_cmam1,0x4000				// intmsk[CMAM1] bit
+equ		intc_cmbm1,0x2000				// intmsk[CMBM1] bit
+equ		intc_ovfm0,0x0800				// intmsk[OVFM0] bit
+equ		intc_cmam0,0x0400				// intmsk[CMAM0] bit
+equ		intc_cmbm0,0x0200				// intmsk[CMBM0] bit
+equ		intc_mtem,0x0080				// intmsk[MTEM] bit
+equ		intc_mram,0x0040				// intmsk[MRAM] bit
+equ		intc_stam,0x0020				// intmsk[STAM] bit
+equ		intc_sram,0x0010				// intmsk[SRAM] bit
+equ		intc_eim1,0x0008				// intmsk[EIM1] bit
+equ		intc_eim0,0x0004				// intmsk[EIM0] bit
+equ		intc_icm2,0x0002				// intmsk[ICM2] bit
+equ		intc_icm1,0x0001				// intmsk[ICM1] bit
+equ		intc_mskh_2,0xf000				// intmskh cpu2 mask
+equ		intc_mskh_1,0x0f00				// intmskh cpu1 mask
+equ		intc_msk_2,0x0002				// intmsk cpu2 mask
+equ		intc_msk_1,0x0001				// intmsk cpu1 mask
+equ		intc_icl1_0,0x0000				// intlev0[ICL1] field
+equ		intc_icl1_1,0x0001
+equ		intc_icl1_2,0x0002
+equ		intc_icl1_3,0x0003
+equ		intc_icl2_0,0x0004				// intlev0[ICL2] field
+equ		intc_icl2_1,0x0005
+equ		intc_icl2_2,0x0006
+equ		intc_icl2_3,0x0007
+equ		intc_eil0_0,0x0000				// intlev0[EIL0] field
+equ		intc_eil0_1,0x0010
+equ		intc_eil0_2,0x0020
+equ		intc_eil0_3,0x0030
+equ		intc_eil1_0,0x0000				// intlev0[EIL1] field
+equ		intc_eil1_1,0x0040
+equ		intc_eil1_2,0x0080
+equ		intc_eil1_3,0x00c0
+equ		intc_sral_0,0x0000				// intlev0[SRAL] field
+equ		intc_sral_1,0x0100
+equ		intc_sral_2,0x0200
+equ		intc_sral_3,0x0300
+equ		intc_stal_0,0x0000				// intlev0[STAL] field
+equ		intc_stal_1,0x0400
+equ		intc_stal_2,0x0800
+equ		intc_stal_3,0x0c00
+equ		intc_mral_0,0x0000				// intlev0[MRAL] field
+equ		intc_mral_1,0x1000
+equ		intc_mral_2,0x2000
+equ		intc_mral_3,0x3000
+equ		intc_mtel_0,0x0000				// intlev0[MTEL] field
+equ		intc_mtel_1,0x4000
+equ		intc_mtel_2,0x8000
+equ		intc_mtel_3,0xc000
+equ		intc_cmbl0_0,0x0000				// intlev1[CMBL0] field
+equ		intc_cmbl0_1,0x0004
+equ		intc_cmbl0_2,0x0008
+equ		intc_cmbl0_3,0x000c
+equ		intc_cmal0_0,0x0000				// intlev1[CMAL0] field
+equ		intc_cmal0_1,0x0010
+equ		intc_cmal0_2,0x0020
+equ		intc_cmal0_3,0x0030
+equ		intc_ovfl0_0,0x0000				// intlev1[OVFL0] field
+equ		intc_ovfl0_1,0x0040
+equ		intc_ovfl0_2,0x0080
+equ		intc_ovfl0_3,0x00c0
+equ		intc_cmbl1_0,0x0000				// intlev1[CMBL1] field
+equ		intc_cmbl1_1,0x0400
+equ		intc_cmbl1_2,0x0800
+equ		intc_cmbl1_3,0x0c00
+equ		intc_cmal1_0,0x0000				// intlev1[CMAL1] field
+equ		intc_cmal1_1,0x1000
+equ		intc_cmal1_2,0x2000
+equ		intc_cmal1_3,0x3000
+equ		intc_ovfl1_0,0x0000				// intlev1[OVFL1] field
+equ		intc_ovfl1_1,0x4000
+equ		intc_ovfl1_2,0x8000
+equ		intc_ovfl1_3,0xc000
+equ		intc_cenl_0,0x0000				// intlev2[CENL] field
+equ		intc_cenl_1,0x1000
+equ		intc_cenl_2,0x2000
+equ		intc_cenl_3,0x3000
+equ		intc_rtcl_0,0x0000				// intlev2[RTCL] field
+equ		intc_rtcl_1,0x4000
+equ		intc_rtcl_2,0x8000
+equ		intc_rtcl_3,0xc000
+equ		intc_smul1_0,0x0000				// intlev3[SMUL1] field
+equ		intc_smul1_1,0x0001
+equ		intc_smul1_2,0x0002
+equ		intc_smul1_3,0x0003
+equ		intc_smrl1_0,0x0000				// intlev3[SMRL1] field
+equ		intc_smrl1_1,0x0004
+equ		intc_smrl1_2,0x0008
+equ		intc_smrl1_3,0x000c
+equ		intc_ftal1_0,0x0000				// intlev3[FTAL1] field
+equ		intc_ftal1_1,0x0010
+equ		intc_ftal1_2,0x0020
+equ		intc_ftal1_3,0x0030
+equ		intc_fral1_0,0x0000				// intlev3[FRAL1] field
+equ		intc_fral1_1,0x0040
+equ		intc_fral1_2,0x0080
+equ		intc_fral1_3,0x00c0
+equ		intc_smul2_0,0x0000				// intlev3[SMUL2] field
+equ		intc_smul2_1,0x0100
+equ		intc_smul2_2,0x0200
+equ		intc_smul2_3,0x0300
+equ		intc_smrl2_0,0x0000				// intlev3[SMRL2] field
+equ		intc_smrl2_1,0x0400
+equ		intc_smrl2_2,0x0800
+equ		intc_smrl2_3,0x0c00
+equ		intc_ftal2_0,0x0000				// intlev3[FTAL2] field
+equ		intc_ftal2_1,0x1000
+equ		intc_ftal2_2,0x2000
+equ		intc_ftal2_3,0x3000
+equ		intc_fral2_0,0x0000				// intlev3[FRAL2] field
+equ		intc_fral2_1,0x4000
+equ		intc_fral2_2,0x8000
+equ		intc_fral2_3,0xc000
+# LOGA8CH
+equ		logactl,0xf070					// loga, RW, word
+equ		logacmsk,0xf072					// loga, RW, word
+equ		logatmsk,0xf074					// loga, RW, word
+equ		logatcnd,0xf076					// loga, RW, word
+equ		logamaxc,0xf078					// loga, RW, word
+equ		logactck,0xf07a					// loga, R, word
+equ		logacdat,0xf07c					// loga, R, word
+equ		loga_laef,0x0080				// logactl[LAEF] bit
+equ		loga_davl,0x0020				// logactl[DAVL] bit
+equ		loga_tavl,0x0010				// logactl[TAVL] bit
+equ		loga_frst,0x0004				// logactl[FRST] bit
+equ		loga_abt,0x0002					// logactl[ABT] bit
+equ		loga_sta,0x0001					// logactl[STA] bit
+# SEMPH5R9U
+equ		smphctl,0xf080					// smph, RW, word
+equ		smphrama,0xf084					// smph, RW, word
+equ		smphramb,0xf086					// smph, RW, word
+equ		smphusra,0xf088					// smph, RW, word
+equ		smphusrb,0xf08a					// smph, RW, word
+equ		smphusrc,0xf08c					// smph, RW, word
+equ		smph_smrf,0x0080				// smphctl[SMRF] bit
+equ		smph_smuf,0x0040				// smphctl[SMUF] bit
+equ		smph_smre,0x0008				// smphctl[SMRE] bit
+equ		smph_smue,0x0004				// smphctl[SMUE] bit
+equ		smph_sem0_0,0x0000				// smphusrx[SEM0,4,8] field
+equ		smph_sem0_1,0x0040
+equ		smph_sem0_2,0x0080
+equ		smph_sem0_3,0x00c0
+equ		smph_sem1_0,0x0000				// smphusrx[SEM1,5,9] field
+equ		smph_sem1_1,0x0010
+equ		smph_sem1_2,0x0020
+equ		smph_sem1_3,0x0030
+equ		smph_sem2_0,0x0000				// smphusrx[SEM2,6,10] field
+equ		smph_sem2_1,0x0004
+equ		smph_sem2_2,0x0008
+equ		smph_sem2_3,0x000c
+equ		smph_sem3_0,0x0000				// smphusrx[SEM3,7,11] field
+equ		smph_sem3_1,0x0001
+equ		smph_sem3_2,0x0002
+equ		smph_sem3_3,0x0003
+# ICFF16
+equ		icffctl,0xf090					// icff, RW, word
+equ		icffsend,0xf094					// icff, W, word
+equ		icffrecv,0xf096					// icff, R, word
+equ		icff_fraf,0x0080				// icffctl[FRAF] bit
+equ		icff_ftaf,0x0040				// icffctl[FTAF] bit
+equ		icff_frae,0x0008				// icffctl[FRAE] bit
+equ		icff_ftae,0x0004				// icffctl[FTAE] bit
+equ		icff_frst,0x0001				// icffctl[FRST] bit
+# STWSER
+equ		stwmctl,0xf0a0					// stws, RW, word
+equ		stwmdatr,0xf0a2					// stws, W, word
+equ		stwmdats,0xf0a2					// stws, R, word
+equ		stwmreqr,0xf0a4					// stws, RW, word
+equ		stwmbaud,0xf0a6					// stws, RW, word
+equ		stwsctl,0xf0a8					// stws, RW, word
+equ		stwsdatr,0xf0aa					// stws, W, word
+equ		stwsdats,0xf0aa					// stws, R, word
+equ		stwsadr,0xf0ac					// stws, RW, word
+equ		stwsmsk,0xf0ae					// stws, RW, word
+equ		stws_mrst,0x8000				// stwmctl[MRST] bit
+equ		stws_berr,0x0080				// stwmctl[BERR] bit
+equ		stws_mtef,0x0040				// stwmctl[MTEF] bit
+equ		stws_mtaf,0x0020				// stwmctl[MTAF] bit
+equ		stws_mraf,0x0010				// stwmctl[MRAF] bit
+equ		stws_mack,0x0008				// stwmctl[MACK] bit
+equ		stws_mtee,0x0004				// stwmctl[MTEE] bit
+equ		stws_mrae,0x0001				// stwmctl[MRAE] bit
+equ		stws_msta,0x0100				// stwmdats[MSTA] bit
+equ		stws_adrr,0x0001				// stwmdats[R/~W] bit
+equ		stws_adrw,0x0000
+equ		stws_stpr,0x0004				// stwmreqr[STPR] bit
+equ		stws_nack,0x0002				// stwmreqr[NACK] bit
+equ		stws_recv,0x0001				// stwmreqr[RECV] bit
+equ		stws_srst,0x8000				// stwsctl[SRST] bit
+equ		stws_staf,0x0020				// stwsctl[STAF] bit
+equ		stws_sraf,0x0010				// stwsctl[SRAF] bit
+equ		stws_sack,0x0008				// stwsctl[SACK] bit
+equ		stws_stae,0x0002				// stwsctl[STAE] bit
+equ		stws_srae,0x0001				// stwsctl[SRAE] bit
+equ		stws_ssta,0x0400				// stwsdatr[SSTA] bit
+equ		stws_sadr,0x0200				// stwsdatr[SADR] bit
+equ		stws_sstp,0x0100				// stwsdatr[SSTP] bit
+# FONTJP
+equ		fnjpctl,0xf0b0					// fnjp, RW, word
+equ		fnjpcod,0xf0b2					// fnjp, RW, word
+equ		fnjpdbl,0xf0b4					// fnjp, RW, word
+equ		fnjpdata,0xf0b8					// fnjp, R, byte/word
+equ		fnjpdatb,0xf0ba					// fnjp, R, byte/word
+equ		fnjpdatc,0xf0bc					// fnjp, R, byte/word
+equ		fnjpdatd,0xf0be					// fnjp, R, byte/word
+equ		fnjp_sjs1,0x0080				// fnjpctl[SJS1] bit
+equ		fnjp_sjs2,0x0040				// fnjpctl[SJS2] bit
+equ		fnjp_ktc,0x0020					// fnjpctl[KTC] bit
+equ		fnjp_inv,0x0010					// fnjpctl[INV] bit
+equ		fnjp_flp_h,0x0008				// fnjpctl[FLPH] bit
+equ		fnjp_flp_v,0x0004				// fnjpctl[FLPV] bit
+equ		fnjp_rot_0,0x0000				// fnjpctl[ROT] field
+equ		fnjp_rot_1,0x0001
+equ		fnjp_rot_2,0x0002
+equ		fnjp_rot_3,0x0003
+# UART8N1#1
+equ		uartctl1,0xf0c0					// uart, RW, word
+equ		uartbaud1,0xf0c2				// uart, RW, word
+equ		uarttdat1,0xf0c4				// uart, W, word
+equ		uartrdat1,0xf0c6				// uart, R, word
+equ		uartflow1,0xf0c8				// uart, RW, word
+equ		uartbres1,0xf0ce				// uart, R, word
+equ		uart_ctss,0x0080				// uartflow[CTSS] bit
+equ		uart_rtss,0x0040				// uartflow[RTSS] bit
+equ		uart_ctsp,0x0008				// uartflow[CTSP] bit
+equ		uart_rtsp,0x0004				// uartflow[RTSP] bit
+equ		uart_ctse,0x0002				// uartflow[CTSE] bit
+equ		uart_rtse,0x0001				// uartflow[RTSE] bit
+# PORT8I8O#1
+equ		porin1,0xf0d0					// port, R, word
+equ		porind1,0xf0d2					// port, R, word
+equ		pordir1,0xf0d6					// port, RW, word
+equ		porout1,0xf0d8					// port, RW, word
+equ		porset1,0xf0da					// port, W, word
+equ		porclr1,0xf0dc					// port, W, word
+equ		porode1,0xf0de					// port, RW, word
+# ADC124
+equ		adcctl,0xf0e0					// adc, RW, word
+equ		adcint,0xf0e2					// adc, RW, word
+equ		adcperi,0xf0e4					// adc, RW, word
+equ		adcdat0,0xf0e8					// adc, R, word
+equ		adcdat1,0xf0ea					// adc, R, word
+equ		adcdat2,0xf0ec					// adc, R, word
+equ		adcdat3,0xf0ee					// adc, R, word
+equ		adc_ardy,0x0080					// adcctl[ARDY] bit
+equ		adc_adce,0x0040					// adcctl[ADCE] bit
+equ		adc_cenb,0x0010					// adcctl[CENB] bit
+equ		adc_csel_0,0x0001				// adcctl[CSEL] field
+equ		adc_csel_1,0x0002
+equ		adc_csel_2,0x0004
+equ		adc_csel_3,0x0008
+equ		adc_csel_a,0x000f
+equ		adc_cenf_0,0x0010				// adcint[CENF] field
+equ		adc_cenf_1,0x0020
+equ		adc_cenf_2,0x0040
+equ		adc_cenf_3,0x0080
+equ		adc_cenf_a,0x00f0
+equ		adc_cene_0,0x0001				// adcint[CENE] field
+equ		adc_cene_1,0x0002
+equ		adc_cene_2,0x0004
+equ		adc_cene_3,0x0008
+equ		adc_cene_a,0x000f
+# SDRAMC8M / CACHE2W4K
+equ		sdrcctl,0xf0f0					// sdrc, R, word
+equ		cachctl,0xf0f2					// cchc, RW, word
+equ		cachtag,0xf0f4					// cchc, W, word
+equ		cachlfu,0xf0f6					// cchc, W, word
+equ		cachcnth,0xf0f8					// cchc, RW, word
+equ		cachcntl,0xf0fa					// cchc, RW, word
+equ		cachhith,0xf0fc					// cchc, RW, word
+equ		cachhitl,0xf0fe					// cchc, RW, word
+equ		sdrc_sdrm,0x0080				// sdrcctl[SDRM] bit
+equ		sdrc_srdy,0x0040				// sdrcctl[SRDY] bit
+equ		cchc_cche,0x0001				// cachctl[CCHE] bit
+equ		cchc_vclr,0x8000				// cachtag[VCLR] bit
+equ		cchc_cclr,0x8000				// cachlfu[CCLR] bit
+# UNISJI
+equ		unsjctl,0xf100					// unsj, R, word
+equ		unsjunic,0xf102					// unsj, RW, word
+equ		unsjsjis,0xf104					// unsj, RW, word
+equ		unsjkutn,0xf106					// unsj, R, word
+equ		unsj_unsj,0x0080				// unsjctl[UNSJ] bit
+equ		unsj_sjis,0x0002				// unsjctl[SJIS] bit
+equ		unsj_bsy,0x0001					// unsjctl[BSY] bit
+# DISTUS
+equ		distctl,0xf110					// dist, R, word
+equ		disttrig,0xf112					// dist, RW, word
+equ		distecho,0xf114					// dist, RW, word
+equ		distcnth,0xf118					// dist, R, word
+equ		distcntl,0xf11a					// dist, R, word
+equ		dist_dist,0x0080				// distctl[DIST] bit
+equ		dist_err,0x0002					// distctl[ERR] bit
+equ		dist_bsy,0x0001					// distctl[BSY] bit
+# RTC400
+equ		rtcctl,0xf120					// rtc, RW, word
+equ		rtcintc,0xf122					// rtc, RW, word
+equ		rtcyear,0xf124					// rtc, RW, word
+equ		rtcmody,0xf126					// rtc, RW, word
+equ		rtchrmi,0xf128					// rtc, RW, word
+equ		rtcscps,0xf12a					// rtc, RW, word
+equ		rtcweek,0xf12c					// rtc, RW, word
+equ		rtc_eavl,0x0080					// rtcctl[EAVL] bit
+equ		rtc_esel,0x0040					// rtcctl[ESEL] bit
+equ		rtc_leap,0x0020					// rtcctl[LEAP] bit
+equ		rtc_rtcw,0x0002					// rtcctl[RTCW] bit
+equ		rtc_snap,0x0001					// rtcctl[SNAP] bit
+equ		rtc_houe,0x0040					// rtcintc[HOUE] bit
+equ		rtc_mine,0x0020					// rtcintc[MINE] bit
+equ		rtc_sece,0x0010					// rtcintc[SECE] bit
+equ		rtc_houf,0x0004					// rtcintc[HOUF] bit
+equ		rtc_minf,0x0002					// rtcintc[MINF] bit
+equ		rtc_secf,0x0001					// rtcintc[SECF] bit
+# DAC121#0
+equ		dacctl0,0xf140					// dac0, RW, word
+equ		dacdat0,0xf142					// dac0, RW, word
+equ		dac_dace,0x0080					// dacctl[DACE] bit
+equ		dac_bitw_a,0x0070				// dacctl[BITW] field
+equ		dac_bitw_s,4
+equ		dac_bitw_6b,0x0000
+equ		dac_bitw_7b,0x0010
+equ		dac_bitw_8b,0x0020
+equ		dac_bitw_9b,0x0030
+equ		dac_bitw_10b,0x0040
+equ		dac_bitw_11b,0x0050
+equ		dac_bitw_12b,0x0060
+equ		dac_clks_a,0x000f				// dacctl[CLKS] field
+# DAC121#1
+equ		dacctl1,0xf148					// dac1, RW, word
+equ		dacdat1,0xf14a					// dac1, RW, word
+# IOMEM16
+equ		iomedat0,0xf150					// iome, RW, byte/word
+equ		iomedat1,0xf152					// iome, RW, byte/word
+equ		iomedat2,0xf154					// iome, RW, byte/word
+equ		iomedat3,0xf156					// iome, RW, byte/word
+equ		iomedat4,0xf158					// iome, RW, byte/word
+equ		iomedat5,0xf15a					// iome, RW, byte/word
+equ		iomedat6,0xf15c					// iome, RW, byte/word
+equ		iomedat7,0xf15e					// iome, RW, byte/word
+# TIMLED5
+equ		tledctl,0xf160					// tled, RW, word
+equ		tledintc,0xf162					// tled, RW, word
+equ		tledpsc,0xf164					// tled, RW, word
+equ		tleddtyr,0xf166					// tled, RW, word
+equ		tleddtyg,0xf168					// tled, RW, word
+equ		tleddtyb,0xf16a					// tled, RW, word
+equ		tleddty1,0xf16c					// tled, RW, word
+equ		tleddty2,0xf16e					// tled, RW, word
+equ		tled_led2,0x0020				// tledctl[LED2] bit
+equ		tled_led1,0x0010				// tledctl[LED1] bit
+equ		tled_rgbe,0x0008				// tledctl[RGBE] bit
+equ		tled_ledg,0x0004				// tledctl[LEDG] bit
+equ		tled_ledr,0x0002				// tledctl[LEDR] bit
+equ		tled_ledb,0x0001				// tledctl[LEDB] bit
+equ		tled_lofe,0x0010				// tledintc[LOFE] bit
+equ		tled_loff,0x0001				// tledintc[LOFF] bit
+# ================================
+

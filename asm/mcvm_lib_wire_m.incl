@@ -1,0 +1,149 @@
+// ================================
+//	Moscovium i2c communication library
+//		(c) 2021	1YEN Toru
+//		master driver module
+// ================================
+
+// ================================
+// i2c communication master driver
+//		r1: i2c frame address
+//		disturbed r1,r7
+//		You need to initialize stwmbaud register
+//			to match the communication speed,
+//			before calling mcvm_wire subroutine.
+//		return: r0=0(ErrNo) / !=0(ERROR)
+//			returns with pointing the error location to r1
+# ================================
+#	i2c frame notations
+#
+#	i2c frame: 16 bit data sequence ended by 0x0000
+#	i2c write: 0x4sdd
+#		write data to slave
+#		s=1: issue START condition before sending
+#		dd: data byte to send
+#	i2c read: 0x8nrr
+#		read data from slave
+#		n=2: return NACK status after receiving
+#		rr: replaced with the received data
+#	i2c stop: 0x0000
+#		function returns after issuing STOP condition
+// ================================
+mcvm_wire:
+// empty frame
+ldw		r0,[r1]
+mov		r0,r0
+bne		wir_loop
+// ERROR: bad frame
+ldbiu	r0,wire_err_bad_fram
+beq		wir_stop
+
+wir_loop:
+// end mark?
+ldw		r0,[r1]
+mov		r0,r0
+beq		wir_break
+
+// command
+lsfti	r0,-12
+cmpi	r0,wire_send>>12
+beq		wir_write
+cmpi	r0,wire_recv>>12
+beq		wir_read
+// ERROR: bad frame
+ldbiu	r0,wire_err_bad_fram
+beq		wir_stop
+
+// i2c WRITE
+wir_write:
+// master send data
+ldw		r0,[r1]
+ldwi	r7,wire_star|wire_dmsk
+and		r0,r7
+ldwi	r7,stwmdats
+stw		[r7],r0
+// wait MTEF=1 or BERR=1
+ldwi	r7,stwmctl
+ldw		r0,[r7]
+andi	r0,stws_berr|stws_mtef
+beq		pcnt-6
+// clear MTEF
+ldw		r0,[r7]
+andi	r0,~stws_berr					// do not clear BERR flag
+stw		[r7],r0
+
+// check BERR flag
+ldw		r0,[r7]
+andi	r0,stws_berr
+beq		wir_no_berr
+wir_berr:
+// ERROR: lost bus arbitration
+ldbiu	r0,wire_err_bus_err
+bra		wir_return
+wir_no_berr:
+
+// check MACK status
+ldw		r0,[r7]
+andi	r0,stws_mack
+bne		wir_ok_ack
+// ERROR: slave returns NACK
+ldbiu	r0,wire_err_nack
+bra		wir_stop
+wir_ok_ack:
+
+// end of loop
+addi	r1,2
+bra		wir_loop
+
+// i2c READ
+wir_read:
+// master request data
+ldw		r0,[r1]
+lsfti	r0,-8
+andi	r0,stws_nack
+ori		r0,stws_recv
+ldwi	r7,stwmreqr
+stw		[r7],r0
+// wait MRAF=1 or BERR=1
+ldwi	r7,stwmctl
+ldw		r0,[r7]
+andi	r0,stws_berr|stws_mraf
+beq		pcnt-6
+
+// check BERR flag
+ldw		r0,[r7]
+andi	r0,stws_berr
+bne		wir_berr
+
+// received data
+ldwi	r7,stwmdatr
+ldw		r0,[r7]
+// store data
+addi	r1,1
+stb		[r1],r0
+// end of loop
+addi	r1,1
+bra		wir_loop
+
+wir_break:
+ldbiu	r0,wire_err_no
+
+// issue STOP condition
+wir_stop:
+pushw	r0
+// master issue: P
+ldbiu	r0,stws_stpr
+ldwi	r7,stwmreqr
+stw		[r7],r0
+// wait MTEF=1
+ldwi	r7,stwmctl
+ldw		r0,[r7]
+andi	r0,stws_mtef
+beq		pcnt-6
+// clear MTEF
+ldw		r0,[r7]
+stw		[r7],r0
+popw	r0
+
+// return
+wir_return:
+rtnw

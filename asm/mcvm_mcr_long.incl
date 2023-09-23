@@ -1,0 +1,83 @@
+# ================================
+#	Moscovium long word handling macro
+#		(c) 2021	1YEN Toru
+#		definition module
+# ================================
+
+macro	movl	rdh,rdl,rsh,rsl
+// mov $(rdh):$(rdl),$(rsh):$(rsl)
+mov		$(rdl),$(rsl)
+mov		$(rdh),$(rsh)
+endm
+
+macro	addl	rdh,rdl,rsh,rsl
+// addl $(rdh):$(rdl),$(rsh):$(rsl)
+add		$(rdl),$(rsl)
+adc		$(rdh),$(rsh)
+endm
+
+macro	subl	rdh,rdl,rsh,rsl
+// subl $(rdh):$(rdl),$(rsh):$(rsl)
+sub		$(rdl),$(rsl)
+sbb		$(rdh),$(rsh)
+endm
+
+macro	cmpl	rdh,rdl,rsh,rsl
+// cmpl $(rdh):$(rdl),$(rsh):$(rsl)
+cmp		$(rdl),$(rsl)
+cmb		$(rdh),$(rsh)
+endm
+
+macro	ldl		rh,rl,rs
+// ldl $(rh):$(rl),$(rs)
+ldw		$(rh),$(rs)
+addi	$(rs),2
+ldw		$(rl),$(rs)
+subi	$(rs),2
+endm
+
+macro	ldlip	rh,rl,imm32
+// ldlip $(rh):$(rl),$(imm32)
+ldwi	$(rh),(($(imm32))>>16)&0xffff
+ldwi	$(rl),($(imm32))&0xffff
+endm
+
+macro	mullu	rdh,rdl,rsh,rsl
+// mullu $(rdh):$(rdl),$(rsh):$(rsl)
+# ATTENTION! this macro needs mulc16
+# ATTENTION! sr[ML] must be 0
+# 32*32=32 bit multiply
+# disturbed $(rsh),$(rsl)
+# ================================
+#			rdh:rdl
+#			rsh:rsl
+#		*)---------
+#			rsl:rdl	: 3) ML=1
+#		rsl:rdh		: 1) ML=0
+#		rdl:rsh		: 2) ML=0
+#	rdh:rsh			: not calculate
+#	+)-------------
+#			rdh:rdl	: 4)
+# ================================
+mulu	$(rdh),$(rsl)
+mulu	$(rsh),$(rdl)
+mulur	$(rdl),$(rsl)
+add		$(rdh),$(rsh)
+add		$(rdh),$(rsl)
+endm
+
+macro	negl	rnh,rnl
+// negl $(rnh):$(rnl)
+neg		$(rnl)
+adcz	$(rnh)
+neg		$(rnh)
+endm
+
+macro	stl		rd,rh,rl
+// stl $(rd),$(rh):$(rl)
+stw		$(rd),$(rh)
+addi	$(rd),2
+stw		$(rd),$(rl)
+subi	$(rd),2
+endm
+

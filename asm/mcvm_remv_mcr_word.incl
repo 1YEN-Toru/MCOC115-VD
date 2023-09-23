@@ -1,0 +1,71 @@
+# ================================
+#	Moscovium "tnsn_mcr_word.incl" remover
+#		(c) 2023	1YEN Toru
+#		definition module
+# ================================
+
+macro	movw	rd,rs
+mov		$(rd),$(rs)
+endm
+
+macro	addw	rd,rs
+add		$(rd),$(rs)
+endm
+
+macro	subw	rd,rs
+sub		$(rd),$(rs)
+endm
+
+macro	cmpw	rd,rs
+cmp		$(rd),$(rs)
+endm
+
+macro	negw	rn
+neg		$(rn)
+endm
+
+macro	notw	rn
+not		$(rn)
+endm
+
+macro	addwi	rd,imm
+addi	$(rd),$(imm)
+endm
+
+macro	subwi	rd,imm
+subi	$(rd),$(imm)
+endm
+
+macro	cmpwi	rd,imm
+cmpi	$(rd),$(imm)
+endm
+
+macro	andwi	rd,imm
+andi	$(rd),$(imm)
+endm
+
+# {logical/arithmetical/rotate with c} shift {left/right} word immediate
+macro	lslwi	rd,imm
+lsli	$(rd),$(imm)
+endm
+
+macro	lsrwi	rd,imm
+lsri	$(rd),$(imm)
+endm
+
+macro	aslwi	rd,imm
+asli	$(rd),$(imm)
+endm
+
+macro	asrwi	rd,imm
+asri	$(rd),$(imm)
+endm
+
+macro	cslwi	rd,imm
+csli	$(rd),$(imm)
+endm
+
+macro	csrwi	rd,imm
+csri	$(rd),$(imm)
+endm
+

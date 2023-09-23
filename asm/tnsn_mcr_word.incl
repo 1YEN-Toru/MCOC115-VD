@@ -1,0 +1,158 @@
+# ================================
+#	Tennessine word handling macro
+#		(c) 2023	1YEN Toru
+#		definition module
+#
+#	Attention) These macros are valid (compatible) for register contents,
+#		but operational flags (N, C, V, Z) are not always correct.
+#
+# ================================
+
+macro	movw	rd,rs
+// movw $(rd)':$(rd),$(rs)':$(rs)
+mov		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+mov		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	addw	rd,rs
+// addw $(rd)':$(rd),$(rs)':$(rs)
+add		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+adc		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	subw	rd,rs
+// subw $(rd)':$(rd),$(rs)':$(rs)
+sub		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+sbb		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	cmpw	rd,rs
+// cmpw $(rd)':$(rd),$(rs)':$(rs)
+cmp		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+cmb		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	negw	rn
+// negw $(rn)':$(rn)
+neg		$(rn)
+cendw	$(rn)
+adcz	$(rn)
+neg		$(rn)
+cendw	$(rn)
+endm
+
+macro	notw	rn
+// notw $(rn)':$(rn)
+cendw	$(rn)
+not		$(rn)
+cendw	$(rn)
+not		$(rn)
+endm
+
+macro	addwi	rd,imm
+// addwi $(rd)':$(rd),$(imm)
+addi	$(rd),$(imm)
+cendw	$(rd)
+adcz	$(rd)
+cendw	$(rd)
+endm
+
+macro	subwi	rd,imm
+// subwi $(rd)':$(rd),$(imm)
+subi	$(rd),$(imm)
+cendw	$(rd)
+sbbz	$(rd)
+cendw	$(rd)
+endm
+
+macro	cmpwi	rd,imm
+// cmpwi $(rd)':$(rd),$(imm)
+cmpi	$(rd),$(imm)
+cendw	$(rd)
+cmbz	$(rd)
+cendw	$(rd)
+endm
+
+macro	andwi	rd,imm
+// andwi $(rd)':$(rd),$(imm)
+andi	$(rd),$(imm)
+ldbih	$(rd),0
+endm
+
+# {logical/arithmetical/rotate with c} shift {left/right} word immediate
+macro	lslwi	rd,imm
+// lslwi $(rd)':$(rd),$(imm)
+rept	$(imm)
+lsfti	$(rd),1
+cendw	$(rd)
+csfti	$(rd),1
+cendw	$(rd)
+endr
+endm
+
+macro	lsrwi	rd,imm
+// lsrwi $(rd)':$(rd),$(imm)
+rept	$(imm)
+cendw	$(rd)
+lsfti	$(rd),-1
+cendw	$(rd)
+csfti	$(rd),-1
+endr
+endm
+
+macro	aslwi	rd,imm
+// aslwi $(rd)':$(rd),$(imm)
+rept	$(imm)
+asfti	$(rd),1
+cendw	$(rd)
+csfti	$(rd),1
+cendw	$(rd)
+endr
+endm
+
+macro	asrwi	rd,imm
+// asrwi $(rd)':$(rd),$(imm)
+rept	$(imm)
+cendw	$(rd)
+asfti	$(rd),-1
+cendw	$(rd)
+csfti	$(rd),-1
+endr
+endm
+
+macro	cslwi	rd,imm
+// cslwi $(rd)':$(rd),$(imm)
+rept	$(imm)
+csfti	$(rd),1
+cendw	$(rd)
+csfti	$(rd),1
+cendw	$(rd)
+endr
+endm
+
+macro	csrwi	rd,imm
+// csrwi $(rd)':$(rd),$(imm)
+rept	$(imm)
+cendw	$(rd)
+csfti	$(rd),-1
+cendw	$(rd)
+csfti	$(rd),-1
+endr
+endm
+

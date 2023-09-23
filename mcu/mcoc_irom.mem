@@ -1,0 +1,763 @@
+	// Moscovium series macro assembler ver.1.30
+	// ================================
+	// RGB LED Blink with Serial monitor
+	//		(c) 2021	1YEN Toru
+	//
+	//
+	//		2023/07/08	ver.1.06
+	//			brushed up
+	//
+	//		2022/04/23	ver.1.04
+	//			corresponding to dual core edition
+	//
+	//		2021/09/04	ver.1.02
+	//			corresponding to new idrgedit register
+	//
+	//		2021/04/10	ver.1.00
+	//
+	// ================================
+	// ================================
+	// setup
+	// ================================
+	// ================================		// general 8 bits Moscovium codes
+	// stop if cpu2 for dual core edition
+@0000	7940	// 0000    movfc  r0,sr
+@0001	d8f4	// 0002    lsfti  r0,-sreg_b_id0
+@0002	8802	// 0004    andi   r0,sreg_id_2>>sreg_b_id0
+@0003	1801	// 0006    beq    pcnt+2
+@0004	0001	// 0008    pause 
+	// uart setting: RXE, TXE, baud rate
+@0005	c7f0	// 000a    ldbih  r7,((uartbaud)>>8)&0xff
+@0006	bf32	// 000c    ldbil  r7,(uartbaud)&0xff
+@0007	c009	// 000e    ldbih  r0,((uart_baud)>>8)&0xff
+@0008	b8c3	// 0010    ldbil  r0,(uart_baud)&0xff
+@0009	7bf8	// 0012    stw    r7,r0
+@000a	c7f0	// 0014    ldbih  r7,((uartctl)>>8)&0xff
+@000b	bf30	// 0016    ldbil  r7,(uartctl)&0xff
+@000c	b003	// 0018    ldbiu  r0,uart_rxe|uart_txe
+@000d	7bf8	// 001a    stw    r7,r0
+	// check Tennessine core
+@000e	d2f1	// 001c    ldch   sp,((iomedat7+2)>>8)&0xff
+@000f	ca60	// 001e    ldcl   sp,(iomedat7+2)&0xff
+@0010	7f91	// 0020    sesrl  1 (srbk sreg_bk_3)
+@0011	7f90	// 0022    sesrl  0 (srbk sreg_bk_3)
+@0012	7940	// 0024    movfc  r0,sr
+@0013	8803	// 0026    andi   r0,sreg_bk_3
+@0014	a800	// 0028    cmpi   r0,sreg_bk_0
+@0015	7fa1	// 002a    clsrl  1 (srbk sreg_bk_0)
+@0016	7fa0	// 002c    clsrl  0 (srbk sreg_bk_0)
+@0017	1005	// 002e    bne    st_not_ts_core
+@0018	b12d	// 0030    ldbiu  r1,chr_mns
+@0019	c703	// 0032    ldbih  r7,(lab_print_chr)>>8
+@001a	bf5e	// 0034    ldbil  r7,(lab_print_chr)&0xff
+@001b	7f8f	// 0036    jalw   r7
+@001c	0001	// 0038    pause 
+	// ================================		// Tennessine codes from here
+		// st_not_ts_core:
+	// set sp to the bottom of ram area
+@001d	c7f0	// 003a    ldbih  r7,((idrgramt)>>8)&0xff
+@001e	bf0c	// 003c    ldbil  r7,(idrgramt)&0xff
+@001f	7bbf	// 003e    ldw    r7,r7
+@0020	c6f0	// 0040    ldbih  r6,((idrgrams)>>8)&0xff
+@0021	be0e	// 0042    ldbil  r6,(idrgrams)&0xff
+@0022	7bb6	// 0044    ldw    r6,r6
+@0023	79be	// 0046    add    r7,r6
+@0024	7917	// 0048    movtc  sp,r7
+	// clear variables
+@0025	c750	// 004a    ldbih  r7,((ramtop)>>8)&0xff
+@0026	bf00	// 004c    ldbil  r7,(ramtop)&0xff
+@0027	c150	// 004e    ldbih  r1,((static_va)>>8)&0xff
+@0028	b904	// 0050    ldbil  r1,(static_va)&0xff
+@0029	b000	// 0052    ldbiu  r0,0
+		// st_clrvar:
+@002a	7bf8	// 0054    stw    r7,r0
+@002b	9f02	// 0056    addi   r7,2
+@002c	7ab9	// 0058    cmp    r7,r1
+@002d	2ffc	// 005a    blo    st_clrvar
+	// port setting
+@002e	b007	// 005c    ldbiu  r0,led_builtin_r|led_builtin_g|led_builtin_b
+@002f	c7f0	// 005e    ldbih  r7,((porset)>>8)&0xff
+@0030	bf2a	// 0060    ldbil  r7,(porset)&0xff
+@0031	7bf8	// 0062    stw    r7,r0
+@0032	c7f0	// 0064    ldbih  r7,((pordir)>>8)&0xff
+@0033	bf26	// 0066    ldbil  r7,(pordir)&0xff
+@0034	7b87	// 0068    ldw    r0,r7
+@0035	88f8	// 006a    andi   r0,~(led_builtin_r|led_builtin_g|led_builtin_b)
+@0036	7bf8	// 006c    stw    r7,r0
+	// send RDY
+@0037	c103	// 006e    ldbih  r1,((lab_str_msg_rdy)>>8)&0xff
+@0038	b9a6	// 0070    ldbil  r1,(lab_str_msg_rdy)&0xff
+@0039	c702	// 0072    ldbih  r7,(lab_print)>>8
+@003a	bff8	// 0074    ldbil  r7,(lab_print)&0xff
+@003b	7f8f	// 0076    jalw   r7
+	// ================================
+	// loop
+	// ================================
+		// loop:
+	// ================================
+	// serial monitor handling
+	// check uartctl.RAVL
+@003c	c7f0	// 0078    ldbih  r7,((uartctl)>>8)&0xff
+@003d	bf30	// 007a    ldbil  r7,(uartctl)&0xff
+@003e	7b87	// 007c    ldw    r0,r7
+@003f	8880	// 007e    andi   r0,uart_ravl
+@0040	18c9	// 0080    beq    no_data
+@0041	c702	// 0082    ldbih  r7,(lab_get_line)>>8
+@0042	bfc0	// 0084    ldbil  r7,(lab_get_line)&0xff
+@0043	7f8f	// 0086    jalw   r7
+	// check "who" command
+@0044	c150	// 0088    ldbih  r1,((lbuf)>>8)&0xff
+@0045	b904	// 008a    ldbil  r1,(lbuf)&0xff
+@0046	c204	// 008c    ldbih  r2,((lab_str_cmd_who)>>8)&0xff
+@0047	baa6	// 008e    ldbil  r2,(lab_str_cmd_who)&0xff
+@0048	c703	// 0090    ldbih  r7,(lab_strcmp)>>8
+@0049	bf70	// 0092    ldbil  r7,(lab_strcmp)&0xff
+@004a	7f8f	// 0094    jalw   r7
+@004b	78c0	// 0096    mov    r0,r0
+@004c	1093	// 0098    bne    who_notid
+	// ================================
+	// who
+		// cmd_who:
+	// idreg
+@004d	c103	// 009a    ldbih  r1,((lab_str_msg_idrg)>>8)&0xff
+@004e	b9c2	// 009c    ldbil  r1,(lab_str_msg_idrg)&0xff
+	// idreg, idrgcode
+@004f	c702	// 009e    ldbih  r7,(lab_print)>>8
+@0050	bff8	// 00a0    ldbil  r7,(lab_print)&0xff
+@0051	7f8f	// 00a2    jalw   r7
+@0052	7fe1	// 00a4    pushw  r1
+@0053	c1f0	// 00a6    ldbih  r1,((idrgcode)>>8)&0xff
+@0054	b900	// 00a8    ldbil  r1,(idrgcode)&0xff
+@0055	7b89	// 00aa    ldw    r1,r1
+@0056	c703	// 00ac    ldbih  r7,(lab_print_hex)>>8
+@0057	bf22	// 00ae    ldbil  r7,(lab_print_hex)&0xff
+@0058	7f8f	// 00b0    jalw   r7
+@0059	7fe9	// 00b2    popw   r1
+@005a	c702	// 00b4    ldbih  r7,(lab_print)>>8
+@005b	bff8	// 00b6    ldbil  r7,(lab_print)&0xff
+@005c	7f8f	// 00b8    jalw   r7
+@005d	9901	// 00ba    addi   r1,1
+	// idreg, idrgvers
+@005e	c702	// 00bc    ldbih  r7,(lab_print)>>8
+@005f	bff8	// 00be    ldbil  r7,(lab_print)&0xff
+@0060	7f8f	// 00c0    jalw   r7
+@0061	7fe1	// 00c2    pushw  r1
+@0062	c1f0	// 00c4    ldbih  r1,((idrgvers)>>8)&0xff
+@0063	b902	// 00c6    ldbil  r1,(idrgvers)&0xff
+@0064	7b89	// 00c8    ldw    r1,r1
+@0065	c703	// 00ca    ldbih  r7,(lab_print_hex)>>8
+@0066	bf22	// 00cc    ldbil  r7,(lab_print_hex)&0xff
+@0067	7f8f	// 00ce    jalw   r7
+@0068	7fe9	// 00d0    popw   r1
+@0069	c702	// 00d2    ldbih  r7,(lab_print)>>8
+@006a	bff8	// 00d4    ldbil  r7,(lab_print)&0xff
+@006b	7f8f	// 00d6    jalw   r7
+@006c	9901	// 00d8    addi   r1,1
+	// idreg, idrgfcpu
+@006d	c702	// 00da    ldbih  r7,(lab_print)>>8
+@006e	bff8	// 00dc    ldbil  r7,(lab_print)&0xff
+@006f	7f8f	// 00de    jalw   r7
+@0070	7fe1	// 00e0    pushw  r1
+@0071	c1f0	// 00e2    ldbih  r1,((idrgfcpu)>>8)&0xff
+@0072	b904	// 00e4    ldbil  r1,(idrgfcpu)&0xff
+@0073	7b89	// 00e6    ldw    r1,r1
+@0074	c703	// 00e8    ldbih  r7,(lab_print_hex)>>8
+@0075	bf22	// 00ea    ldbil  r7,(lab_print_hex)&0xff
+@0076	7f8f	// 00ec    jalw   r7
+@0077	7fe9	// 00ee    popw   r1
+@0078	c702	// 00f0    ldbih  r7,(lab_print)>>8
+@0079	bff8	// 00f2    ldbil  r7,(lab_print)&0xff
+@007a	7f8f	// 00f4    jalw   r7
+@007b	9901	// 00f6    addi   r1,1
+	// idreg, idrgedit
+@007c	c702	// 00f8    ldbih  r7,(lab_print)>>8
+@007d	bff8	// 00fa    ldbil  r7,(lab_print)&0xff
+@007e	7f8f	// 00fc    jalw   r7
+@007f	7fe1	// 00fe    pushw  r1
+@0080	c1f0	// 0100    ldbih  r1,((idrgedit)>>8)&0xff
+@0081	b906	// 0102    ldbil  r1,(idrgedit)&0xff
+@0082	7b89	// 0104    ldw    r1,r1
+@0083	c703	// 0106    ldbih  r7,(lab_print_hex)>>8
+@0084	bf22	// 0108    ldbil  r7,(lab_print_hex)&0xff
+@0085	7f8f	// 010a    jalw   r7
+@0086	c100	// 010c    ldbih  r1,((chr_spc)>>8)&0xff
+@0087	b920	// 010e    ldbil  r1,(chr_spc)&0xff
+@0088	c703	// 0110    ldbih  r7,(lab_print_chr)>>8
+@0089	bf5e	// 0112    ldbil  r7,(lab_print_chr)&0xff
+@008a	7f8f	// 0114    jalw   r7
+@008b	c1f0	// 0116    ldbih  r1,((idrgedit)>>8)&0xff
+@008c	b906	// 0118    ldbil  r1,(idrgedit)&0xff
+@008d	7b89	// 011a    ldw    r1,r1
+@008e	7fd1	// 011c    cendw  r1
+@008f	c703	// 011e    ldbih  r7,(lab_print_chr)>>8
+@0090	bf5e	// 0120    ldbil  r7,(lab_print_chr)&0xff
+@0091	7f8f	// 0122    jalw   r7
+@0092	c1f0	// 0124    ldbih  r1,((idrgedit)>>8)&0xff
+@0093	b906	// 0126    ldbil  r1,(idrgedit)&0xff
+@0094	7b89	// 0128    ldw    r1,r1
+@0095	89ff	// 012a    andi   r1,0xff
+@0096	c703	// 012c    ldbih  r7,(lab_print_chr)>>8
+@0097	bf5e	// 012e    ldbil  r7,(lab_print_chr)&0xff
+@0098	7f8f	// 0130    jalw   r7
+@0099	7fe9	// 0132    popw   r1
+@009a	c702	// 0134    ldbih  r7,(lab_print)>>8
+@009b	bff8	// 0136    ldbil  r7,(lab_print)&0xff
+@009c	7f8f	// 0138    jalw   r7
+@009d	9901	// 013a    addi   r1,1
+	// idreg, idrgromt
+@009e	c702	// 013c    ldbih  r7,(lab_print)>>8
+@009f	bff8	// 013e    ldbil  r7,(lab_print)&0xff
+@00a0	7f8f	// 0140    jalw   r7
+@00a1	7fe1	// 0142    pushw  r1
+@00a2	c1f0	// 0144    ldbih  r1,((idrgromt)>>8)&0xff
+@00a3	b908	// 0146    ldbil  r1,(idrgromt)&0xff
+@00a4	7b89	// 0148    ldw    r1,r1
+@00a5	c703	// 014a    ldbih  r7,(lab_print_hex)>>8
+@00a6	bf22	// 014c    ldbil  r7,(lab_print_hex)&0xff
+@00a7	7f8f	// 014e    jalw   r7
+@00a8	7fe9	// 0150    popw   r1
+@00a9	c702	// 0152    ldbih  r7,(lab_print)>>8
+@00aa	bff8	// 0154    ldbil  r7,(lab_print)&0xff
+@00ab	7f8f	// 0156    jalw   r7
+@00ac	9901	// 0158    addi   r1,1
+	// idreg, idrgroms
+@00ad	c702	// 015a    ldbih  r7,(lab_print)>>8
+@00ae	bff8	// 015c    ldbil  r7,(lab_print)&0xff
+@00af	7f8f	// 015e    jalw   r7
+@00b0	7fe1	// 0160    pushw  r1
+@00b1	c1f0	// 0162    ldbih  r1,((idrgroms)>>8)&0xff
+@00b2	b90a	// 0164    ldbil  r1,(idrgroms)&0xff
+@00b3	7b89	// 0166    ldw    r1,r1
+@00b4	c703	// 0168    ldbih  r7,(lab_print_hex)>>8
+@00b5	bf22	// 016a    ldbil  r7,(lab_print_hex)&0xff
+@00b6	7f8f	// 016c    jalw   r7
+@00b7	7fe9	// 016e    popw   r1
+@00b8	c702	// 0170    ldbih  r7,(lab_print)>>8
+@00b9	bff8	// 0172    ldbil  r7,(lab_print)&0xff
+@00ba	7f8f	// 0174    jalw   r7
+@00bb	9901	// 0176    addi   r1,1
+	// idreg, idrgramt
+@00bc	c702	// 0178    ldbih  r7,(lab_print)>>8
+@00bd	bff8	// 017a    ldbil  r7,(lab_print)&0xff
+@00be	7f8f	// 017c    jalw   r7
+@00bf	7fe1	// 017e    pushw  r1
+@00c0	c1f0	// 0180    ldbih  r1,((idrgramt)>>8)&0xff
+@00c1	b90c	// 0182    ldbil  r1,(idrgramt)&0xff
+@00c2	7b89	// 0184    ldw    r1,r1
+@00c3	c703	// 0186    ldbih  r7,(lab_print_hex)>>8
+@00c4	bf22	// 0188    ldbil  r7,(lab_print_hex)&0xff
+@00c5	7f8f	// 018a    jalw   r7
+@00c6	7fe9	// 018c    popw   r1
+@00c7	c702	// 018e    ldbih  r7,(lab_print)>>8
+@00c8	bff8	// 0190    ldbil  r7,(lab_print)&0xff
+@00c9	7f8f	// 0192    jalw   r7
+@00ca	9901	// 0194    addi   r1,1
+	// idreg, idrgrams
+@00cb	c702	// 0196    ldbih  r7,(lab_print)>>8
+@00cc	bff8	// 0198    ldbil  r7,(lab_print)&0xff
+@00cd	7f8f	// 019a    jalw   r7
+@00ce	7fe1	// 019c    pushw  r1
+@00cf	c1f0	// 019e    ldbih  r1,((idrgrams)>>8)&0xff
+@00d0	b90e	// 01a0    ldbil  r1,(idrgrams)&0xff
+@00d1	7b89	// 01a2    ldw    r1,r1
+@00d2	c703	// 01a4    ldbih  r7,(lab_print_hex)>>8
+@00d3	bf22	// 01a6    ldbil  r7,(lab_print_hex)&0xff
+@00d4	7f8f	// 01a8    jalw   r7
+@00d5	7fe9	// 01aa    popw   r1
+@00d6	c702	// 01ac    ldbih  r7,(lab_print)>>8
+@00d7	bff8	// 01ae    ldbil  r7,(lab_print)&0xff
+@00d8	7f8f	// 01b0    jalw   r7
+@00d9	9901	// 01b2    addi   r1,1
+	// response
+@00da	c103	// 01b4    ldbih  r1,((lab_str_msg_who)>>8)&0xff
+@00db	b988	// 01b6    ldbil  r1,(lab_str_msg_who)&0xff
+@00dc	c702	// 01b8    ldbih  r7,(lab_print)>>8
+@00dd	bff8	// 01ba    ldbil  r7,(lab_print)&0xff
+@00de	7f8f	// 01bc    jalw   r7
+@00df	082a	// 01be    bra    no_data
+		// who_notid:
+	// check "help" command
+@00e0	c150	// 01c0    ldbih  r1,((lbuf)>>8)&0xff
+@00e1	b904	// 01c2    ldbil  r1,(lbuf)&0xff
+@00e2	c204	// 01c4    ldbih  r2,((lab_str_cmd_help)>>8)&0xff
+@00e3	baaa	// 01c6    ldbil  r2,(lab_str_cmd_help)&0xff
+@00e4	c703	// 01c8    ldbih  r7,(lab_strcmp)>>8
+@00e5	bf70	// 01ca    ldbil  r7,(lab_strcmp)&0xff
+@00e6	7f8f	// 01cc    jalw   r7
+@00e7	78c0	// 01ce    mov    r0,r0
+@00e8	1006	// 01d0    bne    help_notid
+	// ================================
+	// help
+	// response
+@00e9	c103	// 01d2    ldbih  r1,((lab_str_msg_help)>>8)&0xff
+@00ea	b9ac	// 01d4    ldbil  r1,(lab_str_msg_help)&0xff
+@00eb	c703	// 01d6    ldbih  r7,(lab_print_lst)>>8
+@00ec	bf14	// 01d8    ldbil  r7,(lab_print_lst)&0xff
+@00ed	7f8f	// 01da    jalw   r7
+@00ee	081b	// 01dc    bra    no_data
+		// help_notid:
+	// ================================
+	// ignore empty line
+@00ef	c150	// 01de    ldbih  r1,((lbuf)>>8)&0xff
+@00f0	b904	// 01e0    ldbil  r1,(lbuf)&0xff
+@00f1	7b01	// 01e2    ldb    r0,r1
+@00f2	78c0	// 01e4    mov    r0,r0
+@00f3	1816	// 01e6    beq    no_data
+	// ================================
+	// ERROR: unknown command
+@00f4	c104	// 01e8    ldbih  r1,((lab_str_err_unkn)>>8)&0xff
+@00f5	b952	// 01ea    ldbil  r1,(lab_str_err_unkn)&0xff
+@00f6	c702	// 01ec    ldbih  r7,(lab_print)>>8
+@00f7	bff8	// 01ee    ldbil  r7,(lab_print)&0xff
+@00f8	7f8f	// 01f0    jalw   r7
+@00f9	7fe1	// 01f2    pushw  r1
+@00fa	c150	// 01f4    ldbih  r1,((lbuf)>>8)&0xff
+@00fb	b904	// 01f6    ldbil  r1,(lbuf)&0xff
+@00fc	c702	// 01f8    ldbih  r7,(lab_print)>>8
+@00fd	bff8	// 01fa    ldbil  r7,(lab_print)&0xff
+@00fe	7f8f	// 01fc    jalw   r7
+@00ff	7fe9	// 01fe    popw   r1
+@0100	c702	// 0200    ldbih  r7,(lab_print)>>8
+@0101	bff8	// 0202    ldbil  r7,(lab_print)&0xff
+@0102	7f8f	// 0204    jalw   r7
+@0103	0806	// 0206    bra    no_data
+	// ERROR: syntax
+		// err_syntx:
+@0104	c104	// 0208    ldbih  r1,((lab_str_err_syntx)>>8)&0xff
+@0105	b96c	// 020a    ldbil  r1,(lab_str_err_syntx)&0xff
+@0106	c702	// 020c    ldbih  r7,(lab_print)>>8
+@0107	bff8	// 020e    ldbil  r7,(lab_print)&0xff
+@0108	7f8f	// 0210    jalw   r7
+@0109	0800	// 0212    bra    no_data
+		// no_data:
+	// end of command interpretation
+	// ================================
+	// led blink
+@010a	c750	// 0214    ldbih  r7,((led_stat)>>8)&0xff
+@010b	bf00	// 0216    ldbil  r7,(led_stat)&0xff
+@010c	7b87	// 0218    ldw    r0,r7
+@010d	8806	// 021a    andi   r0,0x06
+@010e	c702	// 021c    ldbih  r7,((lab_led_jmptab)>>8)&0xff
+@010f	bf26	// 021e    ldbil  r7,(lab_led_jmptab)&0xff
+@0110	79b8	// 0220    add    r7,r0
+@0111	7bbf	// 0222    ldw    r7,r7
+@0112	7f87	// 0224    jmp    r7
+		// led_jmptab:
+@0113	022e	// 0226    datw   lab_led_st0
+@0114	024a	// 0228    datw   lab_led_st1
+@0115	0266	// 022a    datw   lab_led_st2
+@0116	028e	// 022c    datw   lab_led_st3
+	// ================================
+	// led on, msec_s[ms]
+		// led_st0:
+	// check millis()
+@0117	c7f0	// 022e    ldbih  r7,((sytmmill)>>8)&0xff
+@0118	bf1e	// 0230    ldbil  r7,(sytmmill)&0xff
+@0119	7b87	// 0232    ldw    r0,r7
+@011a	c100	// 0234    ldbih  r1,((msec_s)>>8)&0xff
+@011b	b996	// 0236    ldbil  r1,(msec_s)&0xff
+@011c	7a81	// 0238    cmp    r0,r1
+@011d	2841	// 023a    blo    led_end
+	// update led driver
+@011e	c750	// 023c    ldbih  r7,((led_colr)>>8)&0xff
+@011f	bf02	// 023e    ldbil  r7,(led_colr)&0xff
+@0120	7b87	// 0240    ldw    r0,r7
+@0121	c7f0	// 0242    ldbih  r7,((porset)>>8)&0xff
+@0122	bf2a	// 0244    ldbil  r7,(porset)&0xff
+@0123	7bf8	// 0246    stw    r7,r0
+@0124	0830	// 0248    bra    led_updt
+	// ================================
+	// led off, msec_s[ms]
+		// led_st1:
+	// check millis()
+@0125	c7f0	// 024a    ldbih  r7,((sytmmill)>>8)&0xff
+@0126	bf1e	// 024c    ldbil  r7,(sytmmill)&0xff
+@0127	7b87	// 024e    ldw    r0,r7
+@0128	c100	// 0250    ldbih  r1,((msec_s)>>8)&0xff
+@0129	b996	// 0252    ldbil  r1,(msec_s)&0xff
+@012a	7a81	// 0254    cmp    r0,r1
+@012b	2833	// 0256    blo    led_end
+	// update led driver
+@012c	c750	// 0258    ldbih  r7,((led_colr)>>8)&0xff
+@012d	bf02	// 025a    ldbil  r7,(led_colr)&0xff
+@012e	7b87	// 025c    ldw    r0,r7
+@012f	c7f0	// 025e    ldbih  r7,((porclr)>>8)&0xff
+@0130	bf2c	// 0260    ldbil  r7,(porclr)&0xff
+@0131	7bf8	// 0262    stw    r7,r0
+@0132	0822	// 0264    bra    led_updt
+	// ================================
+	// led on, msec_s[ms]
+		// led_st2:
+	// check millis()
+@0133	c7f0	// 0266    ldbih  r7,((sytmmill)>>8)&0xff
+@0134	bf1e	// 0268    ldbil  r7,(sytmmill)&0xff
+@0135	7b87	// 026a    ldw    r0,r7
+@0136	c100	// 026c    ldbih  r1,((msec_s)>>8)&0xff
+@0137	b996	// 026e    ldbil  r1,(msec_s)&0xff
+@0138	7a81	// 0270    cmp    r0,r1
+@0139	2825	// 0272    blo    led_end
+	// update led driver
+@013a	c750	// 0274    ldbih  r7,((led_colr)>>8)&0xff
+@013b	bf02	// 0276    ldbil  r7,(led_colr)&0xff
+@013c	7b87	// 0278    ldw    r0,r7
+@013d	c7f0	// 027a    ldbih  r7,((porset)>>8)&0xff
+@013e	bf2a	// 027c    ldbil  r7,(porset)&0xff
+@013f	7bf8	// 027e    stw    r7,r0
+	// update led_colr
+@0140	c750	// 0280    ldbih  r7,((led_colr)>>8)&0xff
+@0141	bf02	// 0282    ldbil  r7,(led_colr)&0xff
+@0142	7b87	// 0284    ldw    r0,r7
+@0143	9801	// 0286    addi   r0,0x01
+@0144	8807	// 0288    andi   r0,0x07
+@0145	7bf8	// 028a    stw    r7,r0
+@0146	080e	// 028c    bra    led_updt
+	// ================================
+	// led off, msec_l[ms]
+		// led_st3:
+	// check millis()
+@0147	c7f0	// 028e    ldbih  r7,((sytmmill)>>8)&0xff
+@0148	bf1e	// 0290    ldbil  r7,(sytmmill)&0xff
+@0149	7b87	// 0292    ldw    r0,r7
+@014a	c102	// 0294    ldbih  r1,((msec_l)>>8)&0xff
+@014b	b926	// 0296    ldbil  r1,(msec_l)&0xff
+@014c	7a81	// 0298    cmp    r0,r1
+@014d	2811	// 029a    blo    led_end
+	// update led driver
+@014e	c750	// 029c    ldbih  r7,((led_colr)>>8)&0xff
+@014f	bf02	// 029e    ldbil  r7,(led_colr)&0xff
+@0150	7b87	// 02a0    ldw    r0,r7
+@0151	c7f0	// 02a2    ldbih  r7,((porclr)>>8)&0xff
+@0152	bf2c	// 02a4    ldbil  r7,(porclr)&0xff
+@0153	7bf8	// 02a6    stw    r7,r0
+@0154	0800	// 02a8    bra    led_updt
+	// update led state
+		// led_updt:
+	// sytm reset
+@0155	c7f0	// 02aa    ldbih  r7,((sytmctl)>>8)&0xff
+@0156	bf10	// 02ac    ldbil  r7,(sytmctl)&0xff
+@0157	b001	// 02ae    ldbiu  r0,sytm_rst
+@0158	7bf8	// 02b0    stw    r7,r0
+	// update led_stat
+@0159	c750	// 02b2    ldbih  r7,((led_stat)>>8)&0xff
+@015a	bf00	// 02b4    ldbil  r7,(led_stat)&0xff
+@015b	7b87	// 02b6    ldw    r0,r7
+@015c	9802	// 02b8    addi   r0,0x02
+@015d	8806	// 02ba    andi   r0,0x06
+@015e	7bf8	// 02bc    stw    r7,r0
+		// led_end:
+	// ================================
+	// end of loop
+@015f	0edc	// 02be    bra    loop
+	// ================================
+	// get line from uart ; disturbed r0,r5~r7
+	// ================================
+		// get_line:
+@0160	c7f0	// 02c0    ldbih  r7,((uartrdat)>>8)&0xff
+@0161	bf36	// 02c2    ldbil  r7,(uartrdat)&0xff
+@0162	c6f0	// 02c4    ldbih  r6,((uartctl)>>8)&0xff
+@0163	be30	// 02c6    ldbil  r6,(uartctl)&0xff
+@0164	c550	// 02c8    ldbih  r5,((lbuf)>>8)&0xff
+@0165	bd04	// 02ca    ldbil  r5,(lbuf)&0xff
+		// gl_loop:
+	// polling until RAVL=1
+@0166	7b86	// 02cc    ldw    r0,r6
+@0167	8880	// 02ce    andi   r0,uart_ravl
+@0168	1ffd	// 02d0    beq    gl_loop
+	// get byte
+@0169	7b87	// 02d2    ldw    r0,r7
+@016a	7b68	// 02d4    stb    r5,r0
+@016b	9d01	// 02d6    addi   r5,1
+	// LF code check
+@016c	a80a	// 02d8    cmpi   r0,chr_lf
+@016d	1804	// 02da    beq    gl_got
+	// size check
+@016e	c050	// 02dc    ldbih  r0,((lbuf+max_lbuf-1)>>8)&0xff
+@016f	b843	// 02de    ldbil  r0,(lbuf+max_lbuf-1)&0xff
+@0170	7aa8	// 02e0    cmp    r5,r0
+@0171	2ff4	// 02e2    blo    gl_loop
+	// got line
+		// gl_got:
+	// string terminate
+@0172	b000	// 02e4    ldbiu  r0,0
+@0173	a501	// 02e6    subi   r5,1
+@0174	7b68	// 02e8    stb    r5,r0
+	// check CR code
+@0175	a501	// 02ea    subi   r5,1
+@0176	7b05	// 02ec    ldb    r0,r5
+@0177	a80d	// 02ee    cmpi   r0,chr_cr
+@0178	1002	// 02f0    bne    gl_notcr
+@0179	b000	// 02f2    ldbiu  r0,0
+@017a	7b68	// 02f4    stb    r5,r0
+		// gl_notcr:
+@017b	0002	// 02f6    rtnw  
+	// ================================
+	// print r1 ; disturbed r0~r2,r6,r7
+	// ================================
+		// print:
+@017c	c7f0	// 02f8    ldbih  r7,((uarttdat)>>8)&0xff
+@017d	bf34	// 02fa    ldbil  r7,(uarttdat)&0xff
+@017e	c6f0	// 02fc    ldbih  r6,((uartctl)>>8)&0xff
+@017f	be30	// 02fe    ldbil  r6,(uartctl)&0xff
+		// pr_loop:
+	// get 1 byte
+@0180	7b11	// 0300    ldb    r2,r1
+@0181	9901	// 0302    addi   r1,1
+@0182	78d2	// 0304    mov    r2,r2
+@0183	1805	// 0306    beq    pr_finish
+	// polling uartctl.TFUL=0
+		// pr_poll:
+@0184	7b86	// 0308    ldw    r0,r6
+@0185	8810	// 030a    andi   r0,uart_tful
+@0186	17fd	// 030c    bne    pr_poll
+	// send data
+@0187	7bfa	// 030e    stw    r7,r2
+@0188	0ff7	// 0310    bra    pr_loop
+		// pr_finish:
+@0189	0002	// 0312    rtnw  
+	// ================================
+	// print_lst r1 ; disturbed r0~r2,r6,r7
+	// ================================
+		// print_lst:
+@018a	c702	// 0314    ldbih  r7,(lab_print)>>8
+@018b	bff8	// 0316    ldbil  r7,(lab_print)&0xff
+@018c	7f8f	// 0318    jalw   r7
+@018d	7b01	// 031a    ldb    r0,r1
+@018e	78c0	// 031c    mov    r0,r0
+@018f	17fa	// 031e    bne    print_lst
+@0190	0002	// 0320    rtnw  
+	// ================================
+	// print_hex r1 ; disturbed r0~r7
+	//		print r1 as 4 digits hexadecimal number
+	// ================================
+		// print_hex:
+@0191	b304	// 0322    ldbiu  r3,4
+@0192	c7f0	// 0324    ldbih  r7,((uarttdat)>>8)&0xff
+@0193	bf34	// 0326    ldbil  r7,(uarttdat)&0xff
+@0194	c6f0	// 0328    ldbih  r6,((uartctl)>>8)&0xff
+@0195	be30	// 032a    ldbil  r6,(uartctl)&0xff
+@0196	c503	// 032c    ldbih  r5,((lab_ph_hexdig)>>8)&0xff
+@0197	bd4e	// 032e    ldbil  r5,(lab_ph_hexdig)&0xff
+		// ph_loop:
+	// print nibble
+@0198	78c1	// 0330    mov    r0,r1
+@0199	78e5	// 0332    mov    r4,r5
+@019a	7fd0	// 0334    cendw  r0
+@019b	d8fc	// 0336    lsfti  r0,-4
+@019c	880f	// 0338    andi   r0,0x0f
+@019d	79a0	// 033a    add    r4,r0
+@019e	7b14	// 033c    ldb    r2,r4
+	// polling uartctl.TFUL=0
+		// ph_poll:
+@019f	7b86	// 033e    ldw    r0,r6
+@01a0	8810	// 0340    andi   r0,uart_tful
+@01a1	17fd	// 0342    bne    ph_poll
+	// send data
+@01a2	7bfa	// 0344    stw    r7,r2
+	// loop
+@01a3	d904	// 0346    lsfti  r1,4
+@01a4	a301	// 0348    subi   r3,1
+@01a5	17f2	// 034a    bne    ph_loop
+@01a6	0002	// 034c    rtnw  
+		// ph_hexdig:
+@01a7	3031	// 034e    datw   0x3031  01
+@01a8	3233	// 0350    datw   0x3233  23
+@01a9	3435	// 0352    datw   0x3435  45
+@01aa	3637	// 0354    datw   0x3637  67
+@01ab	3839	// 0356    datw   0x3839  89
+@01ac	6162	// 0358    datw   0x6162  ab
+@01ad	6364	// 035a    datw   0x6364  cd
+@01ae	6566	// 035c    datw   0x6566  ef
+	// ================================
+	// print_chr r1 ; disturbed r0,r7
+	// ================================
+		// print_chr:
+	// polling uartctl.TFUL=0
+@01af	c7f0	// 035e    ldbih  r7,((uartctl)>>8)&0xff
+@01b0	bf30	// 0360    ldbil  r7,(uartctl)&0xff
+		// pc_poll:
+@01b1	7b87	// 0362    ldw    r0,r7
+@01b2	8810	// 0364    andi   r0,uart_tful
+@01b3	17fd	// 0366    bne    pc_poll
+	// send data
+@01b4	c7f0	// 0368    ldbih  r7,((uarttdat)>>8)&0xff
+@01b5	bf34	// 036a    ldbil  r7,(uarttdat)&0xff
+@01b6	7bf9	// 036c    stw    r7,r1
+@01b7	0002	// 036e    rtnw  
+	// ================================
+	// string compare: r0=strcmp (r1,r2) ; disturbed r1~r4
+	// ================================
+		// strcmp:
+@01b8	7b19	// 0370    ldb    r3,r1
+@01b9	9901	// 0372    addi   r1,1
+@01ba	7b22	// 0374    ldb    r4,r2
+@01bb	9a01	// 0376    addi   r2,1
+@01bc	78c3	// 0378    mov    r0,r3
+@01bd	7a04	// 037a    sub    r0,r4
+@01be	1004	// 037c    bne    sc_finish
+	// check nil code
+@01bf	78db	// 037e    mov    r3,r3
+@01c0	1802	// 0380    beq    sc_finish
+@01c1	78e4	// 0382    mov    r4,r4
+@01c2	17f5	// 0384    bne    strcmp
+		// sc_finish:
+@01c3	0002	// 0386    rtnw  
+	// ================================
+	// c string data
+	// ================================
+		// str_msg_who:
+@01c4	4f4b	// 0388    datw   0x4f4b  OK
+@01c5	3a20	// 038a    datw   0x3a20  : 
+@01c6	7267	// 038c    datw   0x7267  rg
+@01c7	625f	// 038e    datw   0x625f  b_
+@01c8	6c65	// 0390    datw   0x6c65  le
+@01c9	645f	// 0392    datw   0x645f  d_
+@01ca	626c	// 0394    datw   0x626c  bl
+@01cb	696e	// 0396    datw   0x696e  in
+@01cc	6b20	// 0398    datw   0x6b20  k 
+@01cd	7665	// 039a    datw   0x7665  ve
+@01ce	722e	// 039c    datw   0x722e  r.
+@01cf	312e	// 039e    datw   0x312e  1.
+@01d0	3036	// 03a0    datw   0x3036  06
+@01d1	0d0a	// 03a2    datw   0x0d0a    
+@01d2	0000	// 03a4    datw   0x0000    
+		// str_msg_rdy:
+@01d3	5244	// 03a6    datw   0x5244  RD
+@01d4	590d	// 03a8    datw   0x590d  Y 
+@01d5	0a00	// 03aa    datw   0x0a00    
+		// str_msg_help:
+@01d6	4f4b	// 03ac    datw   0x4f4b  OK
+@01d7	2b20	// 03ae    datw   0x2b20  + 
+@01d8	7768	// 03b0    datw   0x7768  wh
+@01d9	6f0d	// 03b2    datw   0x6f0d  o 
+@01da	0a00	// 03b4    datw   0x0a00    
+@01db	4f4b	// 03b6    datw   0x4f4b  OK
+@01dc	3a20	// 03b8    datw   0x3a20  : 
+@01dd	6865	// 03ba    datw   0x6865  he
+@01de	6c70	// 03bc    datw   0x6c70  lp
+@01df	0d0a	// 03be    datw   0x0d0a    
+@01e0	0000	// 03c0    datw   0x0000    
+		// str_msg_idrg:
+@01e1	4f4b	// 03c2    datw   0x4f4b  OK
+@01e2	2b20	// 03c4    datw   0x2b20  + 
+@01e3	6964	// 03c6    datw   0x6964  id
+@01e4	2063	// 03c8    datw   0x2063   c
+@01e5	6f64	// 03ca    datw   0x6f64  od
+@01e6	653a	// 03cc    datw   0x653a  e:
+@01e7	2000	// 03ce    datw   0x2000    
+@01e8	0d0a	// 03d0    datw   0x0d0a    
+@01e9	0000	// 03d2    datw   0x0000    
+@01ea	4f4b	// 03d4    datw   0x4f4b  OK
+@01eb	2b20	// 03d6    datw   0x2b20  + 
+@01ec	7665	// 03d8    datw   0x7665  ve
+@01ed	7273	// 03da    datw   0x7273  rs
+@01ee	696f	// 03dc    datw   0x696f  io
+@01ef	6e3a	// 03de    datw   0x6e3a  n:
+@01f0	2000	// 03e0    datw   0x2000    
+@01f1	0d0a	// 03e2    datw   0x0d0a    
+@01f2	0000	// 03e4    datw   0x0000    
+@01f3	4f4b	// 03e6    datw   0x4f4b  OK
+@01f4	2b20	// 03e8    datw   0x2b20  + 
+@01f5	6663	// 03ea    datw   0x6663  fc
+@01f6	7075	// 03ec    datw   0x7075  pu
+@01f7	206b	// 03ee    datw   0x206b   k
+@01f8	487a	// 03f0    datw   0x487a  Hz
+@01f9	3a00	// 03f2    datw   0x3a00  : 
+@01fa	0d0a	// 03f4    datw   0x0d0a    
+@01fb	0000	// 03f6    datw   0x0000    
+@01fc	4f4b	// 03f8    datw   0x4f4b  OK
+@01fd	2b20	// 03fa    datw   0x2b20  + 
+@01fe	6564	// 03fc    datw   0x6564  ed
+@01ff	6974	// 03fe    datw   0x6974  it
+@0200	696f	// 0400    datw   0x696f  io
+@0201	6e3a	// 0402    datw   0x6e3a  n:
+@0202	2000	// 0404    datw   0x2000    
+@0203	0d0a	// 0406    datw   0x0d0a    
+@0204	0000	// 0408    datw   0x0000    
+@0205	4f4b	// 040a    datw   0x4f4b  OK
+@0206	2b20	// 040c    datw   0x2b20  + 
+@0207	726f	// 040e    datw   0x726f  ro
+@0208	6d20	// 0410    datw   0x6d20  m 
+@0209	746f	// 0412    datw   0x746f  to
+@020a	703a	// 0414    datw   0x703a  p:
+@020b	2000	// 0416    datw   0x2000    
+@020c	0d0a	// 0418    datw   0x0d0a    
+@020d	0000	// 041a    datw   0x0000    
+@020e	4f4b	// 041c    datw   0x4f4b  OK
+@020f	2b20	// 041e    datw   0x2b20  + 
+@0210	726f	// 0420    datw   0x726f  ro
+@0211	6d20	// 0422    datw   0x6d20  m 
+@0212	7369	// 0424    datw   0x7369  si
+@0213	7a65	// 0426    datw   0x7a65  ze
+@0214	3a00	// 0428    datw   0x3a00  : 
+@0215	0d0a	// 042a    datw   0x0d0a    
+@0216	0000	// 042c    datw   0x0000    
+@0217	4f4b	// 042e    datw   0x4f4b  OK
+@0218	2b20	// 0430    datw   0x2b20  + 
+@0219	7261	// 0432    datw   0x7261  ra
+@021a	6d20	// 0434    datw   0x6d20  m 
+@021b	746f	// 0436    datw   0x746f  to
+@021c	703a	// 0438    datw   0x703a  p:
+@021d	2000	// 043a    datw   0x2000    
+@021e	0d0a	// 043c    datw   0x0d0a    
+@021f	0000	// 043e    datw   0x0000    
+@0220	4f4b	// 0440    datw   0x4f4b  OK
+@0221	2b20	// 0442    datw   0x2b20  + 
+@0222	7261	// 0444    datw   0x7261  ra
+@0223	6d20	// 0446    datw   0x6d20  m 
+@0224	7369	// 0448    datw   0x7369  si
+@0225	7a65	// 044a    datw   0x7a65  ze
+@0226	3a00	// 044c    datw   0x3a00  : 
+@0227	0d0a	// 044e    datw   0x0d0a    
+@0228	0000	// 0450    datw   0x0000    
+		// str_err_unkn:
+@0229	4552	// 0452    datw   0x4552  ER
+@022a	523a	// 0454    datw   0x523a  R:
+@022b	2075	// 0456    datw   0x2075   u
+@022c	6e6b	// 0458    datw   0x6e6b  nk
+@022d	6e6f	// 045a    datw   0x6e6f  no
+@022e	776e	// 045c    datw   0x776e  wn
+@022f	2063	// 045e    datw   0x2063   c
+@0230	6f6d	// 0460    datw   0x6f6d  om
+@0231	6d61	// 0462    datw   0x6d61  ma
+@0232	6e64	// 0464    datw   0x6e64  nd
+@0233	3a20	// 0466    datw   0x3a20  : 
+@0234	000d	// 0468    datw   0x000d    
+@0235	0a00	// 046a    datw   0x0a00    
+		// str_err_syntx:
+@0236	4552	// 046c    datw   0x4552  ER
+@0237	523a	// 046e    datw   0x523a  R:
+@0238	2073	// 0470    datw   0x2073   s
+@0239	796e	// 0472    datw   0x796e  yn
+@023a	7461	// 0474    datw   0x7461  ta
+@023b	780d	// 0476    datw   0x780d  x 
+@023c	0a00	// 0478    datw   0x0a00    
+		// str_err_not_ts:
+@023d	4552	// 047a    datw   0x4552  ER
+@023e	523a	// 047c    datw   0x523a  R:
+@023f	2063	// 047e    datw   0x2063   c
+@0240	7075	// 0480    datw   0x7075  pu
+@0241	2069	// 0482    datw   0x2069   i
+@0242	7320	// 0484    datw   0x7320  s 
+@0243	6e6f	// 0486    datw   0x6e6f  no
+@0244	7420	// 0488    datw   0x7420  t 
+@0245	5465	// 048a    datw   0x5465  Te
+@0246	6e6e	// 048c    datw   0x6e6e  nn
+@0247	6573	// 048e    datw   0x6573  es
+@0248	7369	// 0490    datw   0x7369  si
+@0249	6e65	// 0492    datw   0x6e65  ne
+@024a	2063	// 0494    datw   0x2063   c
+@024b	6f72	// 0496    datw   0x6f72  or
+@024c	652c	// 0498    datw   0x652c  e,
+@024d	2068	// 049a    datw   0x2068   h
+@024e	616c	// 049c    datw   0x616c  al
+@024f	7465	// 049e    datw   0x7465  te
+@0250	642e	// 04a0    datw   0x642e  d.
+@0251	0d0a	// 04a2    datw   0x0d0a    
+@0252	0000	// 04a4    datw   0x0000    
+		// str_cmd_who:
+@0253	7768	// 04a6    datw   0x7768  wh
+@0254	6f00	// 04a8    datw   0x6f00  o 
+		// str_cmd_help:
+@0255	6865	// 04aa    datw   0x6865  he
+@0256	6c70	// 04ac    datw   0x6c70  lp
+@0257	0000	// 04ae    datw   0x0000    
