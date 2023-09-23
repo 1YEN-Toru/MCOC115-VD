@@ -38,7 +38,7 @@ output	tled_led2);
 // ================================
 //	2023/07/08	ver.1.48
 //		TSOC117MN0408
-//		TS-IP=Tennessine, minimum edition
+//		TS-MN=Tennessine, minimum edition
 //
 //	2023/05/20	ver.1.46
 //		NSOC113MD0816
