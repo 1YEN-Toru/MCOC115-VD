@@ -539,21 +539,21 @@ always	@(posedge clk)
 	.sys_bootr(sys_bootr),	// Input
 	.sys_mdsim(sys_mdsim),	// Input
 	.uart_rxd(uart_rxd),	// Input
-//	.uar1_rxd(uar1_rxd),	// Input
-//	.uar1_cts(uar1_cts),	// Input
+	.uar1_rxd(uar1_rxd),	// Input
+	.uar1_cts(uar1_cts),	// Input
 	.intc_int0(intc_int0),	// Input
 	.intc_int1(intc_int1),	// Input
-//	.stws_scl(stws_scl),	// Inout
-//	.stws_sda(stws_sda),	// Inout
+	.stws_scl(stws_scl),	// Inout
+	.stws_sda(stws_sda),	// Inout
 	.port_iop(port_iop[15:0]),	// Inout
 //	.user_iop(user_iop[15:0]),	// Inout
-	.uart_txd(uart_txd)	// Output
-//	.uar1_txd(uar1_txd),	// Output
-//	.uar1_rts(uar1_rts),	// Output
-//	.tim0_pwma(tim0_pwma),	// Output
-//	.tim0_pwmb(tim0_pwmb),	// Output
-//	.tim1_pwma(tim1_pwma),	// Output
-//	.tim1_pwmb(tim1_pwmb)	// Output
+	.uart_txd(uart_txd),	// Output
+	.uar1_txd(uar1_txd),	// Output
+	.uar1_rts(uar1_rts),	// Output
+	.tim0_pwma(tim0_pwma),	// Output
+	.tim0_pwmb(tim0_pwmb),	// Output
+	.tim1_pwma(tim1_pwma),	// Output
+	.tim1_pwmb(tim1_pwmb)	// Output
 );
 
 

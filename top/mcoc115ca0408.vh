@@ -4,6 +4,9 @@
 //		(c) 2023	1YEN Toru
 //
 //
+//	2023/09/30
+//		add: MULC16, DIVC32, INTC322DVL, TIM162
+//
 //	2023/09/23
 //		MCOC115CA0408
 //		CA=Cmod A7 edition
@@ -17,7 +20,6 @@
 
 `define		MCOC_TOP_NAME	mcoc115ca0408
 `define		MCOC_CODE_ED	"CA"
-`define		MCOC_VERS		16'h0200
 
 
 // Compile option
@@ -30,14 +32,14 @@
 //`define		MCOC_FCPU_24M
 
 // Coprocessor
-`define		MCVM_COPR_NOMUL
-`define		MCVM_COPR_NODIV
+//`define		MCVM_COPR_NOMUL
+//`define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU
 `define		MCVM_COPR_NOFPUS
 
 // I/O unit
-`define		MCOC_NO_INTC
-`define		MCOC_NO_TIM0
+//`define		MCOC_NO_INTC
+//`define		MCOC_NO_TIM0
 `define		MCOC_NO_TIM1
 `define		MCOC_NO_LOGA
 `define		MCOC_NO_STWS

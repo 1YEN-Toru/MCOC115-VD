@@ -68,20 +68,19 @@
 ## CPU core
 - [Moscovium](http://hello.world.coocan.jp/ARDUINO/index.html#RI_MCVM)
 	- Original 16 bit CPU core
+- [Nihonium](http://hello.world.coocan.jp/ARDUINO/index.html#RI_NIHO)
+	- Original 32 bit CPU core
+- [Tennessine](http://hello.world.coocan.jp/ARDUINO/index.html#RI_TNSN)
+	- Original 8 bit CPU core
 <!--
 - [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
 	- Original 16 bit CPU core
 	- Super Scalar edition
-- [Nihonium](http://hello.world.coocan.jp/ARDUINO/index.html#RI_NIHO)
-	- Original 32 bit CPU core
 - [Nihonium-SS](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
 	- Original 32 bit CPU core
 	- Super Scalar edition
-- [Tennessine](http://hello.world.coocan.jp/ARDUINO/index.html#RI_TNSN)
-	- Original 8 bit CPU core
 -->
 
-<!--
 ## Coprocessor
 - [MULC16](http://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
 	- Multiply coprocessor
@@ -92,6 +91,7 @@
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
+<!--
 - [HALFPU](http://hello.world.coocan.jp/ARDUINO16/arduino16_5.html)
 	- 16 bit half precision Floating Point Unit (FPU)
 		- for Moscovium / Moscovium-SS / Nihonium / Nihonium-SS
@@ -106,26 +106,24 @@
 - [BUSC2040DL](http://hello.world.coocan.jp/ARDUINO17/arduino17_1.html#DUALBUSC)
 	- Bus state controller
 	- 24 bit address area, 16 / 32 bit data bus
-<!--
 - [INTC322DVL](http://hello.world.coocan.jp/ARDUINO23/arduino23_2.html#INTC322DVL)
 	- Interrupt controller
 	- Vector interrupt
 	- 4 level interrupt
--->
 
 ## Timer units
 - [SYSTIM](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCSYTM)
 	- System timer unit
 	- Millisecond, microsecond and clock counter
+- [TIM162](http://hello.world.coocan.jp/ARDUINO15/arduino15_a.html#TIM16)
+	- General purpose 16 bit timer unit
+	- 16 bit timer counter
+	- 16 bit prescaler
+	- 2 PWM output
 - [TIMLED5](http://hello.world.coocan.jp/ARDUINO27/arduino27_3.html#TIMLED5)
 	- LED PWM timer unit
 	- 5 PWM output, duty resolution 0 ~ 255
 <!--
-- [TIM162](http://hello.world.coocan.jp/ARDUINO15/arduino15_a.html#TIM16)
-	- 16 bit PWM timer unit
-	- 16 bit timer counter
-	- 16 bit prescaler
-	- 2 PWM output
 - [RTC400](http://hello.world.coocan.jp/ARDUINO22/arduino22_a.html#RTC400)
 	- Real time clock unit
 	- Full 400 years of leap year support
@@ -144,7 +142,7 @@
 
 ## I/O units
 - [PORT8I8O](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCPORT)
-	- General I/O port unit
+	- General purpose I/O port unit
 - [IOMEM16](http://hello.world.coocan.jp/ARDUINO24/arduino24_9.html#IOMEM16)
 	- 16 byte I/O memory (RAM) unit
 <!--

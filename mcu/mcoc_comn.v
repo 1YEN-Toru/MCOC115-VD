@@ -536,7 +536,7 @@ rom_wrap32d		romw (
 // boot rom
 wire	[15:0]	romsiz_open;
 wire	[31:0]	fdat_bt;
-mcoc_boot32	rombt (
+mcoc_boot32		rombt (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.fcmdl(fcmdl),	// Input

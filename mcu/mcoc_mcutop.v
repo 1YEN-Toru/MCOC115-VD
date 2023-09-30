@@ -5,21 +5,21 @@ input	sys_reset,
 input	sys_bootr,
 input	sys_mdsim,
 input	uart_rxd,
-//input	uar1_rxd,
-//input	uar1_cts,
+input	uar1_rxd,
+input	uar1_cts,
 input	intc_int0,
 input	intc_int1,
-//inout	stws_scl,
-//inout	stws_sda,
+inout	stws_scl,
+inout	stws_sda,
 inout	[15:0]	port_iop,
 //inout	[15:0]	user_iop,
 output	uart_txd,
-//output	uar1_txd,
-//output	uar1_rts,
-//output	tim0_pwma,
-//output	tim0_pwmb,
-//output	tim1_pwma,
-//output	tim1_pwmb,
+output	uar1_txd,
+output	uar1_rts,
+output	tim0_pwma,
+output	tim0_pwmb,
+output	tim1_pwma,
+output	tim1_pwmb,
 output	tled_ledr_n,
 output	tled_ledg_n,
 output	tled_ledb_n,
@@ -27,10 +27,16 @@ output	tled_led1,
 output	tled_led2);
 
 
+`define		MCOC_VERS		16'h0202
+
+
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/09/30	ver.2.02
+//		pin assign: tim162, stws, uart#1
 //
 //	2023/09/23	ver.2.00
 //		General purpose top module edition
