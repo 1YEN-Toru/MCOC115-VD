@@ -38,6 +38,14 @@
 	- Lower performance takes smaller size.
 	- Higher performance takes larger size.
 
+## Development of software
+ Moscovium series MCU can be developed using an assembler.
+
+- [asm_mcvm.olv](asm/asm_mcvm.olv)
+	- A script of [Olive+](http://hp.vector.co.jp/authors/VA008835/OLIVE+/Olive+.html).
+	- You need install Olive+ on your Windows PC.
+	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
+
 --------
 # Directories and Files
 
@@ -133,7 +141,8 @@
 - [UART8N1](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCUART)
 	- UART unit
 	- Format: 8N1 (8 bit data, no parity, 1 stop bit)
-	- Communication speed detection function
+	- [Communication speed detection](http://hello.world.coocan.jp/ARDUINO18/arduino18_8.html) function
+	- Receive data buffer ([FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)) 64 byte
 <!--
 - [STWSER](http://hello.world.coocan.jp/ARDUINO17/arduino17_5.html#STWSER)
 	- Synchronous two wire serial unit (I2C)

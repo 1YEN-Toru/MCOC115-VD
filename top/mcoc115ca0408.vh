@@ -63,14 +63,12 @@
 //`define		MCOC_ROM_8K
 //`define		MCOC_ROM_16K
 //`define		MCOC_IRAM_4K
-//`define		MCOC_SDRAM_8M
-//`define		MCOC_CACHE_4K
 
 
 // ================================
-// Do not edit anything below this line
+// Consistency of choices
+//		*) Do not edit anything below this line
 // ================================
-// CPU core selection
 `ifdef		MCOC_CORE_TS
 `define		CPU_CORE		tennessinec
 `undef		MCOC_CORE_NH

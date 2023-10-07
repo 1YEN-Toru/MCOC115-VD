@@ -27,13 +27,16 @@ output	tled_led1,
 output	tled_led2);
 
 
-`define		MCOC_VERS		16'h0202
+`define		MCOC_VERS		16'h0204
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/10/07	ver.2.04
+//		replace: uart8n1 FIFO: FIFO macro -> fifo8s64
 //
 //	2023/09/30	ver.2.02
 //		pin assign: tim162, stws, uart#1
@@ -771,6 +774,7 @@ assign	bdatr_uar1[15:0]=16'h0;
 mcoc_uart	uar1 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
 	.uart_rxd(uar1_rxd),	// Input
 	.uart_cts(uar1_cts),	// Input
 	.brdy(brdy),	// Input

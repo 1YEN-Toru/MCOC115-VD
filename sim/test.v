@@ -3,6 +3,7 @@
 
 // simulation options
 //`define		SIM_BOOTMD
+//`define		SIM_UART
 //`define		SIM_UART2
 //`define		SIM_SMBUS
 //`define		SIM_LOGA
@@ -510,6 +511,11 @@ always	@(posedge clk)
 `ifdef		SIM_BOOTMD
 `include	"test_ct_boot.vh"
 `endif	//	SIM_BOOTMD
+
+
+`ifdef		SIM_UART
+`include	"test_ct_uart.vh"
+`endif	//	SIM_UART
 
 
 `ifdef		SIM_SMBUS

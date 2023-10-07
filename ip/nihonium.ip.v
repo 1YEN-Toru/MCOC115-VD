@@ -66722,7 +66722,7 @@ module nihonium
 //		instruction: jall, rtnl, pushcl, popcl
 //
 //	2023/03/11	ver.1.08
-//		corresponding to 32 bit bus
+//		corresponding to 32 bit memory bus
 //
 //	2023/02/11	ver.1.06
 //		instruction: fdown

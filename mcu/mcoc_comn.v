@@ -177,10 +177,10 @@ wire	[15:0]	cbus_hfpu;
 mcoc_hfpu	hfpu (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.crdy(crdy_hfpu),	// Output
 	.ccmd(ccmd[4:0]),	// Input
 	.abus(abus_o[15:0]),	// Input
 	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy_hfpu),	// Output
 	.cbus(cbus_hfpu[15:0])	// Output
 );
 
@@ -194,10 +194,10 @@ wire	[31:0]	cbus_sfpu;
 mcoc_sfpu	sfpu (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.crdy(crdy_sfpu),	// Output
 	.ccmd(ccmd[4:0]),	// Input
 	.abus(abus_o[31:0]),	// Input
 	.bbus(bbus_o[31:0]),	// Input
+	.crdy(crdy_sfpu),	// Output
 	.cbus(cbus_sfpu[31:0])	// Output
 );
 
@@ -342,10 +342,10 @@ wire	[15:0]	cbus_hfpu;
 mcoc_hfpu	hfpu (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.crdy(crdy_hfpu),	// Output
 	.ccmd(ccmd[4:0]),	// Input
 	.abus(abus_o[15:0]),	// Input
 	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy_hfpu),	// Output
 	.cbus(cbus_hfpu[15:0])	// Output
 );
 
@@ -421,10 +421,10 @@ wire	[21:0]	hfpu_dsp_c;
 halfpu	hfpu (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.crdy(crdy),	// Output
 	.ccmd(ccmd[4:0]),	// Input
 	.abus(abus[15:0]),	// Input
 	.bbus(bbus[15:0]),	// Input
+	.crdy(crdy),	// Output
 	.cbus(cbus[15:0]),	// Output
 	// DSP macro I/F
 	.hfpu_dsp_c(hfpu_dsp_c[21:0]),	// Input
@@ -460,10 +460,10 @@ wire	[23:0]	sfpu_dsp_b;
 sglfpu	sfpu (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.crdy(crdy),	// Output
 	.ccmd(ccmd[4:0]),	// Input
 	.abus(abus[31:0]),	// Input
 	.bbus(bbus[31:0]),	// Input
+	.crdy(crdy),	// Output
 	.cbus(cbus[31:0]),	// Output
 	// DSP macro I/F
 	.sfpu_dsp_c(sfpu_dsp_c[47:0]),	// Input
@@ -1605,9 +1605,8 @@ uart8n1		uart (
 	.urxf_dati(urxf_dati[7:0])	// Output
 );
 
-`ifndef		MCOC_UART_FIFO_SIZE
-`define		MCOC_UART_FIFO_SIZE		1024
-`endif	//	MCOC_UART_FIFO_SIZE
+`ifdef		MCOC_UART_FIFO_SIZE
+
 xpm_fifo_sync	#(
 	.DOUT_RESET_VALUE("0"),				// String
 	.ECC_MODE("no_ecc"),				// String
@@ -1653,6 +1652,24 @@ fifo (
 	.wr_clk(clk),
 	.wr_en(urxf_write)
 );
+
+`else	//	MCOC_UART_FIFO_SIZE
+
+fifo8s64	fifo (
+	.clk_wr(clk),	// Input
+	.clk_rd(clk),	// Input
+	.rst_wr_n(~urxf_frst),	// Input
+	.wr_n(~urxf_write),	// Input
+	.rd_n(~urxf_read),	// Input
+	.dat_wr(urxf_dati[7:0]),	// Input
+	.full_wr(urxf_full),	// Output
+	.full_wr_adv(urxf_afull),	// Output
+	.empty_rd(urxf_empty),	// Output
+	.empty_rd_adv(urxf_aempty),	// Output
+	.dat_rd(urxf_dato[7:0])	// Output
+);
+
+`endif	//	MCOC_UART_FIFO_SIZE
 
 endmodule
 
