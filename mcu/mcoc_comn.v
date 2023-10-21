@@ -1,7 +1,7 @@
 `ifdef		MCOC_CORE_TS
 
 module	tennessinec (
-// Tennessine + Co-processor
+// Tennessine
 input	clk,
 input	rst_n,
 input	brdy,
@@ -478,92 +478,91 @@ endmodule
 `endif	//	MCVM_COPR_NOFPUS
 
 
-module	mcoc_rom32 (
+module	mcoc_rom (
 // mcoc115 rom 32 bit bus
 input	clk,
 input	rst_n,
 input	bootmd,
+input	fcmdl,
 input	brdy,
 input	bcmdr,
 input	bcmdw,
 input	bcmdl,
 input	bmst,
 input	bcs_rom_n,
-input	fcmdl,
 input	[15:0]	fadr1,
 input	[15:0]	fadr2,
 input	[15:0]	badr,
-input	[15:0]	bdatw,
+input	[31:0]	bdatw,
 output	[31:0]	fdat1,
 output	[31:0]	fdat2,
 output	[31:0]	bdatr);
 
 
+wire	[3:0]	rom_we1;
 wire	[15:0]	rom_adr1;
 wire	[15:0]	rom_adr2;
 wire	[31:0]	rom_dat1;
 wire	[31:0]	rom_dat2;
+wire	[31:0]	rom_datw;
 wire	[31:0]	fdat1_rom;
 wire	[31:0]	fdat2_rom;
 
 
 // rom wrapper
-rom_wrap32d		romw (
+rom_wrap32d		romwp (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.bootmd(bootmd),	// Input
+	.fcmdl(fcmdl),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdl(bcmdl),	// Input
 	.bmst(bmst),	// Input
 	.bcs_rom_n(bcs_rom_n),	// Input
-	.fcmdl(fcmdl),	// Input
-	.badr(badr[15:0]),	// Input
 	.fadr1(fadr1[15:0]),	// Input
 	.fadr2(fadr2[15:0]),	// Input
-	.rom_we(rom_we),	// Output
-	.bdatr(bdatr[31:0]),	// Output
+	.badr(badr[15:0]),	// Input
+	.bdatw(bdatw[31:0]),	// Input
 	.fdat1(fdat1_rom[31:0]),	// Output
 	.fdat2(fdat2_rom[31:0]),	// Output
+	.bdatr(bdatr[31:0]),	// Output
 	// ROM macro I/F
 	.rom_dat1(rom_dat1[31:0]),	// Input
 	.rom_dat2(rom_dat2[31:0]),	// Input
+	.rom_we1(rom_we1[3:0]),	// Output
 	.rom_adr1(rom_adr1[15:0]),	// Output
-	.rom_adr2(rom_adr2[15:0])	// Output
+	.rom_adr2(rom_adr2[15:0]),	// Output
+	.rom_datw(rom_datw[31:0])	// Output
 );
 
 // boot rom
-wire	[15:0]	romsiz_open;
 wire	[31:0]	fdat_bt;
 mcoc_boot32		rombt (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.fcmdl(fcmdl),	// Input
-	.adr(fadr1[8:1]),	// Input
-	.dat(fdat_bt[31:0]),	// Output
-	.romsiz(romsiz_open[15:0])	// Output
+	.fadr(fadr1[15:0]),	// Input
+	.fdat(fdat_bt[31:0])	// Output
 );
 
 // instruction rom
 `ifdef		MCOC_ROM_16K
 
-`define		MCOC_ROM_ABIT	13
-`define		MCOC_ROM_AONE	13'h1
+`define		MCOC_ROM_ABIT	12
 `define		MCOC_ROM_SIZB	16*1024*8
 
 `else	//	MCOC_ROM_16K
 
 `ifdef		MCOC_ROM_8K
 
-`define		MCOC_ROM_ABIT	12
-`define		MCOC_ROM_AONE	12'h1
+`define		MCOC_ROM_ABIT	11
 `define		MCOC_ROM_SIZB	8*1024*8
 
 `else	//	MCOC_ROM_8K
 
-`define		MCOC_ROM_ABIT	11
-`define		MCOC_ROM_AONE	11'h1
+`define		MCOC_ROM_ABIT	10
 `define		MCOC_ROM_SIZB	4*1024*8
 
 `endif	//	MCOC_ROM_8K
@@ -573,8 +572,8 @@ xpm_memory_tdpram	#(
 	.ADDR_WIDTH_A(`MCOC_ROM_ABIT),		// DECIMAL
 	.ADDR_WIDTH_B(`MCOC_ROM_ABIT),		// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
-	.BYTE_WRITE_WIDTH_A(16),			// DECIMAL
-	.BYTE_WRITE_WIDTH_B(16),			// DECIMAL
+	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
+	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
 	.CASCADE_HEIGHT(0),					// DECIMAL
 	.CLOCKING_MODE("common_clock"),		// String
 	.ECC_MODE("no_ecc"),				// String
@@ -584,8 +583,8 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(`MCOC_ROM_SIZB),		// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
+	.READ_DATA_WIDTH_B(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
 	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
@@ -596,24 +595,23 @@ xpm_memory_tdpram	#(
 	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_DATA_WIDTH_B(32),			// DECIMAL
 	.WRITE_MODE_A("no_change"),			// String
 	.WRITE_MODE_B("no_change")			// String
-)
-romwr (
+)	romhm (
 	.dbiterra(dbiterra_open),
 	.dbiterrb(dbiterrb_open),
-	.douta(rom_dat1[31:16]),
-	.doutb(rom_dat1[15:0]),
+	.douta(rom_dat1[31:0]),
+	.doutb(rom_dat2[31:0]),
 	.sbiterra(sbiterra_open),
 	.sbiterrb(sbiterrb_open),
-	.addra(rom_adr1[`MCOC_ROM_ABIT:1]),
-	.addrb(rom_adr1[`MCOC_ROM_ABIT:1] | `MCOC_ROM_AONE),
+	.addra(rom_adr1[`MCOC_ROM_ABIT + 1:2]),
+	.addrb(rom_adr2[`MCOC_ROM_ABIT + 1:2]),
 	.clka(clk),
 	.clkb(clk),
-	.dina(bdatw[15:0]),
-	.dinb(16'h0),
+	.dina(rom_datw[31:0]),
+	.dinb(32'h0),
 	.ena(1'b1),
 	.enb(1'b1),
 	.injectdbiterra(1'b0),
@@ -625,74 +623,9 @@ romwr (
 	.rsta(1'b0),
 	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(rom_we),
-	.web(1'b0)
+	.wea(rom_we1[3:0]),
+	.web(4'h0)
 );
-
-`ifdef		MCOC_MCVM_DUAL
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(`MCOC_ROM_ABIT),		// DECIMAL
-	.ADDR_WIDTH_B(`MCOC_ROM_ABIT),		// DECIMAL
-	.AUTO_SLEEP_TIME(0),				// DECIMAL
-	.BYTE_WRITE_WIDTH_A(16),			// DECIMAL
-	.BYTE_WRITE_WIDTH_B(16),			// DECIMAL
-	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
-	.ECC_MODE("no_ecc"),				// String
-	.MEMORY_INIT_FILE("mcoc_irom.mem"),		// String
-	.MEMORY_INIT_PARAM("0"),			// String
-	.MEMORY_OPTIMIZATION("true"),		// String
-	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(`MCOC_ROM_SIZB),		// DECIMAL
-	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
-	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
-	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
-	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
-	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
-	.USE_MEM_INIT(1),					// DECIMAL
-	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-romwr2 (
-	.dbiterra(dbiterra),
-	.dbiterrb(dbiterrb),
-	.douta(rom_dat2[31:16]),
-	.doutb(rom_dat2[15:0]),
-	.sbiterra(sbiterra),
-	.sbiterrb(sbiterrb),
-	.addra(rom_adr2[`MCOC_ROM_ABIT:1]),
-	.addrb(rom_adr2[`MCOC_ROM_ABIT:1] | 'MCOC_ROM_AONE),
-	.clka(clk),
-	.clkb(clk),
-	.dina(bdatw[15:0]),
-	.dinb(16'h0),
-	.ena(1'b1),
-	.enb(1'b1),
-	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
-	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
-	.regcea(1'b1),
-	.regceb(1'b1),
-	.rsta(1'b0),
-	.rstb(1'b0),
-	.sleep(1'b0),
-	.wea(rom_we),
-	.web(1'b0)
-);
-`else	//	MCOC_MCVM_DUAL
-assign	rom_dat2[31:0]=32'h0;
-`endif	//	MCOC_MCVM_DUAL
-
 
 // bus output
 assign	fdat1[31:0]=(bootmd)? fdat_bt[31:0]: fdat1_rom[31:0];
@@ -706,62 +639,58 @@ module	mcoc_iram (
 // mcoc115 iram
 input	clk,
 input	rst_n,
+input	fcmdl,
 input	brdy,
-input	bmst,
+input	bcmdr,
+input	bcmdw,
+input	bcmdb,
+input	bcmdl,
 input	bcs_iram_n,
-input	[2:0]	bcmd,
-input	[15:0]	fadr1,
-input	[15:0]	fadr2,
+input	[15:0]	fadr,
 input	[15:0]	badr,
-input	[15:0]	bdatw,
-input	[15:0]	rom_fdat1,
-input	[15:0]	rom_fdat2,
-output	[15:0]	fdat1,
-output	[15:0]	fdat2,
-output	[15:0]	bdatr);
+input	[31:0]	bdatw,
+input	[31:0]	rom_fdat,
+output	[31:0]	fdat,
+output	[31:0]	bdatr);
 
 
-wire	[1:0]	iram_bwe1;
-wire	[1:0]	iram_bwe2;
-wire	[15:0]	iram_fdat1;
-wire	[15:0]	iram_fdat2;
-wire	[15:0]	iram_bdatr1;
-wire	[15:0]	iram_bdatr2;
+wire	[3:0]	iram_we;
+wire	[15:0]	iram_fadr;
+wire	[15:0]	iram_badr;
+wire	[31:0]	iram_fdat;
+wire	[31:0]	iram_bdatr;
+wire	[31:0]	iram_bdatw;
 
 
-iram_wrapd	iramw (
+iram_wrap32		iramwp (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.fcmdl(fcmdl),	// Input
 	.brdy(brdy),	// Input
-	.bmst(bmst),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcmdl(bcmdl),	// Input
 	.bcs_iram_n(bcs_iram_n),	// Input
-	.badr0(badr[0]),	// Input
-	.bcmd(bcmd[2:0]),	// Input
-	.fadr1(fadr1[15:0]),	// Input
-	.fadr2(fadr2[15:0]),	// Input
-	.rom_fdat1(rom_fdat1[15:0]),	// Input
-	.rom_fdat2(rom_fdat2[15:0]),	// Input
-	.iram_fadr_top(16'h4000),	// Input
-	.fdat1(fdat1[15:0]),	// Output
-	.fdat2(fdat2[15:0]),	// Output
-	.bdatr(bdatr[15:0]),	// Output
+	.fadr(fadr[15:0]),	// Input
+	.badr(badr[15:0]),	// Input
+	.bdatw(bdatw[31:0]),	// Input
+	.rom_fdat(rom_fdat[31:0]),	// Input
+	.fdat(fdat[31:0]),	// Output
+	.bdatr(bdatr[31:0]),	// Output
 	// RAM macro I/F
-	.iram_fdat1(iram_fdat1[15:0]),	// Input
-	.iram_fdat2(iram_fdat2[15:0]),	// Input
-	.iram_bdatr1(iram_bdatr1[15:0]),	// Input
-	.iram_bdatr2(iram_bdatr2[15:0]),	// Input
-	.iram_bce1(iram_bce1),	// Output
-	.iram_bce2(iram_bce2),	// Output
-	.iram_fce1(iram_fce1),	// Output
-	.iram_fce2(iram_fce2),	// Output
-	.iram_bwe1(iram_bwe1[1:0]),	// Output
-	.iram_bwe2(iram_bwe2[1:0])	// Output
+	.iram_fdat(iram_fdat[31:0]),	// Input
+	.iram_bdatr(iram_bdatr[31:0]),	// Input
+	.iram_we(iram_we[3:0]),	// Output
+	.iram_fadr(iram_fadr[15:0]),	// Output
+	.iram_badr(iram_badr[15:0]),	// Output
+	.iram_bdatw(iram_bdatw[31:0])	// Output
 );
 
 // instruction ram
 xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(11),					// DECIMAL
-	.ADDR_WIDTH_B(11),					// DECIMAL
+	.ADDR_WIDTH_A(10),					// DECIMAL
+	.ADDR_WIDTH_B(10),					// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
 	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
 	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
@@ -774,8 +703,8 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(4*1024*8),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
+	.READ_DATA_WIDTH_B(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
 	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
@@ -786,26 +715,25 @@ xpm_memory_tdpram	#(
 	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_DATA_WIDTH_B(32),			// DECIMAL
 	.WRITE_MODE_A("no_change"),			// String
 	.WRITE_MODE_B("no_change")			// String
-)
-iram1 (
-	.dbiterra(dbiterra),
-	.dbiterrb(dbiterrb),
-	.douta(iram_bdatr1[15:0]),
-	.doutb(iram_fdat1[15:0]),
-	.sbiterra(sbiterra),
-	.sbiterrb(sbiterrb),
-	.addra(badr[11:1]),
-	.addrb(fadr1[11:1]),
+)	iramhm (
+	.dbiterra(dbiterra_open),
+	.dbiterrb(dbiterrb_open),
+	.douta(iram_fdat[31:0]),
+	.doutb(iram_bdatr[31:0]),
+	.sbiterra(sbiterra_open),
+	.sbiterrb(sbiterrb_open),
+	.addra(iram_fadr[11:2]),
+	.addrb(iram_badr[11:2]),
 	.clka(clk),
-	.clkb(~clk),
-	.dina(bdatw[15:0]),
-	.dinb(16'h0),
-	.ena(iram_bce1),
-	.enb(iram_fce1),
+	.clkb(clk),
+	.dina(32'h0),
+	.dinb(iram_bdatw[31:0]),
+	.ena(1'b1),
+	.enb(!bcs_iram_n),
 	.injectdbiterra(1'b0),
 	.injectdbiterrb(1'b0),
 	.injectsbiterra(1'b0),
@@ -815,98 +743,38 @@ iram1 (
 	.rsta(1'b0),
 	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(iram_bwe1[1:0]),
-	.web(2'h0)
+	.wea(4'h0),
+	.web(iram_we[3:0])
 );
-
-`ifdef		MCOC_MCVM_DUAL
-
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(11),					// DECIMAL
-	.ADDR_WIDTH_B(11),					// DECIMAL
-	.AUTO_SLEEP_TIME(0),				// DECIMAL
-	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
-	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
-	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
-	.ECC_MODE("no_ecc"),				// String
-	.MEMORY_INIT_FILE("none"),			// String
-	.MEMORY_INIT_PARAM("0"),			// String
-	.MEMORY_OPTIMIZATION("true"),		// String
-	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(4*1024*8),				// DECIMAL
-	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
-	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
-	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
-	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
-	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
-	.USE_MEM_INIT(1),					// DECIMAL
-	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-iram2 (
-	.dbiterra(dbiterra),
-	.dbiterrb(dbiterrb),
-	.douta(iram_bdatr2[15:0]),
-	.doutb(iram_fdat2[15:0]),
-	.sbiterra(sbiterra),
-	.sbiterrb(sbiterrb),
-	.addra(badr[11:1]),
-	.addrb(fadr2[11:1]),
-	.clka(clk),
-	.clkb(~clk),
-	.dina(bdatw[15:0]),
-	.dinb(16'h0),
-	.ena(iram_bce2),
-	.enb(iram_fce2),
-	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
-	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
-	.regcea(1'b1),
-	.regceb(1'b1),
-	.rsta(1'b0),
-	.rstb(1'b0),
-	.sleep(1'b0),
-	.wea(iram_bwe2[1:0]),
-	.web(2'h0)
-);
-
-`else	//	MCOC_MCVM_DUAL
-assign	iram_bdatr2[15:0]=16'h0;
-assign	iram_fdat2[15:0]=16'h0;
-`endif	//	MCOC_MCVM_DUAL
 
 endmodule
 `endif	//	MCOC_IRAM_4K
 
 
 `ifdef		MCOC_RAM_LE1K
-module	tsoc_ram_le1k (
-// tsoc117 ram, 16 bit bus, <= 1K byte
+module	mcoc_ram_le1k (
+// LUT RAM unit, <= 1K byte
 input	clk,
 input	rst_n,
 input	brdy,
+input	bcmdr,
+input	bcmdw,
+input	bcmdb,
+input	bcmdl,
 input	bcs_ram_n,
-input	[2:0]	bcmd,
 input	[15:0]	badr,
-input	[15:0]	bdatw,
-output	[15:0]	bdatr);
+input	[31:0]	bdatw,
+output	[31:0]	bdatr);
 
 
 //
 // RAM unit (Less than or Equal to 1K byte)
 //		(c) 2023	1YEN Toru
 //
+//
+//	2023/10/21	ver.1.04
+//		corresponding to 32 bit data bus
+//		change module name: tsoc_ram_le1k -> mcoc_ram_le1k
 //
 //	2023/09/23	ver.1.02
 //		Distributed RAM macro -> general RTL
@@ -917,114 +785,127 @@ output	[15:0]	bdatr);
 
 
 // bus
-wire	bcmdr=bcmd[0];
-wire	bcmdw=bcmd[1];
-wire	bcmdb=bcmd[2];
-wire	bcmdl=bcmd[3];
-wire	[15:0]	badr_msk=badr[15:0]&(`MCOC_RAM_LE1K - 1);
+wire	[15:0]	badr_m=badr[15:0] & (`MCOC_RAM_LE1K - 1);
+
+// ram mat
+(* ram_style = "distributed" *)
+reg		[31:0]	mem[0:`MCOC_RAM_LE1K/4 - 1];
 
 // read control
-reg		re;
-reg		[9:0]	adr_r_f;
+wire	ram_rd=( !bcs_ram_n && bcmdr );
+reg		ram_drv;
+reg		bcmdl_r;
+reg		bcmdb_r;
+reg		badr1_r;
+reg		[31:0]	dat_r;
 always	@(posedge clk)
 	begin
 		if (!rst_n)
 			begin
-				re<=1'b0;
-				adr_r_f[9:0]<=10'h0;
+				ram_drv<=1'b0;
+				bcmdl_r<=1'b0;
+				bcmdb_r<=1'b0;
+				badr1_r<=1'b0;
+				dat_r[31:0]<=32'h0;
 			end
 		else if (brdy)
 			begin
-				re<=( !bcs_ram_n && bcmdr );
-				adr_r_f[9:0]<=badr_msk[9:0];
+				ram_drv<=ram_rd;
+				if (ram_rd)
+					begin
+						bcmdl_r<=bcmdl;
+						bcmdb_r<=bcmdb;
+						badr1_r<=badr_m[1];
+						dat_r[31:0]<=mem[badr_m[15:2]][31:0];
+					end
 			end
 	end
-wire	[9:0]	adr_r=adr_r_f[9:0];
-wire	[7:0]	dat_rh;
-wire	[7:0]	dat_rl;
-assign	bdatr[15:0]=
-		(re)? { dat_rh[7:0],dat_rl[7:0] }:
-		16'h0;
+assign	bdatr[31:0]=
+		(ram_drv)? (
+			(bcmdl_r)?
+				dat_r[31:0]:
+			(!badr1_r)?
+				{ 16'h0,dat_r[31:16] }:
+				{ 16'h0,dat_r[15:0] }
+		): 32'h0;
+
 
 // write control
-wire	we_h=( !bcs_ram_n && bcmdw && (!bcmdb || !badr[0]) );
-wire	we_l=( !bcs_ram_n && bcmdw && (!bcmdb || badr[0]) );
-wire	[9:0]	adr_w=badr_msk[9:0];
-wire	[7:0]	dat_wh=bdatw[15:8];
-wire	[7:0]	dat_wl=bdatw[7:0];
-
-
-// ram mat
-(* ram_style = "distributed" *)
-reg		[7:0]	memh[0:`MCOC_RAM_LE1K/2 - 1];
-(* ram_style = "distributed" *)
-reg		[7:0]	meml[0:`MCOC_RAM_LE1K/2 - 1];
+wire	ram_wr=( !bcs_ram_n && bcmdw );
 always	@(posedge clk)
 	begin
-		// write data
-		if (we_h)
-			memh[adr_w[9:1]][7:0]<=dat_wh[7:0];
-		if (we_l)
-			meml[adr_w[9:1]][7:0]<=dat_wl[7:0];
+		// write data, each byte
+		if (ram_wr && (bcmdl || (!bcmdb && !badr_m[1]) ||
+				(bcmdb && badr_m[1:0]==2'h0)))
+			mem[badr_m[15:2]][31:24]<=(bcmdl)? bdatw[31:24]: bdatw[15:8];
+		if (ram_wr && (bcmdl || (!bcmdb && !badr_m[1]) ||
+				(bcmdb && badr_m[1:0]==2'h1)))
+			mem[badr_m[15:2]][23:16]<=(bcmdl)? bdatw[23:16]: bdatw[7:0];
+		if (ram_wr && (bcmdl || (!bcmdb && badr_m[1]) ||
+				(bcmdb && badr_m[1:0]==2'h2)))
+			mem[badr_m[15:2]][15:8]<=bdatw[15:8];
+		if (ram_wr && (bcmdl || (!bcmdb && badr_m[1]) ||
+				(bcmdb && badr_m[1:0]==2'h3)))
+			mem[badr_m[15:2]][7:0]<=bdatw[7:0];
 	end
-// read data
-assign	dat_rh[7:0]=memh[adr_r[9:1]][7:0];
-assign	dat_rl[7:0]=meml[adr_r[9:1]][7:0];
 
 endmodule
 `else	//	MCOC_RAM_LE1K
-module	mcoc_ram32 (
+module	mcoc_ram (
 // mcoc115 ram 32 bit bus
 input	clk,
 input	rst_n,
 input	brdy,
+input	bcmdr,
+input	bcmdw,
+input	bcmdb,
+input	bcmdl,
 input	bcs_ram_n,
 input	bcs_ram0_n,
 input	bcs_ram1_n,
 input	bcs_ram2_n,
 input	bcs_ram3_n,
 input	bcs_ram4_n,
-input	[3:0]	bcmd,
 input	[15:0]	badr,
 input	[31:0]	bdatw,
 output	[31:0]	bdatr);
 
 
 wire	[3:0]	ram_we;
-wire	[31:0]	ram_din;
-wire	[31:0]	ram_dou0;
-wire	[31:0]	ram_dou1;
-wire	[31:0]	ram_dou2;
-wire	[31:0]	ram_dou3;
-wire	[31:0]	ram_dou4;
+wire	[31:0]	ram_datw;
+wire	[31:0]	ram_datr0;
+wire	[31:0]	ram_datr1;
+wire	[31:0]	ram_datr2;
+wire	[31:0]	ram_datr3;
+wire	[31:0]	ram_datr4;
 
-ram_wrap32	ramw (
+
+ram_wrap32	ramwp (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcmdl(bcmdl),	// Input
 	.bcs_ram_n(bcs_ram_n),	// Input
 	.bcs_ram0_n(bcs_ram0_n),	// Input
 	.bcs_ram1_n(bcs_ram1_n),	// Input
 	.bcs_ram2_n(bcs_ram2_n),	// Input
 	.bcs_ram3_n(bcs_ram3_n),	// Input
 	.bcs_ram4_n(bcs_ram4_n),	// Input
-	.bcmd(bcmd[3:0]),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr[31:0]),	// Output
 	// RAM macro I/F
-	.ram_dou0(ram_dou0[31:0]),	// Input
-	.ram_dou1(ram_dou1[31:0]),	// Input
-	.ram_dou2(ram_dou2[31:0]),	// Input
-	.ram_dou3(ram_dou3[31:0]),	// Input
-	.ram_dou4(ram_dou4[31:0]),	// Input
-	.ram_ce0(ram_ce0),	// Output
-	.ram_ce1(ram_ce1),	// Output
-	.ram_ce2(ram_ce2),	// Output
-	.ram_ce3(ram_ce3),	// Output
-	.ram_ce4(ram_ce4),	// Output
+	.ram_datr0(ram_datr0[31:0]),	// Input
+	.ram_datr1(ram_datr1[31:0]),	// Input
+	.ram_datr2(ram_datr2[31:0]),	// Input
+	.ram_datr3(ram_datr3[31:0]),	// Input
+	.ram_datr4(ram_datr4[31:0]),	// Input
+	.ram_ce(ram_ce),	// Output
 	.ram_we(ram_we[3:0]),	// Output
-	.ram_din(ram_din[31:0])	// Output
+	.ram_datw(ram_datw[31:0])	// Output
 );
 
 
@@ -1033,14 +914,11 @@ ram_wrap32	ramw (
 `define		MCOC_RAM_24K
 `define		MCOC_RAM_16K
 
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(12),					// DECIMAL
-	.ADDR_WIDTH_B(12),					// DECIMAL
+xpm_memory_spram	#(
+	.ADDR_WIDTH_A(11),					// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
 	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
-	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
 	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
 	.ECC_MODE("no_ecc"),				// String
 	.MEMORY_INIT_FILE("none"),			// String
 	.MEMORY_INIT_PARAM("0"),			// String
@@ -1048,66 +926,43 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(8*1024*8),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
 	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
 	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-ram8k4 (
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_MODE_A("no_change")			// String
+)	ram8k4 (
 	.dbiterra(dbiterra4_open),
-	.dbiterrb(dbiterrb4_open),
-	.douta(ram_dou4[31:16]),
-	.doutb(ram_dou4[15:0]),
+	.douta(ram_datr4[31:0]),
 	.sbiterra(sbiterra4_open),
-	.sbiterrb(sbiterrb4_open),
-	.addra(badr[12:1] & (~12'h1)),
-	.addrb(badr[12:1] | 12'h1),
+	.addra(badr[12:2]),
 	.clka(clk),
-	.clkb(clk),
-	.dina(ram_din[31:16]),
-	.dinb(ram_din[15:0]),
-	.ena(ram_ce4),
-	.enb(ram_ce4),
+	.dina(ram_datw[31:0]),
+	.ena(ram_ce && !bcs_ram4_n),
 	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
 	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
 	.regcea(1'b1),
-	.regceb(1'b1),
 	.rsta(1'b0),
-	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(ram_we[3:2]),
-	.web(ram_we[1:0])
+	.wea(ram_we[3:0])
 );
 `else	//	MCOC_RAM_40K
-assign	ram_dou4[31:0]=32'h0;
+assign	ram_datr4[31:0]=32'h0;
 `endif	//	MCOC_RAM_40K
 
 `ifdef		MCOC_RAM_32K
 `define		MCOC_RAM_24K
 `define		MCOC_RAM_16K
 
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(12),					// DECIMAL
-	.ADDR_WIDTH_B(12),					// DECIMAL
+xpm_memory_spram	#(
+	.ADDR_WIDTH_A(11),					// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
 	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
-	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
 	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
 	.ECC_MODE("no_ecc"),				// String
 	.MEMORY_INIT_FILE("none"),			// String
 	.MEMORY_INIT_PARAM("0"),			// String
@@ -1115,65 +970,42 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(8*1024*8),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
 	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
 	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-ram8k3 (
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_MODE_A("no_change")			// String
+)	ram8k3 (
 	.dbiterra(dbiterra3_open),
-	.dbiterrb(dbiterrb3_open),
-	.douta(ram_dou3[31:16]),
-	.doutb(ram_dou3[15:0]),
+	.douta(ram_datr3[31:0]),
 	.sbiterra(sbiterra3_open),
-	.sbiterrb(sbiterrb3_open),
-	.addra(badr[12:1] & (~12'h1)),
-	.addrb(badr[12:1] | 12'h1),
+	.addra(badr[12:2]),
 	.clka(clk),
-	.clkb(clk),
-	.dina(ram_din[31:16]),
-	.dinb(ram_din[15:0]),
-	.ena(ram_ce3),
-	.enb(ram_ce3),
+	.dina(ram_datw[31:0]),
+	.ena(ram_ce && !bcs_ram3_n),
 	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
 	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
 	.regcea(1'b1),
-	.regceb(1'b1),
 	.rsta(1'b0),
-	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(ram_we[3:2]),
-	.web(ram_we[1:0])
+	.wea(ram_we[3:0])
 );
 `else	//	MCOC_RAM_32K
-assign	ram_dou3[31:0]=32'h0;
+assign	ram_datr3[31:0]=32'h0;
 `endif	//	MCOC_RAM_32K
 
 `ifdef		MCOC_RAM_24K
 `define		MCOC_RAM_16K
 
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(12),					// DECIMAL
-	.ADDR_WIDTH_B(12),					// DECIMAL
+xpm_memory_spram	#(
+	.ADDR_WIDTH_A(11),					// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
 	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
-	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
 	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
 	.ECC_MODE("no_ecc"),				// String
 	.MEMORY_INIT_FILE("none"),			// String
 	.MEMORY_INIT_PARAM("0"),			// String
@@ -1181,63 +1013,40 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(8*1024*8),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
 	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
 	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-ram8k2 (
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_MODE_A("no_change")			// String
+)	ram8k2 (
 	.dbiterra(dbiterra2_open),
-	.dbiterrb(dbiterrb2_open),
-	.douta(ram_dou2[31:16]),
-	.doutb(ram_dou2[15:0]),
+	.douta(ram_datr2[31:0]),
 	.sbiterra(sbiterra2_open),
-	.sbiterrb(sbiterrb2_open),
-	.addra(badr[12:1] & (~12'h1)),
-	.addrb(badr[12:1] | 12'h1),
+	.addra(badr[12:2]),
 	.clka(clk),
-	.clkb(clk),
-	.dina(ram_din[31:16]),
-	.dinb(ram_din[15:0]),
-	.ena(ram_ce2),
-	.enb(ram_ce2),
+	.dina(ram_datw[31:0]),
+	.ena(ram_ce && !bcs_ram2_n),
 	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
 	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
 	.regcea(1'b1),
-	.regceb(1'b1),
 	.rsta(1'b0),
-	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(ram_we[3:2]),
-	.web(ram_we[1:0])
+	.wea(ram_we[3:0])
 );
 `else	//	MCOC_RAM_24K
-assign	ram_dou2[31:0]=32'h0;
+assign	ram_datr2[31:0]=32'h0;
 `endif	//	MCOC_RAM_24K
 
 `ifdef		MCOC_RAM_16K
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(12),					// DECIMAL
-	.ADDR_WIDTH_B(12),					// DECIMAL
+xpm_memory_spram	#(
+	.ADDR_WIDTH_A(11),					// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
 	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
-	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
 	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
 	.ECC_MODE("no_ecc"),				// String
 	.MEMORY_INIT_FILE("none"),			// String
 	.MEMORY_INIT_PARAM("0"),			// String
@@ -1245,62 +1054,39 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(8*1024*8),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
 	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
 	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-ram8k1 (
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_MODE_A("no_change")			// String
+)	ram8k1 (
 	.dbiterra(dbiterra1_open),
-	.dbiterrb(dbiterrb1_open),
-	.douta(ram_dou1[31:16]),
-	.doutb(ram_dou1[15:0]),
+	.douta(ram_datr1[31:0]),
 	.sbiterra(sbiterra1_open),
-	.sbiterrb(sbiterrb1_open),
-	.addra(badr[12:1] & (~12'h1)),
-	.addrb(badr[12:1] | 12'h1),
+	.addra(badr[12:2]),
 	.clka(clk),
-	.clkb(clk),
-	.dina(ram_din[31:16]),
-	.dinb(ram_din[15:0]),
-	.ena(ram_ce1),
-	.enb(ram_ce1),
+	.dina(ram_datw[31:0]),
+	.ena(ram_ce && !bcs_ram1_n),
 	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
 	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
 	.regcea(1'b1),
-	.regceb(1'b1),
 	.rsta(1'b0),
-	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(ram_we[3:2]),
-	.web(ram_we[1:0])
+	.wea(ram_we[3:0])
 );
 `else	//	MCOC_RAM_16K
-assign	ram_dou1[31:0]=32'h0;
+assign	ram_datr1[31:0]=32'h0;
 `endif	//	MCOC_RAM_16K
 
-xpm_memory_tdpram	#(
-	.ADDR_WIDTH_A(12),					// DECIMAL
-	.ADDR_WIDTH_B(12),					// DECIMAL
+xpm_memory_spram	#(
+	.ADDR_WIDTH_A(11),					// DECIMAL
 	.AUTO_SLEEP_TIME(0),				// DECIMAL
 	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
-	.BYTE_WRITE_WIDTH_B(8),				// DECIMAL
 	.CASCADE_HEIGHT(0),					// DECIMAL
-	.CLOCKING_MODE("common_clock"),		// String
 	.ECC_MODE("no_ecc"),				// String
 	.MEMORY_INIT_FILE("none"),			// String
 	.MEMORY_INIT_PARAM("0"),			// String
@@ -1308,49 +1094,29 @@ xpm_memory_tdpram	#(
 	.MEMORY_PRIMITIVE("auto"),			// String
 	.MEMORY_SIZE(8*1024*8),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
-	.READ_DATA_WIDTH_A(16),				// DECIMAL
-	.READ_DATA_WIDTH_B(16),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
-	.READ_LATENCY_B(1),					// DECIMAL
 	.READ_RESET_VALUE_A("0"),			// String
-	.READ_RESET_VALUE_B("0"),			// String
 	.RST_MODE_A("SYNC"),				// String
-	.RST_MODE_B("SYNC"),				// String
 	.SIM_ASSERT_CHK(0),					// DECIMAL
-	.USE_EMBEDDED_CONSTRAINT(0),		// DECIMAL
 	.USE_MEM_INIT(1),					// DECIMAL
 	.WAKEUP_TIME("disable_sleep"),		// String
-	.WRITE_DATA_WIDTH_A(16),			// DECIMAL
-	.WRITE_DATA_WIDTH_B(16),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
-)
-ram8k0 (
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_MODE_A("no_change")			// String
+)	ram8k0 (
 	.dbiterra(dbiterra0_open),
-	.dbiterrb(dbiterrb0_open),
-	.douta(ram_dou0[31:16]),
-	.doutb(ram_dou0[15:0]),
+	.douta(ram_datr0[31:0]),
 	.sbiterra(sbiterra0_open),
-	.sbiterrb(sbiterrb0_open),
-	.addra(badr[12:1] & (~12'h1)),
-	.addrb(badr[12:1] | 12'h1),
+	.addra(badr[12:2]),
 	.clka(clk),
-	.clkb(clk),
-	.dina(ram_din[31:16]),
-	.dinb(ram_din[15:0]),
-	.ena(ram_ce0),
-	.enb(ram_ce0),
+	.dina(ram_datw[31:0]),
+	.ena(ram_ce && !bcs_ram0_n),
 	.injectdbiterra(1'b0),
-	.injectdbiterrb(1'b0),
 	.injectsbiterra(1'b0),
-	.injectsbiterrb(1'b0),
 	.regcea(1'b1),
-	.regceb(1'b1),
 	.rsta(1'b0),
-	.rstb(1'b0),
 	.sleep(1'b0),
-	.wea(ram_we[3:2]),
-	.web(ram_we[1:0])
+	.wea(ram_we[3:0])
 );
 
 endmodule
@@ -1408,7 +1174,10 @@ output	bcs_tled_n);
 //		(c) 2023	1YEN Toru
 //
 //
-//	2023/07/16	ver.0.01b
+//	2023/10/21	ver.1.02
+//		change: IRAM to 32 bit access area
+//
+//	2023/09/23	ver.1.00
 //		separate bus state controller and address decoder.
 //
 
@@ -1422,10 +1191,8 @@ assign	bcs_ram_n=(!bcs_extadr &&
 			16'h5000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
 assign	bcs_iou_n=(!bcs_extadr && 16'hf000<=badr[15:0])? 1'b0: 1'b1;
 assign	bcs_acc_2=(!bcs_extadr && 16'hfff0<=badr[15:0])? 1'b1: 1'b0;
-assign	bcs_acc_l1=(badr1[23:16]==8'h0 && (badr1[15:0]<16'h4000 ||
-			16'h5000<=badr1[15:0] && badr1[15:0]<16'hf000))? 1'b1: 1'b0;
-assign	bcs_acc_l2=(badr2[23:16]==8'h0 && (badr2[15:0]<16'h4000 ||
-			16'h5000<=badr2[15:0] && badr2[15:0]<16'hf000))? 1'b1: 1'b0;
+assign	bcs_acc_l1=(!bcs_extadr && badr1[15:0]<16'hf000)? 1'b1: 1'b0;
+assign	bcs_acc_l2=(!bcs_extadr && badr2[15:0]<16'hf000)? 1'b1: 1'b0;
 assign	bcs_sdram_n=(badr[23])? 1'b0: 1'b1;
 
 // ram, each mat
@@ -1624,8 +1391,7 @@ xpm_fifo_sync	#(
 	.WAKEUP_TIME(0),					// DECIMAL
 	.WRITE_DATA_WIDTH(8),				// DECIMAL
 	.WR_DATA_COUNT_WIDTH(1)				// DECIMAL
-)
-fifo (
+)	fifo (
 	.almost_empty(almost_empty_open),
 	.almost_full(almost_full_open),
 	.data_valid(data_valid_open),
@@ -1774,6 +1540,7 @@ wire	[15:0]	icff_dato12;
 wire	[15:0]	icff_dato21;
 wire	[15:0]	icff_dati12;
 wire	[15:0]	icff_dati21;
+
 
 icff16		icff (
 	.clk(clk),	// Input

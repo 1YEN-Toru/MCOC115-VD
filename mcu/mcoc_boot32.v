@@ -3,40 +3,23 @@ module	mcoc_boot32 (
 input	clk,
 input	rst_n,
 input	fcmdl,
-input	[7:0]	adr,
-output	reg		[31:0]	dat,
-output	[15:0]	romsiz);
+input	[15:0]	fadr,
+output	reg		[31:0]	fdat);
 
 
-wire	[15:0]	rom_dath;
-wire	[15:0]	rom_datl;
-wire	[15:0]	romsiz_open;
+wire	[31:0]	rom_dat;
 
 
 // boot rom: 16 bit * 2
 `ifdef		MCOC_CORE_TS
-mcoc_boot_ts		rombt_h (
-	.adr(adr[7:0] & (~8'h1)),	// Input
-	.dat(rom_dath[15:0]),	// Output
-	.romsiz(romsiz_open[15:0])	// Output
-);
-
-mcoc_boot_ts		rombt_l (
-	.adr(adr[7:0] | ((fcmdl)? 8'h1: 8'h0)),	// Input
-	.dat(rom_datl[15:0]),	// Output
-	.romsiz(romsiz[15:0])	// Output
+mcoc_boot_ts		matbt (
+	.adr(fadr[8:2]),	// Input
+	.dat(rom_dat[31:0])	// Output
 );
 `else	//	MCOC_CORE_TS
-mcoc_boot	rombt_h (
-	.adr(adr[6:0] & (~7'h1)),	// Input
-	.dat(rom_dath[15:0]),	// Output
-	.romsiz(romsiz_open[15:0])	// Output
-);
-
-mcoc_boot	rombt_l (
-	.adr(adr[6:0] | ((fcmdl)? 7'h1: 7'h0)),	// Input
-	.dat(rom_datl[15:0]),	// Output
-	.romsiz(romsiz[15:0])	// Output
+mcoc_boot	matbt (
+	.adr(fadr[7:2]),	// Input
+	.dat(rom_dat[31:0])	// Output
 );
 `endif	//	MCOC_CORE_TS
 
@@ -44,11 +27,11 @@ mcoc_boot	rombt_l (
 always	@(posedge clk)
 	begin
 		if (!rst_n)
-			dat[31:0]<=32'h0;
+			fdat[31:0]<=32'h0;
 		else
-			dat[31:0]<=(fcmdl)?
-				{ rom_dath[15:0],rom_datl[15:0] }:
-				{ 16'h0,rom_datl[15:0] };
+			fdat[31:0]<=
+				(fcmdl)? rom_dat[31:0]:
+				(!fadr[1])? { 16'h0,rom_dat[31:16] }: { 16'h0,rom_dat[15:0] };
 	end
 
 endmodule

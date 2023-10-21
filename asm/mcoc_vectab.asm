@@ -11,39 +11,39 @@ incl	"mcoc115.incl"
 // ================================
 // interrupt vector table
 vectab:
-bra		setup							// (reserved)
-datw	lab_tstfail						// ICR1
-datw	lab_tstfail						// ICR2
-datw	lab_extint0						// EIR0
-datw	lab_tstfail						// EIR1
-datw	lab_tstfail						// SRAR
-datw	lab_tstfail						// STAR
-datw	lab_tstfail						// MRAR
-datw	lab_tstfail						// MTER
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// CMBR0
-datw	lab_tstfail						// CMAR0
-datw	lab_tstfail						// OVFR0
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// CMBR1
-datw	lab_tstfail						// CMAR1
-datw	lab_tstfail						// OVFR1
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// (reserved)
-datw	lab_tstfail						// LOFR
-datw	lab_tstfail						// RTCR
-datw	lab_tstfail						// CENR
-datw	lab_tstfail						// SMUR1
-datw	lab_tstfail						// SMRR1
-datw	lab_tstfail						// FTAR1
-datw	lab_tstfail						// FRAR1
-datw	lab_tstfail						// SMUR2
-datw	lab_tstfail						// SMRR2
-datw	lab_tstfail						// FTAR2
-datw	lab_tstfail						// FRAR2
+bra		setup							// 00: (reserved)
+datw	lab_tstfail						// 01: ICR1
+datw	lab_tstfail						// 02: ICR2
+datw	lab_extint0						// 03: EIR0
+datw	lab_tstfail						// 04: EIR1
+datw	lab_tstfail						// 05: SRAR
+datw	lab_tstfail						// 06: STAR
+datw	lab_tstfail						// 07: MRAR
+datw	lab_tstfail						// 08: MTER
+datw	lab_tstfail						// 09: (reserved)
+datw	lab_tstfail						// 10: CMBR0
+datw	lab_tstfail						// 11: CMAR0
+datw	lab_tstfail						// 12: OVFR0
+datw	lab_tstfail						// 13: (reserved)
+datw	lab_tstfail						// 14: CMBR1
+datw	lab_tstfail						// 15: CMAR1
+datw	lab_tstfail						// 16: OVFR1
+datw	lab_tstfail						// 17: (reserved)
+datw	lab_tstfail						// 18: (reserved)
+datw	lab_tstfail						// 19: (reserved)
+datw	lab_tstfail						// 20: (reserved)
+datw	lab_tstfail						// 21: (reserved)
+datw	lab_tstfail						// 22: LOFR
+datw	lab_tstfail						// 23: RTCR
+datw	lab_tstfail						// 24: CENR
+datw	lab_tstfail						// 25: SMUR1
+datw	lab_tstfail						// 26: SMRR1
+datw	lab_tstfail						// 27: FTAR1
+datw	lab_tstfail						// 28: FRAR1
+datw	lab_tstfail						// 29: SMUR2
+datw	lab_tstfail						// 30: SMRR2
+datw	lab_tstfail						// 31: FTAR2
+datw	lab_tstfail						// 32: FRAR2
 
 
 // ================================

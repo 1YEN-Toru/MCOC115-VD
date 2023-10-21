@@ -145,10 +145,11 @@ set_property PULLUP true [get_ports intc_int0]
 set_property PULLUP true [get_ports intc_int1]
 set_property PULLUP true [get_ports uar1_rxd]
 set_property PULLUP true [get_ports uar1_cts]
+set_property PULLUP true [get_ports stws_scl]
+set_property PULLUP true [get_ports stws_sda]
 
 set_property DRIVE 4 [get_ports tled_led1]
 set_property DRIVE 4 [get_ports tled_led2]
 set_property DRIVE 4 [get_ports tled_ledb_n]
 set_property DRIVE 4 [get_ports tled_ledg_n]
 set_property DRIVE 4 [get_ports tled_ledr_n]
-

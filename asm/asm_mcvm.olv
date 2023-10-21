@@ -1,11 +1,18 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.34";
+	macro	prog_vers="1.36";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2023/10/21	ver.1.36
+//			change: pseud: asm
+//				valid output file extention: mem/mif/v/dat2
+//				add option: bit16, bit32 (default)
+//			output file:
+//				<output_file>.{mem/mif/v/dat2} as 16/32 bit data
 //
 //		2023/09/23	ver.1.34
 //			bug fixed: "[lac]s[lr]i", 2nd operand
@@ -105,9 +112,8 @@ model	"Moscovium series macro assembler"
 	var		HEX=true;					// true=hexadecimal / false=binary
 	var		DFMIF=0;					// output data format: MIF
 	var		DFVLOG=1;					// output data format: Verilog RTL
-	var		DFDATW=2;					// output data format: $readmemh()
-	var		DFDAT=3;					// output data format: BRAM Editor DAT
-	var		DFDAT2=4;					// output data format: boot mode DAT
+	var		DFMEM=2;					// output data format: $readmemh()
+	var		DFDAT2=3;					// output data format: boot mode DAT
 	var		TGTANY=0;					// target core: any
 	var		TGTMCVM=1;					// target core: Moscovium
 	var		TGTNIHO=2;					// target core: Nihonium
@@ -384,11 +390,11 @@ model	"Moscovium series macro assembler"
 
 
 	// variables
-	var		DATFMT=DFDATW;				// output data file format
+	var		DATFMT=DFMEM;				// output data file format
 	var		ROMSIZ=4096;				// DFDAT: ROM size [byte]
-	var		ROMUNT=4096;				// DFDAT: ROM unit size [byte]
 	var		LISOUT=false;				// true=output .lis file
 	var		TGTCORE=TGTANY;				// TGTANY=all
+	var		ASMBIT=32;					// output data width [bit]
 	var		ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));		// CL-ROM addr. bits
 	macro	incl_dir="INCL";
 	macro	dir,file,ext;
@@ -727,7 +733,6 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			mlet	fnam_out=$(dir)$/$(get_word);
-			DATFMT=DFMIF;
 			pindex	ptr=$(fnam_out),"\.[Mm][Ii][Ff]$";
 			if (ptr>0)
 			{
@@ -738,20 +743,10 @@ model	"Moscovium series macro assembler"
 			{
 				DATFMT=DFVLOG;
 			}
-			pindex	ptr=$(fnam_out),"\.[Dd][Aa][Tt]$";
-			if (ptr>0)
-			{
-				DATFMT=DFDAT;
-			}
-			pindex	ptr=$(fnam_out),"\.[Dd][Aa][Tt][Ww]$";
-			if (ptr>0)
-			{
-				DATFMT=DFDATW;
-			}
 			pindex	ptr=$(fnam_out),"\.[Mm][Ee][Mm]$";
 			if (ptr>0)
 			{
-				DATFMT=DFDATW;
+				DATFMT=DFMEM;
 			}
 			pindex	ptr=$(fnam_out),"\.[Dd][Aa][Tt]2$";
 			if (ptr>0)
@@ -774,6 +769,16 @@ model	"Moscovium series macro assembler"
 				if (cmp=0)
 				{
 					LISOUT=true;
+				}
+				strcmp	cmp=$(get_word),"bit16";
+				if (cmp=0)
+				{
+					ASMBIT=16;
+				}
+				strcmp	cmp=$(get_word),"bit32";
+				if (cmp=0)
+				{
+					ASMBIT=32;
 				}
 				strcmp	cmp=$(get_word),"moscovium", ics_match;
 				if (cmp=0)
@@ -813,15 +818,6 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			ROMSIZ=$(get_word);
-			// ROMUNT
-			idx=idx + 1;
-			skip_space;
-			get_word;
-			strcmp	cmp=$(get_word),"";
-			if (cmp!=0)
-			{
-				ROMUNT=$(get_word);
-			}
 			ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));
 
 			return;
@@ -2121,8 +2117,8 @@ vtime	asm_start;
 	pathsplit	$(fnam_inp), dir,file,ext;
 	macro	fnam_tmp=$(dir)$/$(file)".tmp";
 	macro	fnam_tmp2=$(dir)$/$(file)"_2.tmp";
-	macro	fnam_lst=$(dir)$/$(file)".lst";
-	macro	fnam_out=$(dir)$/$(file)".datw";
+	macro	fnam_lst=$(dir)$/$(file)".lst2";
+	macro	fnam_out=$(dir)$/$(file)".mem";
 	macro	fnam_lab=$(dir)$/$(file)".lab";
 
 
@@ -2189,8 +2185,8 @@ vtime	asm_start;
 	fclose	flab;
 	fsort	$(fnam_lab),"",uniq;
 	fopen	flab,$(fnam_lab),"r";
-	fprint	fout,"## ================================"$,;
-	fprint	fout,"## label lists"$,;
+	fprint	fout,"// ================================"$,;
+	fprint	fout,"// label lists"$,;
 	fgetl	flab,lbuf;
 	while (fNF>0)
 	{
@@ -2207,14 +2203,14 @@ vtime	asm_start;
 		{
 			num2str		tbuf=@(($(lbuf))&0xffff),"%04x";
 		}
-		fprint	fout,"##	0x"$(tbuf)"	"$(lbuf)$,;
+		fprint	fout,"//	0x"$(tbuf)"	"$(lbuf)$,;
 		// continue
 		fgetl	flab,lbuf;
 	}
 	fclose	flab;
 
 	// string macro list
-	fprint	fout,"## string macro lists"$,;
+	fprint	fout,"// string macro lists"$,;
 	var		ptr;
 	var		idx=0;
 	while (idx<n_def)
@@ -2226,13 +2222,13 @@ vtime	asm_start;
 		{
 			sub		"	","		",lbuf;
 		}
-		fprint	fout,"##	"$(lbuf)$,;
+		fprint	fout,"//	"$(lbuf)$,;
 		// continue
 		idx=idx + 1;
 	}
 
 	// macro list
-	fprint	fout,"## user macro lists"$,;
+	fprint	fout,"// user macro lists"$,;
 	idx=0;
 	while (idx<n_mcr)
 	{
@@ -2248,7 +2244,7 @@ vtime	asm_start;
 		// continue
 		idx=idx + 1;
 	}
-	fprint	fout,"## ================================"$,;
+	fprint	fout,"// ================================"$,;
 
 	// close file
 	fclose	fout;
@@ -2264,7 +2260,7 @@ vtime	asm_start;
 	var		cod;
 	var		siz;
 	macro	buf;
-	varray	rom:1,#(ROMSIZ/2)=-1;
+	varray	rom:0,#(ROMSIZ/2)=-1;
 	if (DATFMT=DFMIF)
 	{
 		fprint	fout,"DEPTH = #;"$,,ROMSIZ/2;
@@ -2280,11 +2276,9 @@ vtime	asm_start;
 	{
 		macro	td,tfile,te;
 		pathsplit	$(fnam_out), td,tfile,te;
-		fprint	fout,"module	"$(tfile)" (adr,dat,romsiz);"$,;
-		fprint	fout,"input	[#:0]	adr;"$,,ROMBIT - 2;
-		fprint	fout,"output	[15:0]	dat;"$,;
-		fprint	fout,"output	[15:0]	romsiz;"$,;
-		fprint	fout,"reg		[15:0]	dat;"$,;
+		fprint	fout,"module	"$(tfile)" ("$,;
+		fprint	fout,"input	[#:0]	adr,"$,,ROMBIT - 2;
+		fprint	fout,"output	reg		[15:0]	dat);"$,;
 		fprint	fout,"always	@(adr[#:0])"$,,ROMBIT - 2;
 		fprint	fout,"	case ({ adr[#:0],1'b0 })"$,,ROMBIT - 2;
 	}
@@ -2310,7 +2304,7 @@ vtime	asm_start;
 					gsub	"//","--",lbuf;
 					fprint	fout,"	"$(lbuf)$,;
 				}
-				elif (DATFMT=DFVLOG | DATFMT=DFDATW)
+				elif (DATFMT=DFVLOG | DATFMT=DFMEM | DATFMT=DFDAT2)
 				{
 					fprint	fout,"	"$(lbuf)$,;
 				}
@@ -2324,7 +2318,7 @@ vtime	asm_start;
 				{
 					fprint	fout,"		-- "$(lbuf2)$,;
 				}
-				elif (DATFMT=DFVLOG | DATFMT=DFDATW)
+				elif (DATFMT=DFVLOG | DATFMT=DFMEM | DATFMT=DFDAT2)
 				{
 					fprint	fout,"		// "$(lbuf2)$,;
 				}
@@ -2362,7 +2356,7 @@ vtime	asm_start;
 				sub		"0x","",lbuf2;
 			}
 			siz=int ($(lbuf1));
-			rom#(siz/2 + 1)="0x"$(lbuf2);
+			rom#(siz/2)="0x"$(lbuf2);
 			if (DATFMT=DFMIF)
 			{
 				num2str		buf=siz/2,"%04x";
@@ -2379,7 +2373,7 @@ vtime	asm_start;
 				fprint	fout,"	#'h"$(buf)": dat[15:0]=16'h"$(lbuf2)";	"
 						$(lbuf3)$,,ROMBIT;
 			}
-			elif (DATFMT=DFDATW)
+			elif (DATFMT=DFMEM | DATFMT=DFDAT2)
 			{
 				num2str		buf=$(lbuf1)/2,"%04x";
 				fprint	fout,"@"$(buf)"	"$(lbuf2);
@@ -2399,77 +2393,218 @@ vtime	asm_start;
 	{
 		fprint	fout,"	default: dat[15:0]=16'hffff;"$,;
 		fprint	fout,"	endcase"$,;
-		fprint	fout,"	assign	romsiz[15:0]=16'h"$(buf)";	// # bytes"
+		fprint	fout,"	wire	[15:0]	romsiz=16'h"$(buf)";	// # bytes"
 				$,,siz + 2;
 		fprint	fout,"endmodule"$,;
 	}
-	elif (DATFMT=DFDAT | DATFMT=DFDAT2)
+
+	// close file
+	fclose	fout;
+	fclose	fin;
+
+
+	// output data file
+	var		hadr;
+	var		hdat;
+	var		hdat2;
+	var		max_bit;
+	var		prev_adr=-9;
+	macro	sadr;
+	macro	sdat;
+	macro	sdat2;
+
+	// open file
+	macro	td,tfile,te;
+	pathsplit	$(fnam_out), td,tfile,te;
+	macro	fnam_lsto=$(td)$/$(tfile)".lst";
+	fdel	$(fnam_lsto);
+	fren	$(fnam_out),$(fnam_lsto);
+	fopen	fout,$(fnam_out),"w";
+
+	// append list file
+	if (!LISOUT)
 	{
-		var		num=1;
-		var		prev_adr=-1;
-		siz=0;
-		idx=1;
-		while (idx<=ROMSIZ/2)
+		fopen	fin,$(fnam_lsto),"r";
+		macro	cmnt="//";
+		if (DATFMT=DFMIF)
 		{
-			if (DATFMT=DFDAT & siz>=ROMUNT)
-			{
-				// change output file
-				fclose	fout;
-				num=num + 1;
-				macro	td,tf,te;
-				pathsplit	$(fnam_out), td,tf,te;
-				fopen	fout,$(tf)"."#(num)"."$(te),"w";
-				siz=0;
-			}
-			if (DATFMT=DFDAT2)
-			{
-				if (rom#(idx)<0)
-				{
-					// continue
-					siz=siz + 2;
-					idx=idx + 1;
-					continue;
-				}
-				if (prev_adr + 1!=idx)
-				{
-					num2str		buf=(idx - 1)*2,"%04x";
-					fprint	fout,"@"$(buf)$,;
-				}
-				prev_adr=idx;
-			}
-			num2str		buf=rom#(idx),"%04x";
-			if (DATFMT=DFDAT)
-			{
-				if (rom#(idx)<0)
-				{
-					mlet	buf="ffff";
-				}
-				psub	"^(..)(..)","\2"$,"\1",buf;		// WORD.BE¨BYTE.LE
-			}
-			fprint	fout,$(buf)$,;
+			mlet	cmnt="--";
+		}
+		fprint	fout,$(cmnt)" ================================"$,;
+		fprint	fout,$(cmnt)" Assemble list:"$,$(cmnt)$,;
+		fgetl	fin,lbuf;
+		while (!status)
+		{
+			fputl	fout,$(cmnt)"	"$(lbuf);
+
 			// continue
-			siz=siz + 2;
+			fgetl	fin,lbuf;
+		}
+		fprint	fout,$(cmnt)" ================================"$,;
+		fprint	fout,$(cmnt)" Assemble data:"$,$(cmnt)$,;
+		fclose	fin;
+	}
+	// header
+	if (DATFMT=DFMIF)
+	{
+		fprint	fout,"-- "$(prog_name)" ver."$(prog_vers)$,;
+		if (ASMBIT=16)
+		{
+			fprint	fout,"DEPTH = #;"$,,ROMSIZ/2;
+			fprint	fout,"WIDTH = 16;"$,;
+		}
+		else
+		{
+			fprint	fout,"DEPTH = #;"$,,ROMSIZ/4;
+			fprint	fout,"WIDTH = 32;"$,;
+		}
+		fprint	fout,"ADDRESS_RADIX = HEX;"$,;
+		fprint	fout,"DATA_RADIX = HEX;"$,;
+		fprint	fout,"CONTENT"$,;
+		fprint	fout,"BEGIN"$,;
+		if (ASMBIT=16)
+		{
+			num2str		buf=@(ROMSIZ/2 - 1),"%04x";
+			fprint	fout,"[0000.."$(buf)"] : ffff;"$,;
+		}
+		else
+		{
+			num2str		buf=@(ROMSIZ/4 - 1),"%04x";
+			fprint	fout,"[0000.."$(buf)"] : ffffffff;"$,;
+		}
+	}
+	elif (DATFMT=DFVLOG)
+	{
+		max_bit=ROMBIT - 2;
+		if (ASMBIT=32)
+		{
+			max_bit=max_bit - 1;
+		}
+		macro	td,tfile,te;
+		pathsplit	$(fnam_out), td,tfile,te;
+		fprint	fout,"module	"$(tfile)" ("$,;
+		fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+		fprint	fout,"input	[#:0]	adr,"$,,max_bit;
+		fprint	fout,"output	reg		[#:0]	dat);"$,,ASMBIT - 1;
+		fprint	fout,"always	@(adr[#:0])"$,,max_bit;
+		fprint	fout,"	case (adr[#:0])"$,,max_bit;
+		siz=0;
+	}
+	elif (DATFMT=DFMEM | DATFMT=DFDAT2)
+	{
+		fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+	}
+
+	idx=0;
+	while (idx<ROMSIZ/2)
+	{
+		if (ASMBIT=16 & rom#(idx)>=0)
+		{
+			hadr=idx;
+			hdat=rom#(idx);
+			num2str		sadr=hadr,"%04x";
+			num2str		sdat=hdat,"%04x";
+			if (DATFMT=DFMIF)
+			{
+				fprint	fout,$(sadr)" : "$(sdat)";"$,;
+			}
+			elif (DATFMT=DFVLOG)
+			{
+				num2str		sadr=hadr,"%0"#(ceil ((max_bit + 1)/4))"x";
+				fprint	fout,"	#'h"$(sadr)": dat[#:0]=#'h"$(sdat)";"
+						$,,max_bit + 1,ASMBIT - 1,ASMBIT;
+				siz=siz + 2;
+			}
+			elif (DATFMT=DFMEM | DATFMT=DFDAT2)
+			{
+				if (idx!=prev_adr + 1)
+				{
+					fprint	fout,"@"$(sadr)$,;
+				}
+				fprint	fout,$(sdat)$,;
+			}
+			prev_adr=idx;
+		}
+		if (ASMBIT=32 & (rom#(idx)>=0 | rom#(idx + 1)>=0))
+		{
+			hadr=idx/2;
+			hdat=rom#(idx);
+			if (hdat<0)
+			{
+				hdat=0xffff;
+			}
+			hdat2=rom#(idx + 1);
+			if (hdat2<0)
+			{
+				hdat2=0xffff;
+			}
+			num2str		sadr=hadr,"%04x";
+			num2str		sdat=hdat,"%04x";
+			num2str		sdat2=hdat2,"%04x";
+			if (DATFMT=DFMIF)
+			{
+				fprint	fout,$(sadr)" : "$(sdat)$(sdat2)";"$,;
+			}
+			elif (DATFMT=DFVLOG)
+			{
+				num2str		sadr=hadr,"%0"#(ceil ((max_bit + 1)/4))"x";
+				fprint	fout,"	#'h"$(sadr)": dat[#:0]=#'h"$(sdat)"_"$(sdat2)";"
+						$,,max_bit + 1,ASMBIT - 1,ASMBIT;
+				siz=siz + 4;
+			}
+			elif (DATFMT=DFMEM | DATFMT=DFDAT2)
+			{
+				if (idx!=prev_adr + 2)
+				{
+					fprint	fout,"@"$(sadr)$,;
+				}
+				fprint	fout,$(sdat)$(sdat2)$,;
+			}
+			prev_adr=idx;
+		}
+
+		// continue
+		if (ASMBIT=32)
+		{
 			idx=idx + 1;
 		}
+		idx=idx + 1;
+	}
+	// footer
+	if (DATFMT=DFMIF)
+	{
+		fprint	fout,"END;"$,;
+	}
+	elif (DATFMT=DFVLOG)
+	{
+		mlet	sdat="ffff";
+		if (ASMBIT=32)
+		{
+			mlet	sdat="ffff_ffff";
+		}
+		fprint	fout,"	default: dat[#:0]=#'h"$(sdat)";"$,,ASMBIT - 1,ASMBIT;
+		fprint	fout,"	endcase"$,;
+		fprint	fout,"	wire	[15:0]	romsiz=16'd#;	// byte"
+				$,,siz;
+		fprint	fout,"endmodule"$,;
 	}
 
 	// close file
 vtime	asm_end;
-if (false & DATFMT=DFDATW)
+if (false & DATFMT=DFMEM)
 {
 	fprint	fout,"// assemble time: # [s]"$,,(asm_end - asm_start)*24*3600;
 }
 	fclose	fout;
-	fclose	fin;
-
 
 	// delete temporary file
 	fdel	$(fnam_tmp);
 	fdel	$(fnam_tmp2);
 	fdel	$(fnam_lab);
+	fdel	$(fnam_lst);
 	if (!LISOUT)
 	{
-		fdel	$(fnam_lst);
+		fdel	$(fnam_lsto);
 	}
 
 

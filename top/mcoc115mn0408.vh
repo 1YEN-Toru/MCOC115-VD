@@ -52,14 +52,14 @@
 `define		MCOC_NO_TIML
 
 // Memory unit
+//`define		MCOC_ROM_8K
+//`define		MCOC_ROM_16K
+//`define		MCOC_IRAM_4K
 //`define		MCOC_RAM_LE1K	128		// <=1024, power of 2
 //`define		MCOC_RAM_16K
 //`define		MCOC_RAM_24K
 //`define		MCOC_RAM_32K
 //`define		MCOC_RAM_40K
-//`define		MCOC_ROM_8K
-//`define		MCOC_ROM_16K
-//`define		MCOC_IRAM_4K
 
 
 // ================================
@@ -69,8 +69,8 @@
 `ifdef		MCOC_CORE_TS
 `define		CPU_CORE		tennessinec
 `undef		MCOC_CORE_NH
-`undef		MCOC_CORE_MCSS
 `undef		MCOC_CORE_NHSS
+`undef		MCOC_CORE_MCSS
 `undef		MCOC_MCVM_DUAL
 `define		MCVM_COPR_NOMUL
 `define		MCVM_COPR_NODIV
@@ -80,23 +80,14 @@
 `elsif		MCOC_CORE_NH
 `define		CPU_CORE		nihoniumc
 `undef		MCOC_CORE_MCSS
-`undef		MCOC_RAM_LE1K
+`define		MCVM_COPR_NOMUL
+`define		MCVM_COPR_NODIV
 
 `else
 `define		CPU_CORE		moscoviumc
 `undef		MCOC_CORE_NHSS
 `define		MCVM_COPR_NOFPUS
 `endif
-
-`ifdef		MCOC_CORE_NHSS
-`undef		MCOC_IRAM_4K
-`define		MCOC_ROM_SS
-`endif	//	MCOC_CORE_NHSS
-
-`ifdef		MCOC_CORE_MCSS
-`undef		MCOC_IRAM_4K
-`define		MCOC_ROM_SS
-`endif	//	MCOC_CORE_MCSS
 
 `ifdef		MCVM_COPR_NOFPUS
 `else	//	MCVM_COPR_NOFPUS

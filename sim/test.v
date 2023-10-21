@@ -47,6 +47,8 @@ wire	[15:0]	badr16=top.badr[15:0];
 wire	[15:0]	bdatr16=top.bdatr[15:0];
 wire	[15:0]	bdatw16=top.bdatw[15:0];
 wire	[15:0]	port_iop=port_iop_d[15:0];
+wire	[7:0]	port_iop8h=port_iop[15:8];
+wire	[7:0]	port_iop8l=port_iop[7:0];
 wire	[15:0]	user_iop=user_iop_d[15:0];
 tri1	stws_scl;
 tri1	stws_sda;

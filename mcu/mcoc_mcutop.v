@@ -27,7 +27,7 @@ output	tled_led1,
 output	tled_led2);
 
 
-`define		MCOC_VERS		16'h0204
+`define		MCOC_VERS		16'h0206
 
 
 //
@@ -35,11 +35,14 @@ output	tled_led2);
 //		(c) 2021,2023	1YEN Toru
 //
 //
+//	2023/10/21	ver.2.06
+//		modify: memory units (ROM, IRAM, RAM)
+//
 //	2023/10/07	ver.2.04
-//		replace: uart8n1 FIFO: FIFO macro -> fifo8s64
+//		replace: UART8N1: FIFO macro -> fifo8s64
 //
 //	2023/09/30	ver.2.02
-//		pin assign: tim162, stws, uart#1
+//		pin assign: TIM162, STWSER, UART8N1#1
 //
 //	2023/09/23	ver.2.00
 //		General purpose top module edition
@@ -197,7 +200,7 @@ wire	[15:0]	bdatr_intc;
 wire	[15:0]	bdatr_idrg;
 wire	[31:0]	bdatr_rom;
 wire	[31:0]	bdatr_ram;
-wire	[15:0]	bdatr_iram;
+wire	[31:0]	bdatr_iram;
 wire	[15:0]	bdatr_sytm;
 wire	[15:0]	bdatr_uart;
 wire	[15:0]	bdatr_port;
@@ -234,16 +237,14 @@ wire	[15:0]	badr1;
 wire	[31:0]	bdatw1;
 wire	[31:0]	bdatr1;
 wire	[15:0]	fadr1;
-wire	[15:0]	fdatx1;
-wire	[15:0]	fdat1;
+wire	[31:0]	fdat1;
 wire	[3:0]	bcmd2;
 wire	[15:0]	badrx2;
 wire	[15:0]	badr2;
 wire	[31:0]	bdatw2;
 wire	[31:0]	bdatr2;
 wire	[15:0]	fadr2;
-wire	[15:0]	fdatx2;
-wire	[15:0]	fdat2;
+wire	[31:0]	fdat2;
 
 // interrupt controller
 wire	[1:0]	intc_lev;
@@ -283,7 +284,7 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 	.cpuid(2'h2),	// Input
 	.irq_lev(intc_lev2[1:0]),	// Input
 	.irq_vec(intc_vec2[5:0]),	// Input
-	.fdatx(fdatx2[15:0]),	// Input
+	.fdatx(fdat2[31:16]),	// Input
 	.fdat(fdat2[15:0]),	// Input
 	.bdatrx(bdatr2[31:16]),	// Input
 	.bdatr(bdatr2[15:0]),	// Input
@@ -313,7 +314,7 @@ assign	bdatw2[31:0]=32'h0;
 	.cpuid(cpuid1[1:0]),	// Input
 	.irq_lev(intc_lev[1:0]),	// Input
 	.irq_vec(intc_vec[5:0]),	// Input
-	.fdatx(fdatx1[15:0]),	// Input
+	.fdatx(fdat1[31:16]),	// Input
 	.fdat(fdat1[15:0]),	// Input
 	.bdatrx(bdatr1[31:16]),	// Input
 	.bdatr(bdatr1[15:0]),	// Input
@@ -545,58 +546,65 @@ intc322dvl	intc (
 );
 `endif	//	MCOC_NO_INTC
 
-`ifdef		MCOC_ROM_SS
+`ifdef		MCOC_CORE_NHSS
 wire	fcmdl=1'b1;
-`else	//	MCOC_ROM_SS
+`elsif		MCOC_CORE_MCSS
+wire	fcmdl=1'b1;
+`else
 wire	fcmdl=1'b0;
-`endif	//	MCOC_ROM_SS
-wire	[15:0]	rom_fdat1;
-wire	[15:0]	rom_fdat2;
+`endif
+wire	[31:0]	rom_fdat1;
+wire	[31:0]	rom_fdat2;
 
-mcoc_rom32	rom (
+mcoc_rom	rom (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.bootmd(bootmd),	// Input
+	.fcmdl(fcmdl),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdl(bcmdl),	// Input
 	.bmst(bmst),	// Input
 	.bcs_rom_n(bcs_rom_n),	// Input
-	.fcmdl(fcmdl),	// Input
 	.fadr1(fadr1[15:0]),	// Input
 	.fadr2(fadr2[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.fdat1({ fdatx1[15:0],rom_fdat1[15:0] }),	// Output
-	.fdat2({ fdatx2[15:0],rom_fdat2[15:0] }),	// Output
+	.bdatw(bdatw[31:0]),	// Input
+	.fdat1(rom_fdat1[31:0]),	// Output
+	.fdat2(rom_fdat2[31:0]),	// Output
 	.bdatr(bdatr_rom[31:0])	// Output
 );
 
 `ifdef		MCOC_RAM_LE1K
-assign	bdatr_ram[31:16]=16'h0;
-tsoc_ram_le1k	ram (
+mcoc_ram_le1k	ram (
     .clk(clk),  // Input
     .rst_n(rst_n),  // Input
     .brdy(brdy),    // Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcmdl(bcmdl),	// Input
     .bcs_ram_n(bcs_ram0_n),  // Input
-    .bcmd(bcmd[2:0]),    // Input
     .badr(badr[15:0]),    // Input
-    .bdatw(bdatw[15:0]),  // Input
-    .bdatr(bdatr_ram[15:0])   // Output
+    .bdatw(bdatw[31:0]),  // Input
+    .bdatr(bdatr_ram[31:0])   // Output
 );
 `else	//	MCOC_RAM_LE1K
-mcoc_ram32	ram (
+mcoc_ram	ram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcmdl(bcmdl),	// Input
 	.bcs_ram_n(bcs_ram_n),	// Input
 	.bcs_ram0_n(bcs_ram0_n),	// Input
 	.bcs_ram1_n(bcs_ram1_n),	// Input
 	.bcs_ram2_n(bcs_ram2_n),	// Input
 	.bcs_ram3_n(bcs_ram3_n),	// Input
 	.bcs_ram4_n(bcs_ram4_n),	// Input
-	.bcmd(bcmd[3:0]),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr_ram[31:0])	// Output
@@ -604,27 +612,36 @@ mcoc_ram32	ram (
 `endif	//	MCOC_RAM_LE1K
 
 `ifdef		MCOC_IRAM_4K
+wire	[31:0]	bdatr_iram1;
 mcoc_iram	iram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.fcmdl(fcmdl),	// Input
 	.brdy(brdy),	// Input
-	.bmst(bmst),	// Input
-	.bcs_iram_n(bcs_iram_n),	// Input
-	.bcmd(bcmd[2:0]),	// Input
-	.fadr1(fadr1[15:0]),	// Input
-	.fadr2(fadr2[15:0]),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcmdl(bcmdl),	// Input
+	.bcs_iram_n(bcs_iram_n || bmst),	// Input
+	.fadr(fadr1[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.rom_fdat1(rom_fdat1[15:0]),	// Input
-	.rom_fdat2(rom_fdat2[15:0]),	// Input
-	.fdat1(fdat1[15:0]),	// Output
-	.fdat2(fdat2[15:0]),	// Output
-	.bdatr(bdatr_iram[15:0])	// Output
+	.bdatw(bdatw[31:0]),	// Input
+	.rom_fdat(rom_fdat1[31:0]),	// Input
+	.fdat(fdat1[31:0]),	// Output
+	.bdatr(bdatr_iram1[31:0])	// Output
 );
+
+// ****************************************************************
+wire	[31:0]	bdatr_iram2=32'h0;
+assign	fdat2[31:0]=32'h0;
+// ****************************************************************
+
+// bus output
+assign	bdatr_iram[31:0]=bdatr_iram1[31:0] | bdatr_iram2[31:0];
 `else	//	MCOC_IRAM_4K
-assign	bdatr_iram[15:0]=16'h0;
-assign	fdat1[15:0]=rom_fdat1[15:0];
-assign	fdat2[15:0]=rom_fdat2[15:0];
+assign	bdatr_iram[31:0]=32'h0;
+assign	fdat1[31:0]=rom_fdat1[31:0];
+assign	fdat2[31:0]=rom_fdat2[31:0];
 `endif	//	MCOC_IRAM_4K
 
 mcoc_idrg	idrg (
@@ -640,8 +657,8 @@ mcoc_idrg	idrg (
 systim	sytm (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.brdy(brdy),	// Input
 	.simumd(simumd),	// Input
+	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcs_sytm_n(bcs_sytm_n),	// Input
@@ -654,10 +671,10 @@ systim	sytm (
 iomem16		iome (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
-	.brdy(brdy),	// Input
 	.bcs_iome_n(bcs_iome_n),	// Input
 	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
@@ -1156,6 +1173,7 @@ assign	bdatr[15:0]=
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |
+	bdatr_iram[31:16] |
 	bdatr_ram[31:16];
 
 endmodule

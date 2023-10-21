@@ -37,7 +37,7 @@ while {[gets $fin lbuf] >= 0} {
 		set	repl_on [expr ! $repl_on]
 		regsub {INIT_FILE\("NONE"\),} $lbuf {INIT_FILE("mcoc_irom.mem"),} lnew
 	} else {
-		set	repl_on [regexp {RTL_RAM_NAME.*romwr} $lbuf]
+		set	repl_on [regexp {RTL_RAM_NAME.*romhm} $lbuf]
 		set	lnew $lbuf
 	}
 	puts $fout $lnew

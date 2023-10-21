@@ -1,7 +1,5 @@
 --------
-# MCOC115-VD
-<!-- Moscovium series MCU project for Xilinx Vivado -->
-
+# MCOC115-VD<!-- Moscovium series MCU project for Xilinx Vivado -->
  This is Moscovium series MCU project for Digilent Cmod A7 FPGA board.
 
 ![cmod_a7](http://hello.world.coocan.jp/ARDUINO26/a266_cmoda7.jpg)
@@ -113,11 +111,18 @@
 	- System controller
 - [BUSC2040DL](http://hello.world.coocan.jp/ARDUINO17/arduino17_1.html#DUALBUSC)
 	- Bus state controller
-	- 24 bit address area, 16 / 32 bit data bus
+	- 16 / 24 bit address area
+	- 16 / 32 bit data bus
+<!--
+	- Dual core ready
+-->
 - [INTC322DVL](http://hello.world.coocan.jp/ARDUINO23/arduino23_2.html#INTC322DVL)
 	- Interrupt controller
 	- Vector interrupt
 	- 4 level interrupt
+<!--
+	- Dual core ready
+-->
 
 ## Timer units
 - [SYSTIM](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCSYTM)
@@ -141,13 +146,12 @@
 - [UART8N1](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCUART)
 	- UART unit
 	- Format: 8N1 (8 bit data, no parity, 1 stop bit)
-	- [Communication speed detection](http://hello.world.coocan.jp/ARDUINO18/arduino18_8.html) function
-	- Receive data buffer ([FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)) 64 byte
-<!--
+	- [Communication speed detection](http://hello.world.coocan.jp/ARDUINO18/arduino18_8.html)
+	- Receive data buffer: 64 byte [FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)
 - [STWSER](http://hello.world.coocan.jp/ARDUINO17/arduino17_5.html#STWSER)
 	- Synchronous two wire serial unit (I2C)
+	- Communication speed: up to 400kHz (Fast mode)
 	- Master and slave communication
--->
 
 ## I/O units
 - [PORT8I8O](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCPORT)
@@ -157,8 +161,11 @@
 <!--
 - [SEMPH5R9U](http://hello.world.coocan.jp/ARDUINO17/arduino17_2.html#SEMPH5R12U)
 	- Semaphore unit
+	- Hardware RAM semaphore * 5 channel
+	- User semaphore * 12 channel
 - [ICFF16](http://hello.world.coocan.jp/ARDUINO17/arduino17_3.html#ICFF16)
 	- Intercommunication FIFO unit
+	- Transfer data buffer: 16 bit * 64 word * 2 direction [FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit
 - [FONTJP](http://hello.world.coocan.jp/ARDUINO18/arduino18_4.html#FONTJP)
@@ -174,14 +181,12 @@
 -->
 
 ## Memory units
-- [ROM](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#ROM32)
+- [ROM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IROM)
 	- Instruction ROM unit
-	- Boot ROM included
-<!--
-- [IRAM](http://hello.world.coocan.jp/ARDUINO18/arduino18_7.html#IRAM)
+	- Boot loader ROM included
+- [IRAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IRAM)
 	- Instruction RAM unit
--->
-- [RAM](http://hello.world.coocan.jp/ARDUINO24/arduino24_9.html#RAMMCR)
+- [RAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#MAINMEM)
 	- Main memory (RAM) unit
 
 --------
