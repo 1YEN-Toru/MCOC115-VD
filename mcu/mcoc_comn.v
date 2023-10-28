@@ -717,8 +717,8 @@ xpm_memory_tdpram	#(
 	.WAKEUP_TIME("disable_sleep"),		// String
 	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
 	.WRITE_DATA_WIDTH_B(32),			// DECIMAL
-	.WRITE_MODE_A("no_change"),			// String
-	.WRITE_MODE_B("no_change")			// String
+	.WRITE_MODE_A("read_first"),		// String
+	.WRITE_MODE_B("read_first")			// String
 )	iramhm (
 	.dbiterra(dbiterra_open),
 	.dbiterrb(dbiterrb_open),

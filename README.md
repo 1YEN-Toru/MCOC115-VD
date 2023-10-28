@@ -78,14 +78,12 @@
 	- Original 32 bit CPU core
 - [Tennessine](http://hello.world.coocan.jp/ARDUINO/index.html#RI_TNSN)
 	- Original 8 bit CPU core
-<!--
 - [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
 	- Original 16 bit CPU core
 	- Super Scalar edition
 - [Nihonium-SS](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
 	- Original 32 bit CPU core
 	- Super Scalar edition
--->
 
 ## Coprocessor
 - [MULC16](http://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)

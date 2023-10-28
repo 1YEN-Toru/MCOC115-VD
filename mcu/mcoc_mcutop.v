@@ -27,13 +27,16 @@ output	tled_led1,
 output	tled_led2);
 
 
-`define		MCOC_VERS		16'h0206
+`define		MCOC_VERS		16'h0208
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/10/28	ver.2.08
+//		change: IRAM: WRITE_MODE="read_first" <- "no_change"
 //
 //	2023/10/21	ver.2.06
 //		modify: memory units (ROM, IRAM, RAM)
