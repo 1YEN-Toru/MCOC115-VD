@@ -25,7 +25,7 @@
 `define		MCOC_CORE_NH
 //`define		MCOC_CORE_NHSS
 //`define		MCOC_CORE_MCSS
-//`define		MCOC_MCVM_DUAL
+//`define		MCOC_DUAL
 //`define		MCOC_FCPU_24M
 
 // Coprocessor
@@ -50,12 +50,14 @@
 `define		MCOC_NO_DAC0
 `define		MCOC_NO_DAC1
 `define		MCOC_NO_TIML
+`define		MCOC_NO_SMPH
+`define		MCOC_NO_ICFF
 
 // Memory unit
 //`define		MCOC_ROM_8K
 //`define		MCOC_ROM_16K
 `define		MCOC_IRAM_4K
-//`define		MCOC_RAM_LE1K	128		// <=1024, power of 2
+//`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
 //`define		MCOC_RAM_16K
 //`define		MCOC_RAM_24K
 //`define		MCOC_RAM_32K
@@ -71,7 +73,7 @@
 `undef		MCOC_CORE_NH
 `undef		MCOC_CORE_NHSS
 `undef		MCOC_CORE_MCSS
-`undef		MCOC_MCVM_DUAL
+`undef		MCOC_DUAL
 `define		MCVM_COPR_NOMUL
 `define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU
@@ -88,6 +90,12 @@
 `undef		MCOC_CORE_NHSS
 `define		MCVM_COPR_NOFPUS
 `endif
+
+`ifdef		MCOC_DUAL
+`else	//	MCOC_DUAL
+`define		MCOC_NO_SMPH
+`define		MCOC_NO_ICFF
+`endif	//	MCOC_DUAL
 
 `ifdef		MCVM_COPR_NOFPUS
 `else	//	MCVM_COPR_NOFPUS

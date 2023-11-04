@@ -27,13 +27,17 @@ output	tled_led1,
 output	tled_led2);
 
 
-`define		MCOC_VERS		16'h0208
+`define		MCOC_VERS		16'h0210
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/11/04	ver.2.10
+//		corresponding to dual core edition
+//		add: compile option MCOC_NO_SMPH, MCOC_NO_ICFF
 //
 //	2023/10/28	ver.2.08
 //		change: IRAM: WRITE_MODE="read_first" <- "no_change"
@@ -199,6 +203,12 @@ defparam	idrg.ramsiz=16'd8*16'd1024;
 (* dont_touch = "yes" *)wire	[3:0]	bcmd;
 (* dont_touch = "yes" *)wire	[31:0]	bdatw;
 (* dont_touch = "yes" *)wire	[31:0]	bdatr;
+(* dont_touch = "yes" *)wire	bcs_rom_n;
+(* dont_touch = "yes" *)wire	bcs_ram0_n;
+(* dont_touch = "yes" *)wire	bcs_ram1_n;
+(* dont_touch = "yes" *)wire	bcs_ram2_n;
+(* dont_touch = "yes" *)wire	bcs_ram3_n;
+(* dont_touch = "yes" *)wire	bcs_ram4_n;
 wire	[15:0]	bdatr_intc;
 wire	[15:0]	bdatr_idrg;
 wire	[31:0]	bdatr_rom;
@@ -278,7 +288,7 @@ assign	user_iop[14]=(!user_iop_enb[14])? 1'bz: user_iop_out[14];
 assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 
 
-`ifdef		MCOC_MCVM_DUAL
+`ifdef		MCOC_DUAL
 `CPU_CORE	cpu2 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -300,14 +310,14 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 );
 
 wire	[1:0]	cpuid1=2'h1;
-`else	//	MCOC_MCVM_DUAL
+`else	//	MCOC_DUAL
 wire	[1:0]	cpuid1=2'h0;
 assign	fadr2[15:0]=16'h0;
 assign	badrx2[15:0]=16'h0;
 assign	badr2[15:0]=16'h0;
 assign	bcmd2[3:0]=3'h0;
 assign	bdatw2[31:0]=32'h0;
-`endif	//	MCOC_MCVM_DUAL
+`endif	//	MCOC_DUAL
 
 `CPU_CORE	cpu (
 	.clk(clk),	// Input
@@ -329,12 +339,21 @@ assign	bdatw2[31:0]=32'h0;
 	.bdatw(bdatw1[15:0])	// Output
 );
 
-`ifdef		MCOC_MCVM_DUAL
-wire	[5:0]	smph_ram1_n;
-wire	[5:0]	smph_ram2_n;
+`ifdef		MCOC_NO_SMPH
+wire	smph_smrr2=1'b0;
+wire	smph_smur2=1'b0;
+wire	smph_smrr1=1'b0;
+wire	smph_smur1=1'b0;
+wire	[4:0]	smph_ram1_n=5'h0;
+wire	[4:0]	smph_ram2_n=5'h0;
+wire	[11:0]	smph_usr1_n=12'h0;
+wire	[11:0]	smph_usr2_n=12'h0;
+assign	bdatr_smph[15:0]=16'h0;
+`else	//	MCOC_NO_SMPH
+wire	[4:0]	smph_ram1_n;
+wire	[4:0]	smph_ram2_n;
 wire	[11:0]	smph_usr1_n;
 wire	[11:0]	smph_usr2_n;
-
 semph5r12u	smph (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -349,13 +368,21 @@ semph5r12u	smph (
 	.smph_smur1(smph_smur1),	// Output
 	.smph_smrr2(smph_smrr2),	// Output
 	.smph_smur2(smph_smur2),	// Output
-	.smph_ram1_n(smph_ram1_n[5:0]),	// Output
-	.smph_ram2_n(smph_ram2_n[5:0]),	// Output
+	.smph_ram1_n(smph_ram1_n[4:0]),	// Output
+	.smph_ram2_n(smph_ram2_n[4:0]),	// Output
 	.smph_usr1_n(smph_usr1_n[11:0]),	// Output
 	.smph_usr2_n(smph_usr2_n[11:0]),	// Output
 	.bdatr(bdatr_smph[15:0])	// Output
 );
+`endif	//	MCOC_NO_SMPH
 
+`ifdef		MCOC_NO_ICFF
+wire	icff_frar1=1'b0;
+wire	icff_ftar1=1'b0;
+wire	icff_frar2=1'b0;
+wire	icff_ftar2=1'b0;
+assign	bdatr_icff[15:0]=16'h0;
+`else	//	MCOC_NO_ICFF
 mcoc_icff	icff (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -372,23 +399,7 @@ mcoc_icff	icff (
 	.icff_ftar2(icff_ftar2),	// Output
 	.bdatr(bdatr_icff[15:0])	// Output
 );
-`else	//	MCOC_MCVM_DUAL
-wire	smph_smrr2=1'b0;
-wire	smph_smur2=1'b0;
-wire	smph_smrr1=1'b0;
-wire	smph_smur1=1'b0;
-wire	[5:0]	smph_ram1_n=6'h0;
-wire	[5:0]	smph_ram2_n=6'h0;
-wire	[8:0]	smph_usr1_n=9'h0;
-wire	[8:0]	smph_usr2_n=9'h0;
-assign	bdatr_smph[15:0]=16'h0;
-
-wire	icff_frar1=1'b0;
-wire	icff_ftar1=1'b0;
-wire	icff_frar2=1'b0;
-wire	icff_ftar2=1'b0;
-assign	bdatr_icff[15:0]=16'h0;
-`endif	//	MCOC_MCVM_DUAL
+`endif	//	MCOC_NO_ICFF
 
 busc2040dl	busc (
 	.clk(clk),	// Input
@@ -433,10 +444,10 @@ mcoc_adrdec		adec (
 	.bcs_ram3_n(bcs_ram3_n),	// Output
 	.bcs_ram4_n(bcs_ram4_n),	// Output
 	.bcs_iou_n(bcs_iou_n),	// Output
+	.bcs_sdram_n(bcs_sdram_n),	// Output
 	.bcs_acc_2(bcs_acc_2),	// Output
 	.bcs_acc_l1(bcs_acc_l1),	// Output
 	.bcs_acc_l2(bcs_acc_l2),	// Output
-	.bcs_sdram_n(bcs_sdram_n),	// Output
 	.bcs_idrg_n(bcs_idrg_n),	// Output
 	.bcs_sytm_n(bcs_sytm_n),	// Output
 	.bcs_port_n(bcs_port_n),	// Output
@@ -602,12 +613,12 @@ mcoc_ram	ram (
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
-	.bcs_ram_n(bcs_ram_n),	// Input
 	.bcs_ram0_n(bcs_ram0_n),	// Input
 	.bcs_ram1_n(bcs_ram1_n),	// Input
 	.bcs_ram2_n(bcs_ram2_n),	// Input
 	.bcs_ram3_n(bcs_ram3_n),	// Input
 	.bcs_ram4_n(bcs_ram4_n),	// Input
+	.bcs_ram_n(bcs_ram_n),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr_ram[31:0])	// Output
@@ -634,10 +645,29 @@ mcoc_iram	iram (
 	.bdatr(bdatr_iram1[31:0])	// Output
 );
 
-// ****************************************************************
+`ifdef		MCOC_DUAL
+wire	[31:0]	bdatr_iram2;
+mcoc_iram	iram2 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.fcmdl(fcmdl),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcmdl(bcmdl),	// Input
+	.bcs_iram_n(bcs_iram_n || !bmst),	// Input
+	.fadr(fadr2[15:0]),	// Input
+	.badr(badr[15:0]),	// Input
+	.bdatw(bdatw[31:0]),	// Input
+	.rom_fdat(rom_fdat2[31:0]),	// Input
+	.fdat(fdat2[31:0]),	// Output
+	.bdatr(bdatr_iram2[31:0])	// Output
+);
+`else	//	MCOC_DUAL
 wire	[31:0]	bdatr_iram2=32'h0;
 assign	fdat2[31:0]=32'h0;
-// ****************************************************************
+`endif	//	MCOC_DUAL
 
 // bus output
 assign	bdatr_iram[31:0]=bdatr_iram1[31:0] | bdatr_iram2[31:0];

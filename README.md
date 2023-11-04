@@ -111,16 +111,12 @@
 	- Bus state controller
 	- 16 / 24 bit address area
 	- 16 / 32 bit data bus
-<!--
 	- Dual core ready
--->
 - [INTC322DVL](http://hello.world.coocan.jp/ARDUINO23/arduino23_2.html#INTC322DVL)
 	- Interrupt controller
 	- Vector interrupt
 	- 4 level interrupt
-<!--
 	- Dual core ready
--->
 
 ## Timer units
 - [SYSTIM](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCSYTM)
@@ -156,7 +152,6 @@
 	- General purpose I/O port unit
 - [IOMEM16](http://hello.world.coocan.jp/ARDUINO24/arduino24_9.html#IOMEM16)
 	- 16 byte I/O memory (RAM) unit
-<!--
 - [SEMPH5R9U](http://hello.world.coocan.jp/ARDUINO17/arduino17_2.html#SEMPH5R12U)
 	- Semaphore unit
 	- Hardware RAM semaphore * 5 channel
@@ -164,6 +159,7 @@
 - [ICFF16](http://hello.world.coocan.jp/ARDUINO17/arduino17_3.html#ICFF16)
 	- Intercommunication FIFO unit
 	- Transfer data buffer: 16 bit * 64 word * 2 direction [FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)
+<!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit
 - [FONTJP](http://hello.world.coocan.jp/ARDUINO18/arduino18_4.html#FONTJP)

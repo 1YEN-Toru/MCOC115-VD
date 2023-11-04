@@ -782,11 +782,11 @@ wire	[31:0]		cpuid=
 		(top.brdy && top.bcmd[1:0]!=2'b00)?
 			((top.bmst)?
 				32'h43505532:
-`ifdef		MCOC_MCVM_DUAL
+`ifdef		MCOC_DUAL
 				32'h43505531):
-`else	//	MCOC_MCVM_DUAL
+`else	//	MCOC_DUAL
 				32'h43505530):
-`endif	//	MCOC_MCVM_DUAL
+`endif	//	MCOC_DUAL
 			32'h0;
 
 // ROM select, except address 0x0000

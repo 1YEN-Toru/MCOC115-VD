@@ -1,11 +1,16 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.36";
+	macro	prog_vers="1.38";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2023/11/04	ver.1.38
+//			suppress user macro replacement by placing "\".
+//			pseudo: block, brkb, cntb, elsb, endb
+//			pseudo: ifexp, elsi, endi
 //
 //		2023/10/21	ver.1.36
 //			change: pseud: asm
@@ -396,6 +401,10 @@ model	"Moscovium series macro assembler"
 	var		TGTCORE=TGTANY;				// TGTANY=all
 	var		ASMBIT=32;					// output data width [bit]
 	var		ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));		// CL-ROM addr. bits
+	var		asm.core.mc=TGTMCVM;
+	var		asm.core.nh=TGTNIHO;
+	var		asm.core.ts=TGTTNSN;
+	var		asm.target=asm.core.mc;
 	macro	incl_dir="INCL";
 	macro	dir,file,ext;
 	pathsplit	$(pathname), dir,file,ext;
@@ -788,6 +797,7 @@ model	"Moscovium series macro assembler"
 					def_strmcr	"target_nh","#";
 					def_strmcr	"target_ts","#";
 					def_strmcr	"target_mn","";
+					asm.target=asm.core.mc;
 				}
 				strcmp	cmp=$(get_word),"nihonium", ics_match;
 				if (cmp=0)
@@ -797,6 +807,7 @@ model	"Moscovium series macro assembler"
 					def_strmcr	"target_nh","";
 					def_strmcr	"target_ts","#";
 					def_strmcr	"target_mn","";
+					asm.target=asm.core.nh;
 				}
 				strcmp	cmp=$(get_word),"tennessine", ics_match;
 				if (cmp=0)
@@ -806,6 +817,7 @@ model	"Moscovium series macro assembler"
 					def_strmcr	"target_nh","#";
 					def_strmcr	"target_ts","";
 					def_strmcr	"target_mn","#";
+					asm.target=asm.core.ts;
 				}
 			}
 
@@ -1220,6 +1232,227 @@ model	"Moscovium series macro assembler"
 				fprint	fout,$(tbuf);
 				// continue
 				idx2=idx2 + 1;
+			}
+			redo_pp=true;
+			return;
+		}
+		strcmp	ptr=$(mnem),"block";
+		if (ptr=0)
+		{
+			macro	tbdy;
+			macro	bcnd;
+			macro	binv;
+			macro	shex;
+
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+			fprint	fout,"// "$(lbuf)$,;
+
+			skip_space;
+			// condition
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			// invert condition
+			mlet	bcnd=$(get_word)"   ";
+			substr	bcnd=$(bcnd),1,3;
+			macro	cndt="ne eq cc cs hs lo pl mi vc vs ge lt ";
+			macro	cndi="eq ne cs cc lo hs mi pl vs vc lt ge ";
+			index	ptr=$(cndt),$(bcnd);
+			if (ptr=0 | (ptr - 1)%3!=0)
+			{
+				// ERROR: undefined condition
+				errmsg	"block: undefined condition ("$(get_word)")";
+				leave	stop_error;
+			}
+			substr	bcnd=$(cndt),ptr,2;
+			substr	binv=$(cndi),ptr,2;
+			// serial number for jump label
+			num2str		shex=blk_cnt,"%04x";
+			blk_cnt=blk_cnt + 1;
+
+			// option
+			skip_space;
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			var		blk_has_elsb=false;
+			var		blk_loop=false;
+			strcmp	ptr=$(get_word),"loop";
+			if (ptr=0)
+			{
+				blk_loop=true;
+			}
+			fprint	fout,"__bcnt_"$(shex)":"$,;
+			fprint	fout,"b"$(binv)"		__bels_"$(shex)$,;
+
+			// body
+			get_newline;
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			mlet	mnem=$(get_word);
+			strcmp	ptr=$(get_word),"endb";
+			while (ptr)
+			{
+				strcmp	ptr=$(get_word),"block";
+				if (ptr=0)
+				{
+					// ERROR: block in block definition
+					errmsg	"block: block in block definition";
+					leave	stop_error;
+				}
+				psub	"#.*","",lbuf;
+				strcat	tbdy,$(lbuf)$,;
+				// continue
+				get_newline;
+				if (do_preproc)
+				{
+					// ERROR: EOF detected
+					errmsg	"block: EOF detected";
+					leave	stop_error;
+				}
+				get_word;
+				idx=idx + 1;
+				tolower		get_word;
+				mlet	mnem=$(get_word);
+				strcmp	ptr=$(get_word),"endb";
+			}
+			tolower		tbdy;
+			// expansion
+			macro	tbuf;
+			mlet	tbuf=$(tbdy);
+			gsub	"brkb","bra		__bbrk_"$(shex),tbuf;
+			gsub	"cntb","bra		__bcnt_"$(shex),tbuf;
+			gsub	"elsb","bra		__bbrk_"$(shex)$,"__bels_"$(shex)":"$,,tbuf;
+			if (status)
+			{
+				if (blk_loop)
+				{
+					// ERROR: elsb in loop block
+					errmsg	"block: elsb in loop block";
+					leave	stop_error;
+				}
+				blk_has_elsb=true;
+			}
+			fprint	fout,$(tbuf);
+			if (blk_loop)
+			{
+				fprint	fout,"bra		__bcnt_"$(shex)$,;
+			}
+			if (!blk_has_elsb)
+			{
+				fprint	fout,"__bels_"$(shex)":"$,;
+			}
+			fprint	fout,"__bbrk_"$(shex)":"$,;
+			redo_pp=true;
+			return;
+		}
+		strcmp	ptr=$(mnem),"ifexp";
+		if (ptr=0)
+		{
+			psub	"//.*","",lbuf;
+			psub	"#.*","",lbuf;
+
+			skip_space;
+			// condition
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			var		ife_oute;
+			ife_oute=false;
+			if ($(get_word))
+			{
+				ife_oute=true;
+			}
+
+			// option
+			skip_space;
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			var		ife_prnt;
+			strcmp	ptr=$(get_word),"print";
+			ife_prnt=false;
+			if (ptr=0)
+			{
+				ife_prnt=true;
+			}
+			if (ife_prnt)
+			{
+				fprint	fout,"// "$(lbuf)$,;
+			}
+
+			// block
+			get_newline;
+			get_word;
+			idx=idx + 1;
+			tolower		get_word;
+			mlet	mnem=$(get_word);
+			strcmp	ptr=$(get_word),"endi";
+			while (ptr)
+			{
+				strcmp	ptr=$(get_word),"ifexp";
+				if (ptr=0)
+				{
+					// ERROR: ifexp in ifexp definition
+					errmsg	"ifexp: block in block definition";
+					leave	stop_error;
+				}
+				strcmp	ptr=$(get_word),"elsi";
+				if (ptr=0)
+				{
+					// elsi
+					get_word;
+					idx=idx + 1;
+					tolower		get_word;
+					strcmp	ptr=$(get_word),"";
+					if (ptr)
+					{
+						// have equ label
+						ife_oute=false;
+						if ($(get_word))
+						{
+							ife_oute=true;
+						}
+					}
+					else
+					{
+						ife_oute=!ife_oute;
+					}
+					mlet	lbuf="//"$(lbuf);
+				}
+				psub	"#.*","",lbuf;
+				if (ife_oute)
+				{
+					psub	"^//elsi","// elsi",lbuf;
+					fprint	fout,$(lbuf)$,;
+				}
+				else
+				{
+					if (ife_prnt)
+					{
+						psub	"^//elsi","elsi",lbuf;
+						fprint	fout,"// "$(lbuf)$,;
+					}
+				}
+				// continue
+				get_newline;
+				if (do_preproc)
+				{
+					// ERROR: EOF detected
+					errmsg	"ifexp: EOF detected";
+					leave	stop_error;
+				}
+				get_word;
+				idx=idx + 1;
+				tolower		get_word;
+				mlet	mnem=$(get_word);
+				strcmp	ptr=$(get_word),"endi";
+			}
+			if (ife_prnt)
+			{
+				fprint	fout,"// endi"$,;
 			}
 			redo_pp=true;
 			return;
@@ -1767,6 +2000,7 @@ model	"Moscovium series macro assembler"
 		sub		"ldil","ldbil",lbuf1;
 		sub		"ldih","ldbih",lbuf1;
 		// mnemonic
+		psub	"^\\","",lbuf1;
 		substr	swd=$(lbuf1)"      ",1,MSIZ;
 		index	idx=$(mnem),$(swd);
 		if (idx<=0 | (idx - 1)%MSIZ)
@@ -2131,10 +2365,11 @@ vtime	asm_start;
 	var		flab;
 	fopen	flab,$(fnam_lab),"w";
 
-	// init macro
+	// initialize
 	var		n_def;
 	var		n_mcr;
 	var		mcr_cnt;
+	var		blk_cnt;
 
 	// pass 1 (preprocess)
 	fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;

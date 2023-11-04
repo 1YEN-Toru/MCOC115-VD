@@ -761,7 +761,7 @@ input	bcmdr,
 input	bcmdw,
 input	bcmdb,
 input	bcmdl,
-input	bcs_ram_n,
+input	bcs_ram0_n,
 input	[15:0]	badr,
 input	[31:0]	bdatw,
 output	[31:0]	bdatr);
@@ -792,7 +792,7 @@ wire	[15:0]	badr_m=badr[15:0] & (`MCOC_RAM_LE1K - 1);
 reg		[31:0]	mem[0:`MCOC_RAM_LE1K/4 - 1];
 
 // read control
-wire	ram_rd=( !bcs_ram_n && bcmdr );
+wire	ram_rd=( !bcs_ram0_n && bcmdr );
 reg		ram_drv;
 reg		bcmdl_r;
 reg		bcmdb_r;
@@ -831,7 +831,7 @@ assign	bdatr[31:0]=
 
 
 // write control
-wire	ram_wr=( !bcs_ram_n && bcmdw );
+wire	ram_wr=( !bcs_ram0_n && bcmdw );
 always	@(posedge clk)
 	begin
 		// write data, each byte
@@ -860,12 +860,12 @@ input	bcmdr,
 input	bcmdw,
 input	bcmdb,
 input	bcmdl,
-input	bcs_ram_n,
 input	bcs_ram0_n,
 input	bcs_ram1_n,
 input	bcs_ram2_n,
 input	bcs_ram3_n,
 input	bcs_ram4_n,
+input	bcs_ram_n,
 input	[15:0]	badr,
 input	[31:0]	bdatw,
 output	[31:0]	bdatr);
@@ -888,12 +888,12 @@ ram_wrap32	ramwp (
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
-	.bcs_ram_n(bcs_ram_n),	// Input
 	.bcs_ram0_n(bcs_ram0_n),	// Input
 	.bcs_ram1_n(bcs_ram1_n),	// Input
 	.bcs_ram2_n(bcs_ram2_n),	// Input
 	.bcs_ram3_n(bcs_ram3_n),	// Input
 	.bcs_ram4_n(bcs_ram4_n),	// Input
+	.bcs_ram_n(bcs_ram_n),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr[31:0]),	// Output
@@ -935,7 +935,7 @@ xpm_memory_spram	#(
 	.WAKEUP_TIME("disable_sleep"),		// String
 	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
 	.WRITE_MODE_A("no_change")			// String
-)	ram8k4 (
+)	ramhm4 (
 	.dbiterra(dbiterra4_open),
 	.douta(ram_datr4[31:0]),
 	.sbiterra(sbiterra4_open),
@@ -979,7 +979,7 @@ xpm_memory_spram	#(
 	.WAKEUP_TIME("disable_sleep"),		// String
 	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
 	.WRITE_MODE_A("no_change")			// String
-)	ram8k3 (
+)	ramhm3 (
 	.dbiterra(dbiterra3_open),
 	.douta(ram_datr3[31:0]),
 	.sbiterra(sbiterra3_open),
@@ -1022,7 +1022,7 @@ xpm_memory_spram	#(
 	.WAKEUP_TIME("disable_sleep"),		// String
 	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
 	.WRITE_MODE_A("no_change")			// String
-)	ram8k2 (
+)	ramhm2 (
 	.dbiterra(dbiterra2_open),
 	.douta(ram_datr2[31:0]),
 	.sbiterra(sbiterra2_open),
@@ -1063,7 +1063,7 @@ xpm_memory_spram	#(
 	.WAKEUP_TIME("disable_sleep"),		// String
 	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
 	.WRITE_MODE_A("no_change")			// String
-)	ram8k1 (
+)	ramhm1 (
 	.dbiterra(dbiterra1_open),
 	.douta(ram_datr1[31:0]),
 	.sbiterra(sbiterra1_open),
@@ -1103,7 +1103,7 @@ xpm_memory_spram	#(
 	.WAKEUP_TIME("disable_sleep"),		// String
 	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
 	.WRITE_MODE_A("no_change")			// String
-)	ram8k0 (
+)	ramhm0 (
 	.dbiterra(dbiterra0_open),
 	.douta(ram_datr0[31:0]),
 	.sbiterra(sbiterra0_open),
@@ -1140,10 +1140,10 @@ output	bcs_ram2_n,
 output	bcs_ram3_n,
 output	bcs_ram4_n,
 output	bcs_iou_n,
+output	bcs_sdram_n,
 output	bcs_acc_2,
 output	bcs_acc_l1,
 output	bcs_acc_l2,
-output	bcs_sdram_n,
 output	bcs_idrg_n,
 output	bcs_sytm_n,
 output	bcs_port_n,
@@ -1190,10 +1190,16 @@ assign	bcs_iram_n=(!bcs_extadr &&
 assign	bcs_ram_n=(!bcs_extadr &&
 			16'h5000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
 assign	bcs_iou_n=(!bcs_extadr && 16'hf000<=badr[15:0])? 1'b0: 1'b1;
-assign	bcs_acc_2=(!bcs_extadr && 16'hfff0<=badr[15:0])? 1'b1: 1'b0;
-assign	bcs_acc_l1=(!bcs_extadr && badr1[15:0]<16'hf000)? 1'b1: 1'b0;
-assign	bcs_acc_l2=(!bcs_extadr && badr2[15:0]<16'hf000)? 1'b1: 1'b0;
 assign	bcs_sdram_n=(badr[23])? 1'b0: 1'b1;
+
+// access
+assign	bcs_acc_2=(!bcs_extadr && 16'hfff0<=badr[15:0])? 1'b1: 1'b0;
+wire	bcs_acc_l1_16a=(badr1[23:0]<24'h00_f000)? 1'b1: 1'b0;
+wire	bcs_acc_l2_16a=(badr2[23:0]<24'h00_f000)? 1'b1: 1'b0;
+wire	bcs_acc_l1_24a=1'b0;
+wire	bcs_acc_l2_24a=1'b0;
+assign	bcs_acc_l1=bcs_acc_l1_16a | bcs_acc_l1_24a;
+assign	bcs_acc_l2=bcs_acc_l2_16a | bcs_acc_l2_24a;
 
 // ram, each mat
 wire	bsm_ram0_n=bcs_ram_n | ((bmst==1'b0)? smph_ram1_n[0]: smph_ram2_n[0]);
@@ -1517,7 +1523,8 @@ endmodule
 `endif	//	MCOC_NO_LOGA
 
 
-`ifdef		MCOC_MCVM_DUAL
+`ifdef		MCOC_NO_ICFF
+`else	//	MCOC_NO_ICFF
 module	mcoc_icff (
 // Inter CPU FIFO Unit
 input	clk,
@@ -1574,30 +1581,36 @@ icff16		icff (
 	.icff_dati21(icff_dati21[15:0])	// Output
 );
 
-icff_fifo	icff_fifo12 (
-	.rst(icff_rst12),	// Input
-	.di(icff_dati12[15:0]),	// Input
-	.clk(clk),	// Input
-	.we(icff_we12),	// Input
-	.do(icff_dato12[15:0]),	// Output
-	.re(icff_re12),	// Input
-	.empty_flag(icff_empt12),	// Output
-	.full_flag(icff_full12)	// Output
+fifo16s64	icff_fifo12 (
+	.clk_wr(clk),	// Input
+	.clk_rd(clk),	// Input
+	.rst_wr_n(~icff_rst12),	// Input
+	.wr_n(~icff_we12),	// Input
+	.rd_n(~icff_re12),	// Input
+	.dat_wr(icff_dati12[15:0]),	// Input
+	.full_wr(icff_full12),	// Output
+	.full_wr_adv(full_wr_adv12_open),	// Output
+	.empty_rd(icff_empt12),	// Output
+	.empty_rd_adv(empty_rd_adv12_open),	// Output
+	.dat_rd(icff_dato12[15:0])	// Output
 );
 
-icff_fifo	icff_fifo21 (
-	.rst(icff_rst21),	// Input
-	.di(icff_dati21[15:0]),	// Input
-	.clk(clk),	// Input
-	.we(icff_we21),	// Input
-	.do(icff_dato21[15:0]),	// Output
-	.re(icff_re21),	// Input
-	.empty_flag(icff_empt21),	// Output
-	.full_flag(icff_full21)	// Output
+fifo16s64	icff_fifo21 (
+	.clk_wr(clk),	// Input
+	.clk_rd(clk),	// Input
+	.rst_wr_n(~icff_rst21),	// Input
+	.wr_n(~icff_we21),	// Input
+	.rd_n(~icff_re21),	// Input
+	.dat_wr(icff_dati21[15:0]),	// Input
+	.full_wr(icff_full21),	// Output
+	.full_wr_adv(full_wr_adv21_open),	// Output
+	.empty_rd(icff_empt21),	// Output
+	.empty_rd_adv(empty_rd_adv21_open),	// Output
+	.dat_rd(icff_dato21[15:0])	// Output
 );
 
 endmodule
-`endif	//	MCOC_MCVM_DUAL
+`endif	//	NO_ICFF
 
 
 `ifdef		MCOC_NO_STWS
