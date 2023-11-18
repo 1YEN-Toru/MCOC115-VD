@@ -6,11 +6,15 @@
 //	output	reg		[15:0]	dat);
 //	always	@(adr[7:0])
 //		case ({ adr[7:0],1'b0 })
-//		// Moscovium series macro assembler ver.1.36
+//		// Moscovium series macro assembler ver.1.40
 //		// ================================
 //		// Moscovium series boot loader
 //		//		(c) 2021	1YEN Toru
 //		//
+//		//
+//		//		2023/11/18	ver.1.10
+//		//			corresponding to small RAM edition
+//		//			change: max_lbuf=20 <-- 254
 //		//
 //		//		2023/09/23	ver.1.08
 //		//			corresponding to Tennessine core
@@ -38,7 +42,7 @@
 //		//		sp: pointer to line buffer, stack pointer
 //		// version
 //		9'h000: dat[15:0]=16'h0801;	// bra    pcnt+2
-//		9'h002: dat[15:0]=16'h0108;	// datw   0x0108    
+//		9'h002: dat[15:0]=16'h0110;	// datw   0x0110    
 //		// set sp to the bottom of ram area
 //		9'h004: dat[15:0]=16'hc7f0;	// ldbih  r7,((idrgramt)>>8)&0xff
 //		9'h006: dat[15:0]=16'hbf0c;	// ldbil  r7,(idrgramt)&0xff
@@ -53,7 +57,7 @@
 //		9'h016: dat[15:0]=16'h7fd0;	// cendw  r0
 //		9'h018: dat[15:0]=16'h7fd7;	// cendw  r7
 //		// subwi r0':r0,max_lbuf
-//		9'h01a: dat[15:0]=16'ha0fe;	// subi   r0,max_lbuf
+//		9'h01a: dat[15:0]=16'ha014;	// subi   r0,max_lbuf
 //		9'h01c: dat[15:0]=16'h7fd0;	// cendw  r0
 //		9'h01e: dat[15:0]=16'h7f00;	// sbbz   r0
 //		9'h020: dat[15:0]=16'h7fd0;	// cendw  r0
@@ -194,7 +198,7 @@
 //		// size check
 //		9'h0f8: dat[15:0]=16'h7942;	// movfc  r0,sp
 //		// addwi r0':r0,max_lbuf
-//		9'h0fa: dat[15:0]=16'h98fe;	// addi   r0,max_lbuf
+//		9'h0fa: dat[15:0]=16'h9814;	// addi   r0,max_lbuf
 //		9'h0fc: dat[15:0]=16'h7fd0;	// cendw  r0
 //		9'h0fe: dat[15:0]=16'h7f70;	// adcz   r0
 //		9'h100: dat[15:0]=16'h7fd0;	// cendw  r0
@@ -414,6 +418,7 @@
 //		//	0xf110	distctl
 //		//	0xf114	distecho
 //		//	0xf112	disttrig
+//		//	0x00080000	eramtop
 //		//	0x016e3600	fcpu
 //		//	0x0008	fnjp_flp_h
 //		//	0x0004	fnjp_flp_v
@@ -659,6 +664,7 @@
 //		//	0xf06c	intmskh
 //		//	0xf060	intnum
 //		//	0xf060	intofs
+//		//	0xf160	iome_botm
 //		//	0xf150	iomedat0
 //		//	0xf152	iomedat1
 //		//	0xf154	iomedat2
@@ -696,7 +702,7 @@
 //		//	0xf078	logamaxc
 //		//	0xf076	logatcnd
 //		//	0xf074	logatmsk
-//		//	0x00fe	max_lbuf
+//		//	0x0014	max_lbuf
 //		//	0xf02c	porclr
 //		//	0xf0dc	porclr1
 //		//	0xf026	pordir
@@ -726,7 +732,7 @@
 //		//	0xfff6	prinhex
 //		//	0xfff8	prinhlf
 //		//	0xfffc	prinhxl
-//		//	0x0108	prog_vers
+//		//	0x0110	prog_vers
 //		//	0x5000	ramtop
 //		//	0x0080	rtc_eavl
 //		//	0x0040	rtc_esel
@@ -981,18 +987,18 @@
 // Assemble data:
 //
 module	mcoc_boot_ts (
-// Moscovium series macro assembler ver.1.36
+// Moscovium series macro assembler ver.1.40
 input	[6:0]	adr,
 output	reg		[31:0]	dat);
 always	@(adr[6:0])
 	case (adr[6:0])
-	7'h00: dat[31:0]=32'h0801_0108;
+	7'h00: dat[31:0]=32'h0801_0110;
 	7'h01: dat[31:0]=32'hc7f0_bf0c;
 	7'h02: dat[31:0]=32'h7b87_bf0e;
 	7'h03: dat[31:0]=32'h7bbf_7987;
 	7'h04: dat[31:0]=32'h7fd0_7fd7;
 	7'h05: dat[31:0]=32'h79c7_7fd0;
-	7'h06: dat[31:0]=32'h7fd7_a0fe;
+	7'h06: dat[31:0]=32'h7fd7_a014;
 	7'h07: dat[31:0]=32'h7fd0_7f00;
 	7'h08: dat[31:0]=32'h7fd0_7910;
 	7'h09: dat[31:0]=32'hc7f0_bf32;
@@ -1048,7 +1054,7 @@ always	@(adr[6:0])
 	7'h3b: dat[31:0]=32'h9901_7fd1;
 	7'h3c: dat[31:0]=32'h7f71_7fd1;
 	7'h3d: dat[31:0]=32'ha80a_1811;
-	7'h3e: dat[31:0]=32'h7942_98fe;
+	7'h3e: dat[31:0]=32'h7942_9814;
 	7'h3f: dat[31:0]=32'h7fd0_7f70;
 	7'h40: dat[31:0]=32'h7fd0_7a88;
 	7'h41: dat[31:0]=32'h7fd1_7fd0;

@@ -6,11 +6,15 @@
 //	output	reg		[15:0]	dat);
 //	always	@(adr[6:0])
 //		case ({ adr[6:0],1'b0 })
-//		// Moscovium series macro assembler ver.1.36
+//		// Moscovium series macro assembler ver.1.40
 //		// ================================
 //		// Moscovium series boot loader
 //		//		(c) 2021	1YEN Toru
 //		//
+//		//
+//		//		2023/11/18	ver.1.10
+//		//			corresponding to small RAM edition
+//		//			change: max_lbuf=20 <-- 254
 //		//
 //		//		2023/09/23	ver.1.08
 //		//			corresponding to Tennessine core
@@ -38,7 +42,7 @@
 //		//		sp: pointer to line buffer, stack pointer
 //		// version
 //		8'h00: dat[15:0]=16'h0801;	// bra    pcnt+2
-//		8'h02: dat[15:0]=16'h0108;	// datw   0x0108    
+//		8'h02: dat[15:0]=16'h0110;	// datw   0x0110    
 //		// set sp to the bottom of ram area
 //		8'h04: dat[15:0]=16'hc7f0;	// ldbih  r7,((idrgramt)>>8)&0xff
 //		8'h06: dat[15:0]=16'hbf0c;	// ldbil  r7,(idrgramt)&0xff
@@ -46,7 +50,7 @@
 //		8'h0a: dat[15:0]=16'hbf0e;	// ldbil  r7,idrgrams
 //		8'h0c: dat[15:0]=16'h7bbf;	// ldw    r7,r7
 //		8'h0e: dat[15:0]=16'h7987;	// add    r0,r7
-//		8'h10: dat[15:0]=16'ha0fe;	// subi   r0,max_lbuf
+//		8'h10: dat[15:0]=16'ha014;	// subi   r0,max_lbuf
 //		8'h12: dat[15:0]=16'h7910;	// movtc  sp,r0
 //		// uart setting: RXE, baud rate
 //		8'h14: dat[15:0]=16'hc7f0;	// ldbih  r7,((uartbaud)>>8)&0xff
@@ -122,7 +126,7 @@
 //		8'h7c: dat[15:0]=16'h1806;	// beq    gl_got
 //		// size check
 //		8'h7e: dat[15:0]=16'h7942;	// movfc  r0,sp
-//		8'h80: dat[15:0]=16'h98fe;	// addi   r0,max_lbuf
+//		8'h80: dat[15:0]=16'h9814;	// addi   r0,max_lbuf
 //		8'h82: dat[15:0]=16'h7a88;	// cmp    r1,r0
 //		8'h84: dat[15:0]=16'h2fdd;	// blo    gl_loop
 //		8'h86: dat[15:0]=16'ha101;	// subi   r1,1
@@ -265,6 +269,7 @@
 //		//	0xf110	distctl
 //		//	0xf114	distecho
 //		//	0xf112	disttrig
+//		//	0x00080000	eramtop
 //		//	0x016e3600	fcpu
 //		//	0x0008	fnjp_flp_h
 //		//	0x0004	fnjp_flp_v
@@ -510,6 +515,7 @@
 //		//	0xf06c	intmskh
 //		//	0xf060	intnum
 //		//	0xf060	intofs
+//		//	0xf160	iome_botm
 //		//	0xf150	iomedat0
 //		//	0xf152	iomedat1
 //		//	0xf154	iomedat2
@@ -547,7 +553,7 @@
 //		//	0xf078	logamaxc
 //		//	0xf076	logatcnd
 //		//	0xf074	logatmsk
-//		//	0x00fe	max_lbuf
+//		//	0x0014	max_lbuf
 //		//	0xf02c	porclr
 //		//	0xf0dc	porclr1
 //		//	0xf026	pordir
@@ -577,7 +583,7 @@
 //		//	0xfff6	prinhex
 //		//	0xfff8	prinhlf
 //		//	0xfffc	prinhxl
-//		//	0x0108	prog_vers
+//		//	0x0110	prog_vers
 //		//	0x5000	ramtop
 //		//	0x0080	rtc_eavl
 //		//	0x0040	rtc_esel
@@ -832,16 +838,16 @@
 // Assemble data:
 //
 module	mcoc_boot (
-// Moscovium series macro assembler ver.1.36
+// Moscovium series macro assembler ver.1.40
 input	[5:0]	adr,
 output	reg		[31:0]	dat);
 always	@(adr[5:0])
 	case (adr[5:0])
-	6'h00: dat[31:0]=32'h0801_0108;
+	6'h00: dat[31:0]=32'h0801_0110;
 	6'h01: dat[31:0]=32'hc7f0_bf0c;
 	6'h02: dat[31:0]=32'h7b87_bf0e;
 	6'h03: dat[31:0]=32'h7bbf_7987;
-	6'h04: dat[31:0]=32'ha0fe_7910;
+	6'h04: dat[31:0]=32'ha014_7910;
 	6'h05: dat[31:0]=32'hc7f0_bf32;
 	6'h06: dat[31:0]=32'hc009_b8c3;
 	6'h07: dat[31:0]=32'h7bf8_bf30;
@@ -869,7 +875,7 @@ always	@(adr[5:0])
 	6'h1d: dat[31:0]=32'h7b87_7b48;
 	6'h1e: dat[31:0]=32'h9901_a80a;
 	6'h1f: dat[31:0]=32'h1806_7942;
-	6'h20: dat[31:0]=32'h98fe_7a88;
+	6'h20: dat[31:0]=32'h9814_7a88;
 	6'h21: dat[31:0]=32'h2fdd_a101;
 	6'h22: dat[31:0]=32'h0fdb_b000;
 	6'h23: dat[31:0]=32'ha101_7b48;

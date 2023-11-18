@@ -36,7 +36,8 @@ equ		prin_flt_3,0x000c				//	"%g"
 # ================================
 equ		iramtop,0x4000					// iram top address
 equ		ramtop,0x5000					// ram top address
-equ		fcpu,24000000					// cpu clock speed [Hz]
+equ		eramtop,0x08_0000				// eram top address
+equ		fcpu,24_000_000					// cpu clock speed [Hz]
 equ		led_builtin,0x07				// led built-in: port mask
 equ		led_builtin_g,0x04				// led built-in: green port
 equ		led_builtin_r,0x02				// led built-in: red port
@@ -604,6 +605,7 @@ equ		iomedat4,0xf158					// iome, RW, byte/word
 equ		iomedat5,0xf15a					// iome, RW, byte/word
 equ		iomedat6,0xf15c					// iome, RW, byte/word
 equ		iomedat7,0xf15e					// iome, RW, byte/word
+equ		iome_botm,0xf160				// iomem16 bottom address
 # TIMLED5
 equ		tledctl,0xf160					// tled, RW, word
 equ		tledintc,0xf162					// tled, RW, word

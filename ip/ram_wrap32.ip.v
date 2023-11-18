@@ -8,12 +8,12 @@ module ram_wrap32
     bcmdw,
     bcmdb,
     bcmdl,
-    bcs_ram_n,
     bcs_ram0_n,
     bcs_ram1_n,
     bcs_ram2_n,
     bcs_ram3_n,
     bcs_ram4_n,
+    bcs_eram_n,
     badr,
     bdatw,
     bdatr,
@@ -29,6 +29,9 @@ module ram_wrap32
 //	32 bit RAM wrapper
 //		(c) 2021	1YEN Toru
 //
+//
+//	2023/11/18	ver.1.08
+//		corresponding to ERAM (Extended RAM) area
 //
 //	2023/10/21	ver.1.06
 //		brushed up
@@ -49,13 +52,13 @@ module ram_wrap32
   input bcmdw;
   input bcmdb;
   input bcmdl;
-  input bcs_ram_n;
   input bcs_ram0_n;
   input bcs_ram1_n;
   input bcs_ram2_n;
   input bcs_ram3_n;
   input bcs_ram4_n;
-  input [15:0]badr;
+  input bcs_eram_n;
+  input [1:0]badr;
   input [31:0]bdatw;
   output [31:0]bdatr;
   input [31:0]ram_datr0;
@@ -67,13 +70,14 @@ module ram_wrap32
   output [3:0]ram_we;
   output [31:0]ram_datw;
 
-  wire [15:0]badr;
+  wire [1:0]badr;
   wire badr1_b;
   wire bcmdb;
   wire bcmdl;
   wire bcmdl_b;
   wire bcmdr;
   wire bcmdw;
+  wire bcs_eram_n;
   wire bcs_ram0_n;
   wire bcs_ram1_n;
   wire bcs_ram2_n;
@@ -154,7 +158,6 @@ module ram_wrap32
   wire brd3_b0;
   wire brd4_b0;
   wire brdy;
-  wire bwr;
   wire clk;
   wire p_0_in;
   wire ram_ce;
@@ -165,6 +168,7 @@ module ram_wrap32
   wire [31:0]ram_datr4;
   wire [31:0]ram_datw;
   wire [3:0]ram_we;
+  wire \ram_we[3]_INST_0_i_1_n_0 ;
   wire rst_n;
   wire [4:0]sel0;
 
@@ -1120,12 +1124,13 @@ module ram_wrap32
         .I4(sel0[2]),
         .I5(ram_datr2[9]),
         .O(\bdatr[9]_INST_0_i_3_n_0 ));
-  LUT3 #(
-    .INIT(8'h02)) 
+  LUT4 #(
+    .INIT(16'h0700)) 
     brd0_b_i_1
-       (.I0(bcmdr),
-        .I1(bcs_ram_n),
-        .I2(bcs_ram0_n),
+       (.I0(bcs_eram_n),
+        .I1(bcs_ram0_n),
+        .I2(bcs_ram_n),
+        .I3(bcmdr),
         .O(brd0_b0));
   FDRE brd0_b_reg
        (.C(clk),
@@ -1134,10 +1139,10 @@ module ram_wrap32
         .Q(sel0[4]),
         .R(p_0_in));
   LUT3 #(
-    .INIT(8'h02)) 
+    .INIT(8'h04)) 
     brd1_b_i_1
-       (.I0(bcmdr),
-        .I1(bcs_ram_n),
+       (.I0(bcs_ram_n),
+        .I1(bcmdr),
         .I2(bcs_ram1_n),
         .O(brd1_b0));
   FDRE brd1_b_reg
@@ -1147,10 +1152,10 @@ module ram_wrap32
         .Q(sel0[3]),
         .R(p_0_in));
   LUT3 #(
-    .INIT(8'h02)) 
+    .INIT(8'h04)) 
     brd2_b_i_1
-       (.I0(bcmdr),
-        .I1(bcs_ram_n),
+       (.I0(bcs_ram_n),
+        .I1(bcmdr),
         .I2(bcs_ram2_n),
         .O(brd2_b0));
   FDRE brd2_b_reg
@@ -1160,10 +1165,10 @@ module ram_wrap32
         .Q(sel0[2]),
         .R(p_0_in));
   LUT3 #(
-    .INIT(8'h02)) 
+    .INIT(8'h04)) 
     brd3_b_i_1
-       (.I0(bcmdr),
-        .I1(bcs_ram_n),
+       (.I0(bcs_ram_n),
+        .I1(bcmdr),
         .I2(bcs_ram3_n),
         .O(brd3_b0));
   FDRE brd3_b_reg
@@ -1178,10 +1183,10 @@ module ram_wrap32
        (.I0(rst_n),
         .O(p_0_in));
   LUT3 #(
-    .INIT(8'h02)) 
+    .INIT(8'h04)) 
     brd4_b_i_2
-       (.I0(bcmdr),
-        .I1(bcs_ram_n),
+       (.I0(bcs_ram_n),
+        .I1(bcmdr),
         .I2(bcs_ram4_n),
         .O(brd4_b0));
   FDRE brd4_b_reg
@@ -1191,342 +1196,355 @@ module ram_wrap32
         .Q(sel0[0]),
         .R(p_0_in));
   LUT4 #(
-    .INIT(16'h00E0)) 
+    .INIT(16'h3020)) 
     ram_ce_INST_0
        (.I0(bcmdr),
-        .I1(bcmdw),
+        .I1(bcs_ram_n),
         .I2(brdy),
-        .I3(bcs_ram_n),
+        .I3(bcmdw),
         .O(ram_ce));
+  LUT6 #(
+    .INIT(64'h8000000000000000)) 
+    ram_ce_INST_0_i_1
+       (.I0(bcs_ram3_n),
+        .I1(bcs_ram4_n),
+        .I2(bcs_ram1_n),
+        .I3(bcs_ram2_n),
+        .I4(bcs_eram_n),
+        .I5(bcs_ram0_n),
+        .O(bcs_ram_n));
   LUT4 #(
-    .INIT(16'h0800)) 
+    .INIT(16'h4000)) 
     \ram_datw[0]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[0]),
-        .O(ram_datw[0]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[10]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[10]),
-        .O(ram_datw[10]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[11]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[11]),
-        .O(ram_datw[11]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[12]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[12]),
-        .O(ram_datw[12]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[13]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[13]),
-        .O(ram_datw[13]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[14]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[14]),
-        .O(ram_datw[14]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[15]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[15]),
-        .O(ram_datw[15]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[16]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[0]),
-        .I4(bcmdl),
-        .I5(bdatw[16]),
-        .O(ram_datw[16]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[17]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[1]),
-        .I4(bcmdl),
-        .I5(bdatw[17]),
-        .O(ram_datw[17]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[18]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[2]),
-        .I4(bcmdl),
-        .I5(bdatw[18]),
-        .O(ram_datw[18]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[19]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[3]),
-        .I4(bcmdl),
-        .I5(bdatw[19]),
-        .O(ram_datw[19]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[1]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[1]),
-        .O(ram_datw[1]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[20]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[4]),
-        .I4(bcmdl),
-        .I5(bdatw[20]),
-        .O(ram_datw[20]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[21]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[5]),
-        .I4(bcmdl),
-        .I5(bdatw[21]),
-        .O(ram_datw[21]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[22]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[6]),
-        .I4(bcmdl),
-        .I5(bdatw[22]),
-        .O(ram_datw[22]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[23]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[7]),
-        .I4(bcmdl),
-        .I5(bdatw[23]),
-        .O(ram_datw[23]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[24]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[8]),
-        .I4(bcmdl),
-        .I5(bdatw[24]),
-        .O(ram_datw[24]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[25]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[9]),
-        .I4(bcmdl),
-        .I5(bdatw[25]),
-        .O(ram_datw[25]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[26]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[10]),
-        .I4(bcmdl),
-        .I5(bdatw[26]),
-        .O(ram_datw[26]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[27]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[11]),
-        .I4(bcmdl),
-        .I5(bdatw[27]),
-        .O(ram_datw[27]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[28]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[12]),
-        .I4(bcmdl),
-        .I5(bdatw[28]),
-        .O(ram_datw[28]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[29]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[13]),
-        .I4(bcmdl),
-        .I5(bdatw[29]),
-        .O(ram_datw[29]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[2]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[2]),
-        .O(ram_datw[2]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[30]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[14]),
-        .I4(bcmdl),
-        .I5(bdatw[30]),
-        .O(ram_datw[30]));
-  LUT6 #(
-    .INIT(64'h0808080000000800)) 
-    \ram_datw[31]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[15]),
-        .I4(bcmdl),
-        .I5(bdatw[31]),
-        .O(ram_datw[31]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[3]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[3]),
-        .O(ram_datw[3]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[4]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[4]),
-        .O(ram_datw[4]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[5]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[5]),
-        .O(ram_datw[5]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[6]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[6]),
-        .O(ram_datw[6]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[7]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[7]),
-        .O(ram_datw[7]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[8]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[8]),
-        .O(ram_datw[8]));
-  LUT4 #(
-    .INIT(16'h0800)) 
-    \ram_datw[9]_INST_0 
-       (.I0(bcmdw),
-        .I1(brdy),
-        .I2(bcs_ram_n),
-        .I3(bdatw[9]),
-        .O(ram_datw[9]));
-  LUT5 #(
-    .INIT(32'hA8A888A8)) 
-    \ram_we[0]_INST_0 
-       (.I0(bwr),
-        .I1(bcmdl),
-        .I2(badr[1]),
-        .I3(bcmdb),
-        .I4(badr[0]),
-        .O(ram_we[0]));
-  LUT5 #(
-    .INIT(32'h88A8A8A8)) 
-    \ram_we[1]_INST_0 
-       (.I0(bwr),
-        .I1(bcmdl),
-        .I2(badr[1]),
-        .I3(bcmdb),
-        .I4(badr[0]),
-        .O(ram_we[1]));
-  LUT5 #(
-    .INIT(32'hAAAA2202)) 
-    \ram_we[2]_INST_0 
-       (.I0(bwr),
-        .I1(badr[1]),
-        .I2(bcmdb),
-        .I3(badr[0]),
-        .I4(bcmdl),
-        .O(ram_we[2]));
-  LUT5 #(
-    .INIT(32'hAAAA0222)) 
-    \ram_we[3]_INST_0 
-       (.I0(bwr),
-        .I1(badr[1]),
-        .I2(bcmdb),
-        .I3(badr[0]),
-        .I4(bcmdl),
-        .O(ram_we[3]));
-  LUT3 #(
-    .INIT(8'h40)) 
-    \ram_we[3]_INST_0_i_1 
        (.I0(bcs_ram_n),
         .I1(brdy),
         .I2(bcmdw),
-        .O(bwr));
+        .I3(bdatw[0]),
+        .O(ram_datw[0]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[10]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[10]),
+        .O(ram_datw[10]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[11]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[11]),
+        .O(ram_datw[11]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[12]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[12]),
+        .O(ram_datw[12]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[13]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[13]),
+        .O(ram_datw[13]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[14]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[14]),
+        .O(ram_datw[14]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[15]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[15]),
+        .O(ram_datw[15]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[16]_INST_0 
+       (.I0(bdatw[16]),
+        .I1(bdatw[0]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[16]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[17]_INST_0 
+       (.I0(bdatw[17]),
+        .I1(bdatw[1]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[17]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[18]_INST_0 
+       (.I0(bdatw[18]),
+        .I1(bdatw[2]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[18]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[19]_INST_0 
+       (.I0(bdatw[19]),
+        .I1(bdatw[3]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[19]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[1]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[1]),
+        .O(ram_datw[1]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[20]_INST_0 
+       (.I0(bdatw[20]),
+        .I1(bdatw[4]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[20]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[21]_INST_0 
+       (.I0(bdatw[21]),
+        .I1(bdatw[5]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[21]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[22]_INST_0 
+       (.I0(bdatw[22]),
+        .I1(bdatw[6]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[22]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[23]_INST_0 
+       (.I0(bdatw[23]),
+        .I1(bdatw[7]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[23]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[24]_INST_0 
+       (.I0(bdatw[24]),
+        .I1(bdatw[8]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[24]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[25]_INST_0 
+       (.I0(bdatw[25]),
+        .I1(bdatw[9]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[25]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[26]_INST_0 
+       (.I0(bdatw[26]),
+        .I1(bdatw[10]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[26]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[27]_INST_0 
+       (.I0(bdatw[27]),
+        .I1(bdatw[11]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[27]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[28]_INST_0 
+       (.I0(bdatw[28]),
+        .I1(bdatw[12]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[28]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[29]_INST_0 
+       (.I0(bdatw[29]),
+        .I1(bdatw[13]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[29]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[2]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[2]),
+        .O(ram_datw[2]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[30]_INST_0 
+       (.I0(bdatw[30]),
+        .I1(bdatw[14]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[30]));
+  LUT6 #(
+    .INIT(64'h0A0000000C000000)) 
+    \ram_datw[31]_INST_0 
+       (.I0(bdatw[31]),
+        .I1(bdatw[15]),
+        .I2(bcs_ram_n),
+        .I3(brdy),
+        .I4(bcmdw),
+        .I5(bcmdl),
+        .O(ram_datw[31]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[3]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[3]),
+        .O(ram_datw[3]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[4]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[4]),
+        .O(ram_datw[4]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[5]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[5]),
+        .O(ram_datw[5]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[6]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[6]),
+        .O(ram_datw[6]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[7]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[7]),
+        .O(ram_datw[7]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[8]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[8]),
+        .O(ram_datw[8]));
+  LUT4 #(
+    .INIT(16'h4000)) 
+    \ram_datw[9]_INST_0 
+       (.I0(bcs_ram_n),
+        .I1(brdy),
+        .I2(bcmdw),
+        .I3(bdatw[9]),
+        .O(ram_datw[9]));
+  LUT6 #(
+    .INIT(64'h00000000EFCC0000)) 
+    \ram_we[0]_INST_0 
+       (.I0(badr[0]),
+        .I1(bcmdl),
+        .I2(bcmdb),
+        .I3(badr[1]),
+        .I4(\ram_we[3]_INST_0_i_1_n_0 ),
+        .I5(bcs_ram_n),
+        .O(ram_we[0]));
+  LUT6 #(
+    .INIT(64'h00000000DFCC0000)) 
+    \ram_we[1]_INST_0 
+       (.I0(badr[0]),
+        .I1(bcmdl),
+        .I2(bcmdb),
+        .I3(badr[1]),
+        .I4(\ram_we[3]_INST_0_i_1_n_0 ),
+        .I5(bcs_ram_n),
+        .O(ram_we[1]));
+  LUT6 #(
+    .INIT(64'h0C000C000E000F00)) 
+    \ram_we[2]_INST_0 
+       (.I0(badr[0]),
+        .I1(bcmdl),
+        .I2(bcs_ram_n),
+        .I3(\ram_we[3]_INST_0_i_1_n_0 ),
+        .I4(bcmdb),
+        .I5(badr[1]),
+        .O(ram_we[2]));
+  LUT6 #(
+    .INIT(64'h0C000C000D000F00)) 
+    \ram_we[3]_INST_0 
+       (.I0(badr[0]),
+        .I1(bcmdl),
+        .I2(bcs_ram_n),
+        .I3(\ram_we[3]_INST_0_i_1_n_0 ),
+        .I4(bcmdb),
+        .I5(badr[1]),
+        .O(ram_we[3]));
+  LUT2 #(
+    .INIT(4'h8)) 
+    \ram_we[3]_INST_0_i_1 
+       (.I0(brdy),
+        .I1(bcmdw),
+        .O(\ram_we[3]_INST_0_i_1_n_0 ));
 endmodule

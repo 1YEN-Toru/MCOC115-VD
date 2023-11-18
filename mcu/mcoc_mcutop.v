@@ -27,13 +27,17 @@ output	tled_led1,
 output	tled_led2);
 
 
-`define		MCOC_VERS		16'h0210
+`define		MCOC_VERS		16'h0212
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/11/18	ver.2.12
+//		corresponding to ERAM (Extended RAM) area
+//		add: compile option MCOC_ERAM
 //
 //	2023/11/04	ver.2.10
 //		corresponding to dual core edition
@@ -173,7 +177,11 @@ defparam	idrg.versno=`MCOC_VERS;
 defparam	idrg.fcpuhz=
 				((`MCOC_FCPU_MHZ>>4)*10 + (`MCOC_FCPU_MHZ & 8'h0f))*1000;
 defparam	idrg.edcode=`MCOC_CODE_ED;
+`ifdef		MCOC_ERAM
+defparam	idrg.romtop=$clog2 (`MCOC_ERAM);
+`else	//	MCOC_ERAM
 defparam	idrg.romtop=16'h0000;
+`endif	//	MCOC_ERAM
 `ifdef		MCOC_ROM_16K
 defparam	idrg.romsiz=16'd16*16'd1024;
 `elsif		MCOC_ROM_8K
@@ -182,7 +190,9 @@ defparam	idrg.romsiz=16'd8*16'd1024;
 defparam	idrg.romsiz=16'd4*16'd1024;
 `endif
 defparam	idrg.ramtop=16'h5000;
-`ifdef		MCOC_RAM_LE1K
+`ifdef		MCOC_ERAM
+defparam	idrg.ramsiz=16'd40*16'd1024;
+`elsif		MCOC_RAM_LE1K
 defparam	idrg.ramsiz=`MCOC_RAM_LE1K;
 `elsif		MCOC_RAM_40K
 defparam	idrg.ramsiz=16'd40*16'd1024;
@@ -192,6 +202,8 @@ defparam	idrg.ramsiz=16'd32*16'd1024;
 defparam	idrg.ramsiz=16'd24*16'd1024;
 `elsif		MCOC_RAM_16K
 defparam	idrg.ramsiz=16'd16*16'd1024;
+`elsif		MCOC_RAM_4K
+defparam	idrg.ramsiz=16'd4*16'd1024;
 `else
 defparam	idrg.ramsiz=16'd8*16'd1024;
 `endif
@@ -437,13 +449,14 @@ mcoc_adrdec		adec (
 	.badr2({ badrx2[7:0],badr2[15:0] }),	// Input
 	.bcs_rom_n(bcs_rom_n),	// Output
 	.bcs_iram_n(bcs_iram_n),	// Output
-	.bcs_ram_n(bcs_ram_n),	// Output
 	.bcs_ram0_n(bcs_ram0_n),	// Output
 	.bcs_ram1_n(bcs_ram1_n),	// Output
 	.bcs_ram2_n(bcs_ram2_n),	// Output
 	.bcs_ram3_n(bcs_ram3_n),	// Output
 	.bcs_ram4_n(bcs_ram4_n),	// Output
 	.bcs_iou_n(bcs_iou_n),	// Output
+	.bcs_eram_n(bcs_eram_n),	// Output
+	.bcs_sram_n(bcs_sram_n),	// Output
 	.bcs_sdram_n(bcs_sdram_n),	// Output
 	.bcs_acc_2(bcs_acc_2),	// Output
 	.bcs_acc_l1(bcs_acc_l1),	// Output
@@ -599,7 +612,7 @@ mcoc_ram_le1k	ram (
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
-    .bcs_ram_n(bcs_ram0_n),  // Input
+    .bcs_ram0_n(bcs_ram0_n),  // Input
     .badr(badr[15:0]),    // Input
     .bdatw(bdatw[31:0]),  // Input
     .bdatr(bdatr_ram[31:0])   // Output
@@ -618,8 +631,8 @@ mcoc_ram	ram (
 	.bcs_ram2_n(bcs_ram2_n),	// Input
 	.bcs_ram3_n(bcs_ram3_n),	// Input
 	.bcs_ram4_n(bcs_ram4_n),	// Input
-	.bcs_ram_n(bcs_ram_n),	// Input
-	.badr(badr[15:0]),	// Input
+	.bcs_eram_n(bcs_eram_n),	// Input
+	.badr(badr[23:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr_ram[31:0])	// Output
 );

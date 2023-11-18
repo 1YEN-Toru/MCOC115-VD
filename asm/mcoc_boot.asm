@@ -3,6 +3,10 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2023/11/18	ver.1.10
+//			corresponding to small RAM edition
+//			change: max_lbuf=20 <-- 254
+//
 //		2023/09/23	ver.1.08
 //			corresponding to Tennessine core
 //			use: def target,"tennessine"
@@ -22,19 +26,26 @@
 def		target,"moscovium"
 #def		target,"tennessine"
 asm		"mcoc_boot.v",$(target)
-$(target_ts)asm		"mcoc_boot_ts.v"
-$(target_mn)romsiz	256
-$(target_ts)romsiz	512
+ifexp	asm.target!=asm.core.ts
+romsiz	256
+elsi
+asm		"mcoc_boot_ts.v"
+romsiz	512
+endi
 incl	"mcoc115.incl"
-$(target_mn)incl	"mcvm_remv_mcr_word.incl"
-$(target_ts)incl	"tnsn_mcr_word.incl"
+ifexp	asm.target!=asm.core.ts
+incl	"mcvm_remv_mcr_word.incl"
+elsi
+incl	"tnsn_mcr_word.incl"
+endi
 # ================================
 # string macros
 def		p,""							// pilot led: ""=use / "#"=do not use
 def		d,""							// detect baud: ""=use / "#"=do not use
 # constants
-equ		prog_vers,0x0108				// program version (bcd)
-equ		max_lbuf,254					// size of lbuf (<256 & even)
+equ		prog_vers,0x0110				// program version (bcd)
+#equ	max_lbuf,254					// size of lbuf (<256 & even)
+equ		max_lbuf,20						// size of lbuf (<256 & even)
 equ		baud,9600						// baud rate
 equ		uart_baud,fcpu/baud-1			// uartbaud setting
 equ		chr_tab,0x09					// tab code

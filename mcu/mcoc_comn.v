@@ -1,5 +1,6 @@
 `ifdef		MCOC_CORE_TS
 
+(* use_dsp = "yes" *)
 module	tennessinec (
 // Tennessine
 input	clk,
@@ -161,7 +162,7 @@ nihonium	core (
 	.niho_dsp_c(niho_dsp_c[65:0]),	// Input
 	.niho_dsp_a(niho_dsp_a[32:0]),	// Output
 	.niho_dsp_b(niho_dsp_b[32:0])	// Output
-	);
+);
 
 // signed multiply
 assign	niho_dsp_c[65:0]=niho_dsp_a*niho_dsp_b;
@@ -865,8 +866,8 @@ input	bcs_ram1_n,
 input	bcs_ram2_n,
 input	bcs_ram3_n,
 input	bcs_ram4_n,
-input	bcs_ram_n,
-input	[15:0]	badr,
+input	bcs_eram_n,
+input	[23:0]	badr,
 input	[31:0]	bdatw,
 output	[31:0]	bdatr);
 
@@ -878,6 +879,15 @@ wire	[31:0]	ram_datr1;
 wire	[31:0]	ram_datr2;
 wire	[31:0]	ram_datr3;
 wire	[31:0]	ram_datr4;
+
+
+// ERAM enable or not
+`ifdef		MCOC_ERAM
+`undef		MCOC_RAM_4K
+wire	enb_eram_n=bcs_eram_n;
+`else	//	MCOC_ERAM
+wire	enb_eram_n=1'b1;
+`endif	//	MCOC_ERAM
 
 
 ram_wrap32	ramwp (
@@ -893,8 +903,8 @@ ram_wrap32	ramwp (
 	.bcs_ram2_n(bcs_ram2_n),	// Input
 	.bcs_ram3_n(bcs_ram3_n),	// Input
 	.bcs_ram4_n(bcs_ram4_n),	// Input
-	.bcs_ram_n(bcs_ram_n),	// Input
-	.badr(badr[15:0]),	// Input
+	.bcs_eram_n(enb_eram_n),	// Input
+	.badr(badr[1:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr[31:0]),	// Output
 	// RAM macro I/F
@@ -908,6 +918,57 @@ ram_wrap32	ramwp (
 	.ram_datw(ram_datw[31:0])	// Output
 );
 
+
+`ifdef		MCOC_RAM_4K
+`define		MCOC_ERAM	4
+`endif	//	MCOC_RAM_4K
+
+
+`ifdef		MCOC_ERAM
+`define		MCOC_ERAM_ABIT	$clog2 (`MCOC_ERAM*1024/4)
+
+xpm_memory_spram	#(
+	.ADDR_WIDTH_A(`MCOC_ERAM_ABIT),		// DECIMAL
+	.AUTO_SLEEP_TIME(0),				// DECIMAL
+	.BYTE_WRITE_WIDTH_A(8),				// DECIMAL
+	.CASCADE_HEIGHT(0),					// DECIMAL
+	.ECC_MODE("no_ecc"),				// String
+	.MEMORY_INIT_FILE("none"),			// String
+	.MEMORY_INIT_PARAM("0"),			// String
+	.MEMORY_OPTIMIZATION("true"),		// String
+	.MEMORY_PRIMITIVE("auto"),			// String
+	.MEMORY_SIZE(`MCOC_ERAM*1024*8),	// DECIMAL
+	.MESSAGE_CONTROL(0),				// DECIMAL
+	.READ_DATA_WIDTH_A(32),				// DECIMAL
+	.READ_LATENCY_A(1),					// DECIMAL
+	.READ_RESET_VALUE_A("0"),			// String
+	.RST_MODE_A("SYNC"),				// String
+	.SIM_ASSERT_CHK(0),					// DECIMAL
+	.USE_MEM_INIT(1),					// DECIMAL
+	.WAKEUP_TIME("disable_sleep"),		// String
+	.WRITE_DATA_WIDTH_A(32),			// DECIMAL
+	.WRITE_MODE_A("no_change")			// String
+)	ramhm (
+	.dbiterra(dbiterra_open),
+	.douta(ram_datr0[31:0]),
+	.sbiterra(sbiterra_open),
+	.addra(badr[`MCOC_ERAM_ABIT + 1:2]),
+	.clka(clk),
+	.dina(ram_datw[31:0]),
+	.ena(ram_ce),
+	.injectdbiterra(1'b0),
+	.injectsbiterra(1'b0),
+	.regcea(1'b1),
+	.rsta(1'b0),
+	.sleep(1'b0),
+	.wea(ram_we[3:0])
+);
+assign	ram_datr1[31:0]=ram_datr0[31:0];
+assign	ram_datr2[31:0]=ram_datr0[31:0];
+assign	ram_datr3[31:0]=ram_datr0[31:0];
+assign	ram_datr4[31:0]=ram_datr0[31:0];
+
+`else	//	MCOC_ERAM
 
 `ifdef		MCOC_RAM_40K
 `define		MCOC_RAM_32K
@@ -1119,6 +1180,8 @@ xpm_memory_spram	#(
 	.wea(ram_we[3:0])
 );
 
+`endif	//	MCOC_ERAM
+
 endmodule
 `endif	//	MCOC_RAM_LE1K
 
@@ -1133,13 +1196,14 @@ input	[23:0]	badr1,
 input	[23:0]	badr2,
 output	bcs_rom_n,
 output	bcs_iram_n,
-output	bcs_ram_n,
 output	bcs_ram0_n,
 output	bcs_ram1_n,
 output	bcs_ram2_n,
 output	bcs_ram3_n,
 output	bcs_ram4_n,
 output	bcs_iou_n,
+output	bcs_eram_n,
+output	bcs_sram_n,
 output	bcs_sdram_n,
 output	bcs_acc_2,
 output	bcs_acc_l1,
@@ -1174,6 +1238,10 @@ output	bcs_tled_n);
 //		(c) 2023	1YEN Toru
 //
 //
+//	2023/11/18	ver.1.04
+//		add: bcs_eram_n; Extended RAM area for Xilinx Artix-7 FPGA chip
+//		add: bcs_sram_n; External SRAM area for Cmod A7 FPGA board
+//
 //	2023/10/21	ver.1.02
 //		change: IRAM to 32 bit access area
 //
@@ -1187,17 +1255,23 @@ wire	bcs_extadr=(badr[23:16]!=8'h0);
 assign	bcs_rom_n=(!bcs_extadr && badr[15:0]<16'h4000)? 1'b0: 1'b1;
 assign	bcs_iram_n=(!bcs_extadr &&
 			16'h4000<=badr[15:0] && badr[15:0]<16'h5000)? 1'b0: 1'b1;
-assign	bcs_ram_n=(!bcs_extadr &&
+wire	bcs_ram_n=(!bcs_extadr &&
 			16'h5000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
 assign	bcs_iou_n=(!bcs_extadr && 16'hf000<=badr[15:0])? 1'b0: 1'b1;
+assign	bcs_eram_n=((badr[23:16] & 8'hf8)==8'h08)? 1'b0: 1'b1;
+assign	bcs_sram_n=((badr[23:16] & 8'hf8)==8'h10)? 1'b0: 1'b1;
 assign	bcs_sdram_n=(badr[23])? 1'b0: 1'b1;
 
 // access
 assign	bcs_acc_2=(!bcs_extadr && 16'hfff0<=badr[15:0])? 1'b1: 1'b0;
 wire	bcs_acc_l1_16a=(badr1[23:0]<24'h00_f000)? 1'b1: 1'b0;
 wire	bcs_acc_l2_16a=(badr2[23:0]<24'h00_f000)? 1'b1: 1'b0;
-wire	bcs_acc_l1_24a=1'b0;
-wire	bcs_acc_l2_24a=1'b0;
+wire	bcs_acc_l1_24a=(
+			(badr1[23:16] & 8'hf8)==8'h08 ||
+			(badr1[23:16] & 8'hf8)==8'h10)? 1'b1: 1'b0;
+wire	bcs_acc_l2_24a=(
+			(badr2[23:16] & 8'hf8)==8'h08 ||
+			(badr2[23:16] & 8'hf8)==8'h10)? 1'b1: 1'b0;
 assign	bcs_acc_l1=bcs_acc_l1_16a | bcs_acc_l1_24a;
 assign	bcs_acc_l2=bcs_acc_l2_16a | bcs_acc_l2_24a;
 

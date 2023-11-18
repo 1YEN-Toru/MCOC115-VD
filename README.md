@@ -182,6 +182,9 @@
 	- Instruction RAM unit
 - [RAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#MAINMEM)
 	- Main memory (RAM) unit
+- [ERAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_2.html#CA7MMAP)
+	- Extended memory (RAM) unit
+	- Over 64KB RAM in 24 bit extended address area
 
 --------
 # Configure MCU

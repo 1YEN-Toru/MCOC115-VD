@@ -1,11 +1,14 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.38";
+	macro	prog_vers="1.40";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2023/11/18	ver.1.40
+//			target cpu: warning once
 //
 //		2023/11/04	ver.1.38
 //			suppress user macro replacement by placing "\".
@@ -1422,10 +1425,17 @@ model	"Moscovium series macro assembler"
 					}
 					mlet	lbuf="//"$(lbuf);
 				}
-				psub	"#.*","",lbuf;
+				pgsub	"#","##",lbuf;
 				if (ife_oute)
 				{
-					psub	"^//elsi","// elsi",lbuf;
+					if (ife_prnt)
+					{
+						psub	"^//elsi","// elsi",lbuf;
+					}
+					else
+					{
+						psub	"^//elsi.*","",lbuf;
+					}
 					fprint	fout,$(lbuf)$,;
 				}
 				else
@@ -2019,6 +2029,7 @@ model	"Moscovium series macro assembler"
 			mlet	msg="WARNING: !Nihonium code ("$(swd)") generated.";
 			message		$(msg);
 			fprint	fout,"## "$(mpcnt)" "$(msg)$,;
+			TGTCORE=TGTANY;				// reset TGTCORE, warning one time
 		}
 		elif (TGTCORE=TGTMCVM & tgt_core=0an)
 		{
@@ -2026,6 +2037,7 @@ model	"Moscovium series macro assembler"
 			mlet	msg="WARNING: !Moscovium code ("$(swd)") generated.";
 			message		$(msg);
 			fprint	fout,"## "$(mpcnt)" "$(msg)$,;
+			TGTCORE=TGTANY;				// reset TGTCORE, warning one time
 		}
 		elif (TGTCORE=TGTTNSN & (tgt_core=0an | tgt_core=0am | tgt_core=0at))
 		{
@@ -2033,6 +2045,7 @@ model	"Moscovium series macro assembler"
 			mlet	msg="WARNING: !Tennessine code ("$(swd)") generated.";
 			message		$(msg);
 			fprint	fout,"## "$(mpcnt)" "$(msg)$,;
+			TGTCORE=TGTANY;				// reset TGTCORE, warning one time
 		}
 		if (idx<MAX_NO)
 		{

@@ -68,6 +68,7 @@
 //`define		MCOC_RAM_24K
 //`define		MCOC_RAM_32K
 //`define		MCOC_RAM_40K
+//`define		MCOC_ERAM	64			// 64~512[KB], power of 2
 
 
 // ================================
@@ -84,6 +85,7 @@
 `define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU
 `define		MCVM_COPR_NOFPUS
+`undef		MCOC_ERAM
 
 `elsif		MCOC_CORE_NH
 `define		CPU_CORE		nihoniumc
@@ -114,6 +116,10 @@
 `define		MCOC_FCPU_24M
 `define		MCOC_FCPU_MHZ	8'h24
 `endif
+
+`ifdef		MCOC_ERAM
+`undef		MCOC_RAM_LE1K
+`endif	//	MCOC_ERAM
 
 `define		MCOC_PORT_HIZO				// default now
 
