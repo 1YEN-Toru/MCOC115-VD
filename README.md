@@ -159,19 +159,21 @@
 - [ICFF16](http://hello.world.coocan.jp/ARDUINO17/arduino17_3.html#ICFF16)
 	- Intercommunication FIFO unit
 	- Transfer data buffer: 16 bit * 64 word * 2 direction [FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)
+- [FONTJP](http://hello.world.coocan.jp/ARDUINO18/arduino18_4.html#FONTJP)
+	- Japanese font unit
+	- Font [ROM data](http://hello.world.coocan.jp/ARDUINO18/arduino18_4.html#MISAKI)
+- [UNISJI](http://hello.world.coocan.jp/ARDUINO22/arduino22_1.html#UNISJI)
+	- Unicode and S-JIS conversion unit
+	- Conversion table [ROM data](http://hello.world.coocan.jp/ARDUINO21/arduino21_a.html#LUTMIF)
+- [DISTUS](http://hello.world.coocan.jp/ARDUINO22/arduino22_4.html#DISTUS)
+	- Distance measuring by ultrasonic sensor unit
+- [DAC121](http://hello.world.coocan.jp/ARDUINO24/arduino24_2.html#DAC121)
+	- 12 bit delta-sigma D/A converter unit
 <!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit
-- [FONTJP](http://hello.world.coocan.jp/ARDUINO18/arduino18_4.html#FONTJP)
-	- Japanese font unit
 - [ADC124](http://hello.world.coocan.jp/ARDUINO19/arduino19_6.html#ADC124)
 	- 12 bit SAR A/D converter unit
-- [DAC121](http://hello.world.coocan.jp/ARDUINO24/arduino24_2.html#DAC121)
-	- 12 bit delta-sigma D/A converter unit
-- [UNISJI](http://hello.world.coocan.jp/ARDUINO22/arduino22_1.html#UNISJI)
-	- Unicode and S-JIS conversion unit
-- [DISTUS](http://hello.world.coocan.jp/ARDUINO22/arduino22_4.html#DISTUS)
-	- Distance measuring by ultrasonic sensor unit
 -->
 
 ## Memory units

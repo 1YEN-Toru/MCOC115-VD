@@ -27,13 +27,16 @@ output	tled_led1,
 output	tled_led2);
 
 
-`define		MCOC_VERS		16'h0212
+`define		MCOC_VERS		16'h0214
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/11/25	ver.2.14
+//		corresponding to FONTJP and UNISJI unit
 //
 //	2023/11/18	ver.2.12
 //		corresponding to ERAM (Extended RAM) area

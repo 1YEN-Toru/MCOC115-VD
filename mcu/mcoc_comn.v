@@ -1797,11 +1797,36 @@ fontjp	fnjp (
 	.fnjp_adr(fnjp_adr[12:0])	// Output
 );
 
-fnjp_rom	from (
-	.doa(fnjp_dat[63:0]),	// Output
-	.addra(fnjp_adr[12:0]),	// Input
-	.clka(clk),	// Input
-	.rsta(~rst_n)	// Input
+xpm_memory_sprom	#(
+	.ADDR_WIDTH_A(13),					// DECIMAL
+	.AUTO_SLEEP_TIME(0),				// DECIMAL
+	.CASCADE_HEIGHT(0),					// DECIMAL
+	.ECC_MODE("no_ecc"),				// String
+	.MEMORY_INIT_FILE("fontjp.mem"),	// String
+	.MEMORY_INIT_PARAM("0"),			// String
+	.MEMORY_OPTIMIZATION("false"),		// String
+	.MEMORY_PRIMITIVE("auto"),			// String
+	.MEMORY_SIZE(64*8192),				// DECIMAL
+	.MESSAGE_CONTROL(0),				// DECIMAL
+	.READ_DATA_WIDTH_A(64),				// DECIMAL
+	.READ_LATENCY_A(1),					// DECIMAL
+	.READ_RESET_VALUE_A("0"),			// String
+	.RST_MODE_A("SYNC"),				// String
+	.SIM_ASSERT_CHK(0),					// DECIMAL
+	.USE_MEM_INIT(1),					// DECIMAL
+	.WAKEUP_TIME("disable_sleep")		// String
+)	fromhm (
+	.dbiterra(dbiterra_open),
+	.douta(fnjp_dat[63:0]),
+	.sbiterra(sbiterra_open),
+	.addra(fnjp_adr[12:0]),
+	.clka(clk),
+	.ena(1'b1),
+	.injectdbiterra(1'b0),
+	.injectsbiterra(1'b0),
+	.regcea(1'b1),
+	.rsta(~rst_n),
+	.sleep(1'b0)
 );
 
 endmodule
@@ -2115,10 +2140,10 @@ output	[15:0]	bdatr);
 
 
 // LUT ROM I/F
-wire	[10:0]	ulut_adr0;
-wire	[10:0]	ulut_adr1;
-wire	[95:0]	ulut_dat0;
-wire	[95:0]	ulut_dat1;
+wire	[10:0]	unsj_adr0;
+wire	[10:0]	unsj_adr1;
+wire	[95:0]	unsj_dat0;
+wire	[95:0]	unsj_dat1;
 
 
 unisji	unsj (
@@ -2132,21 +2157,58 @@ unisji	unsj (
 	.bdatw(bdatw[15:0]),	// Input
 	.bdatr(bdatr[15:0]),	// Output
 	// LUT ROM I/F
-	.ulut_dat0(ulut_dat0[95:0]),	// Input
-	.ulut_dat1(ulut_dat1[95:0]),	// Input
-	.ulut_adr0(ulut_adr0[10:0]),	// Output
-	.ulut_adr1(ulut_adr1[10:0])	// Output
+	.unsj_dat0(unsj_dat0[95:0]),	// Input
+	.unsj_dat1(unsj_dat1[95:0]),	// Input
+	.unsj_adr0(unsj_adr0[10:0]),	// Output
+	.unsj_adr1(unsj_adr1[10:0])	// Output
 );
 
-unsj_rom	ulut (
-	.doa(ulut_dat0[95:0]),	// Output
-	.addra(ulut_adr0[10:0]),	// Input
-	.clka(clk),	// Input
-	.rsta(~rst_n),	// Input
-	.dob(ulut_dat1[95:0]),	// Output
-	.addrb(ulut_adr1[10:0]),	// Input
-	.clkb(clk),	// Input
-	.rstb(~rst_n)	// Input
+xpm_memory_dprom	#(
+	.ADDR_WIDTH_A(11),					// DECIMAL
+	.ADDR_WIDTH_B(11),					// DECIMAL
+	.AUTO_SLEEP_TIME(0),				// DECIMAL
+	.CASCADE_HEIGHT(0),					// DECIMAL
+	.CLOCKING_MODE("common_clock"),		// String
+	.ECC_MODE("no_ecc"),				// String
+	.MEMORY_INIT_FILE("unisji.mem"),	// String
+	.MEMORY_INIT_PARAM("0"),			// String
+	.MEMORY_OPTIMIZATION("false"),		// String
+	.MEMORY_PRIMITIVE("auto"),			// String
+	.MEMORY_SIZE(96*1344),				// DECIMAL
+	.MESSAGE_CONTROL(0),				// DECIMAL
+	.READ_DATA_WIDTH_A(96),				// DECIMAL
+	.READ_DATA_WIDTH_B(96),				// DECIMAL
+	.READ_LATENCY_A(1),					// DECIMAL
+	.READ_LATENCY_B(1),					// DECIMAL
+	.READ_RESET_VALUE_A("0"),			// String
+	.READ_RESET_VALUE_B("0"),			// String
+	.RST_MODE_A("SYNC"),				// String
+	.RST_MODE_B("SYNC"),				// String
+	.SIM_ASSERT_CHK(0),					// DECIMAL
+	.USE_MEM_INIT(1),					// DECIMAL
+	.WAKEUP_TIME("disable_sleep")		// String
+)	cromhm (
+	.dbiterra(dbiterra_open),
+	.dbiterrb(dbiterrb_open),
+	.douta(unsj_dat0[95:0]),
+	.doutb(unsj_dat1[95:0]),
+	.sbiterra(sbiterra_open),
+	.sbiterrb(sbiterrb_open),
+	.addra(unsj_adr0[10:0]),
+	.addrb(unsj_adr1[10:0]),
+	.clka(clk),
+	.clkb(clk),
+	.ena(1'b1),
+	.enb(1'b1),
+	.injectdbiterra(1'b0),
+	.injectdbiterrb(1'b0),
+	.injectsbiterra(1'b0),
+	.injectsbiterrb(1'b0),
+	.regcea(1'b1),
+	.regceb(1'b1),
+	.rsta(~rst_n),
+	.rstb(~rst_n),
+	.sleep(1'b0)
 );
 
 endmodule
