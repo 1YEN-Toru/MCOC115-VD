@@ -63,6 +63,7 @@
 //`define		MCOC_RAM_32K
 //`define		MCOC_RAM_40K
 //`define		MCOC_ERAM	64			// 64~512[KB], power of 2
+//`define		MCOC_SRAM_512K
 
 
 // ================================
@@ -80,6 +81,7 @@
 `define		MCVM_COPR_NOFPU
 `define		MCVM_COPR_NOFPUS
 `undef		MCOC_ERAM
+`undef		MCOC_SRAM_512K
 
 `elsif		MCOC_CORE_NH
 `define		CPU_CORE		nihoniumc

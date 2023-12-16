@@ -5,6 +5,7 @@
 #
 #	Attention) These macros are valid (compatible) for register contents,
 #		but operational flags (N, C, V, Z) are not always correct.
+#	Attention) The results of operations on the same register are incorrect.
 #
 # ================================
 
@@ -14,6 +15,36 @@ mov		$(rd),$(rs)
 cendw	$(rd)
 cendw	$(rs)
 mov		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	andw	rd,rs
+// andw $(rd)':$(rd),$(rs)':$(rs)
+and		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+and		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	orw	rd,rs
+// orw $(rd)':$(rd),$(rs)':$(rs)
+or		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+or		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+endm
+
+macro	eorw	rd,rs
+// eorw $(rd)':$(rd),$(rs)':$(rs)
+eor		$(rd),$(rs)
+cendw	$(rd)
+cendw	$(rs)
+eor		$(rd),$(rs)
 cendw	$(rd)
 cendw	$(rs)
 endm

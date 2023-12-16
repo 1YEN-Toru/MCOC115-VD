@@ -8,6 +8,18 @@ macro	movw	rd,rs
 mov		$(rd),$(rs)
 endm
 
+macro	andw	rd,rs
+and		$(rd),$(rs)
+endm
+
+macro	orw	rd,rs
+or		$(rd),$(rs)
+endm
+
+macro	eorw	rd,rs
+eor		$(rd),$(rs)
+endm
+
 macro	addw	rd,rs
 add		$(rd),$(rs)
 endm

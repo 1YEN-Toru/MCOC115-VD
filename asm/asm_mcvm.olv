@@ -1,11 +1,14 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.40";
+	macro	prog_vers="1.42";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2023/12/16	ver.1.42
+//			pseudo: equ; tolower label name
 //
 //		2023/11/18	ver.1.40
 //			target cpu: warning once
@@ -878,6 +881,7 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			mlet	opr2=$(get_word);
+			tolower		opr1;
 			pindex	cmp=$(opr2),"^[0-9_]+$";
 			if (cmp=0)
 			{

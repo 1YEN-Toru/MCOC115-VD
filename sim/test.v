@@ -12,7 +12,7 @@
 
 
 //// include the VH file of the type name to be simulated,
-////	when post-synthesis or post-implementation simmulation.
+////	when post-synthesis or post-implementation simulation.
 //`include	"mcoc115ca0408.vh"
 
 
@@ -20,7 +20,7 @@ module	test;
 
 
 `ifdef		SIM_SMBUS
-parameter	tscl=1000;		// 1/fscl[ns]
+parameter	tscl=1000;					// 1/fscl[ns]
 parameter	tscll=500;
 parameter	tsclh=tscl - tscll;
 parameter	thd_sta=600;
@@ -52,6 +52,8 @@ wire	[15:0]	port_iop=port_iop_d[15:0];
 wire	[7:0]	port_iop8h=port_iop[15:8];
 wire	[7:0]	port_iop8l=port_iop[7:0];
 wire	[15:0]	user_iop=user_iop_d[15:0];
+wire	[7:0]	sram_dq;
+wire	[18:0]	sram_adr;
 tri1	stws_scl;
 tri1	stws_sda;
 
@@ -94,7 +96,7 @@ initial
 		$dumpvars (0, test);
 `endif	//	SIM_BOOTMD
 		$timeformat (-9,0,"",8);
-//// not required: Vivado ROM macro behaviour is automatically $readmem() at #0.
+//// not required: Vivado ROM macro behavior is automatically $readmem() at #0.
 //		$readmemh ("mcoc_irom.mem", top.rom.romwr.xpm_memory_base_inst.mem);
 
 		// initialize
@@ -542,6 +544,18 @@ always	@(posedge clk)
 `endif	//	SIM_UNSJ
 
 
+// on board SRAM behavior
+`ifdef		MCOC_SRAM_512K
+IS61WV5128BLL	sram (
+	.CEN(sram_cen),	// Input
+	.OEN(sram_oen),	// Input
+	.WEN(sram_wen),	// Input
+	.AD(sram_adr[18:0]),	// Input
+	.DQ(sram_dq[7:0])	// InOut
+);
+`endif	//	MCOC_SRAM_512K
+
+
 // DUT
 `MCOC_TOP_NAME	top (
 	.sys_clock(sys_clock),	// Input
@@ -563,7 +577,13 @@ always	@(posedge clk)
 	.tim0_pwma(tim0_pwma),	// Output
 	.tim0_pwmb(tim0_pwmb),	// Output
 	.tim1_pwma(tim1_pwma),	// Output
-	.tim1_pwmb(tim1_pwmb)	// Output
+	.tim1_pwmb(tim1_pwmb),	// Output
+	// SRAM I/F
+	.sram_dq(sram_dq[7:0]),	// Inout
+	.sram_cen(sram_cen),	// Output
+	.sram_oen(sram_oen),	// Output
+	.sram_wen(sram_wen),	// Output
+	.sram_adr(sram_adr[18:0])	// Output
 );
 
 

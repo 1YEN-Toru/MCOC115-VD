@@ -37,6 +37,8 @@ equ		prin_flt_3,0x000c				//	"%g"
 equ		iramtop,0x4000					// iram top address
 equ		ramtop,0x5000					// ram top address
 equ		eramtop,0x08_0000				// eram top address
+equ		sramtop,0x10_0000				// sram top address
+equ		sramsiz,0x08_0000				// sram size (512KB)
 equ		fcpu,24_000_000					// cpu clock speed [Hz]
 equ		led_builtin,0x07				// led built-in: port mask
 equ		led_builtin_g,0x04				// led built-in: green port

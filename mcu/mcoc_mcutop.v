@@ -24,16 +24,27 @@ output	tled_ledr_n,
 output	tled_ledg_n,
 output	tled_ledb_n,
 output	tled_led1,
-output	tled_led2);
+output	tled_led2,
+// SRAM I/F
+inout	[7:0]	sram_dq,
+output	sram_cen,
+output	sram_oen,
+output	sram_wen,
+output	[18:0]	sram_adr);
 
 
-`define		MCOC_VERS		16'h0214
+`define		MCOC_VERS		16'h0216
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2023/12/16	ver.2.16
+//		corresponding to SRAMC512K unit 
+//		add: compile option MCOC_SRAM_512K
+//		del: compile option MCOC_SDRAM_8M, MCOC_CACHE_4K
 //
 //	2023/11/25	ver.2.14
 //		corresponding to FONTJP and UNISJI unit
@@ -227,8 +238,9 @@ defparam	idrg.ramsiz=16'd8*16'd1024;
 wire	[15:0]	bdatr_intc;
 wire	[15:0]	bdatr_idrg;
 wire	[31:0]	bdatr_rom;
-wire	[31:0]	bdatr_ram;
 wire	[31:0]	bdatr_iram;
+wire	[31:0]	bdatr_ram;
+wire	[31:0]	bdatr_sram;
 wire	[15:0]	bdatr_sytm;
 wire	[15:0]	bdatr_uart;
 wire	[15:0]	bdatr_port;
@@ -242,8 +254,6 @@ wire	[15:0]	bdatr_fnjp;
 wire	[15:0]	bdatr_uar1;
 wire	[15:0]	bdatr_por1;
 wire	[15:0]	bdatr_adcu;
-wire	[15:0]	bdatr_sdrm;
-wire	[15:0]	bdatr_cach;
 wire	[15:0]	bdatr_unsj;
 wire	[15:0]	bdatr_dist;
 wire	[15:0]	bdatr_rtcu;
@@ -419,12 +429,12 @@ mcoc_icff	icff (
 busc2040dl	busc (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.sdc_brdy(sdc_brdy),	// Input
-	.cch_hit(cch_hit),	// Input
+	.sdc_brdy(bwait_n),	// Input
+	.cch_hit(1'b1),	// Input
 	.bcs_acc_2(bcs_acc_2),	// Input
 	.bcs_acc_l1(bcs_acc_l1),	// Input
 	.bcs_acc_l2(bcs_acc_l2),	// Input
-	.bcs_sdram_n(bcs_sdram_n),	// Input
+	.bcs_sdram_n(bcs_sram_n),	// Input
 	.bdatr(bdatr[31:0]),	// Input
 	.bcmd1(bcmd1[3:0]),	// Input
 	.badr1({ badrx1[7:0],badr1[15:0] }),	// Input
@@ -460,7 +470,7 @@ mcoc_adrdec		adec (
 	.bcs_iou_n(bcs_iou_n),	// Output
 	.bcs_eram_n(bcs_eram_n),	// Output
 	.bcs_sram_n(bcs_sram_n),	// Output
-	.bcs_sdram_n(bcs_sdram_n),	// Output
+	.bcs_sdram_n(bcs_sdram_n_open),	// Output
 	.bcs_acc_2(bcs_acc_2),	// Output
 	.bcs_acc_l1(bcs_acc_l1),	// Output
 	.bcs_acc_l2(bcs_acc_l2),	// Output
@@ -478,7 +488,7 @@ mcoc_adrdec		adec (
 	.bcs_fnjp_n(bcs_fnjp_n),	// Output
 	.bcs_uar1_n(bcs_uar1_n),	// Output
 	.bcs_por1_n(bcs_por1_n),	// Output
-	.bcs_adcu_n(bcs_adcu_n),	// Output
+	.bcs_adcu_n(bcs_adcu_n_open),	// Output
 	.bcs_sdrc_n(bcs_sdrc_n),	// Output
 	.bcs_unsj_n(bcs_unsj_n),	// Output
 	.bcs_dist_n(bcs_dist_n),	// Output
@@ -993,75 +1003,37 @@ mcoc_adc	adc (
 );
 `endif	//	MCOC_NO_ADC
 
-`ifdef		MCOC_SDRAM_8M
-wire	[2:0]	cch_bcmd;
-wire	[1:0]	sdc_bst_adr;
-wire	[31:0]	sdc_bst_dat;
-
-mcoc_sdram	sdram (
+`ifdef		MCOC_SRAM_512K
+wire	[7:0]	sram_dqi=(!sram_cen && !sram_oen)? sram_dq[7:0]: 8'h0;
+wire	[7:0]	sram_dqo;
+assign	sram_dq[7:0]=(!sram_cen && sram_dqo_e)? sram_dqo[7:0]: 8'hz;
+sramc512k	sram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
-	.bcs_sdram_n(cch_sdram_n),	// Input
-	.bcs_sdrc_n(bcs_sdrc_n),	// Input
-	.bcmd(cch_bcmd[2:0]),	// Input
-	.badr({ badrx[6:0],badr[15:0] }),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.sdc_brdy(sdc_brdy_o),	// Output
-	.bdatr(bdatr_sdrm[15:0]),	// Output
-	// cache I/F
-	.clksdc(clksdc),	// Output
-	.sdc_bst_enb(sdc_bst_enb),	// Output
-	.sdc_bst_adr(sdc_bst_adr[1:0]),	// Output
-	.sdc_bst_dat(sdc_bst_dat[31:0])	// Output
+	.bcs_sram_n(bcs_sram_n),	// Input
+	.bcmd(bcmd[3:0]),	// Input
+	.badr(badr[18:0]),	// Input
+	.bdatw(bdatw[31:0]),	// Input
+	.bwait_n(bwait_n),	// Output
+	.bdatr(bdatr_sram[31:0]),	// Output
+	.sram_dqi(sram_dqi[7:0]),	// Input
+	.sram_cen(sram_cen),	// Output
+	.sram_oen(sram_oen),	// Output
+	.sram_wen(sram_wen),	// Output
+	.sram_dqo_e(sram_dqo_e),	// Output
+	.sram_dqo(sram_dqo[7:0]),	// Output
+	.sram_adr(sram_adr[18:0])	// Output
 );
-
-`ifdef		MCOC_CACHE_4K
-assign	sdc_brdy=sdc_brdy_o;
-`else	//	MCOC_CACHE_4K
-// This is a description to keep the net name clksdc.
-reg		rst_n_clk;
-always	@(posedge clk)
-	rst_n_clk<=rst_n;
-reg		rst_n_sdc;
-always	@(posedge clksdc)
-	rst_n_sdc<=rst_n_clk;
-assign	sdc_brdy=sdc_brdy_o | (~rst_n_sdc);
-`endif	//	MCOC_CACHE_4K
-
-`else	//	MCOC_SDRAM_8M
-`undef		MCOC_CACHE_4K
-wire	[2:0]	cch_bcmd;
-assign	sdc_brdy=1'b1;
-assign	bdatr_sdrm[15:0]=16'h0;
-`endif	//	MCOC_SDRAM_8M
-
-`ifdef		MCOC_CACHE_4K
-mcoc_cache	cache (
-	.clk(clk),	// Input
-	.rst_n(rst_n),	// Input
-	.brdy(brdy),	// Input
-	.bcs_sdram_n(bcs_sdram_n),	// Input
-	.bcs_sdrc_n(bcs_sdrc_n),	// Input
-	.bcmd(bcmd[2:0]),	// Input
-	.badr({ badrx[7:0],badr[15:0] }),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.cch_hit(cch_hit),	// Output
-	.cch_sdram_n(cch_sdram_n),	// Output
-	.cch_bcmd(cch_bcmd[2:0]),	// Output
-	.bdatr(bdatr_cach[15:0]),	// Output
-	// cache I/F
-	.clksdc(clksdc),	// Input
-	.sdc_bst_enb(sdc_bst_enb),	// Input
-	.sdc_bst_adr(sdc_bst_adr[1:0]),	// Input
-	.sdc_bst_dat(sdc_bst_dat[31:0])	// Input
-);
-`else	//	MCOC_CACHE_4K
-assign	cch_hit=1'b0;
-assign	cch_sdram_n=bcs_sdram_n;
-assign	cch_bcmd[2:0]=bcmd[2:0];
-assign	bdatr_cach[15:0]=16'h0;
-`endif	//	MCOC_CACHE_4K
+`else	//	MCOC_SRAM_512K
+assign	bwait_n=1'b1;
+assign	sram_cen=1'b1;
+assign	sram_oen=1'b1;
+assign	sram_wen=1'b1;
+assign	sram_dq[7:0]=8'hz;
+assign	sram_adr[18:0]=19'h0;
+assign	bdatr_sram[31:0]=32'h0;
+`endif	//	MCOC_SRAM_512K
 
 `ifdef		MCOC_NO_UNSJ
 assign	bdatr_unsj[15:0]=16'h0;
@@ -1195,8 +1167,9 @@ assign	bdatr[15:0]=
 	bdatr_intc[15:0] |
 	bdatr_idrg[15:0] |
 	bdatr_rom[15:0] |
-	bdatr_ram[15:0] |
 	bdatr_iram[15:0] |
+	bdatr_ram[15:0] |
+	bdatr_sram[15:0] |
 	bdatr_sytm[15:0] |
 	bdatr_uart[15:0] |
 	bdatr_port[15:0] |
@@ -1210,8 +1183,6 @@ assign	bdatr[15:0]=
 	bdatr_uar1[15:0] |
 	bdatr_por1[15:0] |
 	bdatr_adcu[15:0] |
-	bdatr_sdrm[15:0] |
-	bdatr_cach[15:0] |
 	bdatr_unsj[15:0] |
 	bdatr_dist[15:0] |
 	bdatr_rtcu[15:0] |
@@ -1223,6 +1194,7 @@ assign	bdatr[15:0]=
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |
 	bdatr_iram[31:16] |
-	bdatr_ram[31:16];
+	bdatr_ram[31:16] |
+	bdatr_sram[31:16];
 
 endmodule

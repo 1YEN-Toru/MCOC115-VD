@@ -187,6 +187,9 @@
 - [ERAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_2.html#CA7MMAP)
 	- Extended memory (RAM) unit
 	- Over 64KB RAM in 24 bit extended address area
+- [SRAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_6.html#SRAMC512K)
+	- External SRAM unit
+	- 512KB, 8 bit SRAM on the Cmod A7 board
 
 --------
 # Configure MCU
