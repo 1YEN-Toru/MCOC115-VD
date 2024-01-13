@@ -81,3 +81,11 @@ macro	csrwi	rd,imm
 csri	$(rd),$(imm)
 endm
 
+macro	muluw	rd,rs
+mulu	$(rd),$(rs)
+endm
+
+macro	mulsw	rd,rs
+muls	$(rd),$(rs)
+endm
+

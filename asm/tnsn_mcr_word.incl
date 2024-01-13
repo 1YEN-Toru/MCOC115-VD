@@ -6,6 +6,7 @@
 #	Attention) These macros are valid (compatible) for register contents,
 #		but operational flags (N, C, V, Z) are not always correct.
 #	Attention) The results of operations on the same register are incorrect.
+#		eg.) Do not use "add r0,r0", etc.
 #
 # ================================
 
@@ -185,5 +186,15 @@ csfti	$(rd),-1
 cendw	$(rd)
 csfti	$(rd),-1
 endr
+endm
+
+macro	muluw	rd,rs
+// muluw $(rd)':$(rd),$(rs)':$(rs)
+mulur	$(rd),$(rs)
+endm
+
+macro	mulsw	rd,rs
+// mulsw $(rd)':$(rd),$(rs)':$(rs)
+mulsr	$(rd),$(rs)
 endm
 

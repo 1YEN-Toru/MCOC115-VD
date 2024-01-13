@@ -625,5 +625,48 @@ equ		tled_ledr,0x0002				// tledctl[LEDR] bit
 equ		tled_ledb,0x0001				// tledctl[LEDB] bit
 equ		tled_lofe,0x0010				// tledintc[LOFE] bit
 equ		tled_loff,0x0001				// tledintc[LOFF] bit
+# ADCX122
+equ		adcxctl,0xf170					// adcx, RW, word
+equ		adcxain0,0xf174					// adcx, R, word
+equ		adcxain1,0xf176					// adcx, R, word
+equ		adcxadrr,0xf178					// adcx, RW, word
+equ		adcxdatr,0xf17a					// adcx, R, word
+equ		adcxadrw,0xf17c					// adcx, RW, word
+equ		adcxdatw,0xf17e					// adcx, RW, word
+equ		adcx_xbsy,0x80					// adcxctl[XBSY] bit
+equ		adcx_eosf,0x40					// adcxctl[EOSF] bit
+equ		adcx_eocf,0x20					// adcxctl[EOCF] bit
+equ		adcx_drpe,0x08					// adcxctl[DRPE] bit
+equ		adcx_bsy,0x01					// adcxctl[BSY] bit
+equ		adcx_drp_vaux4,0x14				// XADC DRP, register address
+equ		adcx_drp_ain0,0x14
+equ		adcx_drp_vaux12,0x1c
+equ		adcx_drp_ain1,0x1c
+equ		adcx_drp_flag,0x3f
+equ		adcx_drp_cfg0,0x40
+equ		adcx_drp_cfg1,0x41
+equ		adcx_drp_cfg2,0x42
+equ		adcx_drp_seq0_csel,0x48
+equ		adcx_drp_seq1_csel,0x49
+equ		adcx_drp_seq2_cave,0x4a
+equ		adcx_drp_seq3_cave,0x4b
+equ		adcx_drp_seq4_amod,0x4c
+equ		adcx_drp_seq5_amod,0x4d
+equ		adcx_drp_seq6_stim,0x4e
+equ		adcx_drp_seq7_stim,0x4f
+equ		adcx_drp_cfg0_acq,0x0100		// XADC DRP, CNF0.ACQ bit
+equ		adcx_drp_cfg0_ec,0x0200			// XADC DRP, CNF0.EC bit
+equ		adcx_drp_cfg0_bu,0x0400			// XADC DRP, CNF0.BU bit
+equ		adcx_drp_cfg0_avg_0,0x0000		// XADC DRP, CNF0.AVG field
+equ		adcx_drp_cfg0_avg_1,0x1000
+equ		adcx_drp_cfg0_avg_2,0x2000
+equ		adcx_drp_cfg0_avg_3,0x3000
+equ		adcx_drp_cfg1_seq_sglp,0x1000	// XADC DRP, CNF1.single pass
+equ		adcx_drp_cfg1_seq_cont,0x2000	// XADC DRP, CNF1.continuous sequence
+equ		adcx_drp_cfg1_seq_sglc,0x3000	// XADC DRP, CNF1.single conversion
+equ		adcx_drp_cfg1_seq_smul,0x4000	// XADC DRP, CNF1.simultaneous sampling
+equ		adcx_drp_cfg1_seq_mask,0xf000	// XADC DRP, CNF1.mode mask
+equ		adcx_drp_seq1_ain0,0x0010		// XADC DRP, SEQ1.ain0 channel bit
+equ		adcx_drp_seq1_ain1,0x1000		// XADC DRP, SEQ1.ain1 channel bit
 # ================================
 
