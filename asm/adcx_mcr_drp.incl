@@ -1,0 +1,74 @@
+# ================================
+#	ADCX122 DRP I/F access macro
+#		(c) 2023	1YEN Toru
+#		definition module
+# ================================
+
+macro	adcxrd		adr
+// r0=drp.$(adr)
+#	return: r0=[drp.$(adr)]
+#	disturbed: r2,r7
+#
+# DRPE=1
+ldwi	r7,adcxctl
+ldw		r2,[r7]
+mov		r0,r2
+ori		r0,adcx_drpe
+stw		[r7],r0
+# polling until BSY=0
+ldw		r0,[r7]
+andi	r0,adcx_bsy
+bne		pcnt-6
+# read address=$(adr)
+ldwi	r7,adcxadrr
+ldbiu	r0,$(adr)
+stw		[r7],r0
+# polling until BSY=0
+ldwi	r7,adcxctl
+ldw		r0,[r7]
+andi	r0,adcx_bsy
+bne		pcnt-6
+# read data
+ldwi	r7,adcxdatr
+ldw		r0,[r7]
+# restore DRPE
+ldwi	r7,adcxctl
+andi	r2,~(adcx_eosf|adcx_eocf)
+stw		[r7],r2
+endm
+
+macro	adcxwr		adr
+// drp.$(adr)=r0
+#	return: r0=[drp.$(adr)]
+#	disturbed: r1,r2,r7
+#
+# DRPE=1
+ldwi	r7,adcxctl
+ldw		r2,[r7]
+mov		r1,r2
+ori		r1,adcx_drpe
+stw		[r7],r1
+# polling until BSY=0
+ldw		r1,[r7]
+andi	r1,adcx_bsy
+bne		pcnt-6
+# write address=$(adr), data=r0
+ldwi	r7,adcxadrw
+ldbiu	r1,$(adr)
+stw		[r7],r1
+ldwi	r7,adcxdatw
+stw		[r7],r0
+# polling until BSY=0
+ldwi	r7,adcxctl
+ldw		r0,[r7]
+andi	r0,adcx_bsy
+bne		pcnt-6
+# wrote data
+ldwi	r7,adcxdatw
+ldw		r0,[r7]
+# restore DRPE
+ldwi	r7,adcxctl
+andi	r2,~(adcx_eosf|adcx_eocf)
+stw		[r7],r2
+endm
+
