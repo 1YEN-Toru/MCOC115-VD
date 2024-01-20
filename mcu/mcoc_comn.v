@@ -1230,13 +1230,17 @@ output	bcs_rtcu_n,
 output	bcs_int2_n,
 output	bcs_dacu_n,
 output	bcs_iome_n,
-output	bcs_tled_n);
+output	bcs_tled_n,
+output	bcs_adcx_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2024/01/20	ver.1.06
+//		add: bcs_adcx_n; ADCX122 unit, XADC on the Xilinx Artix-7 FPGA chip
 //
 //	2023/11/18	ver.1.04
 //		add: bcs_eram_n; Extended RAM area for the Xilinx Artix-7 FPGA chip
@@ -1316,6 +1320,7 @@ assign	bcs_int2_n=(!bcs_iou_n && badr[11:4]==8'h13)? 1'b0: 1'b1;
 assign	bcs_dacu_n=(!bcs_iou_n && badr[11:4]==8'h14)? 1'b0: 1'b1;
 assign	bcs_iome_n=(!bcs_iou_n && badr[11:4]==8'h15)? 1'b0: 1'b1;
 assign	bcs_tled_n=(!bcs_iou_n && badr[11:4]==8'h16)? 1'b0: 1'b1;
+assign	bcs_adcx_n=(!bcs_iou_n && badr[11:4]==8'h17)? 1'b0: 1'b1;
 
 
 endmodule
@@ -1833,66 +1838,81 @@ endmodule
 `endif	//	MCOC_NO_FNJP
 
 
-`ifdef		MCOC_NO_ADC
-`else	//	MCOC_NO_ADC
-module	mcoc_adc (
-// 12 bit A/D converter
+`ifdef		MCOC_NO_ADCX
+`else	//	MCOC_NO_ADCX
+module	mcoc_adcx (
+// 12 bit A/D converter unit
 input	clk,
 input	rst_n,
 input	brdy,
-input	bcmdw,
 input	bcmdr,
-input	bcs_adcu_n,
+input	bcmdw,
+input	bcs_adcx_n,
 input	[3:0]	badr,
 input	[15:0]	bdatw,
-output	adc_cenr,
-output	[15:0]	bdatr);
+output	[15:0]	bdatr,
+// XADC I/F
+input	adcx_vp,
+input	adcx_vn,
+input	adcx_ain0p,
+input	adcx_ain0n,
+input	adcx_ain1p,
+input	adcx_ain1n);
 
 
-wire	[1:0]	adc_chnl;
-wire	[11:0]	afe_dout;
+wire	[4:0]	channel_out_open;
+wire	[6:0]	adcx_drp_adr;
+wire	[15:0]	adcx_drp_do;
+wire	[15:0]	adcx_drp_di;
 
 
-adc124	adc (
+adcx122		adcx (
 	.clk(clk),	// Input
-	.clk16m(clk16m),	// Input
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
-	.bcmdw(bcmdw),	// Input
 	.bcmdr(bcmdr),	// Input
-	.bcs_adcu_n(bcs_adcu_n),	// Input
-	.pll_extlock(pll_extlock),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_adcx_n(bcs_adcx_n),	// Input
 	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
-	.adc_cenr(adc_cenr),	// Output
 	.bdatr(bdatr[15:0]),	// Output
-	// afe I/F
-	.afe_eoc(afe_eoc),	// Input
-	.afe_dout(afe_dout[11:0]),	// Input
-	.adc_adce(adc_adce),	// Output
-	.adc_soc(adc_soc),	// Output
-	.adc_chnl(adc_chnl[1:0])	// Output
+	// XADC I/F
+	.adcx_busy(adcx_busy),	// Input
+	.adcx_eoc(adcx_eoc),	// Input
+	.adcx_eos(adcx_eos),	// Input
+	// DRP I/F
+	.adcx_drp_rdy(adcx_drp_rdy),	// Input
+	.adcx_drp_do(adcx_drp_do[15:0]),	// Input
+	.adcx_drp_den(adcx_drp_den),	// Output
+	.adcx_drp_dwe(adcx_drp_dwe),	// Output
+	.adcx_drp_adr(adcx_drp_adr[6:0]),	// Output
+	.adcx_drp_di(adcx_drp_di[15:0])	// Output
 );
 
-adc_afe		afe (
-	.eoc(afe_eoc),	// Output
-	.dout(afe_dout[11:0]),	// Output
-	.clk(clk16m),	// Input
-	.pd(~adc_adce),	// Input
-	.s({1'b0,adc_chnl[1:0]}),	// Input
-	.soc(adc_soc)	// Input
-);
-
-adc_pll16m	pll (
-	.refclk(clk),	// Input
-	.reset(~rst_n),	// Input
-	.stdby(~adc_adce),	// Input
-	.extlock(pll_extlock),	// Output
-	.clk0_out(clk16m)	// Output
+adcx_afe	afex (
+	.daddr_in(adcx_drp_adr[6:0]),	// Input
+	.dclk_in(clk),	// Input
+	.den_in(adcx_drp_den),	// Input
+	.di_in(adcx_drp_di[15:0]),	// Input
+	.dwe_in(adcx_drp_dwe),	// Input
+	.reset_in(~rst_n),	// Input
+	.vauxp4(adcx_ain0p),	// Input
+	.vauxn4(adcx_ain0n),	// Input
+	.vauxp12(adcx_ain1p),	// Input
+	.vauxn12(adcx_ain1n),	// Input
+	.busy_out(adcx_busy),	// Output
+	.channel_out(channel_out_open[4:0]),	// Output
+	.do_out(adcx_drp_do[15:0]),	// Output
+	.drdy_out(adcx_drp_rdy),	// Output
+	.eoc_out(adcx_eoc),	// Output
+	.eos_out(adcx_eos),	// Output
+	.alarm_out(alarm_out_open),	// Output
+	.vp_in(adcx_vp),	// Input
+	.vn_in(adcx_vn)	// Input
 );
 
 endmodule
-`endif	//	MCOC_NO_ADC
+`endif	//	MCOC_NO_ADCX
 
 
 `ifdef		MCOC_NO_UNSJ

@@ -43,7 +43,6 @@
 `define		MCOC_NO_FNJP
 `define		MCOC_NO_UAR1
 `define		MCOC_NO_POR1
-`define		MCOC_NO_ADC
 `define		MCOC_NO_UNSJ
 `define		MCOC_NO_DIST
 `define		MCOC_NO_RTC
@@ -52,6 +51,7 @@
 //`define		MCOC_NO_TIML
 `define		MCOC_NO_SMPH
 `define		MCOC_NO_ICFF
+`define		MCOC_NO_ADCX
 
 // Memory unit
 //`define		MCOC_ROM_8K

@@ -583,7 +583,14 @@ IS61WV5128BLL	sram (
 	.sram_cen(sram_cen),	// Output
 	.sram_oen(sram_oen),	// Output
 	.sram_wen(sram_wen),	// Output
-	.sram_adr(sram_adr[18:0])	// Output
+	.sram_adr(sram_adr[18:0]),	// Output
+	// XADC I/F
+	.adcx_vp(adcx_vp),	// Input
+	.adcx_vn(adcx_vn),	// Input
+	.adcx_ain0p(adcx_ain0p),	// Input
+	.adcx_ain0n(adcx_ain0n),	// Input
+	.adcx_ain1p(adcx_ain1p),	// Input
+	.adcx_ain1n(adcx_ain1n)	// Input
 );
 
 

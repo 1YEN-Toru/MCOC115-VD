@@ -30,16 +30,28 @@ inout	[7:0]	sram_dq,
 output	sram_cen,
 output	sram_oen,
 output	sram_wen,
-output	[18:0]	sram_adr);
+output	[18:0]	sram_adr,
+// XADC I/F
+input	adcx_vp,
+input	adcx_vn,
+input	adcx_ain0p,
+input	adcx_ain0n,
+input	adcx_ain1p,
+input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0216
+`define		MCOC_VERS		16'h0218
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/01/20	ver.2.18
+//		corresponding to ADCX122 unit 
+//		add: compile option MCOC_NO_ADCX
+//		del: compile option MCOC_NO_ADC
 //
 //	2023/12/16	ver.2.16
 //		corresponding to SRAMC512K unit 
@@ -253,7 +265,7 @@ wire	[15:0]	bdatr_stws;
 wire	[15:0]	bdatr_fnjp;
 wire	[15:0]	bdatr_uar1;
 wire	[15:0]	bdatr_por1;
-wire	[15:0]	bdatr_adcu;
+wire	[15:0]	bdatr_adcx;
 wire	[15:0]	bdatr_unsj;
 wire	[15:0]	bdatr_dist;
 wire	[15:0]	bdatr_rtcu;
@@ -496,7 +508,8 @@ mcoc_adrdec		adec (
 	.bcs_int2_n(bcs_int2_n),	// Output
 	.bcs_dacu_n(bcs_dacu_n),	// Output
 	.bcs_iome_n(bcs_iome_n),	// Output
-	.bcs_tled_n(bcs_tled_n)	// Output
+	.bcs_tled_n(bcs_tled_n),	// Output
+	.bcs_adcx_n(bcs_adcx_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -525,6 +538,7 @@ wire	intc_eir1;
 wire	intc_eir0;
 wire	intc_icr2;
 wire	intc_icr1;
+wire	adc_cenr=1'b0;
 wire	[31:0]	intc_fct=
 		{
 			icff_frar2, icff_ftar2, smph_smrr2, smph_smur2,
@@ -985,23 +999,28 @@ mcoc_font	fnjp (
 );
 `endif	//	MCOC_NO_FNJP
 
-`ifdef		MCOC_NO_ADC
-assign	adc_cenr=1'b0;
-assign	bdatr_adcu[15:0]=16'h0;
-`else	//	MCOC_NO_ADC
-mcoc_adc	adc (
+`ifdef		MCOC_NO_ADCX
+assign	bdatr_adcx[15:0]=16'h0;
+`else	//	MCOC_NO_ADCX
+mcoc_adcx	adcx (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
-	.bcmdw(bcmdw),	// Input
 	.bcmdr(bcmdr),	// Input
-	.bcs_adcu_n(bcs_adcu_n),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_adcx_n(bcs_adcx_n),	// Input
 	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
-	.adc_cenr(adc_cenr),	// Output
-	.bdatr(bdatr_adcu[15:0])	// Output
+	.bdatr(bdatr_adcx[15:0]),	// Output
+	// XADC I/F
+	.adcx_vp(adcx_vp),	// Input
+	.adcx_vn(adcx_vn),	// Input
+	.adcx_ain0p(adcx_ain0p),	// Input
+	.adcx_ain0n(adcx_ain0n),	// Input
+	.adcx_ain1p(adcx_ain1p),	// Input
+	.adcx_ain1n(adcx_ain1n)	// Input
 );
-`endif	//	MCOC_NO_ADC
+`endif	//	MCOC_NO_ADCX
 
 `ifdef		MCOC_SRAM_512K
 wire	[7:0]	sram_dqi=(!sram_cen && !sram_oen)? sram_dq[7:0]: 8'h0;
@@ -1182,7 +1201,7 @@ assign	bdatr[15:0]=
 	bdatr_fnjp[15:0] |
 	bdatr_uar1[15:0] |
 	bdatr_por1[15:0] |
-	bdatr_adcu[15:0] |
+	bdatr_adcx[15:0] |
 	bdatr_unsj[15:0] |
 	bdatr_dist[15:0] |
 	bdatr_rtcu[15:0] |

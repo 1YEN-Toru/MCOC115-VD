@@ -167,13 +167,14 @@
 	- Conversion table [ROM data](http://hello.world.coocan.jp/ARDUINO21/arduino21_a.html#LUTMIF)
 - [DISTUS](http://hello.world.coocan.jp/ARDUINO22/arduino22_4.html#DISTUS)
 	- Distance measuring by ultrasonic sensor unit
+- [ADCX122](http://hello.world.coocan.jp/ARDUINO28/arduino28_8.html#ADCX122)
+	- 12 bit SAR A/D converter unit
+	- Xilinx Artix-7 XADC hard macro
 - [DAC121](http://hello.world.coocan.jp/ARDUINO24/arduino24_2.html#DAC121)
 	- 12 bit delta-sigma D/A converter unit
 <!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit
-- [ADC124](http://hello.world.coocan.jp/ARDUINO19/arduino19_6.html#ADC124)
-	- 12 bit SAR A/D converter unit
 -->
 
 ## Memory units
