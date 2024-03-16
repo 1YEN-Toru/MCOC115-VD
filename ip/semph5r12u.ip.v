@@ -27,7 +27,7 @@ module semph5r12u
 //	2021/07/31	ver.1.00
 //		5 ram area semaphores
 //		12 user defined semaphores
-//		dual core edition
+//		dual core cpu edition
 //
   input clk;
   input rst_n;

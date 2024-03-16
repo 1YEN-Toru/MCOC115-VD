@@ -31,7 +31,7 @@ module busc2040dl
 //
 //
 //	2023/11/04	ver.1.38
-//		fix: long word access to/from odd word address for dual core system.
+//		fix: long word access to/from odd word address for dual core cpu system.
 //
 //	2023/09/23	ver.1.36
 //		separate bus state controller and address decoder.
@@ -82,7 +82,7 @@ module busc2040dl
 //
 //	2021/07/31	ver.1.08
 //		corresponding to dual core cpu
-//		module name changed: busc2040 -> busc2040d (dual core edition)
+//		module name changed: busc2040 -> busc2040d (dual core cpu edition)
 //		add: bcs_smph_n, bcs_icff_n
 //
 //	2021/06/12	ver.1.06

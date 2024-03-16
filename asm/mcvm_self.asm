@@ -25,7 +25,7 @@
 //			for Moscovium ver.1.10 or higher
 //
 //		2021/07/31	ver.1.10
-//			for dual core edition
+//			for dual core cpu edition
 //			set mcvm_dual_cpu=1 or 2
 //			for Moscovium ver.1.08 or higher
 //

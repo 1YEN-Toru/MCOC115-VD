@@ -30,9 +30,12 @@ assign	badrx[15:0]=16'h0;
 assign	bdatwx[15:0]=16'h0;
 
 
-wire	signed	[17:0]	tnsn_dsp_c;
+// signed multiply
 wire	signed	[8:0]	tnsn_dsp_a;
 wire	signed	[8:0]	tnsn_dsp_b;
+wire	signed	[17:0]	tnsn_dsp_c=tnsn_dsp_a*tnsn_dsp_b;
+
+
 tennessine	core (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -52,9 +55,6 @@ tennessine	core (
 	.tnsn_dsp_a(tnsn_dsp_a[8:0]),	// Output
 	.tnsn_dsp_b(tnsn_dsp_b[8:0])	// Output
 );
-
-// signed multiply
-assign	tnsn_dsp_c[17:0]=tnsn_dsp_a*tnsn_dsp_b;
 
 endmodule
 
@@ -94,12 +94,15 @@ wire	[31:0]	cbus_i;
 
 `ifdef		MCOC_CORE_NHSS
 
-wire	signed	[65:0]	niss_dsp_c0;
-wire	signed	[65:0]	niss_dsp_c1;
+// signed multiply
 wire	signed	[32:0]	niss_dsp_a0;
 wire	signed	[32:0]	niss_dsp_a1;
 wire	signed	[32:0]	niss_dsp_b0;
 wire	signed	[32:0]	niss_dsp_b1;
+wire	signed	[65:0]	niss_dsp_c0=niss_dsp_a0*niss_dsp_b0;
+wire	signed	[65:0]	niss_dsp_c1=niss_dsp_a1*niss_dsp_b1;
+
+
 nihoniumss	core (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -129,15 +132,14 @@ nihoniumss	core (
 	.niss_dsp_b1(niss_dsp_b1[32:0])	// Output
 );
 
-// signed multiply
-assign	niss_dsp_c0[65:0]=niss_dsp_a0*niss_dsp_b0;
-assign	niss_dsp_c1[65:0]=niss_dsp_a1*niss_dsp_b1;
-
 `else	//	MCOC_CORE_NHSS
 
-wire	signed	[65:0]	niho_dsp_c;
+// signed multiply
 wire	signed	[32:0]	niho_dsp_a;
 wire	signed	[32:0]	niho_dsp_b;
+wire	signed	[65:0]	niho_dsp_c=niho_dsp_a*niho_dsp_b;
+
+
 nihonium	core (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -164,9 +166,6 @@ nihonium	core (
 	.niho_dsp_b(niho_dsp_b[32:0])	// Output
 );
 
-// signed multiply
-assign	niho_dsp_c[65:0]=niho_dsp_a*niho_dsp_b;
-
 `endif	//	MCOC_CORE_NHSS
 
 
@@ -184,7 +183,6 @@ mcoc_hfpu	hfpu (
 	.crdy(crdy_hfpu),	// Output
 	.cbus(cbus_hfpu[15:0])	// Output
 );
-
 `endif	//	MCVM_COPR_NOFPU
 
 `ifdef		MCVM_COPR_NOFPUS
@@ -201,7 +199,6 @@ mcoc_sfpu	sfpu (
 	.crdy(crdy_sfpu),	// Output
 	.cbus(cbus_sfpu[31:0])	// Output
 );
-
 `endif	//	MCVM_COPR_NOFPUS
 
 
@@ -349,7 +346,6 @@ mcoc_hfpu	hfpu (
 	.crdy(crdy_hfpu),	// Output
 	.cbus(cbus_hfpu[15:0])	// Output
 );
-
 `endif	//	MCVM_COPR_NOFPU
 
 
@@ -360,6 +356,149 @@ assign	cbus_i[15:0]=cbus_mulc[15:0] | cbus_divc[15:0] | cbus_hfpu[15:0];
 endmodule
 
 `endif	//	MCOC_CORE_NH
+
+
+`ifdef		MCOC_DUAL_AMP_TS
+(* use_dsp = "yes" *)
+module	tennessinea (
+// Tennessine for AMP dual core cpu
+input	clk,
+input	rst_n,
+input	brdy,
+input	irq,
+input	[1:0]	cpuid,
+input	[1:0]	irq_lev,
+input	[5:0]	irq_vec,
+input	[15:0]	fdatx,
+input	[15:0]	fdat,
+input	[15:0]	bdatrx,
+input	[15:0]	bdatr,
+output	[15:0]	fadr,
+output	[3:0]	bcmd,
+output	[15:0]	badrx,
+output	[15:0]	badr,
+output	[15:0]	bdatwx,
+output	[15:0]	bdatw);
+
+
+// compile option
+
+
+assign	bcmd[3]=1'b0;
+assign	badrx[15:0]=16'h0;
+assign	bdatwx[15:0]=16'h0;
+
+
+// signed multiply
+wire	signed	[8:0]	tnsn_dsp_a;
+wire	signed	[8:0]	tnsn_dsp_b;
+wire	signed	[17:0]	tnsn_dsp_c=tnsn_dsp_a*tnsn_dsp_b;
+
+
+tennessine	core (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.irq(irq),	// Input
+	.cpuid(cpuid[1:0]),	// Input
+	.irq_lev(irq_lev[1:0]),	// Input
+	.irq_vec(irq_vec[5:0]),	// Input
+	.fdat(fdat[15:0]),	// Input
+	.bdatr(bdatr[15:0]),	// Input
+	.fadr(fadr[15:0]),	// Output
+	.bcmd(bcmd[2:0]),	// Output
+	.badr(badr[15:0]),	// Output
+	.bdatw(bdatw[15:0]),	// Output
+	// DSP macro I/F
+	.tnsn_dsp_c(tnsn_dsp_c[17:0]),	// Input
+	.tnsn_dsp_a(tnsn_dsp_a[8:0]),	// Output
+	.tnsn_dsp_b(tnsn_dsp_b[8:0])	// Output
+);
+
+endmodule
+`endif	//	MCOC_DUAL_AMP_TS
+
+
+`ifdef		MCOC_DUAL_AMP_MC
+module	moscoviuma (
+// Moscovium + MULC16 for AMP dual core cpu
+input	clk,
+input	rst_n,
+input	brdy,
+input	irq,
+input	[1:0]	cpuid,
+input	[1:0]	irq_lev,
+input	[5:0]	irq_vec,
+input	[15:0]	fdatx,
+input	[15:0]	fdat,
+input	[15:0]	bdatrx,
+input	[15:0]	bdatr,
+output	[15:0]	fadr,
+output	[3:0]	bcmd,
+output	[15:0]	badrx,
+output	[15:0]	badr,
+output	[15:0]	bdatwx,
+output	[15:0]	bdatw);
+
+
+// compile option
+
+
+wire	[4:0]	ccmd;
+wire	[15:0]	abus_o;
+wire	[15:0]	bbus_o;
+wire	[15:0]	cbus_i;
+
+assign	bcmd[3]=1'b0;
+assign	bdatwx[15:0]=16'h0;
+
+
+moscovium	core (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.irq(irq),	// Input
+	.cpuid(cpuid[1:0]),	// Input
+	.irq_lev(irq_lev[1:0]),	// Input
+	.irq_vec(irq_vec[5:0]),	// Input
+	.fdat(fdat[15:0]),	// Input
+	.bdatr(bdatr[15:0]),	// Input
+	.fadr(fadr[15:0]),	// Output
+	.bcmd(bcmd[2:0]),	// Output
+	.badrx(badrx[15:0]),	// Output
+	.badr(badr[15:0]),	// Output
+	.bdatw(bdatw[15:0]),	// Output
+	// Co-processor I/F
+	.crdy(crdy),	// Input
+	.cbus_i(cbus_i[15:0]),	// Input
+	.ccmd(ccmd[4:0]),	// Output
+	.abus_o(abus_o[15:0]),	// Output
+	.bbus_o(bbus_o[15:0])	// Output
+);
+
+
+// signed multiply
+wire	signed	[16:0]	mulc_dsp_a;
+wire	signed	[16:0]	mulc_dsp_b;
+wire	signed	[33:0]	mulc_dsp_c=mulc_dsp_a*mulc_dsp_b;
+
+
+mulc16	mulc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[4:0]),	// Input
+	.abus(abus_o[15:0]),	// Input
+	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy),	// Output
+	.cbus(cbus_i[15:0]),	// Output
+	// DSP macro I/F
+	.mulc_dsp_c(mulc_dsp_c[33:0]),	// Input
+	.mulc_dsp_a(mulc_dsp_a[16:0]),	// Output
+	.mulc_dsp_b(mulc_dsp_b[16:0])	// Output
+);
+
+endmodule
+`endif	//	MCOC_DUAL_AMP_MC
 
 
 `ifdef		MCVM_COPR_NOMUL
@@ -375,9 +514,10 @@ output	crdy,
 output	[15:0]	cbus);
 
 
-wire	signed	[33:0]	mulc_dsp_c;
+// signed multiply
 wire	signed	[16:0]	mulc_dsp_a;
 wire	signed	[16:0]	mulc_dsp_b;
+wire	signed	[33:0]	mulc_dsp_c=mulc_dsp_a*mulc_dsp_b;
 
 
 mulc16	mulc (
@@ -393,9 +533,6 @@ mulc16	mulc (
 	.mulc_dsp_a(mulc_dsp_a[16:0]),	// Output
 	.mulc_dsp_b(mulc_dsp_b[16:0])	// Output
 );
-
-// signed multiply
-assign	mulc_dsp_c[33:0]=mulc_dsp_a*mulc_dsp_b;
 
 endmodule
 `endif	//	MCVM_COPR_NOMUL
@@ -414,9 +551,10 @@ output	crdy,
 output	[15:0]	cbus);
 
 
+// unsigned multiply
 wire	[10:0]	hfpu_dsp_a;
 wire	[10:0]	hfpu_dsp_b;
-wire	[21:0]	hfpu_dsp_c;
+wire	[21:0]	hfpu_dsp_c=hfpu_dsp_a[10:0]*hfpu_dsp_b[10:0];
 
 
 halfpu	hfpu (
@@ -432,9 +570,6 @@ halfpu	hfpu (
 	.hfpu_dsp_a(hfpu_dsp_a[10:0]),	// Output
 	.hfpu_dsp_b(hfpu_dsp_b[10:0])	// Output
 );
-
-// unsigned multiply
-assign	hfpu_dsp_c[21:0]=hfpu_dsp_a[10:0]*hfpu_dsp_b[10:0];
 
 endmodule
 `endif	//	MCVM_COPR_NOFPU
@@ -453,9 +588,10 @@ output	crdy,
 output	[31:0]	cbus);
 
 
-wire	[47:0]	sfpu_dsp_c;
+// unsigned multiply
 wire	[23:0]	sfpu_dsp_a;
 wire	[23:0]	sfpu_dsp_b;
+wire	[47:0]	sfpu_dsp_c=sfpu_dsp_a[23:0]*sfpu_dsp_b[23:0];
 
 
 sglfpu	sfpu (
@@ -472,9 +608,6 @@ sglfpu	sfpu (
 	.sfpu_dsp_b(sfpu_dsp_b[23:0])	// Output
 );
 
-// unsigned multiply
-assign	sfpu_dsp_c[47:0]=sfpu_dsp_a[23:0]*sfpu_dsp_b[23:0];
-
 endmodule
 `endif	//	MCVM_COPR_NOFPUS
 
@@ -484,7 +617,8 @@ module	mcoc_rom (
 input	clk,
 input	rst_n,
 input	bootmd,
-input	fcmdl,
+input	fcmdl1,
+input	fcmdl2,
 input	brdy,
 input	bcmdr,
 input	bcmdw,
@@ -515,7 +649,8 @@ rom_wrap32d		romwp (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.bootmd(bootmd),	// Input
-	.fcmdl(fcmdl),	// Input
+	.fcmdl1(fcmdl1),	// Input
+	.fcmdl2(fcmdl2),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
@@ -543,7 +678,7 @@ wire	[31:0]	fdat_bt;
 mcoc_boot32		rombt (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmdl),	// Input
+	.fcmdl(fcmdl1),	// Input
 	.fadr(fadr1[15:0]),	// Input
 	.fdat(fdat_bt[31:0])	// Output
 );

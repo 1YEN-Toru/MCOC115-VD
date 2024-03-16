@@ -69770,7 +69770,7 @@ module moscoviumss
 //		badrx output
 //
 //	2021/07/31	ver.1.08
-//		sr bit field: cpu id for dual core edition
+//		sr bit field: cpu id for dual core cpu edition
 //
 //	2021/07/10	ver.1.06
 //		hcmp: half compare

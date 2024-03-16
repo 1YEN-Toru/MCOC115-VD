@@ -4,6 +4,9 @@
 //		(c) 2023	1YEN Toru
 //
 //
+//		2024/03/16	ver.1.02
+//			corresponding to AMP dual core cpu edition
+//
 //		2023/07/08	ver.1.00
 //
 // ================================
@@ -62,6 +65,28 @@ mov		r6,r6
 bne		reg_fail
 mov		r7,r7
 bne		reg_fail
+
+// sr register, check cpu id to test
+movfc	r0,sr
+cendw	r0
+lsri	r0,sreg_b_id0-8
+andi	r0,sreg_id_3>>sreg_b_id0
+beq		reg_next
+cmpi	r0,sreg_id_3>>sreg_b_id0
+beq		reg_fail						// cpu3: reserved, error
+cmpi	r0,tnsn_dual_cpu
+beq		reg_next						// cpu for dut, ok go
+ldbiu	r0,tnsn_dual_cpu
+cmpi	r0,sreg_id_1>>sreg_b_id0
+blo		reg_fail						// tnsn_dual_cpu must set 1 or 2
+cmpi	r0,sreg_id_3>>sreg_b_id0
+bhs		reg_fail						// tnsn_dual_cpu must set 1 or 2
+// stop cpu not to test
+pause
+bra		pcnt-4
+
+reg_next:
+
 // set data
 rept	8
 // r$(repti)
@@ -88,24 +113,6 @@ bne		reg_fail
 movfc	r0,tr
 mov		r0,r0
 bne		reg_fail
-
-// sr register, check cpu id to test
-movfc	r0,sr
-lsfti	r0,-sreg_b_id0
-andi	r0,sreg_id_3>>sreg_b_id0
-beq		reg_pass						// cpu0: single core, ok go
-cmpi	r0,sreg_id_3>>sreg_b_id0
-beq		reg_fail						// cpu3: reserved, error
-cmpi	r0,tnsn_dual_cpu
-beq		reg_pass						// cpu for dut, ok go
-ldbiu	r0,tnsn_dual_cpu
-cmpi	r0,sreg_id_1>>sreg_b_id0
-blo		reg_fail						// tnsn_dual_cpu must set 1 or 2
-cmpi	r0,sreg_id_3>>sreg_b_id0
-bhs		reg_fail						// tnsn_dual_cpu must set 1 or 2
-// stop cpu not to test
-pause
-bra		pcnt-4
 
 // ================================
 ldcl	sr,sreg_bk_0
@@ -418,10 +425,8 @@ bne		opc_r_fail
 ldch	sr,0x00
 sesrh	sreg_b_dr						// **
 movfc	r0,sr
-#lsfti	r0,-8
-#andi	r0,(~sreg_id_3)>>8
-#cmpi	r0,sreg_dr>>8
 cendw	r0
+andi	r0,(~sreg_id_2)>>8
 cmpi	r0,0x00
 bne		opc_r_fail
 // ================================
@@ -437,10 +442,8 @@ bne		opc_r_fail
 ldch	sr,(sreg_ml|sreg_dr)>>8
 clsrh	sreg_b_ml						// **
 movfc	r0,sr
-#lsfti	r0,-8
-#andi	r0,(~sreg_id_3)>>8
-#cmpi	r0,0x0c&(~(sreg_ml>>8))
 cendw	r0
+andi	r0,(~sreg_id_2)>>8
 cmpi	r0,0x00
 bne		opc_r_fail
 // ================================

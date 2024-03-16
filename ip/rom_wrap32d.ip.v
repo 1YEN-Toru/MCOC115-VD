@@ -4,7 +4,8 @@ module rom_wrap32d
    (clk,
     rst_n,
     bootmd,
-    fcmdl,
+    fcmdl1,
+    fcmdl2,
     brdy,
     bcmdr,
     bcmdw,
@@ -29,6 +30,9 @@ module rom_wrap32d
 //		(c) 2022	1YEN Toru
 //
 //
+//	2024/03/16	ver.1.10
+//		corresponding to AMP dual core cpu edition
+//
 //	2023/10/21	ver.1.08
 //		corresponding to 32 bit RAM macro
 //		keep fdat during memory bus access
@@ -41,7 +45,7 @@ module rom_wrap32d
 //
 //	2022/06/11	ver.1.02
 //		corresponding to dual core cpu
-//		module name changed: rom_wrap32d (dual core edition)
+//		module name changed: rom_wrap32d (dual core cpu edition)
 //
 //	2022/05/21	ver.1.00
 //		32 bit fetch bus for super-scalar edition cpu core
@@ -49,7 +53,8 @@ module rom_wrap32d
   input clk;
   input rst_n;
   input bootmd;
-  input fcmdl;
+  input fcmdl1;
+  input fcmdl2;
   input brdy;
   input bcmdr;
   input bcmdw;
@@ -112,7 +117,8 @@ module rom_wrap32d
   wire fadr12_b;
   wire fadr12_b_i_1_n_0;
   wire [15:0]fadr2;
-  wire fcmdl;
+  wire fcmdl1;
+  wire fcmdl2;
   wire [31:0]fdat1;
   wire [31:0]fdat2;
   wire [15:0]rom_adr1;
@@ -672,7 +678,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[0]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[16]),
         .I3(rom_dat1[0]),
@@ -682,7 +688,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[10]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[26]),
         .I3(rom_dat1[10]),
@@ -692,7 +698,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[11]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[27]),
         .I3(rom_dat1[11]),
@@ -702,7 +708,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[12]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[28]),
         .I3(rom_dat1[12]),
@@ -712,7 +718,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[13]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[29]),
         .I3(rom_dat1[13]),
@@ -722,7 +728,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[14]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[30]),
         .I3(rom_dat1[14]),
@@ -732,7 +738,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[15]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[31]),
         .I3(rom_dat1[15]),
@@ -744,7 +750,7 @@ module rom_wrap32d
     \fdat1[16]_INST_0 
        (.I0(rom_dat1_kp[16]),
         .I1(rom_dat1[16]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[16]));
   LUT4 #(
@@ -752,7 +758,7 @@ module rom_wrap32d
     \fdat1[17]_INST_0 
        (.I0(rom_dat1_kp[17]),
         .I1(rom_dat1[17]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[17]));
   LUT4 #(
@@ -760,7 +766,7 @@ module rom_wrap32d
     \fdat1[18]_INST_0 
        (.I0(rom_dat1_kp[18]),
         .I1(rom_dat1[18]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[18]));
   LUT4 #(
@@ -768,13 +774,13 @@ module rom_wrap32d
     \fdat1[19]_INST_0 
        (.I0(rom_dat1_kp[19]),
         .I1(rom_dat1[19]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[19]));
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[1]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[17]),
         .I3(rom_dat1[1]),
@@ -786,7 +792,7 @@ module rom_wrap32d
     \fdat1[20]_INST_0 
        (.I0(rom_dat1_kp[20]),
         .I1(rom_dat1[20]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[20]));
   LUT4 #(
@@ -794,7 +800,7 @@ module rom_wrap32d
     \fdat1[21]_INST_0 
        (.I0(rom_dat1_kp[21]),
         .I1(rom_dat1[21]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[21]));
   LUT4 #(
@@ -802,7 +808,7 @@ module rom_wrap32d
     \fdat1[22]_INST_0 
        (.I0(rom_dat1_kp[22]),
         .I1(rom_dat1[22]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[22]));
   LUT4 #(
@@ -810,7 +816,7 @@ module rom_wrap32d
     \fdat1[23]_INST_0 
        (.I0(rom_dat1_kp[23]),
         .I1(rom_dat1[23]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[23]));
   LUT4 #(
@@ -818,7 +824,7 @@ module rom_wrap32d
     \fdat1[24]_INST_0 
        (.I0(rom_dat1_kp[24]),
         .I1(rom_dat1[24]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[24]));
   LUT4 #(
@@ -826,7 +832,7 @@ module rom_wrap32d
     \fdat1[25]_INST_0 
        (.I0(rom_dat1_kp[25]),
         .I1(rom_dat1[25]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[25]));
   LUT4 #(
@@ -834,7 +840,7 @@ module rom_wrap32d
     \fdat1[26]_INST_0 
        (.I0(rom_dat1_kp[26]),
         .I1(rom_dat1[26]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[26]));
   LUT4 #(
@@ -842,7 +848,7 @@ module rom_wrap32d
     \fdat1[27]_INST_0 
        (.I0(rom_dat1_kp[27]),
         .I1(rom_dat1[27]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[27]));
   LUT4 #(
@@ -850,7 +856,7 @@ module rom_wrap32d
     \fdat1[28]_INST_0 
        (.I0(rom_dat1_kp[28]),
         .I1(rom_dat1[28]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[28]));
   LUT4 #(
@@ -858,13 +864,13 @@ module rom_wrap32d
     \fdat1[29]_INST_0 
        (.I0(rom_dat1_kp[29]),
         .I1(rom_dat1[29]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[29]));
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[2]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[18]),
         .I3(rom_dat1[2]),
@@ -876,7 +882,7 @@ module rom_wrap32d
     \fdat1[30]_INST_0 
        (.I0(rom_dat1_kp[30]),
         .I1(rom_dat1[30]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[30]));
   LUT4 #(
@@ -884,13 +890,13 @@ module rom_wrap32d
     \fdat1[31]_INST_0 
        (.I0(rom_dat1_kp[31]),
         .I1(rom_dat1[31]),
-        .I2(fcmdl),
+        .I2(fcmdl1),
         .I3(brd1_b),
         .O(fdat1[31]));
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[3]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[19]),
         .I3(rom_dat1[3]),
@@ -900,7 +906,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[4]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[20]),
         .I3(rom_dat1[4]),
@@ -910,7 +916,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[5]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[21]),
         .I3(rom_dat1[5]),
@@ -920,7 +926,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[6]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[22]),
         .I3(rom_dat1[6]),
@@ -930,7 +936,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[7]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[23]),
         .I3(rom_dat1[7]),
@@ -940,7 +946,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[8]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[24]),
         .I3(rom_dat1[8]),
@@ -950,7 +956,7 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat1[9]_INST_0 
-       (.I0(fcmdl),
+       (.I0(fcmdl1),
         .I1(fadr11_b),
         .I2(rom_dat1[25]),
         .I3(rom_dat1[9]),
@@ -960,8 +966,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[0]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[16]),
         .I3(rom_dat2[0]),
         .I4(brd2_b),
@@ -970,8 +976,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[10]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[26]),
         .I3(rom_dat2[10]),
         .I4(brd2_b),
@@ -980,8 +986,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[11]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[27]),
         .I3(rom_dat2[11]),
         .I4(brd2_b),
@@ -990,8 +996,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[12]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[28]),
         .I3(rom_dat2[12]),
         .I4(brd2_b),
@@ -1000,8 +1006,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[13]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[29]),
         .I3(rom_dat2[13]),
         .I4(brd2_b),
@@ -1010,8 +1016,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[14]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[30]),
         .I3(rom_dat2[14]),
         .I4(brd2_b),
@@ -1020,8 +1026,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[15]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[31]),
         .I3(rom_dat2[15]),
         .I4(brd2_b),
@@ -1032,7 +1038,7 @@ module rom_wrap32d
     \fdat2[16]_INST_0 
        (.I0(rom_dat2_kp[16]),
         .I1(rom_dat2[16]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[16]));
   LUT4 #(
@@ -1040,7 +1046,7 @@ module rom_wrap32d
     \fdat2[17]_INST_0 
        (.I0(rom_dat2_kp[17]),
         .I1(rom_dat2[17]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[17]));
   LUT4 #(
@@ -1048,7 +1054,7 @@ module rom_wrap32d
     \fdat2[18]_INST_0 
        (.I0(rom_dat2_kp[18]),
         .I1(rom_dat2[18]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[18]));
   LUT4 #(
@@ -1056,14 +1062,14 @@ module rom_wrap32d
     \fdat2[19]_INST_0 
        (.I0(rom_dat2_kp[19]),
         .I1(rom_dat2[19]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[19]));
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[1]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[17]),
         .I3(rom_dat2[1]),
         .I4(brd2_b),
@@ -1074,7 +1080,7 @@ module rom_wrap32d
     \fdat2[20]_INST_0 
        (.I0(rom_dat2_kp[20]),
         .I1(rom_dat2[20]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[20]));
   LUT4 #(
@@ -1082,7 +1088,7 @@ module rom_wrap32d
     \fdat2[21]_INST_0 
        (.I0(rom_dat2_kp[21]),
         .I1(rom_dat2[21]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[21]));
   LUT4 #(
@@ -1090,7 +1096,7 @@ module rom_wrap32d
     \fdat2[22]_INST_0 
        (.I0(rom_dat2_kp[22]),
         .I1(rom_dat2[22]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[22]));
   LUT4 #(
@@ -1098,7 +1104,7 @@ module rom_wrap32d
     \fdat2[23]_INST_0 
        (.I0(rom_dat2_kp[23]),
         .I1(rom_dat2[23]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[23]));
   LUT4 #(
@@ -1106,7 +1112,7 @@ module rom_wrap32d
     \fdat2[24]_INST_0 
        (.I0(rom_dat2_kp[24]),
         .I1(rom_dat2[24]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[24]));
   LUT4 #(
@@ -1114,7 +1120,7 @@ module rom_wrap32d
     \fdat2[25]_INST_0 
        (.I0(rom_dat2_kp[25]),
         .I1(rom_dat2[25]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[25]));
   LUT4 #(
@@ -1122,7 +1128,7 @@ module rom_wrap32d
     \fdat2[26]_INST_0 
        (.I0(rom_dat2_kp[26]),
         .I1(rom_dat2[26]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[26]));
   LUT4 #(
@@ -1130,7 +1136,7 @@ module rom_wrap32d
     \fdat2[27]_INST_0 
        (.I0(rom_dat2_kp[27]),
         .I1(rom_dat2[27]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[27]));
   LUT4 #(
@@ -1138,7 +1144,7 @@ module rom_wrap32d
     \fdat2[28]_INST_0 
        (.I0(rom_dat2_kp[28]),
         .I1(rom_dat2[28]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[28]));
   LUT4 #(
@@ -1146,14 +1152,14 @@ module rom_wrap32d
     \fdat2[29]_INST_0 
        (.I0(rom_dat2_kp[29]),
         .I1(rom_dat2[29]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[29]));
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[2]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[18]),
         .I3(rom_dat2[2]),
         .I4(brd2_b),
@@ -1164,7 +1170,7 @@ module rom_wrap32d
     \fdat2[30]_INST_0 
        (.I0(rom_dat2_kp[30]),
         .I1(rom_dat2[30]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[30]));
   LUT4 #(
@@ -1172,14 +1178,14 @@ module rom_wrap32d
     \fdat2[31]_INST_0 
        (.I0(rom_dat2_kp[31]),
         .I1(rom_dat2[31]),
-        .I2(fcmdl),
+        .I2(fcmdl2),
         .I3(brd2_b),
         .O(fdat2[31]));
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[3]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[19]),
         .I3(rom_dat2[3]),
         .I4(brd2_b),
@@ -1188,8 +1194,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[4]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[20]),
         .I3(rom_dat2[4]),
         .I4(brd2_b),
@@ -1198,8 +1204,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[5]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[21]),
         .I3(rom_dat2[5]),
         .I4(brd2_b),
@@ -1208,8 +1214,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[6]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[22]),
         .I3(rom_dat2[6]),
         .I4(brd2_b),
@@ -1218,8 +1224,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[7]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[23]),
         .I3(rom_dat2[7]),
         .I4(brd2_b),
@@ -1228,8 +1234,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[8]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[24]),
         .I3(rom_dat2[8]),
         .I4(brd2_b),
@@ -1238,8 +1244,8 @@ module rom_wrap32d
   LUT6 #(
     .INIT(64'hFFFFFE100000FE10)) 
     \fdat2[9]_INST_0 
-       (.I0(fadr12_b),
-        .I1(fcmdl),
+       (.I0(fcmdl2),
+        .I1(fadr12_b),
         .I2(rom_dat2[25]),
         .I3(rom_dat2[9]),
         .I4(brd2_b),

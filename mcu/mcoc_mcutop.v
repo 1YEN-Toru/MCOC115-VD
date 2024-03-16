@@ -40,13 +40,18 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0218
+`define		MCOC_VERS		16'h0220
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/03/16	ver.2.20
+//		corresponding to AMP dual core cpu edition
+//		add: compile option MCOC_DUAL_AMP_TS
+//		add: compile option MCOC_DUAL_AMP_MC
 //
 //	2024/01/20	ver.2.18
 //		corresponding to ADCX122 unit 
@@ -66,7 +71,7 @@ input	adcx_ain1n);
 //		add: compile option MCOC_ERAM
 //
 //	2023/11/04	ver.2.10
-//		corresponding to dual core edition
+//		corresponding to dual core cpu edition
 //		add: compile option MCOC_NO_SMPH, MCOC_NO_ICFF
 //
 //	2023/10/28	ver.2.08
@@ -326,7 +331,7 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 
 
 `ifdef		MCOC_DUAL
-`CPU_CORE	cpu2 (
+`CPU_CORE2	cpu2 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.brdy(brdy2),	// Input
@@ -601,11 +606,18 @@ intc322dvl	intc (
 `endif	//	MCOC_NO_INTC
 
 `ifdef		MCOC_CORE_NHSS
-wire	fcmdl=1'b1;
+wire	fcmdl1=1'b1;
 `elsif		MCOC_CORE_MCSS
-wire	fcmdl=1'b1;
+wire	fcmdl1=1'b1;
 `else
-wire	fcmdl=1'b0;
+wire	fcmdl1=1'b0;
+`endif
+`ifdef		MCOC_DUAL_AMP_TS
+wire	fcmdl2=1'b0;
+`elsif		MCOC_DUAL_AMP_MC
+wire	fcmdl2=1'b0;
+`else
+wire	fcmdl2=fcmdl1;
 `endif
 wire	[31:0]	rom_fdat1;
 wire	[31:0]	rom_fdat2;
@@ -614,7 +626,8 @@ mcoc_rom	rom (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.bootmd(bootmd),	// Input
-	.fcmdl(fcmdl),	// Input
+	.fcmdl1(fcmdl1),	// Input
+	.fcmdl2(fcmdl2),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
@@ -670,7 +683,7 @@ wire	[31:0]	bdatr_iram1;
 mcoc_iram	iram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmdl),	// Input
+	.fcmdl(fcmdl1),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
@@ -690,7 +703,7 @@ wire	[31:0]	bdatr_iram2;
 mcoc_iram	iram2 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmdl),	// Input
+	.fcmdl(fcmdl2),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input

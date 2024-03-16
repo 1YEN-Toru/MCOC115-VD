@@ -30,11 +30,13 @@
 	- 32 bit data path x2
 	- Super Scalar
 
- Moscovium series CPU cores are scalable from 8 ~ 32 bit data paths.
-
 - The order listed above is roughly a trade-off between performance and size (LUTs).
 	- Lower performance takes smaller size.
 	- Higher performance takes larger size.
+- Moscovium series CPU cores are scalable from 8 ~ 32 bit data paths.
+- SMP and AMP dual core edition available.
+	- [SMP](http://hello.world.coocan.jp/ARDUINO17/arduino17_1.html) (Symmetric Multi-Processing)
+	- [AMP](http://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
 
 ## Development of software
  Moscovium series MCU can be developed using an assembler.
@@ -74,16 +76,16 @@
 ## CPU core
 - [Moscovium](http://hello.world.coocan.jp/ARDUINO/index.html#RI_MCVM)
 	- Original 16 bit CPU core
-- [Nihonium](http://hello.world.coocan.jp/ARDUINO/index.html#RI_NIHO)
+- [Nihonium](http://hello.world.coocan.jp/ARDUINO20/arduino20_4.html)
 	- Original 32 bit CPU core
-- [Tennessine](http://hello.world.coocan.jp/ARDUINO/index.html#RI_TNSN)
+- [Tennessine](http://hello.world.coocan.jp/ARDUINO26/arduino26_3.html#TNSNDSGN)
 	- Original 8 bit CPU core
-- [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
+- [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO21/arduino21_3.html#CPUMTRX)
 	- Original 16 bit CPU core
-	- Super Scalar edition
-- [Nihonium-SS](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
+- [Nihonium-SS](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 	- Original 32 bit CPU core
-	- Super Scalar edition
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
 
 ## Coprocessor
 - [MULC16](http://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
@@ -95,14 +97,12 @@
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
-<!--
 - [HALFPU](http://hello.world.coocan.jp/ARDUINO16/arduino16_5.html)
 	- 16 bit half precision Floating Point Unit (FPU)
 		- for Moscovium / Moscovium-SS / Nihonium / Nihonium-SS
 - [SGLFPU](http://hello.world.coocan.jp/ARDUINO24/arduino24_5.html)
 	- 32 bit single precision Floating Point Unit (FPU)
 		- for Nihonium / Nihonium-SS
--->
 
 ## System units
 - [SYSCA7](http://hello.world.coocan.jp/ARDUINO27/arduino27_3.html#SYSCA7)

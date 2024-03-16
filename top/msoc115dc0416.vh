@@ -26,6 +26,8 @@
 //`define		MCOC_CORE_NHSS
 `define		MCOC_CORE_MCSS
 `define		MCOC_DUAL
+//`define		MCOC_DUAL_AMP_TS
+//`define		MCOC_DUAL_AMP_MC
 //`define		MCOC_FCPU_24M
 
 // Coprocessor
@@ -95,11 +97,29 @@
 `define		MCVM_COPR_NOFPUS
 `endif
 
+`undef		CPU_CORE2
+
 `ifdef		MCOC_DUAL
 `else	//	MCOC_DUAL
 `define		MCOC_NO_SMPH
 `define		MCOC_NO_ICFF
+`undef		MCOC_DUAL_AMP_TS
+`undef		MCOC_DUAL_AMP_MC
 `endif	//	MCOC_DUAL
+
+`ifdef		MCOC_DUAL_AMP_TS
+`undef		MCOC_DUAL_AMP_MC
+`define		CPU_CORE2		tennessinea
+`endif	//	MCOC_DUAL_AMP_TS
+
+`ifdef		MCOC_DUAL_AMP_MC
+`define		CPU_CORE2		moscoviuma
+`endif	//	MCOC_DUAL_AMP_MC
+
+`ifdef		CPU_CORE2
+`else	//	CPU_CORE2
+`define		CPU_CORE2		`CPU_CORE
+`endif	//	CPU_CORE2
 
 `ifdef		MCVM_COPR_NOFPUS
 `else	//	MCVM_COPR_NOFPUS

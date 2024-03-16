@@ -35,7 +35,7 @@ module icff16
 //
 //
 //	2021/07/31	ver.1.00
-//		16 bit fifo, dual core edition
+//		16 bit fifo, dual core cpu edition
 //
   input clk;
   input rst_n;

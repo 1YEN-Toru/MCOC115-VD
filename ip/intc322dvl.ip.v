@@ -43,7 +43,7 @@ module intc322dvl
 //	2021/07/31	ver.1.02
 //		corresponding to dual core cpu
 //		interrupt factors expanded to 32
-//		module name changed: intc162 -> intc322d (dual core edition)
+//		module name changed: intc162 -> intc322d (dual core cpu edition)
 //
 //	2021/05/01	ver.1.00
 //		16 internal interrupt factors
