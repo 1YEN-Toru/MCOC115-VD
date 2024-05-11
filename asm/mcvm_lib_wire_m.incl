@@ -31,7 +31,7 @@
 mcvm_wire:
 // empty frame
 ldw		r0,[r1]
-mov		r0,r0
+cmpi	r0,0
 bne		wir_loop
 // ERROR: bad frame
 ldbiu	r0,wire_err_bad_fram
@@ -40,7 +40,7 @@ beq		wir_stop
 wir_loop:
 // end mark?
 ldw		r0,[r1]
-mov		r0,r0
+cmpi	r0,0
 beq		wir_break
 
 // command
