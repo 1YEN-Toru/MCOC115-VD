@@ -668,5 +668,19 @@ equ		adcx_drp_cfg1_seq_smul,0x4000	// XADC DRP, CNF1.simultaneous sampling
 equ		adcx_drp_cfg1_seq_mask,0xf000	// XADC DRP, CNF1.mode mask
 equ		adcx_drp_seq1_ain0,0x0010		// XADC DRP, SEQ1.ain0 channel bit
 equ		adcx_drp_seq1_ain1,0x1000		// XADC DRP, SEQ1.ain1 channel bit
+# CAM7670
+equ		cm76ctl,0xf180					// cm76, RW, word
+equ		cm76pix,0xf182					// cm76, R, word
+equ		cm76_fful,0x80					// cm76ctl[FFUL] flag
+equ		cm76_fabl,0x40					// cm76ctl[FABL] flag
+equ		cm76_frbs,0x20					// cm76ctl[FRBS] flag
+equ		cm76_pckv,0x10					// cm76ctl[PCKV] flag
+equ		cm76_cenb,0x02					// cm76ctl[CENB] bit
+equ		cm76_xcke,0x01					// cm76ctl[XCKE] bit
+equ		cm76_vsyn,0x80					// cm76pix[VSYN] bit
+equ		cm76_hsyn,0x40					// cm76pix[HSYN] bit
+equ		cm76_r10,0x30					// cm76pix[R10] field
+equ		cm76_g10,0x0c					// cm76pix[G10] field
+equ		cm76_b10,0x03					// cm76pix[B10] field
 # ================================
 

@@ -7,6 +7,7 @@
 set_property -dict {PACKAGE_PIN L17 IOSTANDARD LVCMOS33} [get_ports sys_clock]
 #create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sysclk}];
 #create_clock -period 80.000 -name sys_clock -waveform {0.000 40.000} -add [get_ports sys_clock]
+create_generated_clock -name clk -source [get_pins clkg/inst/mmcm_adv_inst/CLKIN1] -master_clock [get_clocks sys_clock] [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0]
 
 ## LEDs
 set_property -dict {PACKAGE_PIN A17 IOSTANDARD LVCMOS33} [get_ports tled_led1]
@@ -22,14 +23,14 @@ set_property -dict {PACKAGE_PIN A18 IOSTANDARD LVCMOS33} [get_ports sys_reset]
 set_property -dict {PACKAGE_PIN B18 IOSTANDARD LVCMOS33} [get_ports sys_bootr]
 
 ## Pmod Header JA
-#set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 } [get_ports { ja[0] }]; #IO_L5N_T0_D07_14 Sch=ja[1]
-#set_property -dict { PACKAGE_PIN G19   IOSTANDARD LVCMOS33 } [get_ports { ja[1] }]; #IO_L4N_T0_D05_14 Sch=ja[2]
-#set_property -dict { PACKAGE_PIN N18   IOSTANDARD LVCMOS33 } [get_ports { ja[2] }]; #IO_L9P_T1_DQS_14 Sch=ja[3]
-#set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports { ja[3] }]; #IO_L8P_T1_D11_14 Sch=ja[4]
-#set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { ja[4] }]; #IO_L5P_T0_D06_14 Sch=ja[7]
-#set_property -dict { PACKAGE_PIN H19   IOSTANDARD LVCMOS33 } [get_ports { ja[5] }]; #IO_L4P_T0_D04_14 Sch=ja[8]
-#set_property -dict { PACKAGE_PIN J19   IOSTANDARD LVCMOS33 } [get_ports { ja[6] }]; #IO_L6N_T0_D08_VREF_14 Sch=ja[9]
-#set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { ja[7] }]; #IO_L8N_T1_D12_14 Sch=ja[10]
+set_property -dict {PACKAGE_PIN G17 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[0]}]
+set_property -dict {PACKAGE_PIN G19 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[1]}]
+set_property -dict {PACKAGE_PIN N18 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[2]}]
+set_property -dict {PACKAGE_PIN L18 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[3]}]
+set_property -dict {PACKAGE_PIN H17 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[4]}]
+set_property -dict {PACKAGE_PIN H19 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[5]}]
+set_property -dict {PACKAGE_PIN J19 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[6]}]
+set_property -dict {PACKAGE_PIN K18 IOSTANDARD LVCMOS33} [get_ports {pmod_iop[7]}]
 
 ## Analog XADC Pins
 ## Only declare these if you want to use pins 15 and 16 as single ended analog inputs. pin 15 -> vaux4, pin16 -> vaux12
@@ -154,6 +155,12 @@ set_property DRIVE 4 [get_ports tled_ledb_n]
 set_property DRIVE 4 [get_ports tled_ledg_n]
 set_property DRIVE 4 [get_ports tled_ledr_n]
 
-set_output_delay -clock [get_clocks -of_objects [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0]] -min -add_delay -4.000 [get_ports sram_oen]
-set_output_delay -clock [get_clocks -of_objects [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0]] -min -add_delay -5.000 [get_ports sram_wen]
-set_output_delay -clock [get_clocks -of_objects [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0]] -max -add_delay 0.000 [get_ports sram_adr*]
+set_output_delay -clock [get_clocks clk] -min -add_delay -4.000 [get_ports sram_oen]
+set_output_delay -clock [get_clocks clk] -min -add_delay -5.000 [get_ports sram_wen]
+set_output_delay -clock [get_clocks clk] -max -add_delay 0.000 [get_ports sram_adr*]
+
+# OV7670 camera unit with PMOD connector
+create_clock -period 32.000 -name pclk -waveform {0.000 16.000} [get_ports {pmod_iop[2]}]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets {pmod_iop_IBUF[2]}]
+set_false_path -from [get_clocks clk] -to [get_clocks pclk]
+set_false_path -from [get_clocks pclk] -to [get_clocks clk]

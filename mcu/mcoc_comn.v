@@ -1366,13 +1366,17 @@ output	bcs_int2_n,
 output	bcs_dacu_n,
 output	bcs_iome_n,
 output	bcs_tled_n,
-output	bcs_adcx_n);
+output	bcs_adcx_n,
+output	bcs_cm76_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2024/06/15	ver.1.08
+//		add: bcs_cm76_n; CAM7670 unit, OV7670 camera I/F
 //
 //	2024/01/20	ver.1.06
 //		add: bcs_adcx_n; ADCX122 unit, XADC on the Xilinx Artix-7 FPGA chip
@@ -1456,6 +1460,7 @@ assign	bcs_dacu_n=(!bcs_iou_n && badr[11:4]==8'h14)? 1'b0: 1'b1;
 assign	bcs_iome_n=(!bcs_iou_n && badr[11:4]==8'h15)? 1'b0: 1'b1;
 assign	bcs_tled_n=(!bcs_iou_n && badr[11:4]==8'h16)? 1'b0: 1'b1;
 assign	bcs_adcx_n=(!bcs_iou_n && badr[11:4]==8'h17)? 1'b0: 1'b1;
+assign	bcs_cm76_n=(!bcs_iou_n && badr[11:4]==8'h18)? 1'b0: 1'b1;
 
 
 endmodule
@@ -2191,3 +2196,111 @@ rtc400_sub		rsub (
 
 endmodule
 `endif	//	MCOC_NO_RTC
+
+
+`ifdef		MCOC_NO_CM76
+`else	//	MCOC_NO_CM76
+module	mcoc_cam76 (
+// OV7670 camera unit top module
+input	clk,
+input	rst_n,
+input	simumd,
+input	brdy,
+input	bcmdr,
+input	bcmdw,
+input	bcs_cm76_n,
+input	[3:0]	badr,
+input	[15:0]	bdatw,
+output	[15:0]	bdatr,
+input	cm76_pclk,
+input	cm76_vsync,
+input	cm76_href,
+input	[3:0]	cm76_dat,
+output	cm76_xclk);
+
+
+wire	pclk=cm76_pclk;
+wire	[7:0]	cm76_fdatr;
+wire	[7:0]	cm76_fdatw;
+
+
+cam7670		cm76 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_cm76_n(bcs_cm76_n),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.bdatr(bdatr[15:0]),	// Output
+	.cm76_pclk(pclk),	// Input
+	.cm76_vsync(cm76_vsync),	// Input
+	.cm76_href(cm76_href),	// Input
+	.cm76_dat(cm76_dat[3:0]),	// Input
+	.cm76_xclk(cm76_xclk),	// Output
+	.cm76_fempt(cm76_fempt),	// Input
+	.cm76_ffull(cm76_ffull),	// Input
+	.cm76_frest_bsy(cm76_frest_bsy_rd | cm76_frest_bsy_wr),	// Input
+	.cm76_fdatr(cm76_fdatr[7:0]),	// Input
+	.cm76_frest(cm76_frest),	// Output
+	.cm76_fread(cm76_fread),	// Output
+	.cm76_fwrit(cm76_fwrit),	// Output
+	.cm76_fdatw(cm76_fdatw[7:0])	// Output
+);
+
+`ifndef		MCOC_CM76_FIFO_SIZE
+`define		MCOC_CM76_FIFO_SIZE		4096
+`endif	//	MCOC_CM76_FIFO_SIZE
+xpm_fifo_async	#(
+	.CDC_SYNC_STAGES(2),				// DECIMAL
+	.DOUT_RESET_VALUE("0"),				// String
+	.ECC_MODE("no_ecc"),				// String
+	.FIFO_MEMORY_TYPE("auto"),			// String
+	.FIFO_READ_LATENCY(1),				// DECIMAL
+	.FIFO_WRITE_DEPTH(`MCOC_CM76_FIFO_SIZE),		// DECIMAL
+	.FULL_RESET_VALUE(0),				// DECIMAL
+	.PROG_EMPTY_THRESH(`MCOC_CM76_FIFO_SIZE/4),		// DECIMAL
+	.PROG_FULL_THRESH(`MCOC_CM76_FIFO_SIZE*3/4),	// DECIMAL
+	.RD_DATA_COUNT_WIDTH(1),			// DECIMAL
+	.READ_DATA_WIDTH(8),				// DECIMAL
+	.READ_MODE("std"),					// String
+	.RELATED_CLOCKS(0),					// DECIMAL
+	.SIM_ASSERT_CHK(0),					// DECIMAL
+	.USE_ADV_FEATURES("0707"),			// String
+	.WAKEUP_TIME(0),					// DECIMAL
+	.WRITE_DATA_WIDTH(8),				// DECIMAL
+	.WR_DATA_COUNT_WIDTH(1)				// DECIMAL
+)	fifo (
+	.almost_empty(almost_empty_open),
+	.almost_full(almost_full_open),
+	.data_valid(data_valid_open),
+	.dbiterr(dbiterr_open),
+	.dout(cm76_fdatr[7:0]),
+	.empty(cm76_fempt),
+	.full(cm76_ffull),
+	.overflow(overflow_open),
+	.prog_empty(prog_empty_open),
+	.prog_full(prog_full_open),
+	.rd_data_count(rd_data_count_open),
+	.rd_rst_busy(cm76_frest_bsy_rd),
+	.sbiterr(sbiterr_open),
+	.underflow(underflow_open),
+	.wr_ack(wr_ack_open),
+	.wr_data_count(wr_data_count_open),
+	.wr_rst_busy(cm76_frest_bsy_wr),
+	.din(cm76_fdatw[7:0]),
+	.injectdbiterr(1'b0),
+	.injectsbiterr(1'b0),
+	.rd_clk(clk),
+	.rd_en(cm76_fread),
+	.rst(cm76_frest),
+	.sleep(1'b0),
+	.wr_clk(pclk),
+	.wr_en(cm76_fwrit)
+);
+
+endmodule
+`endif	//	MCOC_NO_CM76
+

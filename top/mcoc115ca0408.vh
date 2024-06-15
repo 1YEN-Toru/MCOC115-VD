@@ -60,6 +60,7 @@
 `define		MCOC_NO_SMPH
 `define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
+`define		MCOC_NO_CM76
 
 // Memory unit
 //`define		MCOC_ROM_8K

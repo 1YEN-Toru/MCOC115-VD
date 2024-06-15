@@ -172,6 +172,10 @@
 	- Xilinx Artix-7 XADC hard macro
 - [DAC121](http://hello.world.coocan.jp/ARDUINO24/arduino24_2.html#DAC121)
 	- 12 bit delta-sigma D/A converter unit
+- [CAM7670](http://hello.world.coocan.jp/ARDUINO30/arduino30_7.html#CAM7670)
+	- OV7670 camera I/F unit
+	- VGA size (640x480[dot])
+	- RGB222 pixel format (64 colors)
 <!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit

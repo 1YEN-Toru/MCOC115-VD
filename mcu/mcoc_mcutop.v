@@ -11,6 +11,7 @@ input	intc_int0,
 input	intc_int1,
 inout	stws_scl,
 inout	stws_sda,
+inout	[7:0]	pmod_iop,
 inout	[15:0]	port_iop,
 //inout	[15:0]	user_iop,
 output	uart_txd,
@@ -40,13 +41,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0220
+`define		MCOC_VERS		16'h0222
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/06/15	ver.2.22
+//		corresponding to CAM7670 unit
+//		add: compile option MCOC_NO_CM76
 //
 //	2024/03/16	ver.2.20
 //		corresponding to AMP dual core cpu edition
@@ -278,6 +283,7 @@ wire	[15:0]	bdatr_dac0;
 wire	[15:0]	bdatr_dac1;
 wire	[15:0]	bdatr_iome;
 wire	[15:0]	bdatr_tled;
+wire	[15:0]	bdatr_cm76;
 
 // memory bus command alias
 wire	bcmdr=bcmd[0];
@@ -514,7 +520,8 @@ mcoc_adrdec		adec (
 	.bcs_dacu_n(bcs_dacu_n),	// Output
 	.bcs_iome_n(bcs_iome_n),	// Output
 	.bcs_tled_n(bcs_tled_n),	// Output
-	.bcs_adcx_n(bcs_adcx_n)	// Output
+	.bcs_adcx_n(bcs_adcx_n),	// Output
+	.bcs_cm76_n(bcs_cm76_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -1193,6 +1200,33 @@ assign	tled_ledg_n=~tled_ledg;
 assign	tled_ledb_n=~tled_ledb;
 `endif	//	MCOC_NO_TIML
 
+`ifdef		MCOC_NO_CM76
+assign	bdatr_cm76[15:0]=16'h0;
+`else	//	MCOC_NO_CM76
+wire	cm76_pclk=pmod_iop[2];
+wire	cm76_vsync=pmod_iop[3];
+wire	cm76_href=pmod_iop[7];
+wire	[3:0]	cm76_dat={ pmod_iop[1], pmod_iop[5], pmod_iop[0], pmod_iop[4] };
+assign	pmod_iop[6]=cm76_xclk;
+mcoc_cam76	cam76 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_cm76_n(bcs_cm76_n),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.bdatr(bdatr_cm76[15:0]),	// Output
+	.cm76_pclk(cm76_pclk),	// Input
+	.cm76_vsync(cm76_vsync),	// Input
+	.cm76_href(cm76_href),	// Input
+	.cm76_dat(cm76_dat[3:0]),	// Input
+	.cm76_xclk(cm76_xclk)	// Output
+);
+`endif	//	MCOC_NO_CM76
+
 
 // bus output
 assign	bdatr[15:0]=
@@ -1221,7 +1255,8 @@ assign	bdatr[15:0]=
 	bdatr_dac0[15:0] |
 	bdatr_dac1[15:0] |
 	bdatr_iome[15:0] |
-	bdatr_tled[15:0];
+	bdatr_tled[15:0] |
+	bdatr_cm76[15:0];
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |

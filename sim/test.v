@@ -9,6 +9,7 @@
 //`define		SIM_LOGA
 //`define		SIM_DAC		top.dac0
 //`define		SIM_UNSJ
+//`define		SIM_CAM76
 
 
 //// include the VH file of the type name to be simulated,
@@ -40,6 +41,7 @@ reg		uar1_rxd;
 reg		uar1_cts;
 reg		intc_int0;
 reg		intc_int1;
+reg		[7:0]	pmod_iop_d;
 reg		[15:0]	port_iop_d;
 reg		[15:0]	user_iop_d;
 wire	[7:0]	badr8h=top.badr[23:16];
@@ -48,6 +50,7 @@ wire	[15:0]	bdatr16=top.bdatr[15:0];
 wire	[15:0]	bdatw16=top.bdatw[15:0];
 wire	[15:0]	bdatr16h=top.bdatr[31:16];
 wire	[15:0]	bdatw16h=top.bdatw[31:16];
+wire	[7:0]	pmod_iop=pmod_iop_d[7:0];
 wire	[15:0]	port_iop=port_iop_d[15:0];
 wire	[7:0]	port_iop8h=port_iop[15:8];
 wire	[7:0]	port_iop8l=port_iop[7:0];
@@ -108,6 +111,7 @@ initial
 		uart_rxd=1'b1;
 		uar1_rxd=1'b1;
 		uar1_cts=1'b1;
+		pmod_iop_d[7:0]=8'hz;
 		port_iop_d[15:0]=16'hz;
 		user_iop_d[15:0]=16'hz;
 
@@ -515,33 +519,38 @@ always	@(posedge clk)
 
 
 `ifdef		SIM_BOOTMD
-`include	"test_ct_boot.vh"
+`include	"TEST_CT/test_ct_boot.vh"
 `endif	//	SIM_BOOTMD
 
 
 `ifdef		SIM_UART
-`include	"test_ct_uart.vh"
+`include	"TEST_CT/test_ct_uart.vh"
 `endif	//	SIM_UART
 
 
 `ifdef		SIM_SMBUS
-`include	"test_ct_smbus.vh"
+`include	"TEST_CT/test_ct_smbus.vh"
 `endif	//	SIM_SMBUS
 
 
 `ifdef		SIM_LOGA
-`include	"test_ct_loga.vh"
+`include	"TEST_CT/test_ct_loga.vh"
 `endif	//	SIM_LOGA
 
 
 `ifdef		SIM_DAC
-`include	"test_ct_dac.vh"
+`include	"TEST_CT/test_ct_dac.vh"
 `endif	//	SIM_DAC
 
 
 `ifdef		SIM_UNSJ
-`include	"test_ct_unsj.vh"
+`include	"TEST_CT/test_ct_unsj.vh"
 `endif	//	SIM_UNSJ
+
+
+`ifdef		SIM_CAM76
+`include	"TEST_CT/test_ct_cam76.vh"
+`endif	//	SIM_CAM76
 
 
 // on board SRAM behavior
@@ -569,6 +578,7 @@ IS61WV5128BLL	sram (
 	.intc_int1(intc_int1),	// Input
 	.stws_scl(stws_scl),	// Inout
 	.stws_sda(stws_sda),	// Inout
+	.pmod_iop(pmod_iop[7:0]),	// Inout
 	.port_iop(port_iop[15:0]),	// Inout
 //	.user_iop(user_iop[15:0]),	// Inout
 	.uart_txd(uart_txd),	// Output
