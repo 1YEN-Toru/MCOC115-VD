@@ -1,0 +1,5516 @@
+model	"Blockly.XML to Moscovium.ASM translator"
+{
+	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
+	macro	prog_vers="1.00";
+// ================================
+//
+// Moscovium series Blockly.XML to Moscovium.ASM translator
+//		(c) 2024	1YEN Toru
+//
+//
+//		2024/07/27	ver.1.00
+//
+// ================================
+
+
+	// constants
+	var		opt_int=0;					// opt: int
+	var		opt_float=1;				// opt: float
+	var		opt_mc=1;					// opt: Mc
+	var		opt_nh=2;					// opt: Nh
+	macro	str_and="AND";				// str: "and"
+	tolower		str_and;
+	macro	str_or="OR";				// str: "or"
+	tolower		str_or;
+	macro	str_not="NOT";				// str: "not"
+	tolower		str_not;
+	macro	str_whl="WHILE";			// str: "while"
+	tolower		str_whl;
+
+
+	// variables
+	var		labid;						// label id
+	var		in_var_set;					// in variables_set block
+	var		defp_1st=true;				// encount 1st define procedure
+	var		opt_cpu_mod=0;				// opt: CPU mode Mc (0,1) / Nh (2)
+	var		opt_mul_need=false;			// opt: need MULC16 / or not
+	var		opt_div_need=false;			// opt: need DIVC32 / or not
+	var		opt_fpu_need=false;			// opt: need FPU / or not
+	var		opt_opr_typ=opt_int;		// opt: operation type (int / float)
+	var		opt_cstr_siz=64;			// opt: string buffer size
+	macro	vlst_vars;					// list of variables
+	macro	vlst_cstr;					// list of string variables
+	macro	dir,mynam,ext;
+	pathsplit	$(pathname), dir,mynam,ext;
+
+
+	// input file name
+	var		rtn;
+	macro	fnam;
+	macro	fnam_in;
+	macro	fnam_out;
+	macro	fnam_tmp;
+	gui		openfile, rtn, "入力ファイル","",fnam_in;
+	if (rtn=guiCancel)
+	{
+		// cancelled; select default source
+		pathsplit	$(pathname), dir,fnam,ext;
+		mlet	fnam_in=$(dir)$/$(fnam)".txt";
+		ifnacc	$(fnam_in)
+		{
+			// cancelled; default source not found
+			leave	stop_error;
+		}
+	}
+	pathsplit	$(fnam_in), dir,fnam,ext;
+	mlet	fnam_out=$(dir)$/$(fnam)".asm";
+	mlet	fnam_tmp=$(dir)$/$(fnam)".tmp";
+
+
+	// procedures
+	procedure	fget_xml
+	{
+		// "<"～">"を取ってくる。
+		// 先頭文字が"<"では無かった場合、次の"<"手前までを取り出す。
+		var		cmp;
+		var		cod;
+		macro	chr;
+
+		ftell	fin,fpos;
+		progress	"変換中…",100*fpos/fsiz;
+
+		// 読み出し
+		fgetb	fin,cod;
+		num2chr		chr=cod;
+		strcmp	cmp="<",$(chr);
+		if (cmp=0)
+		{
+			// "<"～">"
+			repeat
+			{
+				strcat	fget_xml, $(chr);
+				fgetb	fin,cod;
+				if (cod<0)
+				{
+					// ERROR:
+					fget_xml=cod;
+					break;
+				}
+				num2chr		chr=cod;
+				strcmp	cmp=">",$(chr);
+			} until (cmp=0);
+			strcat	fget_xml, $(chr);
+		}
+		else
+		{
+			// 次の"<"手前まで
+			var		fpos;
+
+			repeat
+			{
+				strcat	fget_xml, $(chr);
+				ftell	fin,fpos;
+				fgetb	fin,cod;
+				if (cod<0)
+				{
+					// ERROR:
+					fget_xml=cod;
+					break;
+				}
+				if (cod=0x0a)
+				{
+					mlet	chr=$,;
+				}
+				else
+				{
+					num2chr		chr=cod;
+				}
+				strcmp	cmp="<",$(chr);
+			} until (cmp=0);
+			fseek	fin,fpos;
+			// 改行とインデントを無視
+			psub	"^"$," *$","",fget_xml;
+			// 改行を"\n"に置換
+			gsub	$,,"\n",fget_xml;
+		}
+		// 不要な項目を削除
+		pgsub	"\\"$",$",fget_xml;
+		// タグ
+		pindex	cmp=$(fget_xml),"^<[^>]*>$";
+		if (cmp>0)
+		{
+			pgsub	" [xyhw]="$""[^"$""]*"$","",fget_xml;
+			pgsub	" id="$""[^"$""]*"$","",fget_xml;
+			pgsub	" varid="$""[^"$""]*"$","",fget_xml;
+			pgsub	" inline="$""[^"$""]*"$","",fget_xml;
+			pgsub	" pinned="$""[^"$""]*"$","",fget_xml;
+			pgsub	" deletable="$""[^"$""]*"$","",fget_xml;
+			// パラメータをスペース区切りに変更
+			repeat
+			{
+				psub	" ([A-z]+)=("$""[^"$""]*)"," \1 \2",fget_xml;
+			} until (status=0);
+		}
+		// タグ以外
+		pindex	cmp=$(fget_xml),"^<";
+		if (cmp<=0)
+		{
+			gsub	"&amp;","&",fget_xml;
+			gsub	"&#9;","\t",fget_xml;
+			gsub	"&#10;","\n",fget_xml;
+			gsub	"&gt;",">",fget_xml;
+// タグに見える場合があるので、変換しない。
+//			gsub	"&lt;","<",fget_xml;
+		}
+		// 読み込みエラーが発生した時に終了
+		if (fget_xml)
+		{
+			// error injection
+			mlet	fget_xml="<error>";
+		}
+		// 空文字列だったら、更に次を読み出す(上のエラー処理が先)
+		strcmp	cmp=$(fget_xml),"";
+		if (cmp=0)
+		{
+			fget_xml;
+		}
+if (false)
+{
+	macro	tmp=$(fget_xml);
+	pgsub	"#","##",tmp;
+	fprint	fout,"##fget_xml:"$(tmp)$,;
+}
+	}
+	procedure	analyze_xml		$$xstr
+	{
+		// XML解析
+		nvar	ax_idx;
+		nvar	ax_num;
+		nvar	ax_cmp;
+
+		// XML?
+		pindex	ax_cmp=$(fget_xml),"^<";
+		if (ax_cmp<=0)
+		{
+			analyze_xml=0;
+			return;
+		}
+
+		// analyze
+		psub	"<([^>]*)>","\1",xstr;
+		field	ax_num=xstr;
+		nmacro	_xml_;
+		mlet	_xml_=$(xstr1);
+		ax_idx=2;
+		static : while (ax_idx<ax_num)
+		{
+			nmacro	_xml_$(xstr#(ax_idx));
+			mlet	_xml_$(xstr#(ax_idx))=$(xstr#(ax_idx + 1));
+			psub	$""([^"$""]*)"$","\1",_xml_$(xstr#(ax_idx));
+
+			// continue
+			ax_idx=ax_idx + 2;
+		}
+		analyze_xml=ax_num;
+	}
+	procedure	skip_one	$$sxml
+	{
+		// ブロックsxmlを読み飛ばす。
+		// 途中で<next>を見つけると、そこで終了して戻る。
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			pindex	cmp=$(fget_xml),"</"$(sxml)"[ >";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(fget_xml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			static : analyze_xml	$(fget_xml);
+			if (analyze_xml=0)
+			{
+				continue;
+			}
+			strcmp	cmp=$(_xml_),"/",left;
+			if (cmp=0)
+			{
+				continue;
+			}
+
+			skip_one	$(_xml_);
+			pindex	cmp=$(fget_xml),"^<next[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+		}
+	}
+	procedure	is_cstr		$$vnam
+	{
+		// 変数名vnamが、C言語文字列変数として登録されているかどうか調べる。
+		pindex	is_cstr=$(vlst_cstr),"@"$(vnam)"@";
+	}
+	procedure	register_cstr	$$vnam
+	{
+		// 変数名vnamを、C言語文字列変数として登録する。
+		is_cstr		$(vnam);
+		if (!is_cstr)
+		{
+			mlet	vlst_cstr=$(vlst_cstr)"@"$(vnam)"@";
+			gsub	"@@","@",vlst_cstr;
+		}
+	}
+	procedure	is_vars		$$vnam
+	{
+		// 変数名vnamが、変数として登録されているかどうか調べる。
+		pindex	is_vars=$(vlst_vars),"@"$(vnam)"@";
+	}
+	procedure	register_vars	$$vnam
+	{
+		// 変数名vnamを、変数(文字列変数含む)として登録する。
+		is_vars		$(vnam);
+		if (!is_vars)
+		{
+			mlet	vlst_vars=$(vlst_vars)"@"$(vnam)"@";
+			gsub	"@@","@",vlst_vars;
+		}
+	}
+	procedure	define_cstr
+	{
+		// C言語文字列変数領域を確保・初期化するアセンブラソースを出力
+		var		idx;
+		var		num;
+
+		// assembler
+		if (defp_1st)
+		{
+			defp_1st=false;
+			fprint	fout,""$,;
+			fprint	fout,"// halt"$,;
+			fprint	fout,"jmpr7	_program_halt"$,;
+		}
+		fprint	fout,""$,;
+		fprint	fout,"// initialize string variables"$,;
+		fprint	fout,"_rtlb_vlst_cstr:"$,;
+
+		psub	"^@","",vlst_cstr;
+		field	num=vlst_cstr,"@";
+		idx=1;
+		while (idx<num)
+		{
+			// assembler
+			fprint	fout,"// "$(vlst_cstr#(idx))"=&(_cstr_"
+					$(vlst_cstr#(idx))"="$"$"")"$,;
+			fprint	fout,"ldwi	r7,"$(vlst_cstr#(idx))$,;
+			fprint	fout,"ldwi	r0,_cstr_"$(vlst_cstr#(idx))$,;
+			fprint	fout,"st$(z)	[r7],r0"$,;
+			fprint	fout,"ldbiu	r7,0"$,;
+			fprint	fout,"stb	[r0],r7"$,;
+
+			// continue
+			idx=idx + 1;
+		}
+
+		// assembler
+		fprint	fout,"// end of initialize string variables"$,;
+		fprint	fout,"rtn$(z)"$,;
+	}
+	procedure	compile_options
+	{
+		// <comment>(cmnt)中のコンパイルオプションを解釈する。
+		//	compile option: <comment>.*@<options>@.*</comment>
+		//	<options>: <option>[,<option>[,...]]
+		//	<option>: int / float / <opt_name>=<val>
+		//	<opt_name>: name of option
+		//	<val>: numerical value
+		var		idx;
+		var		cmp;
+		var		num;
+		macro	copt;
+
+		// compile options
+		mlet	copt=$(cmnt);
+		psub	".*@([^@]+)@.*","\1",copt;
+		pgsub		"[ 	]","",copt;
+		tolower		copt;
+		field	num=copt,",";
+		idx=1;
+		while (idx<=num)
+		{
+			strcmp	cmp=$(copt#(idx)),"MC",ics_match;
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"MCVM",ics_match;
+			}
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"Moscovium",ics_match;
+			}
+			if (cmp=0)
+			{
+				if (opt_cpu_mod=opt_nh)
+				{
+					// ERROR:
+					errmsg	"compile_options: re-defined CPU mode ("
+							$(copt#(idx))")";
+					leave	stop_error;
+				}
+				opt_cpu_mod=opt_mc;
+			}
+			strcmp	cmp=$(copt#(idx)),"NH",ics_match;
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"NIHO",ics_match;
+			}
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"Nihonium",ics_match;
+			}
+			if (cmp=0)
+			{
+				if (opt_cpu_mod=opt_mc)
+				{
+					// ERROR:
+					errmsg	"compile_options: re-defined CPU mode ("
+							$(copt#(idx))")";
+					leave	stop_error;
+				}
+				opt_cpu_mod=opt_nh;
+			}
+			strcmp	cmp=$(copt#(idx)),"int";
+			if (cmp=0)
+			{
+				opt_opr_typ=opt_int;
+			}
+			strcmp	cmp=$(copt#(idx)),"float";
+			if (cmp=0)
+			{
+				opt_opr_typ=opt_float;
+				opt_fpu_need=true;
+			}
+			index	cmp=$(copt#(idx)),"=";
+			if (cmp>0)
+			{
+				macro	vnam;
+				macro	nval;
+
+				mlet	vnam=$(copt#(idx));
+				psub	"=.*","",vnam;
+				mlet	nval=$(copt#(idx));
+				psub	".*=","",nval;
+				static : nvar	opt_$(vnam);
+				opt_$(vnam)=$(nval);
+			}
+
+			// continue
+			idx=idx + 1;
+		}
+
+		// assembler
+		fprint	fout,"// compile options: ("$(copt)")"$,;
+	}
+	procedure	do_comment
+	{
+		var		cmp;
+		macro	cmnt;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</comment[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+			else
+			{
+				mlet	cmnt=$(cmnt)$(cxml);
+			}
+		}
+
+		// compile option
+		pindex	cmp=$(cmnt),"@[^@]*@";
+		if (cmp>0)
+		{
+			compile_options;
+			psub	"@([^@]+)@","",cmnt;
+		}
+
+		// comment
+		mlet	cmnt="// "$(cmnt);
+		repeat
+		{
+			psub	"\\n[	 ]+$","",cmnt;
+		} until (status=0);
+		gsub	"&lt;","<",cmnt;
+		gsub	"\\t","	",cmnt;
+		gsub	"\t","	",cmnt;
+		gsub	"\n",$,"// ",cmnt;
+		gsub	"// 	","//	",cmnt;
+		gsub	"// "$,,"//"$,,cmnt;
+		psub	"// $","//",cmnt;
+		gsub	"#","##",cmnt;
+
+		// assembler
+		strcmp	cmp=$(cmnt),"//";
+		if (cmp)
+		{
+			fprint	fout,$(cmnt)$,;
+		}
+	}
+	procedure	do_shadow
+	{
+		// empty, ignore shadow
+	}
+	procedure	do_field
+	{
+		var		cmp;
+		var		is_txt;
+
+		// text field?
+		strcmp	cmp=$(_xml_name),"TEXT",ics_match;
+		is_txt=( cmp=0 );
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</field[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<";
+			if (cmp<=0)
+			{
+				mlet	do_field=$(cxml);
+			}
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	do_field=$(do_$(dxml));
+			}
+		}
+		if (is_txt)
+		{
+			gsub	$","\x22",do_field;
+			mlet	do_field=$"$(do_field)$";
+		}
+	}
+	procedure	do_value
+	{
+		var		cmp;
+		var		val_done=true;
+
+		strcmp	cmp=$(_xml_name),"text",ics_match;
+		if (cmp=0)
+		{
+			val_done=false;
+		}
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</value[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"block";
+				if (cmp)
+				{
+					val_done=false;
+				}
+				mlet	do_value=$(do_$(dxml));
+			}
+		}
+		strcmp	cmp=$(do_value),$",left;
+		if (!val_done & cmp=0)
+		{
+			// assembler
+			labid=labid + 1;
+			macro	slabid;
+			num2str		slabid=labid,"%04x";
+			macro	cstr=$(do_value);
+			fprint	fout,"// r1="$(cstr)$,;
+			fprint	fout,"ldwi	r1,lab__"$(slabid)_text$,;
+			fprint	fout,"bra	_"$(slabid)_pool$,;
+			fprint	fout,"_"$(slabid)"_text:"$,;
+			psub	"^"$""([^"$""]*)"$""$","\1",cstr;
+			fprint	fout,"dats	"$"$(cstr)"\0"$"$,;
+			fprint	fout,"_"$(slabid)"_pool:"$,;
+		}
+		else
+		{
+			pindex	cmp=$(do_value),"^[0-9.+-]";
+			if (!val_done & cmp>0)
+			{
+				// assembler
+				fprint	fout,"// r0="$(do_value)$,;
+				if (opt_opr_typ=opt_int)
+				{
+					fprint	fout,"ld$(z)i	r0,"$(do_value)$,;
+				}
+				else
+				{
+					fprint	fout,"fld$(z)i	r0,"$(do_value)$,;
+				}
+			}
+		}
+	}
+	procedure	do_mutation
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</mutation[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				strcmp	cmp=$(dxml),"arg";
+				if (cmp=0)
+				{
+					strcat	do_mutation,$(dnam)" ";
+					continue;
+				}
+				do_$(dxml);
+			}
+		}
+	}
+	procedure	do_variable
+	{
+		fget_xml;
+		register_vars	$(fget_xml);
+	}
+	procedure	do_variables
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</variables[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+	}
+	procedure	do_blk_variables_set
+	{
+		var		cmp;
+		macro	vnam;
+		macro	nval;
+
+		in_var_set=true;
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vnam=$(do_$(dxml));
+					is_cstr		$(vnam);
+					if (is_cstr)
+					{
+						// string variable
+
+						// assembler
+						fprint	fout,"// r0(="$(vnam)")="$"$"$,;
+						fprint	fout,"ldwi	r0,"$(vnam)$,;
+						fprint	fout,"ld$(z)	r0,[r0]"$,;
+						fprint	fout,"ldbiu	r7,0"$,;
+						fprint	fout,"stb	[r0],r7"$,;
+						fprint	fout,"push$(z)	r0"$,;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+					strcmp	cmp=$(do_$(dxml)),$",left;
+					is_cstr		$(vnam);
+					if ((!is_cstr) & cmp=0)
+					{
+						// string variable declaration
+						register_cstr	$(vnam);
+
+						// assembler
+						fprint	fout,"// r0(="$(vnam)")="$"$"$,;
+						fprint	fout,"ldwi	r0,"$(vnam)$,;
+						fprint	fout,"ld$(z)	r0,[r0]"$,;
+						fprint	fout,"ldbiu	r7,0"$,;
+						fprint	fout,"stb	[r0],r7"$,;
+						fprint	fout,"push$(z)	r0"$,;
+					}
+				}
+			}
+		}
+		in_var_set=false;
+
+		// target variable
+		register_vars	$(vnam);
+		is_cstr		$(vnam);
+		if (!is_cstr)
+		{
+			// variable = <number>
+
+			// assembler
+			fprint	fout,"// "$(vnam)"=r0(="$(nval)")"$,;
+			fprint	fout,"ldwi	r7,"$(vnam)$,;
+			fprint	fout,"st$(z)	[r7],r0"$,;
+		}
+		else
+		{
+			// string variable = <string>
+			strcmp	cmp=$(nval),"'", left;
+			if (cmp=0)
+			{
+				// already processed (number ==> string)
+				fprint	fout,"pop$(z)	r0	// discard"$,;
+			}
+			else
+			{
+				strcmp	cmp=$(nval)," ++ ",left;
+				if (cmp=0)
+				{
+					// joined
+					psub	"^ \+\+ ","",nval;
+
+					// assembler
+					fprint	fout,"// end of "$(vnam)"="$(nval)$,;
+					fprint	fout,"pop$(z)	r0	// discard"$,;
+				}
+				else
+				{
+					// not joined
+					pindex	cmp=$(nval),"^"$""[^"$""]*"$""$";
+					if (cmp<=0)
+					{
+						// not a string constant
+						is_cstr		$(nval);
+						if (is_cstr)
+						{
+							// string variable
+							cmp=1;
+						}
+					}
+					if (cmp>0)
+					{
+						// string constant or string variable
+
+						// assembler
+						fprint	fout,"// end of "$(vnam)"="$(nval)$,;
+						fprint	fout,"pop$(z)	r0"$,;
+						fprint	fout,"jal$(z)r7	_strcpy_r0_r1"$,;
+					}
+					else
+					{
+						// number
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(nval)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"// r0=strdec (r0,r1(="$(nval)"))"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+						fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
+					}
+				}
+			}
+		}
+	}
+	procedure	do_blk_variables_get
+	{
+		var		cmp;
+		macro	vnam;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	vnam=$(do_$(dxml));
+			}
+		}
+		mlet	do_blk_variables_get=$(vnam);
+		register_vars	$(vnam);
+
+		// assembler
+		is_cstr		$(vnam);
+		if (is_cstr)
+		{
+			fprint	fout,"// r1="$(vnam)$,;
+			fprint	fout,"ldwi	r1,"$(vnam)$,;
+			fprint	fout,"ld$(z)	r1,[r1]"$,;
+		}
+		else
+		{
+			fprint	fout,"// r0="$(vnam)$,;
+			fprint	fout,"ldwi	r0,"$(vnam)$,;
+			fprint	fout,"ld$(z)	r0,[r0]"$,;
+		}
+	}
+	procedure	do_blk_mcvm_cpu_asm
+	{
+		var		cmp;
+		macro	ecod;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	ecod=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		pgsub	"\\t","	",ecod;
+		pgsub	"\\n",$,,ecod;
+		pgsub	"\t","	",ecod;
+		pgsub	"\n",$,,ecod;
+		pgsub	"#","##",ecod;
+		fprint	fout,$(ecod)"	// asm"$,;
+	}
+	procedure	do_blk_mcvm_cpu_nop
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+
+		// assembler
+		fprint	fout,"// nop (1 brn instruction)"$,;
+		fprint	fout,"brn"$,;
+	}
+	procedure	do_blk_mcvm_cpu_rn
+	{
+		var		cmp;
+		var		num;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					fget_xml;
+					num=$(fget_xml);
+					if (num<0 | 7<num)
+					{
+						// ERROR:
+						errmsg	"mcvm_cpu_rn: illegal rn (#)",num;
+						leave	stop_error;
+					}
+					continue;
+				}
+				do_$(dxml);
+			}
+		}
+		mlet	do_blk_mcvm_cpu_rn="r"#(num);
+
+		// assembler
+		fprint	fout,"// r0=r#"$,,num;
+		fprint	fout,"mov	r0,r#"$,,num;
+	}
+	procedure	do_blk_mcvm_cpu_sr
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+		mlet	do_blk_mcvm_cpu_sr="sr";
+
+		// assembler
+		fprint	fout,"// r0=sr"$,;
+		fprint	fout,"movfc	r0,sr"$,;
+	}
+	procedure	do_blk_mcvm_cpu_sr_set
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// sr=r0(="$(nval)")"$,;
+		fprint	fout,"movtc	sr,r0"$,;
+	}
+	procedure	do_blk_mcvm_fpu_isinf
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcvm_fpu_isinf="isinf ("$(nval)")";
+
+		// assembler
+		fprint	fout,"// r0=abs (r0)"$,;
+		fprint	fout,"lsli	r0,1"$,;
+		fprint	fout,"lsri	r0,1"$,;
+		fprint	fout,"// r1=INF"$,;
+		fprint	fout,"ld$(z)i	r1,_rtlb_inf$(z)"$,;
+		fprint	fout,"// r0=isinf (r0(="$(nval)"))"$,;
+		fprint	fout,"fcmp	r0,r1"$,;	// fcmp is better than cmp
+		fprint	fout,"ldbiu	r0,true"$,;
+		fprint	fout,"bcs	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,false"$,;
+		opt_fpu_need=true;
+	}
+	procedure	do_blk_mcvm_fpu_isnan
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcvm_fpu_isnan="isnan ("$(nval)")";
+
+		// assembler
+		fprint	fout,"// r1=NaN"$,;
+		fprint	fout,"ld$(z)i	r1,_rtlb_nan$(z)"$,;
+		fprint	fout,"// r0=isnan (r0(="$(nval)"))"$,;
+		fprint	fout,"fcmp	r0,r1"$,;	// fcmp is better than cmp
+		fprint	fout,"ldbiu	r0,true"$,;
+		fprint	fout,"bcs	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,false"$,;
+		opt_fpu_need=true;
+	}
+	procedure	do_blk_mcvm_fpu_fdown
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// r0=fdown (r0(="$(nval)"))"$,;
+		fprint	fout,"fdown	r0,r0"$,;
+		opt_fpu_need=true;
+
+		mlet	do_blk_mcvm_fpu_fdown="fdown ("$(nval)")";
+	}
+	procedure	do_blk_mcvm_fpu_ftoi
+	{
+		macro	ctyp="int";
+
+		do_blk_cast_number;
+		mlet	do_blk_mcvm_fpu_ftoi=$(do_blk_cast_number);
+	}
+	procedure	do_blk_mcvm_fpu_itof
+	{
+		macro	ctyp="float";
+
+		do_blk_cast_number;
+		mlet	do_blk_mcvm_fpu_itof=$(do_blk_cast_number);
+	}
+	procedure	do_blk_mcvm_sim_pass
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+
+		// assembler
+		fprint	fout,"$(s)// simulation pass"$,;
+		fprint	fout,"$(s)// ********************************"$,;
+		fprint	fout,"$(s)ldwi	r0,simpass"$,;
+		fprint	fout,"$(s)ldwi	r7,simfnsh"$,;
+		fprint	fout,"$(s)stw	[r7],r0"$,;
+		fprint	fout,"$(s)// ********************************"$,;
+	}
+	procedure	do_blk_mcvm_sim_fail
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+
+		// assembler
+		fprint	fout,"$(s)// simulation fail"$,;
+		fprint	fout,"$(s)// ********************************"$,;
+		fprint	fout,"$(s)ldwi	r0,simfail"$,;
+		fprint	fout,"$(s)ldwi	r7,simfnsh"$,;
+		fprint	fout,"$(s)stw	[r7],r0"$,;
+		fprint	fout,"$(s)// ********************************"$,;
+	}
+	procedure	do_blk_mcvm_mem_read
+	{
+		var		cmp;
+		nvar	asiz=2;
+		macro	adrx;
+		macro	adr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					macro	siz=$(do_$(dxml));
+					strcmp	cmp=$(siz),"B",ics_left;
+					if (cmp=0)
+					{
+						asiz=1;
+					}
+					strcmp	cmp=$(siz),"W",ics_left;
+					if (cmp=0)
+					{
+						asiz=2;
+					}
+					strcmp	cmp=$(siz),"L",ics_left;
+					if (cmp=0)
+					{
+						asiz=4;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"ADRX";
+					if (cmp=0)
+					{
+						mlet	adrx=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// tr=r0(="$(adrx)")"$,;
+						fprint	fout,"movtc	tr,r0"$,;
+					}
+					else
+					{
+						mlet	adr=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		mlet	do_blk_mcvm_mem_read="["$(adr)"]";
+
+		// assembler
+		strcmp	cmp=$(adrx),"";
+		if (cmp=0)
+		{
+			fprint	fout,"// r0=[r0(="$(adr)")]"$,;
+			if (asiz=4)
+			{
+				fprint	fout,"ldl	r0,[r0]"$,;
+			}
+			elif (asiz=2)
+			{
+				fprint	fout,"ldw	r0,[r0]"$,;
+			}
+			else
+			{
+				fprint	fout,"ldb	r0,[r0]"$,;
+			}
+		}
+		else
+		{
+			fprint	fout,"// r0=[tr(="$(adrx)"):r0(="$(adr)")]"$,;
+			if (asiz=2)
+			{
+				fprint	fout,"ldwx	r0,[tr:r0]"$,;
+			}
+			else
+			{
+				fprint	fout,"ldbx	r0,[tr:r0]"$,;
+			}
+
+			mlet	do_blk_mcvm_mem_read="["$(adrx)":"$(adr)"]";
+		}
+	}
+	procedure	do_blk_mcvm_memx_read
+	{
+		do_blk_mcvm_mem_read;
+		mlet	do_blk_mcvm_memx_read=$(do_blk_mcvm_mem_read);
+	}
+	procedure	do_blk_mcvm_mem_write
+	{
+		var		cmp;
+		nvar	asiz=2;
+		macro	adrx;
+		macro	adr;
+		macro	dat;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					macro	siz=$(do_$(dxml));
+					strcmp	cmp=$(siz),"B",ics_left;
+					if (cmp=0)
+					{
+						asiz=1;
+					}
+					strcmp	cmp=$(siz),"W",ics_left;
+					if (cmp=0)
+					{
+						asiz=2;
+					}
+					strcmp	cmp=$(siz),"L",ics_left;
+					if (cmp=0)
+					{
+						asiz=4;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"ADRX";
+					if (cmp=0)
+					{
+						mlet	adrx=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"ADR";
+					if (cmp=0)
+					{
+						mlet	adr=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"DAT";
+					if (cmp=0)
+					{
+						mlet	dat=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1(="$(adr)")"$,;
+						fprint	fout,"pop$(z)	r1"$,;
+					}
+				}
+			}
+		}
+
+		// assembler
+		strcmp	cmp=$(adrx),"";
+		if (cmp=0)
+		{
+			fprint	fout,"// [r1(="$(adr)")] = r0(="$(dat)")"$,;
+			if (asiz=4)
+			{
+				fprint	fout,"stl	[r1],r0"$,;
+			}
+			elif (asiz=2)
+			{
+				fprint	fout,"stw	[r1],r0"$,;
+			}
+			else
+			{
+				fprint	fout,"stb	[r1],r0"$,;
+			}
+		}
+		else
+		{
+			fprint	fout,"// tr(="$(adrx)")"$,;
+			fprint	fout,"popc$(z)	tr"$,;
+			fprint	fout,"// [tr(="$(adrx)"):r1(="$(adr)")] = r0(="$(dat)")"$,;
+			if (asiz=2)
+			{
+				fprint	fout,"stwx	[tr:r1],r0"$,;
+			}
+			else
+			{
+				fprint	fout,"stbx	[tr:r1],r0"$,;
+			}
+		}
+	}
+	procedure	do_blk_mcvm_memx_write
+	{
+		do_blk_mcvm_mem_write;
+		mlet	do_blk_mcvm_memx_write=$(do_blk_mcvm_mem_write);
+	}
+	procedure	do_blk_mcoc_math_ascii
+	{
+		var		cmp;
+		var		chr;
+		macro	cstr;
+		macro	shex;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+				}
+			}
+		}
+
+		// ascii code
+		gsub	"&lt;","<",cstr;
+		psub	"^(.).*","\1",cstr;
+		gsub	"#","##",cstr;
+		chr2num		chr=$(cstr);
+		num2str		shex=chr,"%02x";
+		mlet	do_blk_mcoc_math_ascii="'"$(cstr)"'";
+
+		// assembler
+		fprint	fout,"// r0='"$(cstr)"'(=0x"$(shex)")"$,;
+		fprint	fout,"ldbiu	r0,0x"$(shex)$,;
+
+		val_done=true;
+	}
+	procedure	do_blk_mcoc_math_unary
+	{
+		var		cmp;
+		macro	opr;
+		macro	mne;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opr=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// operator
+		mlet	mne="xxx";
+		strcmp	cmp=$(opr),"-";
+		if (cmp=0)
+		{
+			mlet	mne="neg";
+		}
+		strcmp	cmp=$(opr),"~";
+		if (cmp=0)
+		{
+			mlet	mne=$(str_not);
+		}
+		strcmp	cmp=$(opr),"!";
+		if (cmp=0)
+		{
+			mlet	mne="eori";
+		}
+		strcmp	cmp=$(opr),"sq";
+		if (cmp=0)
+		{
+			mlet	mne="muls";
+		}
+		strcmp	cmp=$(mne),"xxx";
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"mcoc_math_unary: unsupported operator ("$(opr)")";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,"// r0=("$(opr)" r0(="$(nval)"))"$,;
+		strcmp	cmp=$(opr),"-";
+		if (cmp=0)
+		{
+			if (opt_opr_typ=opt_int)
+			{
+				fprint	fout,$(mne)"	r0"$,;
+			}
+			else
+			{
+				fprint	fout,"f"$(mne)"	r0,r0"$,;
+			}
+		}
+		strcmp	cmp=$(opr),"~";
+		if (cmp=0)
+		{
+			fprint	fout,$(mne)"	r0"$,;
+		}
+		strcmp	cmp=$(opr),"!";
+		if (cmp=0)
+		{
+			fprint	fout,"cmpi	r0,false"$,;
+			fprint	fout,"beq	pcnt+2"$,;
+			fprint	fout,"ldbiu	r0,true"$,;
+			fprint	fout,$(mne)"	r0,0x01"$,;
+		}
+		strcmp	cmp=$(opr),"sq";
+		if (cmp=0)
+		{
+			if (opt_opr_typ=opt_int)
+			{
+				fprint	fout,$(mne)"	r0,r0"$,;
+				opt_mul_need=true;
+			}
+			else
+			{
+				fprint	fout,"fmul	r0,r0"$,;
+			}
+		}
+
+		index	cmp=$(nval)," ";
+		if (cmp>0)
+		{
+			mlet	nval="("$(nval)")";
+		}
+		mlet	do_blk_mcoc_math_unary=$(opr)" "$(nval);
+	}
+	procedure	do_blk_mcoc_math_number
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					fget_xml;
+					mlet	nval=$(fget_xml);
+					continue;
+				}
+				do_$(dxml);
+			}
+		}
+		gsub	"&lt;","<",nval;
+		mlet	do_blk_mcoc_math_number=$(nval);
+
+		// assembler
+		fprint	fout,"// r0="$(nval)$,;
+		if (opt_opr_typ=opt_int)
+		{
+			fprint	fout,"ld$(z)i	r0,"$(nval)$,;
+		}
+		else
+		{
+			fprint	fout,"fld$(z)i	r0,"$(nval)$,;
+		}
+
+		val_done=true;
+	}
+	procedure	do_blk_mcoc_math_bit_operation
+	{
+		var		cmp;
+		macro	opr;
+		macro	lval;
+		macro	rval;
+		macro	mne;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opr=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"data";
+					if (cmp)
+					{
+						strcmp	cmp=$(dnam),"A";
+					}
+					if (cmp=0)
+					{
+						mlet	lval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	rval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(rval)"); r0(="$(lval)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+					}
+				}
+			}
+		}
+
+		// operator
+		gsub	"&lt;","<",opr;
+		tolower		opr;
+		mlet	mne="xxx";
+		strcmp	cmp=$(opr),"&";
+		if (cmp=0)
+		{
+			mlet	opr="&";
+			mlet	mne=$(str_and);
+		}
+		strcmp	cmp=$(opr),"|";
+		if (cmp=0)
+		{
+			mlet	mne=$(str_or);
+		}
+		strcmp	cmp=$(opr),"<<";
+		if (cmp=0)
+		{
+			mlet	opr="<<";
+			mlet	mne="asft";
+		}
+		strcmp	cmp=$(opr),">>";
+		if (cmp=0)
+		{
+			mlet	opr=">>";
+			mlet	mne="asft";
+		}
+		strcmp	cmp=$(opr),"^";
+		if (cmp=0)
+		{
+			mlet	mne="eor";
+		}
+
+		// error check
+		strcmp	cmp=$(mne),"xxx";
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"mcoc_math_bit_operation: unsupported operator ("$(opr)")";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,"// r0(="$(lval)") "$(opr)" r1(="$(rval)")"$,;
+		strcmp	cmp=$(opr),">>";
+		if (cmp=0)
+		{
+			fprint	fout,"neg	r1"$,;
+		}
+		fprint	fout,$(mne)"	r0,r1"$,;
+
+		index	cmp=$(lval)," ";
+		if (cmp>0)
+		{
+			mlet	lval="("$(lval)")";
+		}
+		index	cmp=$(rval)," ";
+		if (cmp>0)
+		{
+			mlet	rval="("$(rval)")";
+		}
+		mlet	do_blk_mcoc_math_bit_operation=$(lval)" "$(opr)" "$(rval);
+	}
+	procedure	do_blk_mcoc_text_itoa
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_text_itoa="'"$(nval)"'";
+
+		// assembler
+		fprint	fout,"// r1=r0(="$(nval)")"$,;
+		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"// r0=strdec (r0,r1(="$(cstr)"))"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
+		fprint	fout,"push$(z)	r0"$,;
+	}
+	procedure	do_blk_mcoc_text_itox
+	{
+		var		cmp;
+		macro	nval;
+		macro	ndig;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	ndig=$(do_$(dxml));
+
+					// assembler
+					fprint	fout,"// r2="$(ndig)$,;
+					fprint	fout,"ld$(z)i	r2,"$(ndig)$,;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_text_itox="'"$(nval)"'";
+
+		// assembler
+		fprint	fout,"// r1=r0(="$(nval)")"$,;
+		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"// r0=strhex (r0,r1(="$(nval)"),r2(="$(ndig)"))"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"jal$(z)r7	_strhex_r0_r1_r2"$,;
+		fprint	fout,"push$(z)	r0"$,;
+	}
+	procedure	do_blk_mcoc_text_atoi
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_text_atoi="atoi ("$(cstr)")";
+
+		// assembler
+		fprint	fout,"// r0=atoi (r1(="$(cstr)"))"$,;
+		fprint	fout,"jal$(z)r7	_atoi_r1"$,;
+	}
+	procedure	do_blk_mcoc_text_xtoi
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_text_xtoi="xtoi ("$(cstr)")";
+
+		// assembler
+		fprint	fout,"// r0=xtoi (r1(="$(cstr)"))"$,;
+		fprint	fout,"jal$(z)r7	_xtoi_r1"$,;
+	}
+	procedure	do_blk_mcoc_sytm_delay
+	{
+		do_blk_delay_custom;
+	}
+	procedure	do_blk_mcoc_sytm_delay_us
+	{
+		do_blk_delayMicroseconds_custom;
+	}
+	procedure	do_blk_mcoc_sytm_ticks
+	{
+		// assembler
+		fprint	fout,"// r0=ticks"$,;
+		fprint	fout,"ldwi	r7,_rtlb_sytmtck$(z)"$,;
+		fprint	fout,"ld$(z)	r0,[r7]"$,;
+
+		skip_one	"block";
+		mlet	do_blk_mcoc_sytm_ticks="ticks";
+	}
+	procedure	do_blk_mcoc_sytm_micros
+	{
+		do_blk_micros;
+		mlet	do_blk_mcoc_sytm_micros=$(do_blk_micros);
+	}
+	procedure	do_blk_mcoc_sytm_millis
+	{
+		do_blk_millis;
+		mlet	do_blk_mcoc_sytm_millis=$(do_blk_millis);
+	}
+	procedure	do_blk_mcoc_uart_print
+	{
+		do_blk_text_print;
+	}
+	procedure	do_blk_mcoc_uart_println
+	{
+		do_blk_text_print;
+
+		// assembler
+		fprint	fout,"// print CR+LF"$,;
+		fprint	fout,"ldbiu	r0,0x0d"$,;
+		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
+		fprint	fout,"ldbiu	r0,0x0a"$,;
+		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
+	}
+	procedure	do_blk_mcoc_uart_getline
+	{
+		var		cmp;
+
+		if (!in_var_set)
+		{
+			register_vars	"_tmp_str";
+			register_cstr	"_tmp_str";
+
+			// assembler
+			fprint	fout,"// r0=_cstr__tmp_str"$,;
+			fprint	fout,"ld$(z)i r0,_cstr__tmp_str"$,;
+		}
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+		mlet	do_blk_mcoc_uart_getline="'getline'";
+
+		// assembler
+		fprint	fout,"// r0,r1=getline (r0)"$,;
+		fprint	fout,"jal$(z)r7	_getline_r0"$,;
+	}
+	procedure	do_blk_mcoc_uart_avail
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+			}
+		}
+		mlet	do_blk_mcoc_uart_avail="uart_avail";
+
+		// assembler
+		fprint	fout,"// r0=uart_avail"$,;
+		fprint	fout,"ldwi	r7,uartctl"$,;
+		fprint	fout,"ldw	r0,[r7]"$,;
+		fprint	fout,"cmpi	r0,uart_ravl"$,;
+		fprint	fout,"ldbiu	r0,true"$,;
+		fprint	fout,"beq	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,false"$,;
+	}
+	procedure	do_blk_mcoc_port_read
+	{
+		var		cmp;
+		macro	npin;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	npin=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_port_read="digitalRead ("$(npin)")";
+
+		// assembler
+		fprint	fout,"// r0=digitalRead (r0(="$(npin)"))"$,;
+		fprint	fout,"jal$(z)r7	_digital_read_r0"$,;
+	}
+	procedure	do_blk_mcoc_port_write
+	{
+		var		cmp;
+		macro	npin;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PIN";
+					if (cmp=0)
+					{
+						mlet	npin=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	nval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(nval)"); r0(="$(npin)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+					}
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// digitalWrite (r0(="$(npin)"), r1(="$(nval)"))"$,;
+		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
+	}
+	procedure	do_blk_serial_available
+	{
+		do_blk_mcoc_uart_avail;
+		mlet	do_blk_serial_available=$(do_blk_mcoc_uart_avail);
+	}
+	procedure	do_blk_serial_read
+	{
+		var		cmp;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+			}
+		}
+		mlet	do_blk_serial_read="getbyte";
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		fprint	fout,"// r0=getbyte"$,;
+		fprint	fout,"ldwi	r7,uartctl"$,;
+		fprint	fout,"ldw	r0,[r7]"$,;
+		fprint	fout,"cmpi	r0,uart_ravl"$,;
+		fprint	fout,"beq	_"$(slabid)"_nodat"$,;
+		fprint	fout,"// read byte"$,;
+		fprint	fout,"ldwi	r7,uartrdat"$,;
+		fprint	fout,"ldw	r0,[r7]"$,;
+		fprint	fout,"bra	_"$(slabid)"_endif"$,;
+		fprint	fout,"_"$(slabid)"_nodat:"$,;
+		fprint	fout,"// no data available"$,;
+		fprint	fout,"ld$(z)i	r0,-1"$,;
+		fprint	fout,"_"$(slabid)"_endif:"$,;
+	}
+	procedure	do_blk_serial_print
+	{
+		do_blk_text_print;
+	}
+	procedure	do_blk_serial_println
+	{
+		do_blk_text_print;
+
+		// assembler
+		fprint	fout,"// print CR+LF"$,;
+		fprint	fout,"ldbiu	r0,0x0d"$,;
+		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
+		fprint	fout,"ldbiu	r0,0x0a"$,;
+		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
+	}
+	procedure	do_blk_inout_digital_read
+	{
+		var		cmp;
+		macro	npin;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name="";
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PIN";
+					if (cmp=0)
+					{
+						mlet	npin=$(do_$(dxml));
+
+						pindex	cmp=$(npin),"^[0-9.+-]";
+						if (cmp>0)
+						{
+							// assembler
+							fprint	fout,"// r0="$(npin)$,;
+							fprint	fout,"ld$(z)i	r0,"$(npin)$,;
+						}
+					}
+					strcmp	cmp=$(dnam),"INPUT_MODE";
+					if (cmp=0)
+					{
+						// ignore
+					}
+				}
+			}
+		}
+		mlet	do_blk_inout_digital_read="digitalRead ("$(npin)")";
+
+		// assembler
+		fprint	fout,"// digitalRead (r0(="$(npin)"))"$,;
+		fprint	fout,"jal$(z)r7	_digital_read_r0"$,;
+	}
+	procedure	do_blk_inout_custom_digital_write
+	{
+		var		cmp;
+		macro	npin;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name="";
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PIN";
+					if (cmp=0)
+					{
+						mlet	npin=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"STAT";
+					if (cmp=0)
+					{
+						mlet	nval=$(do_$(dxml));
+
+						pindex	cmp=$(nval),"^[0-9.+-]";
+						if (cmp>0)
+						{
+							// assembler
+							fprint	fout,"// r0="$(nval)$,;
+							fprint	fout,"ld$(z)i	r0,"$(nval)$,;
+						}
+					}
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// r1=r0(="$(nval)"); r0(="$(npin)")"$,;
+		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"// digitalWrite (r0(="$(npin)"), r1(="$(nval)"))"$,;
+		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
+	}
+	procedure	do_blk_inout_digital_write
+	{
+		var		cmp;
+		macro	npin;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name="";
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PIN";
+					if (cmp=0)
+					{
+						mlet	npin=$(do_$(dxml));
+
+						pindex	cmp=$(npin),"^[0-9.+-]";
+						if (cmp>0)
+						{
+							// assembler
+							fprint	fout,"// r0="$(npin)$,;
+							fprint	fout,"ld$(z)i	r0,"$(npin)$,;
+						}
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"STAT";
+					if (cmp=0)
+					{
+						var		nval;
+
+						mlet	nval=$(do_$(dxml));
+
+						// assembler
+						strcmp	cmp=$(nval),"LOW";
+						if (cmp=0)
+						{
+							nval=0;
+						}
+						else
+						{
+							nval=1;
+						}
+						fprint	fout,"// r0="$(nval)$,;
+						fprint	fout,"ld$(z)i	r0,#"$,,nval;
+					}
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// r1=r0(="$(nval)"); r0(="$(npin)")"$,;
+		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"// digitalWrite (r0(="$(npin)"), r1(="$(nval)"))"$,;
+		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
+	}
+	procedure	do_blk_inout_digitalpin
+	{
+		var		cmp;
+		macro	npin;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name="";
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	npin=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_inout_digitalpin=$(npin);
+
+		// assembler
+		fprint	fout,"// r0="$(npin)$,;
+		fprint	fout,"ld$(z)i	r0,"$(npin)$,;
+	}
+	procedure	do_blk_inout_highlow
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_inout_highlow=$(nval);
+
+		// assembler
+		fprint	fout,"// r0="$(nval)$,;
+		fprint	fout,"ld$(z)i	r0,"$(nval)$,;
+	}
+	procedure	do_blk_delay_custom
+	{
+		var		cmp;
+		nvar	millis_times=1;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		if (millis_times>1)
+		{
+			mlet	nval=$(nval)" * "#(millis_times);
+		}
+
+		// assembler
+		fprint	fout,"// delay (r0(="$(nval)"))"$,;
+		if (millis_times>1)
+		{
+			fprint	fout,"ldwi	r1,#"$,,millis_times;
+			fprint	fout,"muls	r0,r1"$,;
+			opt_mul_need=true;
+		}
+		fprint	fout,"jal$(z)r7	_delay_ms_r0"$,;
+	}
+	procedure	do_blk_delayMicroseconds_custom
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// delayMicroseconds (r0(="$(nval)"))"$,;
+		fprint	fout,"jal$(z)r7	_delay_us_r0"$,;
+	}
+	procedure	do_blk_millis
+	{
+		// assembler
+		fprint	fout,"// r0=millis"$,;
+		fprint	fout,"ldwi	r7,_rtlb_sytmmil$(z)"$,;
+		fprint	fout,"ld$(z)	r0,[r7]"$,;
+
+		skip_one	"block";
+		mlet	do_blk_millis="millis";
+	}
+	procedure	do_blk_micros
+	{
+		// assembler
+		fprint	fout,"// r0=micros"$,;
+		fprint	fout,"ldwi	r7,_rtlb_sytmmcr$(z)"$,;
+		fprint	fout,"ld$(z)	r0,[r7]"$,;
+
+		skip_one	"block";
+		mlet	do_blk_micros="micros";
+	}
+	procedure	do_blk_cast_number
+	{
+		var		cmp;
+		nmacro	ctyp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	ctyp=$(do_$(dxml));
+					psub	"^\((.*)\)$","\1",ctyp;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		strcmp	cmp=$(ctyp),"int";
+		if (cmp)
+		{
+			strcmp	cmp=$(ctyp),"float";
+		}
+		if (cmp)
+		{
+			// ERROR:
+			errmsg	"cast_number: unsupported cast ("$(ctyp)")";
+			leave	stop_error;
+		}
+		mlet	do_blk_cast_number=$(ctyp)" ("$(nval)")";
+
+		// assembler
+		strcmp	cmp=$(ctyp),"int";
+		if (cmp=0)
+		{
+			fprint	fout,"// r0="$(ctyp)" (float r0(="$(nval)"))"$,;
+			fprint	fout,"cmpi	r0,0"$,;
+			fprint	fout,"ldbiu	r1,false	// positive"$,;
+			fprint	fout,"bpl	pcnt+4"$,;
+			fprint	fout,"ldbiu	r1,true	// negative"$,;
+			fprint	fout,"fneg	r0,r0"$,;
+			fprint	fout,"fuint	r0,r0"$,;
+			fprint	fout,"cmpi	r1,false"$,;
+			fprint	fout,"beq	pcnt+2"$,;
+			fprint	fout,"neg	r0"$,;
+			opt_fpu_need=true;
+		}
+		strcmp	cmp=$(ctyp),"float";
+		if (cmp=0)
+		{
+			fprint	fout,"// r0="$(ctyp)" (int r0(="$(nval)"))"$,;
+			fprint	fout,"cmpi	r0,0"$,;
+			fprint	fout,"ldbiu	r1,false	// positive"$,;
+			fprint	fout,"bpl	pcnt+4"$,;
+			fprint	fout,"ldbiu	r1,true	// negative"$,;
+			fprint	fout,"neg	r0"$,;
+			fprint	fout,"fsngl	r0,r0"$,;
+			fprint	fout,"cmpi	r1,false"$,;
+			fprint	fout,"beq	pcnt+2"$,;
+			fprint	fout,"fneg	r0,r0"$,;
+			opt_fpu_need=true;
+		}
+	}
+	procedure	do_blk_math_number
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	nval=$(do_$(dxml));
+			}
+		}
+		mlet	do_blk_math_number=$(nval);
+
+		// assembler
+		fprint	fout,"// r0="$(nval)$,;
+		if (opt_opr_typ=opt_int)
+		{
+			fprint	fout,"ld$(z)i	r0,"$(nval)$,;
+		}
+		else
+		{
+			fprint	fout,"fld$(z)i	r0,"$(nval)$,;
+		}
+
+		val_done=true;
+	}
+	procedure	do_blk_math_number_property
+	{
+		var		cmp;
+		var		pdone;
+		macro	prop;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	prop=$(do_$(dxml));
+					tolower		prop;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// "$(prop)" (r0(="$(nval)"))"$,;
+		strcmp	cmp=$(prop),"even";
+		if (cmp=0)
+		{
+			pdone=true;
+			fprint	fout,"andi	r0,0x01"$,;
+			fprint	fout,"eori	r0,0x01"$,;
+		}
+		strcmp	cmp=$(prop),"odd";
+		if (cmp=0)
+		{
+			pdone=true;
+			fprint	fout,"andi	r0,0x01"$,;
+		}
+		strcmp	cmp=$(prop),"positive";
+		if (cmp=0)
+		{
+			pdone=true;
+			fprint	fout,"cmpi	r0,1"$,;
+			fprint	fout,"ldbiu	r0,false"$,;
+			fprint	fout,"blt	pcnt+2"$,;
+			fprint	fout,"ldbiu	r0,true"$,;
+		}
+		strcmp	cmp=$(prop),"negative";
+		if (cmp=0)
+		{
+			pdone=true;
+			fprint	fout,"cmpi	r0,0"$,;
+			fprint	fout,"ldbiu	r0,true"$,;
+			fprint	fout,"blt	pcnt+2"$,;
+			fprint	fout,"ldbiu	r0,false"$,;
+		}
+		if (!pdone)
+		{
+			// WARNING: unsupported property, ignore
+			fprint	fout,"// WARNING: math_number_property: "
+					"unsupported property ("$(prop)"), ignore."$,;
+		}
+		mlet	do_blk_math_number_property=$(prop)" ("$(nval)")";
+	}
+	procedure	do_blk_math_constrain
+	{
+		var		cmp;
+		macro	nval;
+		macro	nlow;
+		macro	nhgh;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"VALUE";
+					if (cmp=0)
+					{
+						mlet	nval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"LOW";
+					if (cmp=0)
+					{
+						mlet	nlow=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"HIGH";
+					if (cmp=0)
+					{
+						mlet	nhgh=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		mlet	do_blk_math_constrain="clip ("$(nval)", "$(nlow)", "$(nhgh)")";
+
+		// assembler
+		fprint	fout,"// r0=clip (r0(="$(nval)"), r1(="$(nlow)"), r2(="
+				$(nhgh)"))"$,;
+		fprint	fout,"mov	r2,r0"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		if (opt_opr_typ=opt_int)
+		{
+			fprint	fout,"cmp	r0,r1"$,;
+			fprint	fout,"bge	pcnt+2"$,;
+			fprint	fout,"mov	r0,r1"$,;
+			fprint	fout,"cmp	r2,r0"$,;
+			fprint	fout,"bge	pcnt+2"$,;
+			fprint	fout,"mov	r0,r2"$,;
+		}
+		else
+		{
+			fprint	fout,"fcmp	r0,r1"$,;
+			fprint	fout,"bpl	pcnt+2"$,;
+			fprint	fout,"mov	r0,r1"$,;
+			fprint	fout,"fcmp	r2,r0"$,;
+			fprint	fout,"bpl	pcnt+2"$,;
+			fprint	fout,"mov	r0,r2"$,;
+		}
+	}
+	procedure	do_blk_math_change
+	{
+		var		cmp;
+		nvar	vdec;
+		macro	vnam;
+		macro	nval;
+		macro	opr;
+		macro	mne;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vnam=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"block";
+				if (cmp)
+				{
+					strcmp	cmp=$(dxml),"value";
+				}
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		if (vdec)
+		{
+			mlet	opr="-";
+			mlet	mne="sub";
+		}
+		else
+		{
+			mlet	opr="+";
+			mlet	mne="add";
+		}
+		if (opt_opr_typ=opt_float)
+		{
+			mlet	mne="f"$(mne);
+		}
+		fprint	fout,"// r1(="$(vnam)") "$(opr)"= r0(="$(nval)")"$,;
+		fprint	fout,"ldwi	r7,"$(vnam)$,;
+		fprint	fout,"ld$(z)	r1,[r7]"$,;
+		fprint	fout,$(mne)"	r1,r0"$,;
+		fprint	fout,"st$(z)	[r7],r1"$,;
+	}
+	procedure	do_blk_math_constant
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	nval=$(do_$(dxml));
+			}
+		}
+		mlet	do_blk_math_constant=$(nval);
+
+		// assembler
+		fprint	fout,"// r0="$(nval)$,;
+		fprint	fout,"ld$(z)i	r0,"$(nval)$,;
+	}
+	procedure	do_blk_math_modulo
+	{
+		var		cmp;
+		macro	lval;
+		macro	rval;
+
+		// not supported float operation
+		if (opt_opr_typ≠opt_int)
+		{
+			// WARNING:
+			fprint	fout,"// WARNING: math_modulo: "
+					"not supported float operation"$,;
+		}
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"DIVIDEND";
+					if (cmp=0)
+					{
+						mlet	lval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	rval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(rval)"); r0(="$(lval)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+					}
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// r0(="$(lval)") % r1(="$(rval)")"$,;
+		fprint	fout,"divsr	r0,r1"$,;
+		fprint	fout,"// r2=r0(="$(lval)" / "$(rval)"); "
+				"r0=r1(="$(lval)" % "$(rval)")"$,;
+		fprint	fout,"mov	r2,r0"$,;
+		fprint	fout,"mov	r0,r1"$,;
+		opt_div_need=true;
+
+		index	cmp=$(lval)," ";
+		if (cmp>0)
+		{
+			mlet	lval="("$(lval)")";
+		}
+		index	cmp=$(rval)," ";
+		if (cmp>0)
+		{
+			mlet	rval="("$(rval)")";
+		}
+		mlet	do_blk_math_modulo=$(lval)" % "$(rval);
+	}
+	procedure	do_blk_math_arithmetic
+	{
+		var		cmp;
+		macro	opr;
+		macro	lval;
+		macro	rval;
+		macro	mne;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opr=$(do_$(dxml));
+					tolower		opr;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"A";
+					if (cmp)
+					{
+						strcmp	cmp=$(dnam),"VAR1";
+					}
+					if (cmp=0)
+					{
+						mlet	lval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	rval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(rval)"); r0(="$(lval)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+					}
+				}
+			}
+		}
+
+		// operator
+		mlet	mne="xxx";
+		strcmp	cmp=$(opr),"add";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"+";
+		}
+		if (cmp=0)
+		{
+			mlet	opr="+";
+			mlet	mne="add";
+		}
+		strcmp	cmp=$(opr),"minus";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"-";
+		}
+		if (cmp=0)
+		{
+			mlet	opr="-";
+			mlet	mne="sub";
+		}
+		strcmp	cmp=$(opr),"multiply";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"*";
+		}
+		if (cmp=0)
+		{
+			mlet	opr="*";
+			mlet	mne="muls";
+			if (opt_opr_typ=opt_int)
+			{
+				opt_mul_need=true;
+			}
+		}
+		strcmp	cmp=$(opr),"divide";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"/";
+		}
+		if (cmp=0)
+		{
+			mlet	opr="/";
+			mlet	mne="divs";
+			if (opt_opr_typ=opt_int)
+			{
+				opt_div_need=true;
+			}
+		}
+		strcmp	cmp=$(opr),"remainder";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"modulo";
+		}
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"%";
+		}
+		if (cmp=0)
+		{
+			mlet	opr="%";
+			mlet	mne="divsr";
+			opt_div_need=true;
+		}
+		strcmp	cmp=$(opr),$(str_and);
+		if (cmp=0)
+		{
+			mlet	opr="&";
+			mlet	mne=$(str_and);
+		}
+		strcmp	cmp=$(opr),$(str_or);
+		if (cmp=0)
+		{
+			mlet	opr="|";
+			mlet	mne=$(str_or);
+		}
+		strcmp	cmp=$(opr),"xor";
+		if (cmp=0)
+		{
+			mlet	opr="^";
+			mlet	mne="eor";
+		}
+
+		// error check
+		strcmp	cmp=$(mne),"xxx";
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"math_arithmetic: unsupported operator ("$(opr)")";
+			leave	stop_error;
+		}
+		// floating point operation
+		if (opt_opr_typ=opt_float)
+		{
+			mlet	mne="f"$(mne);
+			sub		"fmuls","fmul",mne;
+			sub		"fdivs","fdiv",mne;
+			index	cmp="_fadd_fsub_fmul_fdiv_","_"$(mne)"_";
+			if (cmp<=0)
+			{
+				// ERROR:
+				errmsg	"math_arithmetic: unsupported operator ("
+						$(opr)") for float";
+				leave	stop_error;
+			}
+		}
+
+		// assembler
+		fprint	fout,"// r0(="$(lval)") "$(opr)" r1(="$(rval)")"$,;
+		strcmp	cmp=$(opr),"max";
+		if (cmp=0)
+		{
+			// r0 max r1=(r0>=r1)? r1: r0 (PICAX BASIC operator)
+			mlet	mne="mov";
+
+			// assembler
+			fprint	fout,"cmp	r0,r1"$,;
+			fprint	fout,"bge	pcnt+2"$,;
+			fprint	fout,"mov	r1,r0"$,;
+		}
+		strcmp	cmp=$(opr),"min";
+		if (cmp=0)
+		{
+			// r0 min r1=(r0<=r1)? r1: r0 (PICAX BASIC operator)
+			mlet	mne="mov";
+
+			// assembler
+			fprint	fout,"cmp	r1,r0"$,;
+			fprint	fout,"bge	pcnt+2"$,;
+			fprint	fout,"mov	r1,r0"$,;
+		}
+		fprint	fout,$(mne)"	r0,r1"$,;
+		strcmp	cmp=$(opr),"%";
+		if (cmp=0)
+		{
+			fprint	fout,"// r2=r0(="$(lval)" / "$(rval)"); "
+					"r0=r1(="$(lval)" % "$(rval)")"$,;
+			fprint	fout,"mov	r2,r0"$,;
+			fprint	fout,"mov	r0,r1"$,;
+		}
+
+		index	cmp=$(lval)," ";
+		if (cmp>0)
+		{
+			mlet	lval="("$(lval)")";
+		}
+		index	cmp=$(rval)," ";
+		if (cmp>0)
+		{
+			mlet	rval="("$(rval)")";
+		}
+		mlet	do_blk_math_arithmetic=$(lval)" "$(opr)" "$(rval);
+	}
+	procedure	do_blk_logic_boolean
+	{
+		var		cmp;
+		macro	bval;
+		
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	bval=$(do_$(dxml));
+					tolower		bval;
+				}
+			}
+		}
+		mlet	do_blk_logic_boolean=$(bval);
+
+		// assembler
+		fprint	fout,"// r0="$(bval)$,;
+		fprint	fout,"ldbiu	r0,"$(bval)$,;
+	}
+	procedure	do_blk_logic_negate
+	{
+		var		cmp;
+		macro	bval;
+		
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	bval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// !r0(="$(bval)")"$,;
+		fprint	fout,"cmpi	r0,false"$,;
+		fprint	fout,"beq	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,true"$,;
+		fprint	fout,"eori	r0,0x01"$,;
+
+		index	cmp=$(bval)," ";
+		if (cmp>0)
+		{
+			mlet	bval="("$(bval)")";
+		}
+		mlet	do_blk_logic_negate="! "$(bval);
+	}
+	procedure	do_blk_logic_ternary
+	{
+		var		cmp;
+		var		iblk;
+		macro	iexp;
+		macro	vthn;
+		macro	vels;
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		fprint	fout,""$,;
+		fprint	fout,"// if test"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"IF";
+					if (cmp=0)
+					{
+						iblk=@(iblk | 0x01);
+						mlet	iexp=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// test ("$(iexp)")"$,;
+						fprint	fout,"cmpi	r0,false"$,;
+						fprint	fout,"beq	_"$(slabid)"_else"$,;
+						fprint	fout,""$,;
+						fprint	fout,"// then"$,;
+					}
+					strcmp	cmp=$(dnam),"THEN";
+					if (cmp=0)
+					{
+						iblk=@(iblk | 0x02);
+						mlet	vthn=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// then ("$(vthn)")"$,;
+						fprint	fout,"bra	_"$(slabid)"_endif"$,;
+						fprint	fout,""$,;
+						fprint	fout,"// else"$,;
+						fprint	fout,"_"$(slabid)"_else:"$,;
+					}
+					strcmp	cmp=$(dnam),"ELSE";
+					if (cmp=0)
+					{
+						iblk=@(iblk | 0x04);
+						mlet	vels=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,""$,;
+						fprint	fout,"// else ("$(vels)")"$,;
+						fprint	fout,"_"$(slabid)"_endif:"$,;
+					}
+				}
+			}
+		}
+		if (iblk!=0x07)
+		{
+			// ERROR:
+			errmsg "logic_ternary: inhibited empty block."$,;
+			leave	stop_error;
+		}
+		index	cmp=$(vthn)," ";
+		if (cmp>0)
+		{
+			mlet	vthn="("$(vthn)")";
+		}
+		index	cmp=$(vels)," ";
+		if (cmp>0)
+		{
+			mlet	vels="("$(vels)")";
+		}
+		mlet	do_blk_logic_ternary="("$(iexp)")? "$(vthn)": "$(vels);
+
+		// assembler
+		fprint	fout,""$,;
+		fprint	fout,"// end of test ("$(iexp)")? "$(vthn)": "$(vels)$,;
+	}
+	procedure	do_blk_logic_compare
+	{
+		var		cmp;
+		var		is_cstr_cmp;
+		macro	opr;
+		macro	lval;
+		macro	rval;
+		macro	mne;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opr=$(do_$(dxml));
+					tolower		opr;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"A";
+					if (cmp=0)
+					{
+						mlet	lval=$(do_$(dxml));
+						// text compare?
+						is_cstr		$(lval);
+						if (!is_cstr)
+						{
+							// lval!=cstr_var
+							strcmp	cmp=$(lval),$",left;
+							if (cmp=0)
+							{
+								// lval=cstr_txt
+								is_cstr=true;
+							}
+						}
+						is_cstr_cmp=is_cstr_cmp + ( is_cstr≠0 );
+
+						// assembler
+						if (is_cstr)
+						{
+							fprint	fout,"push$(z)	r1"$,;
+						}
+						else
+						{
+							fprint	fout,"push$(z)	r0"$,;
+						}
+					}
+					else
+					{
+						mlet	rval=$(do_$(dxml));
+						// text compare?
+						is_cstr		$(rval);
+						if (!is_cstr)
+						{
+							// rval!=cstr_var
+							strcmp	cmp=$(rval),$",left;
+							if (cmp=0)
+							{
+								// rval=cstr_txt
+								is_cstr=true;
+							}
+						}
+						is_cstr_cmp=is_cstr_cmp + ( is_cstr≠0 )*2;
+
+						// assembler
+						if (is_cstr)
+						{
+							fprint	fout,"pop$(z)	r0"$,;
+						}
+						else
+						{
+							fprint	fout,"// r1=r0(="$(rval)"); r0(="
+									$(lval)")"$,;
+							fprint	fout,"mov	r1,r0"$,;
+							fprint	fout,"pop$(z)	r0"$,;
+						}
+					}
+				}
+			}
+		}
+
+		// operator
+		mlet	mne="xxx";
+		strcmp	cmp=$(opr),"eq";
+		if (cmp=0)
+		{
+			mlet	opr="==";
+			mlet	mne="eq";
+		}
+		strcmp	cmp=$(opr),"neq";
+		if (cmp=0)
+		{
+			mlet	opr="!=";
+			mlet	mne="ne";
+		}
+		strcmp	cmp=$(opr),"gte";
+		if (cmp=0)
+		{
+			mlet	opr=">=";
+			mlet	mne="ge";
+		}
+		strcmp	cmp=$(opr),"lte";
+		if (cmp=0)
+		{
+			mlet	opr="<=";
+			mlet	mne="le";
+		}
+		strcmp	cmp=$(opr),"gt";
+		if (cmp=0)
+		{
+			mlet	opr=">";
+			mlet	mne="gt";
+		}
+		strcmp	cmp=$(opr),"lt";
+		if (cmp=0)
+		{
+			mlet	opr="<";
+			mlet	mne="lt";
+		}
+		mlet	do_blk_logic_compare=$(opr);
+
+		// error check
+		strcmp	cmp=$(mne),"xxx";
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"logic_compare: unsupported operator ("$(opr)")";
+			leave	stop_error;
+		}
+		// text compare?
+		if (is_cstr_cmp=1 | is_cstr_cmp=2)
+		{
+			// ERROR:
+			errmsg	"logic_compare: illegal text compare ("
+					$(lval)" "$(opr)" "$(rval)")";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,"// r0(="$(lval)") "$(opr)" r1(="$(rval)")";
+		strcmp	cmp=$(opr),"==";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"!=";
+		}
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),">=";
+		}
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"<";
+		}
+		if (cmp=0)
+		{
+			fprint	fout,""$,;
+			if (is_cstr_cmp)
+			{
+				fprint	fout,"mov	r2,r1"$,;
+				fprint	fout,"mov	r1,r0"$,;
+				fprint	fout,"jal$(z)r7	_strcmp_r1_r2"$,;
+				fprint	fout,"cmpi	r0,0"$,;
+			}
+			else
+			{
+				if (opt_opr_typ=opt_int)
+				{
+					fprint	fout,"cmp	r0,r1"$,;
+				}
+				else
+				{
+					fprint	fout,"fcmp	r0,r1"$,;
+				}
+			}
+		}
+		strcmp	cmp=$(opr),">";
+		if (cmp=0)
+		{
+			mlet	opr="<";
+			mlet	mne="lt";
+			fprint	fout," ==> r1(="$(rval)") "$(opr)" r0(="$(lval)")"$,;
+			if (is_cstr_cmp)
+			{
+				fprint	fout,"mov	r2,r0"$,;
+				fprint	fout,"jal$(z)r7	_strcmp_r1_r2"$,;
+				fprint	fout,"cmpi	r0,0"$,;
+			}
+			else
+			{
+				if (opt_opr_typ=opt_int)
+				{
+					fprint	fout,"cmp	r1,r0"$,;
+				}
+				else
+				{
+					fprint	fout,"fcmp	r1,r0"$,;
+				}
+			}
+		}
+		strcmp	cmp=$(opr),"<=";
+		if (cmp=0)
+		{
+			mlet	opr=">=";
+			mlet	mne="ge";
+			fprint	fout," ==> r1(="$(rval)") "$(opr)" r0(="$(lval)")"$,;
+			if (is_cstr_cmp)
+			{
+				fprint	fout,"mov	r2,r0"$,;
+				fprint	fout,"jal$(z)r7	_strcmp_r1_r2"$,;
+				fprint	fout,"cmpi	r0,0"$,;
+			}
+			else
+			{
+				if (opt_opr_typ=opt_int)
+				{
+					fprint	fout,"cmp	r1,r0"$,;
+				}
+				else
+				{
+					fprint	fout,"fcmp	r1,r0"$,;
+				}
+			}
+		}
+		fprint	fout,"ldbiu	r0,true"$,;
+		if (opt_opr_typ=opt_float)
+		{
+			sub		"ge","pl",mne;
+			sub		"lt","mi",mne;
+		}
+		fprint	fout,"b"$(mne)"	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,false"$,;
+
+		index	cmp=$(lval)," ";
+		if (cmp>0)
+		{
+			mlet	lval="("$(lval)")";
+		}
+		index	cmp=$(rval)," ";
+		if (cmp>0)
+		{
+			mlet	rval="("$(rval)")";
+		}
+		mlet	do_blk_logic_compare=$(lval)" "
+				$(do_blk_logic_compare)" "$(rval);
+	}
+	procedure	do_blk_logic_operation
+	{
+		var		cmp;
+		macro	opr;
+		macro	lval;
+		macro	rval;
+		macro	mne;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opr=$(do_$(dxml));
+					tolower		opr;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"A";
+					if (cmp=0)
+					{
+						mlet	lval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	rval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(rval)"); r0(="$(lval)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+					}
+				}
+			}
+		}
+
+		// operator
+		mlet	mne="xxx";
+		strcmp	cmp=$(opr),$(str_and);
+		if (cmp=0)
+		{
+			mlet	mne=$(opr);
+			mlet	opr="&&";
+		}
+		strcmp	cmp=$(opr),$(str_or);
+		if (cmp=0)
+		{
+			mlet	mne=$(opr);
+			mlet	opr="||";
+		}
+
+		// error check
+		strcmp	cmp=$(mne),"xxx";
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"logic_operation: unsupported operator ("$(opr)")";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,"// r0(="$(lval)") "$(opr)" r1(="$(rval)")"$,;
+		fprint	fout,$(mne)"	r0,r1"$,;
+
+		index	cmp=$(lval)," ";
+		if (cmp>0)
+		{
+			mlet	lval="("$(lval)")";
+		}
+		index	cmp=$(rval)," ";
+		if (cmp>0)
+		{
+			mlet	rval="("$(rval)")";
+		}
+		mlet	do_blk_logic_operation=$(lval)" "$(opr)" "$(rval);
+	}
+	procedure	do_blk_text
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(fget_xml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+				}
+			}
+		}
+		gsub	"#","##",cstr;
+		mlet	do_blk_text=$(cstr);
+		strcmp	cmp=$(do_blk_text),$",left;
+		if (cmp)
+		{
+			mlet	do_blk_text=$"$(do_blk_text)$";
+		}
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		fprint	fout,"// r1="$(do_blk_text)$,;
+		fprint	fout,"ldwi	r1,lab__"$(slabid)_text$,;
+		fprint	fout,"bra	_"$(slabid)_pool$,;
+		fprint	fout,"_"$(slabid)"_text:"$,;
+		psub	"^"$""([^"$""]*)"$""$","\1",cstr;
+		fprint	fout,"dats	"$"$(cstr)"\0"$"$,;
+		fprint	fout,"_"$(slabid)"_pool:"$,;
+
+		val_done=true;
+	}
+	procedure	do_blk_text_length
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	cstr=$(do_$(dxml));
+			}
+		}
+		mlet	do_blk_text_length="strlen ("$(cstr)")";
+
+		// assembler
+		fprint	fout,"// r0=strlen (r1(="$(cstr)"))"$,;
+		fprint	fout,"jal$(z)r7	_strlen_r1"$,;
+	}
+	procedure	do_blk_text_isEmpty
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	cstr=$(do_$(dxml));
+			}
+		}
+		mlet	do_blk_text_isEmpty="isempty ("$(cstr)")";
+
+		// assembler
+		fprint	fout,"// r0=isempty (r1(="$(cstr)"))"$,;
+		fprint	fout,"ldb	r0,[r1]"$,;
+		fprint	fout,"cmpi	r0,0"$,;
+		fprint	fout,"ldbiu	r0,true"$,;
+		fprint	fout,"beq	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,false"$,;
+	}
+	procedure	do_blk_text_print
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				mlet	cstr=$(do_$(dxml));
+			}
+		}
+
+		// string?
+		strcmp	cmp=$(cstr),$",left;
+		if (cmp)
+		{
+			is_cstr		$(cstr);
+			if (is_cstr)
+			{
+				cmp=0;
+			}
+		}
+		if (cmp=0)
+		{
+			// string or string variable
+
+			// assembler
+			fprint	fout,"// print r1(="$(cstr)")"$,;
+			fprint	fout,"jal$(z)r7	_print_r1"$,;
+		}
+		else
+		{
+			// done?
+			strcmp	cmp=$(cstr),"'",left;
+			if (cmp=0)
+			{
+				// already done
+			}
+			else
+			{
+				// join?
+				strcmp	cmp=$(cstr)," ++ ",left;
+				if (cmp=0)
+				{
+					// join
+					psub	"^ \+\+ ","",cstr;
+
+					// assembler
+					fprint	fout,"// print r1(="$(cstr)")"$,;
+					fprint	fout,"jal$(z)r7	_print_r1"$,;
+				}
+				else
+				{
+					// number
+					register_vars	"_tmp_str";
+					register_cstr	"_tmp_str";
+
+					// assembler
+					fprint	fout,"// r1=r0(="$(cstr)"); r0=_cstr__tmp_str"$,;
+					fprint	fout,"mov	r1,r0"$,;
+					fprint	fout,"ldwi	r0,_cstr__tmp_str"$,;
+					fprint	fout,"// r0=strdec (r0,r1(="$(cstr)"))"$,;
+					fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
+					fprint	fout,"// r1=_cstr__tmp_str(='"$(cstr)"')"$,;
+					fprint	fout,"ldwi	r1,_cstr__tmp_str"$,;
+					fprint	fout,"// print r1(='"$(cstr)"')"$,;
+					fprint	fout,"jal$(z)r7	_print_r1"$,;
+
+					mlet	cstr="'"$(cstr)"'";
+				}
+			}
+		}
+	}
+	procedure	do_blk_text_join
+	{
+		var		cmp;
+		macro	cstr;
+
+		// nesting check
+		nvar	in_text_join=false;
+		if (in_text_join)
+		{
+			// ERROR:
+			errmsg	"text_join: nesting";
+			leave	stop_error;
+		}
+		in_text_join=true;
+
+		// assembler
+		fprint	fout,""$,;
+		fprint	fout,"// join"$,;
+		if (!in_var_set)
+		{
+			register_vars	"_tmp_str";
+			register_cstr	"_tmp_str";
+
+			// assembler
+			fprint	fout,"// r0=_cstr__tmp_str"$,;
+			fprint	fout,"ld$(z)i r0,_cstr__tmp_str"$,;
+		}
+		fprint	fout,"push$(z)	r0"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+
+					// string?
+					strcmp	cmp=$(cstr),$",left;
+					if (cmp)
+					{
+						is_cstr		$(cstr);
+						if (is_cstr)
+						{
+							cmp=0;
+						}
+					}
+					if (cmp=0)
+					{
+						// string or string variable
+
+						// assembler
+						fprint	fout,"// join "$(cstr)$,;
+						fprint	fout,"pop$(z)	r0"$,;
+						fprint	fout,"jal$(z)r7	_strcpy_r0_r1"$,;
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						// done?
+						strcmp	cmp=$(cstr),"'",left;
+						if (cmp=0)
+						{
+							// already done
+						}
+						else
+						{
+							// number
+
+							// assembler
+							fprint	fout,"// r1=r0(="$(cstr)")"$,;
+							fprint	fout,"mov	r1,r0"$,;
+							fprint	fout,"// r0=strdec (r0,r1(="$(cstr)"))"$,;
+							fprint	fout,"pop$(z)	r0"$,;
+							fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
+							fprint	fout,"push$(z)	r0"$,;
+
+							mlet	cstr="'"$(cstr)"'";
+						}
+					}
+					mlet	do_blk_text_join=$(do_blk_text_join)" ++ "$(cstr);
+				}
+			}
+		}
+		if (!in_var_set)
+		{
+			register_vars	"_tmp_str";
+			register_cstr	"_tmp_str";
+		}
+
+		// assembler
+		mlet	cstr=$(do_blk_text_join);
+		sub		" ++ ","",cstr;
+		fprint	fout,"// end of join ("$(cstr)")"$,;
+		fprint	fout,"pop$(z)	r0	// discard"$,;
+		if (!in_var_set)
+		{
+			fprint	fout,"// r1=_cstr__tmp_str"$,;
+			fprint	fout,"ld$(z)i	r1,_cstr__tmp_str"$,;
+		}
+	}
+	procedure	do_blk_text_append
+	{
+		var		cmp;
+		macro	vnam;
+		macro	cstr;
+
+		in_var_set=true;
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vnam=$(do_$(dxml));
+
+					// assembler
+					fprint	fout,"// r0="$(vnam)$,;
+					fprint	fout,"ldwi	r0,"$(vnam)$,;
+					fprint	fout,"ld$(z)	r0,[r0]"$,;
+					fprint	fout,"// r0=tail of string "$(vnam)$,;
+					fprint	fout,"ldb	r7,[r0]"$,;
+					fprint	fout,"addi	r0,1"$,;
+					fprint	fout,"cmpi	r7,0"$,;
+					fprint	fout,"bne	pcnt+8"$,;
+					fprint	fout,"subi	r0,1"$,;
+					fprint	fout,"push$(z)	r0"$,;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+				}
+			}
+		}
+		in_var_set=false;
+
+		// joined?
+		strcmp	cmp=$(cstr),"' + ",left;
+		if (cmp=0)
+		{
+			// text joined
+			psub	"^' \+ ","",cstr;
+			pgsub	"#","##",cstr;
+
+			// assembler
+			fprint	fout,"// "$(vnam)" += "$(cstr)$,;
+			fprint	fout,"pop$(z)	r0	// discard"$,;
+		}
+		else
+		{
+			// number or variable ==> string conversion
+			strcmp	cmp=$(cstr),$",left;
+			if (cmp)
+			{
+				strcmp	cmp=$(cstr),"'",left;
+			}
+			if (cmp)
+			{
+				is_cstr		$(cstr);
+				if (is_cstr)
+				{
+					cmp=0;
+				}
+			}
+			if (cmp)
+			{
+				// assembler
+				fprint	fout,"// r1=r0(="$(cstr)"); r0(="$(vnam)")"$,;
+				fprint	fout,"mov	r1,r0"$,;
+				fprint	fout,"pop$(z)	r0"$,;
+				fprint	fout,"// r0=strdec (r0,r1(="$(cstr)"))"$,;
+				fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
+
+				mlet	cstr="'"$(cstr)"'";
+			}
+
+			// already done?
+			pindex	cmp=$(cstr),"'$";
+			if (cmp<=0)
+			{
+				// assembler
+				fprint	fout,"// r0=strcpy (r0, r1(="$(cstr)"))"$,;
+				fprint	fout,"pop$(z)	r0"$,;
+				fprint	fout,"jal$(z)r7	_strcpy_r0_r1"$,;
+			}
+		}
+	}
+	procedure	do_blk_procedures_ifreturn
+	{
+		var		cmp;
+		macro	cexp;
+		macro	vrtn;
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		fprint	fout,""$,;
+		fprint	fout,"// if return"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"CONDITION";
+					if (cmp=0)
+					{
+						mlet	cexp=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"cmpi	r1,false"$,;
+						fprint	fout,"beq	_"$(slabid)"_endif"$,;
+					}
+					strcmp	cmp=$(dnam),"VALUE";
+					if (cmp=0)
+					{
+						mlet	vrtn=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		// assembler
+		strcmp	cmp=$(vrtn),"";
+		if (cmp)
+		{
+			fprint	fout,"// if ("$(cexp)") return ("$(vrtn)")"$,;
+		}
+		else
+		{
+			fprint	fout,"// if ("$(cexp)") return"$,;
+		}
+		fprint	fout,"rtn$(z)"$,;
+		fprint	fout,""$,;
+		fprint	fout,"_"$(slabid)"_endif:"$,;
+	}
+	procedure	do_blk_procedures_defreturn
+	{
+		var		cmp;
+		var		stat;
+		macro	fnam;
+		macro	muta;
+		macro	vrtn;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						stat=1;
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// function block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of loop
+					stat=2;
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of function
+
+					// assembler
+					fprint	fout,""$,;
+					fprint	fout,"// end of function: "$(fnam)$,;
+					strcmp	cmp=$(vrtn),"";
+					if (cmp)
+					{
+						fprint	fout,"// return ("$(vrtn)")"$,;
+					}
+					fprint	fout,"rtn$(z)"$,;
+
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"mutation";
+					if (cmp=0)
+					{
+						mlet	muta=$(do_$(dxml));
+					}
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	fnam=$(do_$(dxml));
+						
+						// assembler
+						if (defp_1st)
+						{
+							defp_1st=false;
+							fprint	fout,""$,;
+							fprint	fout,"// halt"$,;
+							fprint	fout,"jmpr7	_program_halt"$,;
+						}
+						fprint	fout,""$,;
+						fprint	fout,"// function: "$(fnam)$,;
+						strcmp	cmp=$(muta),"";
+						if (cmp)
+						{
+							psub	" $","",muta;
+							fprint	fout,"//	arguments ("$(muta)")"$,;
+						}
+						fprint	fout,"align	4"$,;
+						fprint	fout,$(fnam)":"$,;
+					}
+				}
+				if (true | stat=2)
+				{
+					strcmp	cmp=$(dxml),"value";
+					if (cmp=0)
+					{
+						mlet	vrtn=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		// assembler
+		is_cstr		$(vrtn);
+		if (is_cstr)
+		{
+			fprint	fout,"// r1=r0"$,;
+			fprint	fout,"mov	r1,r0"$,;
+		}
+	}
+	procedure	do_blk_procedures_defnoreturn
+	{
+		do_blk_procedures_defreturn;
+	}
+	procedure	do_blk_procedures_callreturn
+	{
+		var		cmp;
+		macro	fnam;
+		macro	muta;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"mutation";
+				if (cmp=0)
+				{
+					mlet	fnam=$(dnam);
+					mlet	muta=$(do_$(dxml));
+					psub	" $","",muta;
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					var		num;
+					var		narg;
+
+					field	num=muta;
+					psub	"[^0-9]*([0-9]+).*","\1",dnam;
+					narg=$(dnam) + 1;
+
+					// assembler
+					fprint	fout,"// "$(muta#(narg))"=r0(="$(do_$(dxml))")"$,;
+					fprint	fout,"ldwi	r7,"$(muta#(narg))$,;
+					fprint	fout,"st$(z)	[r7],r0"$,;
+				}
+			}
+		}
+		mlet	do_blk_procedures_callreturn=$(fnam);
+
+		// assembler
+		fprint	fout,"// function call: "$(fnam)$,;
+		fprint	fout,"jal$(z)r7	"$(fnam)$,;
+	}
+	procedure	do_blk_procedures_callnoreturn
+	{
+		do_blk_procedures_callreturn;
+	}
+	procedure	do_blk_controls_repeat
+	{
+		do_blk_controls_repeat_ext;
+	}
+	procedure	do_blk_controls_repeat_ext
+	{
+		var		cmp;
+		var		stat;
+		var		ld_rpt;
+		macro	rcnt;
+
+		// register control variable
+		register_vars	"_rpt_cnt";
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		macro	slabid_loop=$(slabid);
+		fprint	fout,""$,;
+		fprint	fout,"// repeat loop"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// loop condition
+
+					// assembler
+					fprint	fout,"// backup _rpt_cnt variable"$,;
+					fprint	fout,"ldwi	r7,_rpt_cnt"$,;
+					fprint	fout,"ld$(z)	r1,[r7]"$,;
+					fprint	fout,"push$(z)	r1"$,;
+					if (ld_rpt)
+					{
+						fprint	fout,"// r0="$(rcnt)$,;
+						fprint	fout,"ld$(z)i	r0,"$(rcnt)$,;
+					}
+					fprint	fout,"// _rpt_cnt=r0(="$(rcnt)")"$,;
+					fprint	fout,"st$(z)	[r7],r0"$,;
+					fprint	fout,"// r0(=_rpt_cnt)<1 ?"$,;
+					fprint	fout,"cmpi	r0,1"$,;
+					fprint	fout,"blt	_"$(slabid)"_break"$,;
+					fprint	fout,"// repeat ("$(rcnt)")"$,;
+					fprint	fout,"_"$(slabid)"_repeat:"$,;
+
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						stat=1;
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// loop block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of loop
+					stat=2;
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of loop
+
+					// assembler
+					fprint	fout,""$,;
+					fprint	fout,"// end of repeat loop"$,;
+					fprint	fout,"_"$(slabid)"_continue:"$,;
+					fprint	fout,"ldwi	r7,_rpt_cnt"$,;
+					fprint	fout,"ld$(z)	r0,[r7]"$,;
+					fprint	fout,"subi	r0,1"$,;
+					fprint	fout,"st$(z)	[r7],r0"$,;
+					fprint	fout,"bne	_"$(slabid)"_repeat"$,;
+					fprint	fout,""$,;
+					fprint	fout,"_"$(slabid)"_break:"$,;
+					fprint	fout,"// restore _rpt_cnt variable"$,;
+					fprint	fout,"ldwi	r7,_rpt_cnt"$,;
+					fprint	fout,"pop$(z)	r0"$,;
+					fprint	fout,"st$(z)	[r7],r0"$,;
+					num2str		slabid_loop=0,"%04x";
+
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp)
+					{
+						strcmp	cmp=$(dxml),"value";
+					}
+					if (cmp=0)
+					{
+						mlet	rcnt=$(do_$(dxml));
+						strcmp	cmp=$(dxml),"field";
+						ld_rpt=( cmp=0 );
+					}
+				}
+			}
+		}
+	}
+	procedure	do_blk_controls_for
+	{
+		var		cmp;
+		var		stat;
+		macro	vnam;
+		macro	vsta;
+		macro	vend;
+		macro	vstp;
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		macro	slabid_loop=$(slabid);
+		fprint	fout,""$,;
+		fprint	fout,"// for loop"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// loop condition
+					strcmp	cmp=$(vstp),"";
+					if (cmp=0)
+					{
+						mlet	vstp="1";
+
+						// assembler
+						fprint	fout,"// r0="$(vstp)$,;
+						fprint	fout,"ld$(z)i	r0,"$(vstp)$,;
+					}
+
+					// assembler
+					fprint	fout,"// r2(="$(vstp)"); r1(="$(vend)")"$,;
+					fprint	fout,"mov	r2,r0"$,;
+					fprint	fout,"pop$(z)	r1"$,;
+					fprint	fout,"// for ("$(vnam)"="$(vsta)"; "$(vend)"; "
+							$(vstp)")"$,;
+					fprint	fout,"// start mark?"$,;
+					fprint	fout,"pop$(z)	r3"$,;
+					fprint	fout,"cmpi	r3,false"$,;
+					fprint	fout,"beq	pcnt+2"$,;
+					fprint	fout,"ldbiu	r3,false"$,;
+					fprint	fout,"ldbiu	r2,0"$,;
+					fprint	fout,"push$(z)	r3"$,;
+					fprint	fout,"// r0="$(vnam)$,;
+					fprint	fout,"ldwi	r7,"$(vnam)$,;
+					fprint	fout,"ld$(z)	r0,[r7]"$,;
+					fprint	fout,"// r0(="$(vnam)") += r2(="$(vstp)")"$,;
+					if (opt_opr_typ=opt_int)
+					{
+						fprint	fout,"add	r0,r2"$,;
+						fprint	fout,"st$(z)	[r7],r0"$,;
+						fprint	fout,"cmp	r1,r0"$,;
+						fprint	fout,"blt	_"$(slabid)"_break"$,;
+					}
+					else
+					{
+						fprint	fout,"fadd	r0,r2"$,;
+						fprint	fout,"st$(z)	[r7],r0"$,;
+						fprint	fout,"fcmp	r1,r0"$,;
+						fprint	fout,"bmi	_"$(slabid)"_break"$,;
+					}
+
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						stat=1;
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// loop block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of loop
+					stat=2;
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of loop
+
+					// assembler
+					fprint	fout,""$,;
+					fprint	fout,"// end of for loop"$,;
+					fprint	fout,"bra	_"$(slabid)"_for"$,;
+					fprint	fout,""$,;
+					fprint	fout,"_"$(slabid)"_break:"$,;
+					fprint	fout,"pop$(z)	r3	// discard"$,;
+					num2str		slabid_loop=0,"%04x";
+
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	vnam=$(do_$(dxml));
+					}
+					strcmp	cmp=$(dxml),"value";
+					if (cmp=0)
+					{
+						strcmp	cmp=$(dnam),"FROM";
+						if (cmp=0)
+						{
+							mlet	vsta=$(do_$(dxml));
+
+							// assembler
+							fprint	fout,"// "$(vnam)"=r0(="$(vsta)")"$,;
+							fprint	fout,"ldwi	r7,"$(vnam)$,;
+							fprint	fout,"st$(z)	[r7],r0"$,;
+							fprint	fout,"ldbiu	r3,true	// start mark"$,;
+							fprint	fout,"push$(z)	r3"$,;
+							fprint	fout,"_"$(slabid)"_for:"$,;
+							fprint	fout,"_"$(slabid)"_continue:"$,;
+						}
+						strcmp	cmp=$(dnam),"TO";
+						if (cmp=0)
+						{
+							mlet	vend=$(do_$(dxml));
+
+							// assembler
+							fprint	fout,"push$(z)	r0"$,;
+						}
+						strcmp	cmp=$(dnam),"BY";
+						if (cmp=0)
+						{
+							mlet	vstp=$(do_$(dxml));
+						}
+					}
+				}
+			}
+		}
+	}
+	procedure	do_blk_controls_while
+	{
+		do_blk_controls_whileUntil;
+	}
+	procedure	do_blk_controls_whileUntil
+	{
+		var		cmp;
+		var		stat;
+		macro	wexp;
+		macro	wmod=$(str_whl);
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		macro	slabid_loop=$(slabid);
+		fprint	fout,""$,;
+		fprint	fout,"// while loop"$,;
+		fprint	fout,"_"$(slabid)"_while:"$,;
+		fprint	fout,"_"$(slabid)"_continue:"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// loop condition
+
+					// assembler
+					fprint	fout,"// "$(wmod)" ("$(wexp)")"$,;
+					strcmp	cmp=$(wmod),"until";
+					if (cmp)
+					{
+						fprint	fout,"cmpi	r0,false"$,;
+					}
+					else
+					{
+						fprint	fout,"cmpi	r0,true"$,;
+					}
+					fprint	fout,"beq	_"$(slabid)"_break"$,;
+
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						stat=1;
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// loop block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of loop
+					stat=2;
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of loop
+
+					// assembler
+					fprint	fout,""$,;
+					fprint	fout,"// end of "$(wmod)" loop"$,;
+					fprint	fout,"bra	_"$(slabid)"_while"$,;
+					fprint	fout,""$,;
+					fprint	fout,"_"$(slabid)"_break:"$,;
+					num2str		slabid_loop=0,"%04x";
+
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	wmod=$(do_$(dxml));
+						tolower	wmod;
+					}
+					strcmp	cmp=$(dxml),"value";
+					if (cmp=0)
+					{
+						mlet	wexp=$(do_$(dxml));
+					}
+				}
+			}
+		}
+	}
+	procedure	do_blk_controls_flow_statements
+	{
+		var		cmp;
+		macro	flws;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	flws=$(do_$(dxml));
+				}
+			}
+		}
+		tolower		flws;
+
+		// assembler
+		fprint	fout,"// "$(flws)$,;
+		fprint	fout,"bra	_"$(slabid_loop)"_"$(flws)$,;
+		fprint	fout,""$,;
+	}
+	procedure	do_blk_controls_if
+	{
+		var		idx;
+		var		cmp;
+		var		stat;
+		var		cnt_elif;
+		var		cnt_else;
+		macro	cexp;
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		fprint	fout,""$,;
+		fprint	fout,"// if statement"$,;
+
+		// if
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// if condition
+					static : analyze_xml	$(cxml);
+					nmacro	_xml_name;
+					strcmp	cmp=$(_xml_name),"DO0";
+					if (cmp)
+					{
+						// ERROR:
+						errmsg	"controls_if: inhibited empty if block";
+						leave	stop_error;
+					}
+					strcmp	cmp=$(cexp),"";
+					if (cmp=0)
+					{
+						// ERROR:
+						errmsg	"controls_if: if condition not found";
+						leave	stop_error;
+					}
+
+					// assembler
+					fprint	fout,"// if ("$(cexp)")"$,;
+					fprint	fout,"cmpi	r0,false"$,;
+					fprint	fout,"beq	_"$(slabid)"_if0"$,;
+
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						stat=1;
+						continue;
+					}
+					else
+					{
+						// ERROR:
+						errmsg	"controls_if: inhibited empty if block";
+						leave	stop_error;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// if block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of if block
+
+					// assembler
+					fprint	fout,""$,;
+					fprint	fout,"// end of if block"$,;
+					fprint	fout,"bra	_"$(slabid)"_endif"$,;
+					fprint	fout,""$,;
+					fprint	fout,"_"$(slabid)"_if0:"$,;
+
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				if (stat=0)
+				{
+					// mutation must be processed before calling do_$(dxml)
+					strcmp	cmp=$(dxml),"mutation";
+					if (cmp=0)
+					{
+						nmacro	_xml_elseif="0";
+						nmacro	_xml_else="0";
+						cnt_elif=$(_xml_elseif);
+						cnt_else=$(_xml_else);
+					}
+				}
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"value";
+					if (cmp=0)
+					{
+						mlet	cexp=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		// elif
+		idx=1;
+		while (idx<=cnt_elif)
+		{
+			stat=0;
+			mlet	cexp="";
+			while (true)
+			{
+				fget_xml;
+				macro	cxml=$(fget_xml);
+				if (stat=0)
+				{
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp<=0)
+					{
+						pindex	cmp=$(cxml),"^<next[ >]";
+					}
+					if (cmp<=0)
+					{
+						pindex	cmp=$(cxml),"^</block[ >]";
+					}
+					if (cmp>0)
+					{
+						// elif condition
+						static : analyze_xml	$(cxml);
+						strcmp	cmp=$(_xml_name),"DO"#(idx);
+						if (cmp)
+						{
+							// ERROR:
+							errmsg	"controls_if: inhibited empty elif# block",
+									idx;
+							leave	stop_error;
+						}
+						strcmp	cmp=$(cexp),"";
+						if (cmp=0)
+						{
+							// ERROR:
+							errmsg	"controls_if: elif# condition not found",
+									idx;
+							leave	stop_error;
+						}
+
+						// assembler
+						fprint	fout,"// elif# ("$(cexp)")"$,,idx;
+						fprint	fout,"cmpi	r0,false"$,;
+						fprint	fout,"beq	_"$(slabid)"_elif#"$,,idx;
+
+						// continue
+						pindex	cmp=$(cxml),"^<statement[ >]";
+						if (cmp>0)
+						{
+							stat=1;
+							continue;
+						}
+						else
+						{
+							// ERROR:
+							errmsg	"controls_if: inhibited empty elif# block",
+									idx;
+							leave	stop_error;
+						}
+					}
+				}
+				if (stat=1)
+				{
+					// elif block
+					pindex	cmp=$(cxml),"^</statement[ >]";
+					if (cmp>0)
+					{
+						// end of elif block
+
+						// assembler
+						fprint	fout,""$,;
+						fprint	fout,"// end of elif# block"$,,idx;
+						fprint	fout,"bra	_"$(slabid)"_endif"$,;
+						fprint	fout,""$,;
+						fprint	fout,"_"$(slabid)"_elif#:"$,,idx;
+
+						break;
+					}
+				}
+
+				pindex	cmp=$(cxml),"^<[^/]";
+				if (cmp>0)
+				{
+					static : analyze_xml	$(cxml);
+					macro	dxml=$(_xml_);
+					do_$(dxml);
+					if (stat=0)
+					{
+						strcmp	cmp=$(dxml),"value";
+						if (cmp=0)
+						{
+							mlet	cexp=$(do_$(dxml));
+						}
+					}
+				}
+			}
+
+			// continue
+			idx=idx + 1;
+		}
+
+		// else
+		if (cnt_else>0)
+		{
+			stat=0;
+			while (true)
+			{
+				fget_xml;
+				macro	cxml=$(fget_xml);
+				if (stat=0)
+				{
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp<=0)
+					{
+						pindex	cmp=$(cxml),"^<next[ >]";
+					}
+					if (cmp<=0)
+					{
+						pindex	cmp=$(cxml),"^</block[ >]";
+					}
+					if (cmp>0)
+					{
+						// else
+						static : analyze_xml	$(cxml);
+						strcmp	cmp=$(_xml_name),"ELSE";
+						if (cmp)
+						{
+							// ERROR:
+							errmsg	"controls_if: inhibited empty else block";
+							leave	stop_error;
+						}
+
+						// assembler
+						fprint	fout,""$,;
+						fprint	fout,"// else"$,;
+
+						// continue
+						pindex	cmp=$(cxml),"^<statement[ >]";
+						if (cmp>0)
+						{
+							stat=1;
+							continue;
+						}
+						else
+						{
+							// ERROR:
+							errmsg	"controls_if: inhibited empty else block.";
+							leave	stop_error;
+						}
+					}
+				}
+				if (stat=1)
+				{
+					// else block
+					pindex	cmp=$(cxml),"^</statement[ >]";
+					if (cmp>0)
+					{
+						// end of else block
+
+						// assembler
+						fprint	fout,""$,;
+						fprint	fout,"// end of else block"$,;
+
+						break;
+					}
+				}
+
+				pindex	cmp=$(cxml),"^<[^/]";
+				if (cmp>0)
+				{
+					static : analyze_xml	$(cxml);
+					macro	dxml=$(_xml_);
+					do_$(dxml);
+				}
+			}
+		}
+		skip_one	"block";
+
+		// assembler
+		fprint	fout,""$,;
+		fprint	fout,"// endif"$,;
+		fprint	fout,"_"$(slabid)"_endif:"$,;
+	}
+	procedure	do_block
+	{
+		var		cmp;
+
+		nmacro	_xml_disabled="";
+		strcmp	cmp=$(_xml_disabled),"true";
+		if (cmp=0)
+		{
+			fget_xml;
+			pindex	cmp=$(fget_xml),"^<next[ >]";
+			if (cmp>0)
+			{
+				return;
+			}
+			repeat
+			{
+				skip_one	"block";
+				pindex	cmp=$(fget_xml),"^<next[ >]";
+			} until (cmp<=0);
+		}
+		else
+		{
+			// block type
+			macro	blktyp=$(_xml_type);
+			do_blk_$(blktyp);
+			mlet	do_block=$(do_blk_$(blktyp));
+		}
+	}
+	procedure	do_xml
+	{
+		var		cmp;
+
+		fget_xml;
+		while (fget_xml>=0)
+		{
+			static : analyze_xml	$(fget_xml);
+			if (!analyze_xml)
+			{
+				// continue
+				fget_xml;
+				continue;
+			}
+			strcmp	cmp=$(_xml_),"";
+			if (cmp)
+			{
+				strcmp	cmp=$(_xml_),"/",left;
+			}
+			if (cmp)
+			{
+				strcmp	cmp=$(_xml_),"next";
+			}
+			if (cmp=0)
+			{
+				// continue
+				fget_xml;
+				continue;
+			}
+
+			pindex	cmp=$(fget_xml),"^<";
+			if (true & cmp>0)
+			{
+				do_$(_xml_);
+			}
+
+			// continue
+			fget_xml;
+		}
+	}
+
+
+	// open files
+	var		fin;
+	var		fout;
+	fopen	fin,$(fnam_in),"r";
+	fopen	fout,$(fnam_out),"w";
+
+	// input file size
+	var		fpos;
+	var		fsiz;
+	fseek	fin,-1;
+	ftell	fin,fsiz;
+	fseek	fin,0;
+
+	// assembler
+	fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+	fprint	fout,"//	Blockly.XML file: "$(fnam)"."$(ext)$,;
+	fprint	fout,"## assembler"$,;
+	fprint	fout,"asm	"$""mcoc_irom.mem"$"$,;
+	fprint	fout,"incl	"$""mcoc115.incl"$"$,;
+	fprint	fout,"## constants"$,;
+	fprint	fout,"equ	_rtlb_mul_need,@mul_need@"$,;
+	fprint	fout,"equ	_rtlb_div_need,@div_need@"$,;
+	fprint	fout,"equ	_rtlb_fpu_need,@fpu_need@"$,;
+	fprint	fout,"## string macros"$,;
+	fprint	fout,"def	s,"$""##"$""	// simulation="
+			$"$"" / real fpga="$""##"$"$,;
+	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(ong) / w(ord)"$,;
+	fprint	fout,"## variables"$,;
+	fprint	fout,"equ	va,ramtop"$,;
+	fprint	fout,"##@vars_def@"$,;
+	
+	do_xml;
+	progress	"",-1;
+
+	define_cstr;
+
+	// close files
+	fclose	fin;
+	fclose	fout;
+
+
+	// 変数定義を埋め込む
+	fopen	fin,$(fnam_out),"r";
+	fopen	fout,$(fnam_tmp),"w";
+
+	fgets	fin,lbuf;
+	while (status=0)
+	{
+		var		cmp;
+
+		pindex	cmp=$(lbuf),"^#@vars_def@$";
+		if (cmp>0)
+		{
+			var		idx;
+			var		num;
+
+			// assembler
+			fprint	fout,""$,;
+			fprint	fout,"## define variables"$,;
+			fprint	fout,"equ	_var_sizw,2"$,;
+			fprint	fout,"equ	_var_sizl,4"$,;
+
+			psub	"^@","",vlst_vars;
+			field	num=vlst_vars,"@";
+			idx=1;
+			while (idx<num)
+			{
+				// assembler
+				fprint	fout,"equ	"$(vlst_vars#(idx))",va"$,;
+				fprint	fout,"equ	va,va+_var_siz$(z)"$,;
+
+				// continue
+				idx=idx + 1;
+			}
+
+			// assembler
+			fprint	fout,"## end of define variables"$,;
+			fprint	fout,"equ	static_va,va"$,;
+			fprint	fout,""$,;
+			fprint	fout,"## define string buffers"$,;
+			fprint	fout,"equ	_str_siz,#"$,,opt_cstr_siz;
+
+			psub	"^@","",vlst_cstr;
+			field	num=vlst_cstr,"@";
+			idx=1;
+			while (idx<num)
+			{
+				// assembler
+				fprint	fout,"equ	_cstr_"$(vlst_cstr#(idx))",va"$,;
+				fprint	fout,"equ	va,va+_str_siz"$,;
+
+				// continue
+				idx=idx + 1;
+			}
+
+			// assembler
+			fprint	fout,"## end of define string buffers"$,;
+			fprint	fout,"equ	array_va,va"$,;
+			fprint	fout,""$,;
+			fprint	fout,"## include run time library"$,;
+			fprint	fout,"incl	"$"$(mynam)".incl"$"$,;
+			fprint	fout,""$,;
+			fprint	fout,""$,;
+
+			// continue
+			fgets	fin,lbuf;
+			continue;
+		}
+
+		if (opt_mul_need)
+		{
+			psub	"@mul_need@","true",lbuf;
+		}
+		else
+		{
+			psub	"@mul_need@","false",lbuf;
+		}
+		if (opt_div_need)
+		{
+			psub	"@div_need@","true",lbuf;
+		}
+		else
+		{
+			psub	"@div_need@","false",lbuf;
+		}
+		if (opt_fpu_need)
+		{
+			psub	"@fpu_need@","true",lbuf;
+		}
+		else
+		{
+			psub	"@fpu_need@","false",lbuf;
+		}
+		if (opt_cpu_mod=opt_nh)
+		{
+			psub	"@cpu_mod@","l",lbuf;
+		}
+		else
+		{
+			psub	"@cpu_mod@","w",lbuf;
+		}
+		fputl	fout,$(lbuf);
+
+		// continue
+		fgets	fin,lbuf;
+	}
+
+	// close files
+	fclose	fin;
+	fclose	fout;
+
+	// replace output file
+	fmove	$(fnam_tmp),$(fnam_out), force;
+
+
+	leave	stop_error;
+}
+
