@@ -193,7 +193,8 @@ always
 		else
 			begin
 				@(posedge clk);
-				port_iop_d[3]<=1'bz;
+				if (port_dir[3]==1'b0)
+					port_iop_d[3]<=1'bz;
 			end
 	end
 

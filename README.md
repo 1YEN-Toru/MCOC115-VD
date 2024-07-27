@@ -39,9 +39,20 @@
 	- [AMP](http://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
 
 ## Development of software
- Moscovium series MCU can be developed using an assembler.
+ Moscovium series MCU can be developed using an assembler or Blockly.
 
-- [asm_mcvm.olv](asm/asm_mcvm.olv)
+- Macro assembler: [asm_mcvm.olv](asm/asm_mcvm.olv)
+	- A script of [Olive+](http://hp.vector.co.jp/authors/VA008835/OLIVE+/Olive+.html).
+	- You need install Olive+ on your Windows PC.
+	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
+
+- [BlocklyDuino](https://code.makewitharduino.com/?lang=en#)
+	- Block base visual programming environment.
+	![bino](http://hello.world.coocan.jp/ARDUINO31/a312_bino.png)
+	- Assemble blocks to control MCU.
+	- Download program code in XML format, and translate it to Moscovium assembler source list.
+
+- Blockly.XML to Moscovium.ASM translator: [blky2mcvm.olv](blky/blky2mcvm.olv)
 	- A script of [Olive+](http://hp.vector.co.jp/authors/VA008835/OLIVE+/Olive+.html).
 	- You need install Olive+ on your Windows PC.
 	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
@@ -52,6 +63,8 @@
 - README.md
 	- This article.
 - Xilinx Vivado's project directory
+	- blky/
+		- Blockly.XML to Moscovium.ASM translator and sample sources
 	- asm/
 		- Assembler and sample sources
 	- ip/
@@ -230,6 +243,7 @@
 
 1. [Moscovium series MCU](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP)
 	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html)
+	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a312_blky2mcvm.html)
 	- [Assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
 		- [Moscovium instruction set manual](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](http://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)
