@@ -1,0 +1,217 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="9dl)?c:Bet7]}gG/kobx">SA</variable>
+    <variable id="|VQ.k14!@_W76|ejtzS,">SB</variable>
+    <variable id="`2G0tSKuZrQX]TVRPea{">AA</variable>
+    <variable id="@ZZf{~Ag_{8W/2^,5k.4">BB</variable>
+  </variables>
+  <block type="variables_set" id="M;o]_f^@JnB:_syZI!J$" x="13" y="13">
+    <field name="VAR" id="9dl)?c:Bet7]}gG/kobx">SA</field>
+    <comment pinned="false" h="208" w="304">\n&#9;calculate GCD and LCM\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.00\n</comment>
+    <value name="VALUE">
+      <block type="math_number" id="8Z,8G^B]#H_uOe|c?=Ac">
+        <field name="NUM">119</field>
+      </block>
+    </value>
+    <next>
+      <block type="variables_set" id="Y)mR^q$]|xNmi!mkhgDq">
+        <field name="VAR" id="|VQ.k14!@_W76|ejtzS,">SB</field>
+        <value name="VALUE">
+          <block type="math_number" id="*Ah].w5fVapI^T!}.}!z">
+            <field name="NUM">272</field>
+          </block>
+        </value>
+        <next>
+          <block type="mcvm_cpu_asm" id="mDhmtQJQvjpQS[G4/ZIE">
+            <field name="ASM">// ================================</field>
+            <next>
+              <block type="variables_set" id="aqk#vqk-Q@(sF67Y}//=">
+                <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                <comment pinned="false" h="80" w="160">GCD</comment>
+                <value name="VALUE">
+                  <block type="variables_get" id="b:d)POnL/k3yVo,ne[tr">
+                    <field name="VAR" id="9dl)?c:Bet7]}gG/kobx">SA</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id=")r*6DjCaj!;wy,Z7cO|6">
+                    <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                    <value name="VALUE">
+                      <block type="variables_get" id="C^M-~td(ND#htF.[.*#2">
+                        <field name="VAR" id="|VQ.k14!@_W76|ejtzS,">SB</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_whileUntil" id=")B!ivA=YHejAo?,,d0l!">
+                        <field name="MODE">WHILE</field>
+                        <value name="BOOL">
+                          <block type="logic_compare" id="p%8v$c%,G7(kkC6Io8*2">
+                            <field name="OP">NEQ</field>
+                            <value name="A">
+                              <block type="variables_get" id="5bx}2:3NcrSekT$(miVT">
+                                <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="variables_get" id="^+Y6:pN#DCX|nlEoceer">
+                                <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO">
+                          <block type="controls_if" id="^5`3zw)TxFlEqZ.g~@]=">
+                            <value name="IF0">
+                              <block type="logic_compare" id="Kv:qCm-}(t2OTqrv32xC">
+                                <field name="OP">LT</field>
+                                <value name="A">
+                                  <block type="variables_get" id="/L[6UOa8BzeWoPF*4!)j">
+                                    <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <block type="variables_get" id=",ARVZ%0-^TYf;V~oDDN7">
+                                    <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <statement name="DO0">
+                              <block type="mcoc_swap" id="40ts0L9|QzRUZNjKZoD[">
+                                <field name="A" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                                <field name="B" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                              </block>
+                            </statement>
+                            <next>
+                              <block type="variables_set" id="JmS|V#%g:fgC0w;EE3sR">
+                                <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                                <value name="VALUE">
+                                  <block type="math_arithmetic" id="%GG{g3Lx@z$=omvbMVlU">
+                                    <field name="OP">MINUS</field>
+                                    <value name="A">
+                                      <shadow type="math_number" id="#R#6a5dQy^AZ0r3kb$So">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                      <block type="variables_get" id="u]ADqxP1fU:,,@vx.~t%">
+                                        <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                                      </block>
+                                    </value>
+                                    <value name="B">
+                                      <shadow type="math_number" id="+vLmsV-ODRb#~yJ^sl-H">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                      <block type="variables_get" id="7WXqZQLeSq`HC}#^H-e5">
+                                        <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="variables_set" id="|G[)wc2{MyOQ9,D3l1!D">
+                            <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                            <comment pinned="false" h="80" w="160">LCM</comment>
+                            <value name="VALUE">
+                              <block type="math_arithmetic" id="4U]!kwa+M!$Nx9pyh*5t">
+                                <field name="OP">MULTIPLY</field>
+                                <value name="A">
+                                  <shadow type="math_number" id="#R#6a5dQy^AZ0r3kb$So">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                  <block type="math_arithmetic" id="w%(31=X.5-][0fJ|kMPZ">
+                                    <field name="OP">DIVIDE</field>
+                                    <value name="A">
+                                      <shadow type="math_number" id="#R#6a5dQy^AZ0r3kb$So">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                      <block type="variables_get" id="%D]F9|`|7q}J(P~PsPP^">
+                                        <field name="VAR" id="9dl)?c:Bet7]}gG/kobx">SA</field>
+                                      </block>
+                                    </value>
+                                    <value name="B">
+                                      <shadow type="math_number" id="+vLmsV-ODRb#~yJ^sl-H">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                      <block type="variables_get" id="^Z{`onHmY4#]*^Jv8kth">
+                                        <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <shadow type="math_number" id="+vLmsV-ODRb#~yJ^sl-H">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                  <block type="variables_get" id="R*A#)YPBt(F,K{uab6?)">
+                                    <field name="VAR" id="|VQ.k14!@_W76|ejtzS,">SB</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="mcoc_uart_println" id="h#;izO@WV6K$Xp!!qn5I">
+                                <comment pinned="false" h="80" w="160">show results</comment>
+                                <value name="TXT">
+                                  <block type="text_join" id="@M3_ognvcntAhTlbzznG">
+                                    <mutation items="8"></mutation>
+                                    <value name="ADD0">
+                                      <block type="text" id="BN7I}haJdX3rU0;S1BZk">
+                                        <field name="TEXT">GCD(</field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD1">
+                                      <block type="variables_get" id="4)9,*B3AJZ0uMI/?oF!{">
+                                        <field name="VAR" id="9dl)?c:Bet7]}gG/kobx">SA</field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD2">
+                                      <block type="text" id="cyPp:DG%$Pog_`vq@W}{">
+                                        <field name="TEXT">, </field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD3">
+                                      <block type="variables_get" id="b!(TVo|=$faxrqj_20ee">
+                                        <field name="VAR" id="|VQ.k14!@_W76|ejtzS,">SB</field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD4">
+                                      <block type="text" id="cyF[Imv9oY_Gk}S;zBJ1">
+                                        <field name="TEXT">) = </field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD5">
+                                      <block type="variables_get" id="wUnNv0TGRbpEwc/gFEy}">
+                                        <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD6">
+                                      <block type="text" id="I]6H@Z8$ZIR9IH].pe2b">
+                                        <field name="TEXT">; LCM = </field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD7">
+                                      <block type="variables_get" id="I1dI4|z0!3AkN1:[n$-c">
+                                        <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>

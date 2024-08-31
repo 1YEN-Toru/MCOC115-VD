@@ -1,0 +1,198 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="],Rj:AJ1C,P1N[dbIAmq">idx_i</variable>
+  </variables>
+  <block type="mcoc_port_write" id="IM0B6P;yE=}0VhkhYt{t" x="13" y="13">
+    <comment pinned="false" h="109" w="334">\n&#9;brink RGB LED\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.02\n&#9;&#9;&#9;Blockly demo edition\n\n&#9;&#9;2024/07/27&#9;ver.1.00\n</comment>
+    <value name="PIN">
+      <block type="math_number" id="maSn7r~SQ)r9[XE.j##2">
+        <field name="NUM">0</field>
+      </block>
+    </value>
+    <value name="VAL">
+      <block type="mcoc_math_number" id="LuR-CB12Eb@cAgDoLNFS">
+        <field name="NUM">HIGH</field>
+      </block>
+    </value>
+    <next>
+      <block type="mcoc_port_write" id="Hp)_oE;?Pf^T`,`v,Z~#">
+        <value name="PIN">
+          <block type="math_number" id="/E@=2]PXEywfz0OtF^ao">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="VAL">
+          <block type="mcoc_math_number" id="+[3}]Q|LbFg,L8_az80|">
+            <field name="NUM">HIGH</field>
+          </block>
+        </value>
+        <next>
+          <block type="mcoc_port_write" id="T13P{CHe_rj7Vxe/?A5q">
+            <value name="PIN">
+              <block type="math_number" id="a=dGReti#^3/Hxx_VvRy">
+                <field name="NUM">2</field>
+              </block>
+            </value>
+            <value name="VAL">
+              <block type="mcoc_math_number" id="EVqh(*]Y3p1~B5C19E34">
+                <field name="NUM">HIGH</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="+_JJMGkQ53MD~Y!8j@tL">
+                <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                <value name="VALUE">
+                  <block type="math_number" id="ofw]/`7}@OKOAG.yk5}I">
+                    <field name="NUM">0</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_whileUntil" id=",o=hJnHhh=@:^C;/FnbD">
+                    <field name="MODE">WHILE</field>
+                    <comment pinned="false" h="80" w="160">loop</comment>
+                    <value name="BOOL">
+                      <block type="logic_boolean" id="L6Jeq|EZJviv4t)O],D9">
+                        <field name="BOOL">TRUE</field>
+                      </block>
+                    </value>
+                    <statement name="DO">
+                      <block type="mcoc_port_write" id="ucBwF-hQ_x0HO?S(KGOs">
+                        <value name="PIN">
+                          <block type="variables_get" id="8l*YBK]LziV#}9pFA1~q">
+                            <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                          </block>
+                        </value>
+                        <value name="VAL">
+                          <block type="mcoc_math_number" id="rb..;_88VjqDn-U4F*Pr">
+                            <field name="NUM">LOW</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="mcoc_sytm_delay" id="/v%;EzSLp;~zew@q+CaE">
+                            <value name="VAL">
+                              <block type="math_number" id="XbgSM+%qz?E}OJVX5muH">
+                                <field name="NUM">150</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="mcoc_port_write" id="/B{q7iQMr=PE|PV7qwO2">
+                                <value name="PIN">
+                                  <block type="variables_get" id="s}#/Rx~8Ef(SQ1{*~wP!">
+                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                  </block>
+                                </value>
+                                <value name="VAL">
+                                  <block type="mcoc_math_number" id="[W6E|1ORG=x4gN1HRuiz">
+                                    <field name="NUM">HIGH</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="mcoc_sytm_delay" id="Rpge.(?ou,iANI6Wb,zA">
+                                    <value name="VAL">
+                                      <block type="math_number" id="~e#-iu](ZNkh6qo1/dj/">
+                                        <field name="NUM">150</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="mcoc_port_write" id="Dfx69:8lXVU%UGvhx+v2">
+                                        <value name="PIN">
+                                          <block type="variables_get" id="yDfuU})UmiAzXrE4jPfa">
+                                            <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                          </block>
+                                        </value>
+                                        <value name="VAL">
+                                          <block type="mcoc_math_number" id="K=J]ewZS2n;,SsA8K%ks">
+                                            <field name="NUM">LOW</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="mcoc_sytm_delay" id="R;jw~%[mrMq_v~u)J=E@">
+                                            <value name="VAL">
+                                              <block type="math_number" id="VS`h!_|FGqi^qbvf9[5$">
+                                                <field name="NUM">150</field>
+                                              </block>
+                                            </value>
+                                            <next>
+                                              <block type="mcoc_port_write" id="KVe0S~O.QcUg;i7;g~3a">
+                                                <value name="PIN">
+                                                  <block type="variables_get" id="{Q[)JtiE=zd?yaL~n#mV">
+                                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                  </block>
+                                                </value>
+                                                <value name="VAL">
+                                                  <block type="mcoc_math_number" id="A^-INMl7N40Al||t)HT{">
+                                                    <field name="NUM">HIGH</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="mcoc_sytm_delay" id="4.;6UxgKl7:DJ;%%moD#">
+                                                    <value name="VAL">
+                                                      <block type="math_number" id="N+}}A?w5fqE.vD5.Tbt%">
+                                                        <field name="NUM">550</field>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="math_change" id="-6n619S7Tln)HV$pv|5O">
+                                                        <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                        <value name="DELTA">
+                                                          <shadow type="math_number" id="~-Nnz.b}Um+;t8/x+6%}">
+                                                            <field name="NUM">1</field>
+                                                          </shadow>
+                                                        </value>
+                                                        <next>
+                                                          <block type="controls_if" id="86:LJ/=K(s^MAIW*OyzQ">
+                                                            <value name="IF0">
+                                                              <block type="logic_compare" id="PpHMVU{l0:UNtQZ:f9;m">
+                                                                <field name="OP">GTE</field>
+                                                                <value name="A">
+                                                                  <block type="variables_get" id="-B%wv{{C:H6;mGB*tLzI">
+                                                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                                  </block>
+                                                                </value>
+                                                                <value name="B">
+                                                                  <block type="math_number" id="e{ja5%Mv(bgD#|O[p[}A">
+                                                                    <field name="NUM">3</field>
+                                                                  </block>
+                                                                </value>
+                                                              </block>
+                                                            </value>
+                                                            <statement name="DO0">
+                                                              <block type="variables_set" id="(o.Mujf#HmOrT]X8D7a*">
+                                                                <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                                <value name="VALUE">
+                                                                  <block type="math_number" id="TEr_eF@(q[t):Xze^@hz">
+                                                                    <field name="NUM">0</field>
+                                                                  </block>
+                                                                </value>
+                                                              </block>
+                                                            </statement>
+                                                          </block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>

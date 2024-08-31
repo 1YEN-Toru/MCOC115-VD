@@ -1,0 +1,249 @@
+model	"Blockly.XML pretty printer"
+{
+// ================================
+//
+//	Blockly.XML pretty printer
+//		(c) 2024	1YEN Toru
+//
+//
+//		2024/08/31	ver.1.00
+//
+// ================================
+
+
+	// constants
+	macro	str_indt="	";				// indent string
+
+
+	// variables
+	var		id_num;						// serial ID number
+	macro	dir,mynam,ext;
+	pathsplit	$(pathname), dir,mynam,ext;
+
+
+	// input file name
+	var		rtn;
+	macro	fnam;
+	macro	fnam_in;
+	macro	fnam_out;
+	macro	fnam_tmp;
+	gui		openfile, rtn, "入力ファイル","",fnam_in;
+	if (rtn=guiCancel)
+	{
+		// cancelled; select default source
+		pathsplit	$(pathname), dir,fnam,ext;
+		mlet	fnam_in=$(dir)$/$(fnam)".txt";
+		ifnacc	$(fnam_in)
+		{
+			// cancelled; default source not found
+			leave	stop_error;
+		}
+	}
+	pathsplit	$(fnam_in), dir,fnam,ext;
+	mlet	fnam_out=$(dir)$/$(fnam)"_out.txt";
+
+
+	// procedures
+	procedure	fget_xml
+	{
+		// "<"～">"を取ってくる。
+		// 先頭文字が"<"では無かった場合、次の"<"手前までを取り出す。
+		var		cmp;
+		var		cod;
+		macro	chr;
+
+		ftell	fin,fpos;
+		progress	"変換中…",100*fpos/fsiz;
+
+		// 読み出し
+		fgetb	fin,cod;
+		num2chr		chr=cod;
+		strcmp	cmp="<",$(chr);
+		if (cmp=0)
+		{
+			// "<"～">"
+			repeat
+			{
+				strcat	fget_xml, $(chr);
+				fgetb	fin,cod;
+				if (cod<0)
+				{
+					// ERROR:
+					fget_xml=cod;
+					break;
+				}
+				num2chr		chr=cod;
+				strcmp	cmp=">",$(chr);
+			} until (cmp=0);
+			strcat	fget_xml, $(chr);
+		}
+		else
+		{
+			// 次の"<"手前まで
+			var		fpos;
+
+			repeat
+			{
+				strcat	fget_xml, $(chr);
+				ftell	fin,fpos;
+				fgetb	fin,cod;
+				if (cod<0)
+				{
+					// ERROR:
+					fget_xml=cod;
+					break;
+				}
+				if (cod=0x0a)
+				{
+					mlet	chr=$,;
+				}
+				else
+				{
+					num2chr		chr=cod;
+				}
+				strcmp	cmp="<",$(chr);
+			} until (cmp=0);
+			fseek	fin,fpos;
+			// 改行とインデントを無視
+			psub	"^"$," *$","",fget_xml;
+			// 改行を"\n"に置換
+			gsub	$,,"\n",fget_xml;
+		}
+		// 不要な項目を削除
+		pgsub	"\\"$",$",fget_xml;
+		// タグ
+		pindex	cmp=$(fget_xml),"^<[^>]*>$";
+		if (cmp>0)
+		{
+			pgsub	" id="$""[^"$""]*"$"," id="$"#(id_num)$",fget_xml;
+			if (status>0)
+			{
+				id_num=id_num + 1;
+			}
+		}
+		// タグ以外
+		pindex	cmp=$(fget_xml),"^<";
+		if (cmp<=0)
+		{
+//			gsub	"&#9;","\t",fget_xml;
+//			gsub	"&#10;","\n",fget_xml;
+//			gsub	"&gt;",">",fget_xml;
+//			gsub	"&lt;","<",fget_xml;	// 変換しない。
+//			gsub	"&amp;","&",fget_xml;
+		}
+		// 読み込みエラーが発生した時に終了
+		if (fget_xml)
+		{
+			// error injection
+			mlet	fget_xml="<error>";
+		}
+		// 空文字列だったら、更に次を読み出す(上のエラー処理が先)
+		strcmp	cmp=$(fget_xml),"";
+		if (cmp=0)
+		{
+			fget_xml;
+		}
+if (false)
+{
+	macro	tmp=$(fget_xml);
+	pgsub	"#","##",tmp;
+	fprint	fout,"##fget_xml:"$(tmp)$,;
+}
+	}
+	procedure	indent	nindt
+	{
+		var		idx;
+
+		if (nindt<0)
+		{
+			nidnt=0;
+		}
+		while (idx<nindt)
+		{
+			fprint	fout,$(str_indt);
+
+			// continue
+			idx=idx + 1;
+		}
+	}
+	procedure	do_xml
+	{
+		var		cmp;
+		var		nindt;
+
+		fget_xml;
+		while (fget_xml>=0)
+		{
+			strcmp	cmp=$(fget_xml),"";
+			if (cmp=0)
+			{
+				// continue
+				fget_xml;
+				continue;
+			}
+
+			pindex	cmp=$(fget_xml),"^</";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(fget_xml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				pindex	cmp=$(fget_xml),"^</next[ >]";
+				if (cmp<=0)
+				{
+					nindt=nindt - 1;
+				}
+			}
+
+			strcmp	cmp=$(fget_xml),"<",left;
+			if (true | cmp=0)
+			{
+				indent	nindt;
+			}
+			pgsub	"#","##",fget_xml;
+			gsub	"&lt;","<",fget_xml;
+			fprint	fout,$(fget_xml)$,;
+
+			pindex	cmp=$(fget_xml),"^<[^/].*[^/]>$";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(fget_xml),"^</next[ >]";
+			}
+			if (cmp>0)
+			{
+				pindex	cmp=$(fget_xml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					nindt=nindt + 1;
+				}
+			}
+
+			// continue
+			fget_xml;
+		}
+	}
+
+
+	// open files
+	var		fin;
+	var		fout;
+	fopen	fin,$(fnam_in),"r";
+	fopen	fout,$(fnam_out),"w";
+
+	var		fpos,fsiz;
+	fseek	fin,-1;
+	ftell	fpos,fsiz;
+	fseek	fin,0;
+
+	do_xml;
+
+
+	// close files
+	fclose	fin;
+	fclose	fout;
+
+
+	leave	stop_error;
+}
+
