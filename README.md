@@ -46,9 +46,9 @@
 	- You need install Olive+ on your Windows PC.
 	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
-- [BlocklyDuino](https://code.makewitharduino.com/?lang=en#)
+- [Blockly](https://github.com/google/blockly)
 	- Block base visual programming environment.
-	![bino](http://hello.world.coocan.jp/ARDUINO31/a312_bino.png)
+	![blky](http://hello.world.coocan.jp/ARDUINO31/a316_blky_edit.png)
 	- Assemble blocks to control MCU.
 	- Download program code in XML format, and translate it to Moscovium assembler source list.
 
@@ -66,7 +66,7 @@
 	- blky/
 		- Blockly.XML to Moscovium.ASM translator and sample sources
 	- asm/
-		- Assembler and sample sources
+		- Macro assembler and sample sources
 	- ip/
 		- IP units
 	- mcu/
@@ -243,7 +243,7 @@
 
 1. [Moscovium series MCU](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP)
 	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html)
-	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a312_blky2mcvm.html#BLKY2MCVM)
+	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKY2MCVM)
 	- [Assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
 		- [Moscovium instruction set manual](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](http://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)

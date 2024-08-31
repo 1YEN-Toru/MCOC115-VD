@@ -491,7 +491,7 @@ always	@(posedge clk)
 							$write ("%e",rx);
 						else if (prin_ctl[3:2]==2'b11)
 							$write ("%g",rx);
-						else	// never occure
+						else	// never occur
 							$write ("%h",{ prin_hxlh[15:0],top.bdatw[15:0] });
 						if (prin_ctl[15:8]!=8'h0)
 							$write ("%s",prin_ctl[15:8]);
@@ -577,11 +577,11 @@ IS61WV5128BLL	sram (
 	.uar1_cts(uar1_cts),	// Input
 	.intc_int0(intc_int0),	// Input
 	.intc_int1(intc_int1),	// Input
-	.stws_scl(stws_scl),	// Inout
-	.stws_sda(stws_sda),	// Inout
-	.pmod_iop(pmod_iop[7:0]),	// Inout
-	.port_iop(port_iop[15:0]),	// Inout
-//	.user_iop(user_iop[15:0]),	// Inout
+	.stws_scl(stws_scl),	// InOut
+	.stws_sda(stws_sda),	// InOut
+	.pmod_iop(pmod_iop[7:0]),	// InOut
+	.port_iop(port_iop[15:0]),	// InOut
+//	.user_iop(user_iop[15:0]),	// InOut
 	.uart_txd(uart_txd),	// Output
 	.uar1_txd(uar1_txd),	// Output
 	.uar1_rts(uar1_rts),	// Output
@@ -590,7 +590,7 @@ IS61WV5128BLL	sram (
 	.tim1_pwma(tim1_pwma),	// Output
 	.tim1_pwmb(tim1_pwmb),	// Output
 	// SRAM I/F
-	.sram_dq(sram_dq[7:0]),	// Inout
+	.sram_dq(sram_dq[7:0]),	// InOut
 	.sram_cen(sram_cen),	// Output
 	.sram_oen(sram_oen),	// Output
 	.sram_wen(sram_wen),	// Output

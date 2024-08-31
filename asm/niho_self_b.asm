@@ -1,5 +1,5 @@
 // ================================
-// Nihonium
+//	Nihonium
 //		all instructions self test B
 //		(c) 2022,2023	1YEN Toru
 //
@@ -44,7 +44,7 @@ reg_pass:
 // ================================
 // skip if mcvm_has_xadr==0
 ldbiu	r0,mcvm_has_xadr
-mov		r0,r0
+cmpi	r0,0
 beq		xadr_skip
 // initialize sdram controller
 // wait for sdram controller ready
@@ -204,7 +204,7 @@ xadr_skip:
 // ================================
 // skip if mcvm_has_hfpu==0
 ldbiu	r0,mcvm_has_hfpu
-mov		r0,r0
+cmpi	r0,0
 beq		hfpu_skip
 // ================================
 // half precision
@@ -398,7 +398,7 @@ hfpu_skip:
 // ================================
 // skip if mcvm_has_sfpu==0
 ldbiu	r0,mcvm_has_sfpu
-mov		r0,r0
+cmpi	r0,0
 beq		sfpu_skip
 // ================================
 // single precision

@@ -1,5 +1,5 @@
 // ================================
-// Nihonium
+//	Nihonium
 //		all instructions self test
 //		(c) 2022,2023	1YEN Toru
 //

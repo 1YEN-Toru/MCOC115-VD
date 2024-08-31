@@ -1,5 +1,5 @@
 // ================================
-// Moscovium
+//	Moscovium
 //		all instructions self test
 //		(c) 2021	1YEN Toru
 //
@@ -70,21 +70,21 @@ def		s,""							// simulation "" / fpga "#"
 // initial value
 // bank 3
 ldcl	sr,sreg_bk_3
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
-mov		r1,r1
+cmpi	r1,0
 bne		reg_fail
-mov		r2,r2
+cmpi	r2,0
 bne		reg_fail
-mov		r3,r3
+cmpi	r3,0
 bne		reg_fail
-mov		r4,r4
+cmpi	r4,0
 bne		reg_fail
-mov		r5,r5
+cmpi	r5,0
 bne		reg_fail
-mov		r6,r6
+cmpi	r6,0
 bne		reg_fail
-mov		r7,r7
+cmpi	r7,0
 bne		reg_fail
 ldwi	r0,0x3333
 mov		r1,r0
@@ -96,21 +96,21 @@ mov		r6,r5
 mov		r7,r6
 // bank 2
 ldcl	sr,sreg_bk_2
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
-mov		r1,r1
+cmpi	r1,0
 bne		reg_fail
-mov		r2,r2
+cmpi	r2,0
 bne		reg_fail
-mov		r3,r3
+cmpi	r3,0
 bne		reg_fail
-mov		r4,r4
+cmpi	r4,0
 bne		reg_fail
-mov		r5,r5
+cmpi	r5,0
 bne		reg_fail
-mov		r6,r6
+cmpi	r6,0
 bne		reg_fail
-mov		r7,r7
+cmpi	r7,0
 bne		reg_fail
 ldwi	r0,0x2222
 mov		r1,r0
@@ -122,21 +122,21 @@ mov		r6,r5
 mov		r7,r6
 // bank 1
 ldcl	sr,sreg_bk_1
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
-mov		r1,r1
+cmpi	r1,0
 bne		reg_fail
-mov		r2,r2
+cmpi	r2,0
 bne		reg_fail
-mov		r3,r3
+cmpi	r3,0
 bne		reg_fail
-mov		r4,r4
+cmpi	r4,0
 bne		reg_fail
-mov		r5,r5
+cmpi	r5,0
 bne		reg_fail
-mov		r6,r6
+cmpi	r6,0
 bne		reg_fail
-mov		r7,r7
+cmpi	r7,0
 bne		reg_fail
 ldwi	r0,0x1111
 mov		r1,r0
@@ -148,21 +148,21 @@ mov		r6,r5
 mov		r7,r6
 // bank 0
 ldcl	sr,sreg_bk_0
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
-mov		r1,r1
+cmpi	r1,0
 bne		reg_fail
-mov		r2,r2
+cmpi	r2,0
 bne		reg_fail
-mov		r3,r3
+cmpi	r3,0
 bne		reg_fail
-mov		r4,r4
+cmpi	r4,0
 bne		reg_fail
-mov		r5,r5
+cmpi	r5,0
 bne		reg_fail
-mov		r6,r6
+cmpi	r6,0
 bne		reg_fail
-mov		r7,r7
+cmpi	r7,0
 bne		reg_fail
 ldwi	r0,0xffff
 mov		r1,r0
@@ -191,13 +191,13 @@ cmp		r7,r0
 bne		reg_fail
 // control register
 movfc	r0,sp
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
 movfc	r0,iv
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
 movfc	r0,tr
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
 
 // sr register, check cpu id to test
@@ -307,7 +307,7 @@ bne		opc_no_fail
 // ********************************
 // skip if mcvm_has_divl==0
 ldbiu	r0,mcvm_has_divl
-mov		r0,r0
+cmpi	r0,0
 beq		divl_skip
 
 // ================================
@@ -1137,7 +1137,7 @@ bne		opc_rr_fail
 // ********************************
 // skip if mcvm_has_mulc==0
 ldbiu	r0,mcvm_has_mulc
-mov		r0,r0
+cmpi	r0,0
 beq		mulc_skip
 
 // ================================
@@ -1213,7 +1213,7 @@ mulc_skip:
 // ********************************
 // skip if mcvm_has_divc==0
 ldbiu	r0,mcvm_has_divc
-mov		r0,r0
+cmpi	r0,0
 beq		divc_skip
 
 // ================================
@@ -1542,7 +1542,7 @@ opc_ri_pass:
 // ================================
 // skip if mcvm_has_xadr==0
 ldbiu	r0,mcvm_has_xadr
-mov		r0,r0
+cmpi	r0,0
 beq		xadr_skip
 // initialize sdram controller
 // wait for sdram controller ready
@@ -1622,7 +1622,7 @@ xadr_skip:
 // ================================
 // skip if mcvm_has_hfpu==0
 ldbiu	r0,mcvm_has_hfpu
-mov		r0,r0
+cmpi	r0,0
 beq		hfpu_skip
 // ================================
 // half precision

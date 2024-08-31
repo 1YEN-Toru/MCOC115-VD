@@ -1,5 +1,5 @@
 // ================================
-// MxOC115 / NxOC113 / TSOC117 Combinational Test
+//	MxOC115 / NxOC113 / TSOC117 Combinational Test
 //		CPU recognition (dual core cpu ready)
 //		(c) 2023	1YEN Toru
 // ================================

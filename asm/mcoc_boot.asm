@@ -1,5 +1,5 @@
 // ================================
-// Moscovium series boot loader
+//	Moscovium series boot loader
 //		(c) 2021	1YEN Toru
 //
 //
@@ -69,7 +69,7 @@ bra		pcnt+2
 datw	prog_vers
 
 // set sp to the bottom of ram area
-ldwi	r7,idrgramt						// idrg: ram top addr.
+ldwi	r7,idrgramt						// idrg: ram top address
 ldw		r0,[r7]
 ldbil	r7,idrgrams						// idrg: ram size
 ldw		r7,[r7]
@@ -174,7 +174,7 @@ cmpi	r0,chr_tab
 beq		loop2
 cmpi	r0,chr_spc
 beq		loop2
-mov		r0,r0
+cmpi	r0,0
 beq		loop
 
 // ================================

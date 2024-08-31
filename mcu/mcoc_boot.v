@@ -6,7 +6,7 @@
 //	output	reg		[15:0]	dat);
 //	always	@(adr[6:0])
 //		case ({ adr[6:0],1'b0 })
-//		// Moscovium series macro assembler ver.1.40
+//		// Moscovium series macro assembler ver.1.44
 //		// ================================
 //		// Moscovium series boot loader
 //		//		(c) 2021	1YEN Toru
@@ -150,7 +150,7 @@
 //		8'h9c: dat[15:0]=16'h1ffc;	// beq    loop2
 //		8'h9e: dat[15:0]=16'ha820;	// cmpi   r0,chr_spc
 //		8'ha0: dat[15:0]=16'h1ffa;	// beq    loop2
-//		8'ha2: dat[15:0]=16'h78c0;	// mov    r0,r0
+//		8'ha2: dat[15:0]=16'ha800;	// cmpi   r0,0
 //		8'ha4: dat[15:0]=16'h1fc0;	// beq    loop
 //		// ================================
 //		// @<address>
@@ -230,6 +230,48 @@
 //		//	0xf0ee	adcdat3
 //		//	0xf0e2	adcint
 //		//	0xf0e4	adcperi
+//		//	0x0001	adcx_bsy
+//		//	0x0014	adcx_drp_ain0
+//		//	0x001c	adcx_drp_ain1
+//		//	0x0040	adcx_drp_cfg0
+//		//	0x0100	adcx_drp_cfg0_acq
+//		//	0x0000	adcx_drp_cfg0_avg_0
+//		//	0x1000	adcx_drp_cfg0_avg_1
+//		//	0x2000	adcx_drp_cfg0_avg_2
+//		//	0x3000	adcx_drp_cfg0_avg_3
+//		//	0x0400	adcx_drp_cfg0_bu
+//		//	0x0200	adcx_drp_cfg0_ec
+//		//	0x0041	adcx_drp_cfg1
+//		//	0x2000	adcx_drp_cfg1_seq_cont
+//		//	0xf000	adcx_drp_cfg1_seq_mask
+//		//	0x3000	adcx_drp_cfg1_seq_sglc
+//		//	0x1000	adcx_drp_cfg1_seq_sglp
+//		//	0x4000	adcx_drp_cfg1_seq_smul
+//		//	0x0042	adcx_drp_cfg2
+//		//	0x003f	adcx_drp_flag
+//		//	0x0048	adcx_drp_seq0_csel
+//		//	0x0010	adcx_drp_seq1_ain0
+//		//	0x1000	adcx_drp_seq1_ain1
+//		//	0x0049	adcx_drp_seq1_csel
+//		//	0x004a	adcx_drp_seq2_cave
+//		//	0x004b	adcx_drp_seq3_cave
+//		//	0x004c	adcx_drp_seq4_amod
+//		//	0x004d	adcx_drp_seq5_amod
+//		//	0x004e	adcx_drp_seq6_stim
+//		//	0x004f	adcx_drp_seq7_stim
+//		//	0x001c	adcx_drp_vaux12
+//		//	0x0014	adcx_drp_vaux4
+//		//	0x0008	adcx_drpe
+//		//	0x0020	adcx_eocf
+//		//	0x0040	adcx_eosf
+//		//	0x0080	adcx_xbsy
+//		//	0xf178	adcxadrr
+//		//	0xf17c	adcxadrw
+//		//	0xf174	adcxain0
+//		//	0xf176	adcxain1
+//		//	0xf170	adcxctl
+//		//	0xf17a	adcxdatr
+//		//	0xf17e	adcxdatw
 //		//	0x2580	baud
 //		//	0xf0f8	cachcnth
 //		//	0xf0fa	cachcntl
@@ -246,6 +288,19 @@
 //		//	0x000a	chr_lf
 //		//	0x0020	chr_spc
 //		//	0x0009	chr_tab
+//		//	0x0003	cm76_b10
+//		//	0x0002	cm76_cenb
+//		//	0x0040	cm76_fabl
+//		//	0x0080	cm76_fful
+//		//	0x0020	cm76_frbs
+//		//	0x000c	cm76_g10
+//		//	0x0040	cm76_hsyn
+//		//	0x0010	cm76_pckv
+//		//	0x0030	cm76_r10
+//		//	0x0080	cm76_vsyn
+//		//	0x0001	cm76_xcke
+//		//	0xf180	cm76ctl
+//		//	0xf182	cm76pix
 //		//	0x0040	dac_bitw_10b
 //		//	0x0050	dac_bitw_11b
 //		//	0x0060	dac_bitw_12b
@@ -659,6 +714,8 @@
 //		//	0xffc00000	sngl_nan
 //		//	0x0000	sngl_zer
 //		//	0x80000000	sngl_zer_n
+//		//	0x00080000	sramsiz
+//		//	0x00100000	sramtop
 //		//	0x0000	sreg_b_b0
 //		//	0x0001	sreg_b_b1
 //		//	0x0000	sreg_b_bk0
@@ -829,6 +886,27 @@
 //		//	p	""
 //		//	d	""
 //		// user macro lists
+//		//	movw	rd rs
+//		//	andw	rd rs
+//		//	orw		rd rs
+//		//	eorw	rd rs
+//		//	addw	rd rs
+//		//	subw	rd rs
+//		//	cmpw	rd rs
+//		//	negw	rn
+//		//	notw	rn
+//		//	addwi	rd imm
+//		//	subwi	rd imm
+//		//	cmpwi	rd imm
+//		//	andwi	rd imm
+//		//	lslwi	rd imm
+//		//	lsrwi	rd imm
+//		//	aslwi	rd imm
+//		//	asrwi	rd imm
+//		//	cslwi	rd imm
+//		//	csrwi	rd imm
+//		//	muluw	rd rs
+//		//	mulsw	rd rs
 //		// ================================
 //		default: dat[15:0]=16'hffff;
 //		endcase
@@ -838,7 +916,7 @@
 // Assemble data:
 //
 module	mcoc_boot (
-// Moscovium series macro assembler ver.1.40
+// Moscovium series macro assembler ver.1.44
 input	[5:0]	adr,
 output	reg		[31:0]	dat);
 always	@(adr[5:0])
@@ -883,7 +961,7 @@ always	@(adr[5:0])
 	6'h25: dat[31:0]=32'hbfc2_7b01;
 	6'h26: dat[31:0]=32'h9901_a809;
 	6'h27: dat[31:0]=32'h1ffc_a820;
-	6'h28: dat[31:0]=32'h1ffa_78c0;
+	6'h28: dat[31:0]=32'h1ffa_a800;
 	6'h29: dat[31:0]=32'h1fc0_a840;
 	6'h2a: dat[31:0]=32'h1004_7f8f;
 	6'h2b: dat[31:0]=32'hd801_78f0;

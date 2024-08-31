@@ -1,11 +1,15 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.42";
+	macro	prog_vers="1.44";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2024/08/31	ver.1.44
+//			instruction: hdown
+//			change: label list generation
 //
 //		2023/12/16	ver.1.42
 //			pseudo: equ; tolower label name
@@ -20,7 +24,7 @@ model	"Moscovium series macro assembler"
 //
 //		2023/10/21	ver.1.36
 //			change: pseud: asm
-//				valid output file extention: mem/mif/v/dat2
+//				valid output file extension: mem/mif/v/dat2
 //				add option: bit16, bit32 (default)
 //			output file:
 //				<output_file>.{mem/mif/v/dat2} as 16/32 bit data
@@ -131,9 +135,9 @@ model	"Moscovium series macro assembler"
 	var		TGTTNSN=3;					// target core: Tennessine
 	var		MAX_NO=14;					// maximum index of NO instructions
 	var		MAX_BR=27;					// maximum index of BR instructions
-	var		MAX_RR=87;					// maximum index of RR instructions
-	var		MAX_R=113;					// maximum index of R instructions
-	var		MAX_RI=127;					// maximum index of RI instructions
+	var		MAX_RR=88;					// maximum index of RR instructions
+	var		MAX_R=114;					// maximum index of R instructions
+	var		MAX_RI=128;					// maximum index of RI instructions
 	var		MSIZ=6;						// maximum mnemonic size
 	macro	mnem=
 			"nop   "
@@ -186,6 +190,7 @@ model	"Moscovium series macro assembler"
 			"hmvsg "
 			"hsat  "
 			"hcmp  "
+			"hdown "
 			"mulur "
 			"mulsr "
 			"divur "
@@ -321,6 +326,7 @@ model	"Moscovium series macro assembler"
 			"7200t"
 			"7240t"
 			"7280t"
+			"72C0t"
 			"7400 "
 			"7440 "
 			"7480t"
@@ -406,7 +412,7 @@ model	"Moscovium series macro assembler"
 	var		LISOUT=false;				// true=output .lis file
 	var		TGTCORE=TGTANY;				// TGTANY=all
 	var		ASMBIT=32;					// output data width [bit]
-	var		ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));		// CL-ROM addr. bits
+	var		ROMBIT=int (ceil (ln (ROMSIZ)/ln (2)));		// CL-ROM address bits
 	var		asm.core.mc=TGTMCVM;
 	var		asm.core.nh=TGTNIHO;
 	var		asm.core.ts=TGTTNSN;
@@ -1050,7 +1056,7 @@ model	"Moscovium series macro assembler"
 				dat=@($(get_word));
 				if (dat<-128 | 255<dat)
 				{
-					errmsg	"datb outof range: "$(get_word)"=#",dat;
+					errmsg	"datb out of range: "$(get_word)"=#",dat;
 					leave	stop_error;
 				}
 				cod=@((dat&0xff)<<8);
@@ -1062,7 +1068,7 @@ model	"Moscovium series macro assembler"
 				dat=@($(get_word));
 				if (dat<-128 | 255<dat)
 				{
-					errmsg	"datb outof range: "$(get_word)"=#",dat;
+					errmsg	"datb out of range: "$(get_word)"=#",dat;
 					leave	stop_error;
 				}
 				cod=cod + @(dat);
@@ -1904,7 +1910,7 @@ model	"Moscovium series macro assembler"
 			var		idx3;
 			while (idx3<num - 2)
 			{
-				// get param
+				// get parameter
 				skip_space;
 				get_word;
 				idx=idx + 1;
@@ -2434,6 +2440,8 @@ vtime	asm_start;
 	} until (stat!=0);
 
 	// label list
+	var		cmp;
+	macro	err_var;
 	fclose	flab;
 	fsort	$(fnam_lab),"",uniq;
 	fopen	flab,$(fnam_lab),"r";
@@ -2442,9 +2450,14 @@ vtime	asm_start;
 	fgetl	flab,lbuf;
 	while (fNF>0)
 	{
-		var		cmp;
 		macro	tbuf;
 		tolower		lbuf;
+		static : ifnvar	$(lbuf)
+		{
+			// ERROR: robustness, to prevent error termination
+			var		$(lbuf)=-1;
+			strcat	err_var,$(lbuf)" ";
+		}
 		num2str		tbuf=@($(lbuf)),"%08x";
 		strcmp	cmp=$(tbuf),"0000", left;
 		if (false & cmp)
@@ -2460,6 +2473,13 @@ vtime	asm_start;
 		fgetl	flab,lbuf;
 	}
 	fclose	flab;
+	strcmp	cmp=$(err_var),"";
+	if (cmp)
+	{
+		// ERROR:
+		message		"ERROR: reserved variable name was used, ignore."
+					$,"	"$(err_var)$,"	recommendation: prevent it.";
+	}
 
 	// string macro list
 	fprint	fout,"// string macro lists"$,;
@@ -2492,7 +2512,7 @@ vtime	asm_start;
 			sub		"	","		",lbuf;
 		}
 		pgsub	"[ 	]*$","",lbuf;
-		fprint	fout,"##	"$(lbuf)$,;
+		fprint	fout,"//	"$(lbuf)$,;
 		// continue
 		idx=idx + 1;
 	}

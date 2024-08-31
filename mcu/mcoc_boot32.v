@@ -10,7 +10,7 @@ output	reg		[31:0]	fdat);
 wire	[31:0]	rom_dat;
 
 
-// boot rom: 16 bit * 2
+// boot rom: read latency 0
 `ifdef		MCOC_CORE_TS
 mcoc_boot_ts		matbt (
 	.adr(fadr[8:2]),	// Input

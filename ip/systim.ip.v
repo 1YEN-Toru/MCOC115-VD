@@ -22,7 +22,7 @@ module systim
 //		add: clk_mhz: frequency of clk in MHz, BCD
 //		add: simumd: simulation mode, positive logic
 //			millisecond counter counts up every {clk_mhz,12'h000} in BCD
-//		add: sytmctl[SIMU] bit; replesents simumd=1
+//		add: sytmctl[SIMU] bit; represents simumd=1
 //
 //	2021/07/31	ver.1.02
 //		corresponding to internal offset register

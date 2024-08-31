@@ -1,5 +1,5 @@
 // ================================
-// MCOC115 Combinational Test
+//	MCOC115 Combinational Test
 //		INTC: interrupt vector & level sample
 //		(c) 2022	1YEN Toru
 // ================================
@@ -74,7 +74,7 @@ ldwi	r7,intctl
 ldbiu	r0,intc_leve
 stw		[r7],r0
 
-// intext, int0 negedge, enable, lev=2
+// intext, int0 negative edge, enable, lev=2
 ldwi	r7,intext
 ldbiu	r0,intc_eit0_1|intc_eie0
 stw		[r7],r0

@@ -1,5 +1,5 @@
 // ================================
-// Tennessine
+//	Tennessine
 //		all instructions self test
 //		(c) 2023	1YEN Toru
 //
@@ -24,21 +24,21 @@ def		s,""							// simulation "" / fpga "#"
 // ================================
 // initial value
 // front (lower)
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
-mov		r1,r1
+cmpi	r1,0
 bne		reg_fail
-mov		r2,r2
+cmpi	r2,0
 bne		reg_fail
-mov		r3,r3
+cmpi	r3,0
 bne		reg_fail
-mov		r4,r4
+cmpi	r4,0
 bne		reg_fail
-mov		r5,r5
+cmpi	r5,0
 bne		reg_fail
-mov		r6,r6
+cmpi	r6,0
 bne		reg_fail
-mov		r7,r7
+cmpi	r7,0
 bne		reg_fail
 // back (higher)
 cendw	r0
@@ -49,21 +49,21 @@ cendw	r4
 cendw	r5
 cendw	r6
 cendw	r7
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
-mov		r1,r1
+cmpi	r1,0
 bne		reg_fail
-mov		r2,r2
+cmpi	r2,0
 bne		reg_fail
-mov		r3,r3
+cmpi	r3,0
 bne		reg_fail
-mov		r4,r4
+cmpi	r4,0
 bne		reg_fail
-mov		r5,r5
+cmpi	r5,0
 bne		reg_fail
-mov		r6,r6
+cmpi	r6,0
 bne		reg_fail
-mov		r7,r7
+cmpi	r7,0
 bne		reg_fail
 
 // sr register, check cpu id to test
@@ -105,13 +105,13 @@ cmpi	r0,sreg_bk_0
 bne		reg_fail
 // control register
 movfc	r0,sp
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
 movfc	r0,iv
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
 movfc	r0,tr
-mov		r0,r0
+cmpi	r0,0
 bne		reg_fail
 
 // ================================
