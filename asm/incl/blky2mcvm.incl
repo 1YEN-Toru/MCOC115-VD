@@ -1,12 +1,16 @@
 //
-// blky2mcvm run time library
+//	blky2mcvm run time library
 //		(c) 2024	1YEN Toru
+//
+//
+//		2024/08/31	ver.1.02
+//			fix: _getl_det_baud: save r0 value
 //
 //		2024/07/27	ver.1.00
 //
 
 
-equ		_rtlb_vers,0x0100				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0102				// beta(1),major(1),minor(2)
 
 
 # constants
@@ -22,6 +26,8 @@ equ		_rtlb_sytmmcrl,sytmmcrh
 equ		_rtlb_sytmmcrw,sytmmcrl
 equ		_rtlb_sytmmill,sytmmilh
 equ		_rtlb_sytmmilw,sytmmill
+equ		_atoi_chr_pl,0x2b				// ascii '+' code
+equ		_atoi_chr_mi,0x2d				// ascii '-' code
 equ		_xtoi_cap_a,0aa-0x20			// ascii 'A' code
 equ		_getl_chr_bs,0x08				// ascii BS code
 equ		_getl_chr_lf,0x0a				// ascii LF code
@@ -30,7 +36,7 @@ equ		_getl_chr_cr,0x0d				// ascii CR code
 macro	fldwi	rn,val					// load half type constant to rn
 hldi	$(rn),$(val)
 endm
-macro	fldli	rn,val					// load flost type constant to rn
+macro	fldli	rn,val					// load float type constant to rn
 fldi	$(rn),$(val)
 endm
 
@@ -79,7 +85,7 @@ beq		_rtlb_mcnh_ok
 sesr	sreg_b_nh
 movfc	r0,sr
 lsri	r0,sreg_b_nh
-andi	r0,0x01
+andi	r0,true
 bne		_rtlb_mcnh_ok
 // ERROR: not Nh
 ldwi	r1,lab__rtlb_mcnh_err
@@ -109,7 +115,7 @@ _rtlb_mul_err:
 dats	"ERR: no MULC16 found, halted.\r\n\0"
 _rtlb_mul_ok:
 
-// DIVC check
+// DIV check
 ldbiu	r0,_rtlb_div_need
 cmpi	r0,false
 beq		_rtlb_div_ok
@@ -164,7 +170,7 @@ blo		_rtlb_clrv
 jal$(z)r7	_rtlb_vlst_cstr
 
 // goto setup (user program entry point)
-bra		_rtlb_setup
+bra		_rtlb_main
 
 
 // ================================
@@ -223,7 +229,7 @@ bra		_sdec_return
 _sdec_not_0:
 // negative value?
 bpl		_sdec_not_nega
-ldbiu	r4,0x2d							// '-'
+ldbiu	r4,_atoi_chr_mi
 stb		[r0],r4
 addi	r0,1
 neg		r1
@@ -334,18 +340,19 @@ dats	"0123456789abcdef0123456789ABCDEF"
 // ================================
 align	4
 _strlen_r1:
-cmpi	r1,0
 ldbiu	r0,0
-beq		_slen_return
+// loop
 _slen_loop:
+// get character
 ldb		r7,[r1]
 addi	r1,1
+// count
 addi	r0,1
+// check nil code
 cmpi	r7,0
 bne		_scpy_loop
 subi	r0,1
 subi	r1,1
-_slen_return:
 rtn$(z)
 
 // ================================
@@ -359,20 +366,23 @@ rtn$(z)
 // ================================
 align	4
 _strcmp_r1_r2:
+// loop
 _scmp_loop:
+// get character
 ldb		r3,[r1]
 addi	r1,1
 ldb		r4,[r2]
 addi	r2,1
+// compare
 mov		r0,r3
 sub		r0,r4
-bne		_scmp_return
+bne		_scmp_break
 // check nil code
 cmpi	r3,0
-beq		_scmp_return
+beq		_scmp_break
 cmpi	r4,0
 bne		_scmp_loop
-_scmp_return:
+_scmp_break:
 subi	r1,1
 subi	r2,1
 rtn$(z)
@@ -544,7 +554,7 @@ rtn$(z)
 align	4
 _delay_us_r0:
 $(s)// ********************************
-$(s)ldbiu	r0,8
+$(s)lsri	r0,4						// reduce period 1/16 for simulation
 $(s)// ********************************
 ldwi	r7,sytmctl
 ldbiu	r1,sytm_mcoe
@@ -575,14 +585,14 @@ ldbiu	r0,0
 ldbiu	r4,true							// positive
 // sign [+-]
 ldb		r2,[r1]
-cmpi	r2,0x2d							// '-'
+cmpi	r2,_atoi_chr_mi
 bne		_atoi_not_minu
 // minus
 ldbiu	r4,false						// negative
 addi	r1,1
 bra		_atoi_loop
 _atoi_not_minu:
-cmpi	r2,0x2b							// '+'
+cmpi	r2,_atoi_chr_pl
 bne		_atoi_loop
 // plus, ignore
 addi	r1,1
@@ -668,7 +678,7 @@ ldwi	r6,uartctl
 mov		r1,r0
 _getl_loop:
 // check baud rate detection
-jal$(z)r2	det_baud
+jal$(z)r2	_getl_det_baud
 // polling until RAVL=1
 ldw		r2,[r6]
 andi	r2,uart_ravl
@@ -715,12 +725,11 @@ rtn$(z)
 // ================================
 // baud rate detection
 //	disturbed: none
-//	return:
-//		r0=new baud rate detected
+//	return: none
 // ================================
 align	4
-det_baud:
-push$(z)m	r1,r2,r3,r4,r5,r6,r7
+_getl_det_baud:
+push$(z)m	r0,r1,r2,r3,r4,r5,r6,r7
 ldwi	r7,uartctl
 ldw		r0,[r7]
 stw		[r7],r0							// clear brdf
@@ -756,7 +765,7 @@ bra		_detb_not_brdf+2
 // end of subroutine
 _detb_not_brdf:
 ldbiu	r0,0
-pop$(z)m	r7,r6,r5,r4,r3,r2,r1
+pop$(z)m	r7,r6,r5,r4,r3,r2,r1,r0
 rtn$(z)
 
 _detb_str_msg_det:
@@ -827,5 +836,5 @@ dats	"WRN: program encountered a halt code.\r\n\0"
 datw	_rtlb_vers
 
 align	4
-_rtlb_setup:
+_rtlb_main:
 
