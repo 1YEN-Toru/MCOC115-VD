@@ -1,12 +1,17 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.02";
+	macro	prog_vers="1.04";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2024/09/07	ver.1.04
+//			add: mcoc_string_compare_left, mcoc_string_ctoa, mcoc_string_find,
+//				mcoc_string_get_char, mcoc_string_label, mcoc_string_pointer,
+//				mcoc_string_set
 //
 //		2024/08/31	ver.1.02
 //			fix: do_blk_mcoc_uart_avail
@@ -2241,6 +2246,502 @@ if (false)
 		// assembler
 		fprint	fout,"// r0=xtoi (r1(="$(cstr)"))"$,;
 		fprint	fout,"jal$(z)r7	_xtoi_r1"$,;
+	}
+	procedure	do_blk_mcoc_string_compare_left
+	{
+		var		cmp;
+		macro	vstr;
+		macro	ofst;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vstr=$(do_$(dxml));
+					is_cstr		$(vstr);
+					if (!is_cstr)
+					{
+						// ERROR:
+						errmsg	"mcoc_string_compare_left: "
+								"not a string variable ("$(vstr)")";
+						leave	stop_error;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"OFST";
+					if (cmp=0)
+					{
+						mlet	ofst=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	cstr=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		mlet	do_blk_mcoc_string_compare_left="left ("$(vstr)" + "
+				$(ofst)")="$(cstr);
+
+		// assembler
+		fprint	fout,"// r3=r1(="$(cstr)")"$,;
+		fprint	fout,"mov	r3,r1"$,;
+		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
+		fprint	fout,"ldwi	r1,"$(vstr)$,;
+		fprint	fout,"ld$(z)	r1,[r1]"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
+		fprint	fout,"// r2=r3(="$(cstr)")"$,;
+		fprint	fout,"mov	r2,r3"$,;
+		fprint	fout,"// compare left (r1(="$(vstr)" + "$(ofst)")) = r2(="
+				$(cstr)")"$,;
+		fprint	fout,"jal$(z)r7	_strfcmp_r1_r2"$,;
+		fprint	fout,"cmpi	r0,0"$,;
+		fprint	fout,"ldbiu	r0,true"$,;
+		fprint	fout,"beq	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,false"$,;
+	}
+	procedure	do_blk_mcoc_string_ctoa
+	{
+		var		cmp;
+		macro	cchr;
+
+		if (!in_var_set)
+		{
+			register_vars	"_tmp_str";
+			register_cstr	"_tmp_str";
+
+			// assembler
+			fprint	fout,"// r0=_tmp_str"$,;
+			fprint	fout,"ldwi r0,_tmp_str"$,;
+			fprint	fout,"ld$(z) r0,[r0]"$,;
+			fprint	fout,"push$(z) r0"$,;
+		}
+
+		while (true)
+		{
+			var		in_var_set=true;
+
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cchr=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_string_ctoa="'"$(cchr)"'";
+
+		// assembler
+		fprint	fout,"// r1=r0(="$(cchr)")"$,;
+		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"// [r0++]=r1(="$(cchr)") ++ '\0'"$,;
+		fprint	fout,"stb	[r0],r1"$,;
+		fprint	fout,"addi	r0,1"$,;
+		fprint	fout,"ldbiu	r1,0"$,;
+		fprint	fout,"stb	[r0],r1"$,;
+		fprint	fout,"push$(z)	r0"$,;
+		if (!in_var_set)
+		{
+			fprint	fout,"// r1=_tmp_str(='"$(cchr)"')"$,;
+			fprint	fout,"ldwi r1,_tmp_str"$,;
+			fprint	fout,"ld$(z) r1,[r1]"$,;
+			fprint	fout,"pop$(z) r0	// discard"$,;
+		}
+	}
+	procedure	do_blk_mcoc_string_find
+	{
+		var		cmp;
+		macro	vstr;
+		macro	ofst;
+		macro	cchr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vstr=$(do_$(dxml));
+					is_cstr		$(vstr);
+					if (!is_cstr)
+					{
+						// ERROR:
+						errmsg	"mcoc_string_find: "
+								"not a string variable ("$(vstr)")";
+						leave	stop_error;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"OFST";
+					if (cmp=0)
+					{
+						mlet	ofst=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	cchr=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		mlet	do_blk_mcoc_string_find="strchr ("$(vstr)" + "$(ofst)","
+				$(cchr)")";
+
+		// assembler
+		fprint	fout,"// r3=r0(="$(cchr)"), r0="$(ofst)$,;
+		fprint	fout,"mov	r3,r0"$,;
+		fprint	fout,"pop$(z)	r0"$,;
+		fprint	fout,"// r4=r1="$(vstr)$,;
+		fprint	fout,"ldwi	r1,"$(vstr)$,;
+		fprint	fout,"ld$(z)	r1,[r1]"$,;
+		fprint	fout,"mov	r4,r1"$,;
+		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
+		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
+		fprint	fout,"// r0=r1(="$(vstr)" + "$(ofst)")"$,;
+		fprint	fout,"mov	r0,r1"$,;
+		fprint	fout,"// r4=r1(="$(vstr)" + "$(ofst)") - r4(="$(vstr)")"$,;
+		fprint	fout,"sub	r1,r4"$,;
+		fprint	fout,"mov	r4,r1"$,;
+		fprint	fout,"// r1=r3(="$(cchr)")"$,;
+		fprint	fout,"mov	r1,r3"$,;
+		fprint	fout,"// find in r0(="$(vstr)" + "$(ofst)"), r1(="$(cchr)")"$,;
+		fprint	fout,"jal$(z)r7	_strchr_r0_r1"$,;
+		fprint	fout,"// r0 += r4(=offset from "$(vstr)")"$,;
+		fprint	fout,"cmpi	r0,0"$,;
+		fprint	fout,"blt	pcnt+2"$,;
+		fprint	fout,"add	r0,r4"$,;
+	}
+	procedure	do_blk_mcoc_string_get_char
+	{
+		var		cmp;
+		macro	vstr;
+		macro	ofst;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vstr=$(do_$(dxml));
+					is_cstr		$(vstr);
+					if (!is_cstr)
+					{
+						// ERROR:
+						errmsg	"mcoc_string_get_char: "
+								"not a string variable ("$(vstr)")";
+						leave	stop_error;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	ofst=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_string_get_char="["$(vstr)" + "$(ofst)"]";
+
+		// assembler
+		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
+		fprint	fout,"ldwi	r1,"$(vstr)$,;
+		fprint	fout,"ld$(z)	r1,[r1]"$,;
+		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
+		fprint	fout,"// get char r0=[r1(="$(vstr)" + "$(ofst)")]"$,;
+		fprint	fout,"ldb	r0,[r1]"$,;
+	}
+	procedure	do_blk_mcoc_string_label
+	{
+		var		cmp;
+		macro	lnam;
+		macro	ofst;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	lnam=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	ofst=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_string_label=$"$(lnam)" + "$(ofst)$";
+
+		// assembler
+		fprint	fout,"// r1="$(lnam)$,;
+		fprint	fout,"ldwi	r1,"$(lnam)$,;
+		fprint	fout,"// r1(="$(lnam)") += r0(="$(ofst)")"$,;
+		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
+	}
+	procedure	do_blk_mcoc_string_pointer
+	{
+		var		cmp;
+		macro	vstr;
+		macro	ofst;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vstr=$(do_$(dxml));
+					is_cstr		$(vstr);
+					if (!is_cstr)
+					{
+						// ERROR:
+						errmsg	"mcoc_string_pointer: "
+								"not a string variable ("$(vstr)")";
+						leave	stop_error;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	ofst=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcoc_string_pointer=$"$(vstr)" + "$(ofst)$";
+
+		// assembler
+		fprint	fout,"// r1="$(vstr)$,;
+		fprint	fout,"ldwi	r1,"$(vstr)$,;
+		fprint	fout,"ld$(z)	r1,[r1]"$,;
+		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
+		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
+	}
+	procedure	do_blk_mcoc_string_set
+	{
+		var		cmp;
+		macro	vstr;
+		macro	ofst;
+		macro	cstr;
+
+		in_var_set=true;
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vstr=$(do_$(dxml));
+					is_cstr		$(vstr);
+					if (!is_cstr)
+					{
+						// ERROR:
+						errmsg	"mcoc_string_set: "
+								"not a string variable ("$(vstr)")";
+						leave	stop_error;
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"VAL";
+					if (cmp=0)
+					{
+						mlet	ofst=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1="$(vstr)$,;
+						fprint	fout,"ldwi	r1,"$(vstr)$,;
+						fprint	fout,"ld$(z)	r1,[r1]"$,;
+						fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
+						fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
+						fprint	fout,"// r0=r1(="$(vstr)" + "$(ofst)")"$,;
+						fprint	fout,"mov	r0,r1"$,;
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	cstr=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		in_var_set=false;
+
+		// assembler
+		fprint	fout,"// end of "$(vstr)" + "$(ofst)"="$(cstr)$,;
+
+		// string variable = <string>
+		strcmp	cmp=$(cstr),"'", left;
+		if (cmp=0)
+		{
+			// already processed (number ==> string)
+
+			// assembler
+			fprint	fout,"pop$(z)	r0	// discard"$,;
+		}
+		else
+		{
+			strcmp	cmp=$(cstr)," ++ ",left;
+			if (cmp=0)
+			{
+				// joined
+				psub	"^ \+\+ ","",cstr;
+
+				// assembler
+				fprint	fout,"pop$(z)	r0	// discard"$,;
+			}
+			else
+			{
+				// not joined
+				pindex	cmp=$(cstr),"^"$""[^"$""]*"$""$";
+				if (cmp<=0)
+				{
+					// not a string constant
+					is_cstr		$(cstr);
+					if (is_cstr)
+					{
+						// string variable
+						cmp=1;
+					}
+				}
+				if (cmp>0)
+				{
+					// string constant or string variable
+
+					// assembler
+					fprint	fout,"pop$(z)	r0"$,;
+					fprint	fout,"jal$(z)r7	_strcpy_r0_r1"$,;
+				}
+				else
+				{
+					// number
+
+					// assembler
+					fprint	fout,"// r1=r0(="$(cstr)")"$,;
+					fprint	fout,"mov	r1,r0"$,;
+					fprint	fout,"// r0=strdec (r0,r1(="$(cstr)"))"$,;
+					fprint	fout,"pop$(z)	r0"$,;
+					fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
+				}
+			}
+		}
 	}
 	procedure	do_blk_mcoc_sytm_delay
 	{
@@ -4584,6 +5085,7 @@ if (false)
 						mlet	cexp=$(do_$(dxml));
 
 						// assembler
+						fprint	fout,"// if ("$(cexp)")"$,;
 						fprint	fout,"cmpi	r0,false"$,;
 						fprint	fout,"beq	_auto_"$(slabid)"_endif"$,;
 					}
@@ -4600,11 +5102,11 @@ if (false)
 		strcmp	cmp=$(vrtn),"";
 		if (cmp)
 		{
-			fprint	fout,"// if ("$(cexp)") return ("$(vrtn)")"$,;
+			fprint	fout,"// return ("$(vrtn)")"$,;
 		}
 		else
 		{
-			fprint	fout,"// if ("$(cexp)") return"$,;
+			fprint	fout,"// return"$,;
 		}
 		fprint	fout,"rtn$(z)"$,;
 		fprint	fout,""$,;

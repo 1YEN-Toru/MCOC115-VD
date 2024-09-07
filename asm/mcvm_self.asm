@@ -4,6 +4,9 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2024/08/31	ver.1.24
+//			add: hdown
+//
 //		2023/07/08	ver.1.22
 //			add: adcz, sbbz, cmbz
 //
@@ -1799,6 +1802,22 @@ hcmp	r0,r1							// **
 movfc	r2,sr
 andi	r2,sreg_fg
 cmpi	r2,sreg_cf|sreg_zf
+bne		hfpu_fail
+// ================================
+// hdown
+hldi	r0,12.34
+hdown	r1,r0							// **
+hldi	r2,12
+cmp		r1,r2
+bne		hfpu_fail
+hldi	r0,-0.9876
+hdown	r1,r0							// **
+ldwi	r2,half_zer_n
+cmp		r1,r2
+bne		hfpu_fail
+ldwi	r3,half_inf_n
+hdown	r4,r3							// **
+cmp		r3,r4
 bne		hfpu_fail
 
 // ================================

@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/09/07	ver.1.04
+//			add: _strfcmp_r1_r2, _strchr_r0_r1, _strofst_r1_r0
+//
 //		2024/08/31	ver.1.02
 //			fix: _getl_det_baud: save r0 value
 //
@@ -10,34 +13,38 @@
 //
 
 
-equ		_rtlb_vers,0x0102				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0104				// beta(1),major(1),minor(2)
 
 
 # constants
 equ		low,0							// LOW / HIGH level
 equ		high,1
-equ		_rtlb_infl,sngl_inf				// FPU float type infinite number
-equ		_rtlb_infw,half_inf				// FPU half type infinite number
-equ		_rtlb_nanl,sngl_nan				// FPU float type not a number
-equ		_rtlb_nanw,half_nan				// FPU half type not a number
-equ		_rtlb_sytmtckl,sytmtckh			// systim i/o register
+equ		_rtlb_max_intl,0x7fff_ffff		// cpu: int32: maximum number
+equ		_rtlb_max_intw,0x7fff			// cpu: int16: maximum number
+equ		_rtlb_min_intl,0x8000_0000		// cpu: int32: minimum number
+equ		_rtlb_min_intw,0x8000			// cpu: int16: minimum number
+equ		_rtlb_infl,sngl_inf				// fpu: float: infinite number
+equ		_rtlb_infw,half_inf				// fpu: half: infinite number
+equ		_rtlb_nanl,sngl_nan				// fpu: float: not a number
+equ		_rtlb_nanw,half_nan				// fpu: half: not a number
+equ		_rtlb_sytmtckl,sytmtckh			// iorg: systim i/o register
 equ		_rtlb_sytmtckw,sytmtckl
 equ		_rtlb_sytmmcrl,sytmmcrh
 equ		_rtlb_sytmmcrw,sytmmcrl
 equ		_rtlb_sytmmill,sytmmilh
 equ		_rtlb_sytmmilw,sytmmill
-equ		_atoi_chr_pl,0x2b				// ascii '+' code
-equ		_atoi_chr_mi,0x2d				// ascii '-' code
-equ		_xtoi_cap_a,0aa-0x20			// ascii 'A' code
-equ		_getl_chr_bs,0x08				// ascii BS code
-equ		_getl_chr_lf,0x0a				// ascii LF code
-equ		_getl_chr_cr,0x0d				// ascii CR code
+equ		_getl_chr_bs,0x08				// asc: BS code
+equ		_getl_chr_lf,0x0a				// asc: LF code
+equ		_getl_chr_cr,0x0d				// asc: CR code
+equ		_atoi_chr_pl,0x2b				// asc: '+' code
+equ		_atoi_chr_mi,0x2d				// asc: '-' code
+equ		_xtoi_chr_capa,0aa-0x20			// asc: 'A' code
 # macros
-macro	fldwi	rn,val					// load half type constant to rn
-hldi	$(rn),$(val)
-endm
-macro	fldli	rn,val					// load float type constant to rn
+macro	fldli	rn,val					// fpu: float: load constant to rn
 fldi	$(rn),$(val)
+endm
+macro	fldwi	rn,val					// fpu: half: load constant to rn
+hldi	$(rn),$(val)
 endm
 
 
@@ -388,6 +395,102 @@ subi	r2,1
 rtn$(z)
 
 // ================================
+//	r0=strfcmp (r1,r2);
+//		r1,r2: pointer to the string for compare
+//	disturbed: r3,r4
+//		r3,r4: temporary character code
+//	return: string forward match compare
+//			if left(r1,strlen(r2)) equal to r2 then match
+//			if strlen(r1)<strlen(r2) then always mismatch
+//		r0: result (=r1 - r2)
+//		r1,r2: 1st differential or last position
+// ================================
+align	4
+_strfcmp_r1_r2:
+ldbiu	r0,0
+// loop
+_scmf_loop:
+// get character
+ldb		r3,[r1]
+addi	r1,1
+ldb		r4,[r2]
+addi	r2,1
+// check nil code
+cmpi	r4,0
+beq		_scmf_break
+// compare
+mov		r0,r3
+sub		r0,r4
+beq		_scmf_loop
+_scmf_break:
+subi	r1,1
+subi	r2,1
+rtn$(z)
+
+// ================================
+//	r0=strchr (r0,r1);
+//		r0: pointer to the string
+//		r1: character code to find
+//	disturbed: r2,r3
+//		r2: string pointer backup
+//		r3: temporary character code
+//	return: offset to 1st character found in string
+//		r0: -1 (not found) / 0~ (1st character position)
+// ================================
+align	4
+_strchr_r0_r1:
+// string pointer backup
+mov		r2,r0
+// loop
+_stch_loop:
+// get character
+ldb		r3,[r0]
+addi	r0,1
+// check nil code
+cmpi	r3,0
+beq		_stch_notf
+// compare
+cmp		r3,r1
+bne		_stch_loop
+bra		_stch_return
+
+_stch_notf:
+mov	r0,r2
+_stch_return:
+subi	r0,1
+sub		r0,r2
+rtn$(z)
+
+// ================================
+//	r1=strofst (r1,r0);
+//		r1: pointer to the string
+//		r0: offset to r1
+//	disturbed: r0,r2
+//		r0: temporary offset
+//		r2: temporary character code
+//	return: offset pointer r1 + r0; limited range 0<=r0<=strlen(r1)
+//		r1: r1 + r0
+// ================================
+align	4
+_strofst_r1_r0:
+// loop
+_sofs_loop:
+// get character
+ldb		r2,[r1]
+// check nil code
+cmpi	r2,0
+beq		_sofs_break
+// check offset
+cmpi	r0,1
+blt		_sofs_break
+// end of loop
+subi	r0,1
+addi	r1,1
+bra		_sofs_loop
+_sofs_break:
+rtn$(z)
+
+// ================================
 //	print_chr (r0);
 //		r0: character code to print
 //	disturbed: r2,r7
@@ -641,11 +744,11 @@ subi	r2,0a0
 blo		_xtoi_break						// [r1]<'0'
 cmpi	r2,10
 blo		_xtoi_next						// [r1]<='9'
-subi	r2,_xtoi_cap_a-0a0-10
+subi	r2,_xtoi_chr_capa-0a0-10
 blo		_xtoi_break						// [r1]<'A'
 cmpi	r2,16
 blo		_xtoi_next						// [r1]<='F'
-subi	r2,0aa-_xtoi_cap_a
+subi	r2,0aa-_xtoi_chr_capa
 blo		_xtoi_break						// [r1]<'a'
 cmpi	r2,16
 bhs		_xtoi_break						// [r1]>'f'

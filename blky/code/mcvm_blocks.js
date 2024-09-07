@@ -579,6 +579,22 @@ Blockly.Blocks['mcoc_string_get_char'] = {
   }
 };
 
+Blockly.Blocks['mcoc_string_label'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("pointer to");
+    this.appendValueInput("OFST")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldTextInput("label"), "LAB")
+        .appendField("+");
+    this.setInputsInline(true);
+    this.setOutput(true, "String");
+    this.setColour(45);
+ this.setTooltip("pointer to string label");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+  }
+};
+
 Blockly.Blocks['mcoc_string_pointer'] = {
   init: function() {
     this.appendDummyInput()

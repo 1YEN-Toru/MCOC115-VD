@@ -34,6 +34,8 @@
 	- Lower performance takes smaller size.
 	- Higher performance takes larger size.
 - Moscovium series CPU cores are scalable from 8 ~ 32 bit data paths.
+	- They share the same instruction code.
+	- They are upward or downward compatible instruction sets.
 - SMP and AMP dual core edition available.
 	- [SMP](http://hello.world.coocan.jp/ARDUINO17/arduino17_1.html) (Symmetric Multi-Processing)
 	- [AMP](http://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
@@ -63,10 +65,10 @@
 - README.md
 	- This article.
 - Xilinx Vivado's project directory
-	- blky/
-		- Blockly.XML to Moscovium.ASM translator and sample sources
 	- asm/
 		- Macro assembler and sample sources
+	- blky/
+		- Blockly.XML to Moscovium.ASM translator and sample sources
 	- ip/
 		- IP units
 	- mcu/
@@ -243,7 +245,7 @@
 
 1. [Moscovium series MCU](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP)
 	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html)
-	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKY2MCVM)
+	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
 	- [Assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
 		- [Moscovium instruction set manual](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](http://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)
