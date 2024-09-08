@@ -2,7 +2,7 @@
 # MCOC115-VD<!-- Moscovium series MCU project for Xilinx Vivado -->
  This is Moscovium series MCU project for Digilent Cmod A7 FPGA board.
 
-![cmod_a7](http://hello.world.coocan.jp/ARDUINO26/a266_cmoda7.jpg)
+![cmod_a7](img/a266_cmoda7.jpg)
 
 - Xilinx Vivado (v2023.1.1) project
 	- Target: Xilinx Artix-7 family XC7A35T FPGA chip on the Cmod A7 FPGA board
@@ -13,7 +13,7 @@
 ## Moscovium series
  Moscovium is an original 16 bit CPU core.
 
-![Moscovium](http://hello.world.coocan.jp/ARDUINO15/a153_cpublk.png)
+![Moscovium](img/a153_cpublk.png)
 
  More options for the Moscovium series here:
 
@@ -50,7 +50,7 @@
 
 - [Blockly](https://github.com/google/blockly)
 	- Block base visual programming environment.
-	![blky](http://hello.world.coocan.jp/ARDUINO31/a316_blky_edit.png)
+	![blky](img/a316_blky_edit.png)
 	- Assemble blocks to control MCU.
 	- Download program code in XML format, and translate it to Moscovium assembler source list.
 
@@ -69,6 +69,8 @@
 		- Macro assembler and sample sources
 	- blky/
 		- Blockly.XML to Moscovium.ASM translator and sample sources
+	- img/
+		- images
 	- ip/
 		- IP units
 	- mcu/
@@ -267,3 +269,4 @@
  Use at your own risk.
 
 --------
+![1YEN Toru](img/1YEN_sign.png)
