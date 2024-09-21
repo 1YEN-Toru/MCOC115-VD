@@ -1,11 +1,16 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.44";
+	macro	prog_vers="1.46";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2024/09/21	ver.1.46
+//			fix: (srbk, )srie; clsr integrated macro has priority
+//				to prevent higher levels during the change
+//			optimized ROM code array rom#()
 //
 //		2024/08/31	ver.1.44
 //			instruction: hdown
@@ -271,10 +276,8 @@ model	"Moscovium series macro assembler"
 			"org   "
 			"datw  "
 			"align "
-			"srbk0 "
-			"srbk1 "
-			"srie0 "
-			"srie1 ";
+			"srbk  "
+			"srie  ";
 	macro	opcd=
 			"0000 "
 			"0001 "
@@ -1719,20 +1722,6 @@ model	"Moscovium series macro assembler"
 			fprint	fout,"clsrl	3"$,;
 			return;
 		}
-		strcmp	ptr=$(mnem),"srbk";
-		if (ptr)
-		{
-			strcmp	ptr=$(mnem),"srie";
-		}
-		if (ptr=0)
-		{
-			skip_space;
-			get_word;
-			mlet	opr1=$(get_word);
-			fprint	fout,$(mnem)"1	("$(opr1)")>>1"$,;
-			fprint	fout,$(mnem)"0	("$(opr1)")&0x05"$,;
-			return;
-		}
 		pindex	ptr=$(mnem),"^[acl]s[lr]i$";
 		if (ptr>0)
 		{
@@ -2211,6 +2200,7 @@ model	"Moscovium series macro assembler"
 			if (idx=0)
 			{
 				// org
+				nmacro	lbuf3,"";
 				strcmp	cmp=$(lbuf3),"align";
 				if (cmp=0)
 				{
@@ -2296,30 +2286,64 @@ model	"Moscovium series macro assembler"
 				}
 				continue;
 			}
-			if (3<=idx & idx<=6)
+			if (3<=idx & idx<=4)
 			{
-				// srbk1 / srbk0 / srie1 / srie0
+				// srbk / srie
+				var		pcnt_cur=pcnt;
 				var		opr1=@($(lbuf2));
-				psub	"[01]","",swd;
-				psub	"\(([^)]*)\).*","("$(swd)"\1)",lbuf2;
-				if (@(opr1&0x05))
+				var		opr2=(idx - 3)*2;
+				opr1=@((opr1 | (opr1>>2)) & 0x03);
+				// clsr integrated macro has priority
+				if (!@(opr1&0x02))
 				{
-					cod=0x7f90 + idx - 3;	// sesrl
+					cod=0x7fa0 + opr2 + 1;	// clsrl
 					num2bin		cod;
 					mlet	scod=$(num2bin);
-					fprint	fout,$(mpcnt)"	0x"$(scod)"	// sesrl  # "
-							$(lbuf2)$,,idx - 3;
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// clsrl  # ("
+							$(swd)$(lbuf2)")"$,,opr2 + 1;
+					if (pcnt=pcnt_cur)
+					{
+						pcnt=pcnt + 2;
+						num2str		mpcnt=pcnt,"%04x";
+						mlet	mpcnt="0x"$(mpcnt);
+					}
 				}
-				else
+				if (!@(opr1&0x01))
 				{
-					cod=0x7fa0 + idx - 3;	// clsrl
+					cod=0x7fa0 + opr2 + 0;	// clsrl
 					num2bin		cod;
 					mlet	scod=$(num2bin);
-					fprint	fout,$(mpcnt)"	0x"$(scod)"	// clsrl  # "
-							$(lbuf2)$,,idx - 3;
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// clsrl  # ("
+							$(swd)$(lbuf2)")"$,,opr2 + 0;
+					if (pcnt=pcnt_cur)
+					{
+						pcnt=pcnt + 2;
+						num2str		mpcnt=pcnt,"%04x";
+						mlet	mpcnt="0x"$(mpcnt);
+					}
 				}
-				//pcnt=pcnt + 2;
-				//continue;
+				if (@(opr1&0x02))
+				{
+					cod=0x7f90 + opr2 + 1;	// sesrl
+					num2bin		cod;
+					mlet	scod=$(num2bin);
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// sesrl  # ("
+							$(swd)$(lbuf2)")"$,,opr2 + 1;
+					if (pcnt=pcnt_cur)
+					{
+						pcnt=pcnt + 2;
+						num2str		mpcnt=pcnt,"%04x";
+						mlet	mpcnt="0x"$(mpcnt);
+					}
+				}
+				if (@(opr1&0x01))
+				{
+					cod=0x7f90 + opr2 + 0;	// sesrl
+					num2bin		cod;
+					mlet	scod=$(num2bin);
+					fprint	fout,$(mpcnt)"	0x"$(scod)"	// sesrl  # ("
+							$(swd)$(lbuf2)")"$,,opr2 + 0;
+				}
 			}
 		}
 		pcnt=pcnt + 2;
@@ -2532,7 +2556,6 @@ vtime	asm_start;
 	var		cod;
 	var		siz;
 	macro	buf;
-	varray	rom:0,#(ROMSIZ/2)=-1;
 	if (DATFMT=DFMIF)
 	{
 		fprint	fout,"DEPTH = #;"$,,ROMSIZ/2;
@@ -2628,7 +2651,8 @@ vtime	asm_start;
 				sub		"0x","",lbuf2;
 			}
 			siz=int ($(lbuf1));
-			rom#(siz/2)="0x"$(lbuf2);
+			static : var	rom#(siz/2)="0x"$(lbuf2);
+			maxv	ROMSIZ=siz;
 			if (DATFMT=DFMIF)
 			{
 				num2str		buf=siz/2,"%04x";
@@ -2766,14 +2790,35 @@ vtime	asm_start;
 	{
 		fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
 	}
+	if (ROMBIT<int (ceil (ln (ROMSIZ)/ln (2))))
+	{
+		message		"WARNING: correct "$""romsiz"$"" pseudo instruction";
+	}
 
+	var		romi0, romi1;
 	idx=0;
 	while (idx<ROMSIZ/2)
 	{
-		if (ASMBIT=16 & rom#(idx)>=0)
+		ifvar	rom#(idx)
+		{
+			romi0=rom#(idx);
+		}
+		else
+		{
+			romi0=-1;
+		}
+		ifvar	rom#(idx + 1)
+		{
+			romi1=rom#(idx + 1);
+		}
+		else
+		{
+			romi1=-1;
+		}
+		if (ASMBIT=16 & romi0>=0)
 		{
 			hadr=idx;
-			hdat=rom#(idx);
+			hdat=romi0;
 			num2str		sadr=hadr,"%04x";
 			num2str		sdat=hdat,"%04x";
 			if (DATFMT=DFMIF)
@@ -2797,15 +2842,15 @@ vtime	asm_start;
 			}
 			prev_adr=idx;
 		}
-		if (ASMBIT=32 & (rom#(idx)>=0 | rom#(idx + 1)>=0))
+		if (ASMBIT=32 & (romi0>=0 | romi1>=0))
 		{
 			hadr=idx/2;
-			hdat=rom#(idx);
+			hdat=romi0;
 			if (hdat<0)
 			{
 				hdat=0xffff;
 			}
-			hdat2=rom#(idx + 1);
+			hdat2=romi1;
 			if (hdat2<0)
 			{
 				hdat2=0xffff;

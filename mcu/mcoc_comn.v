@@ -684,25 +684,27 @@ mcoc_boot32		rombt (
 );
 
 // instruction rom
-`ifdef		MCOC_ROM_16K
+`ifdef		MCOC_ROM_48K
+`define		MCOC_ROM_ABIT	14
+`define		MCOC_ROM_SIZB	48*1024*8
 
+`elsif		MCOC_ROM_32K
+`define		MCOC_ROM_ABIT	13
+`define		MCOC_ROM_SIZB	32*1024*8
+
+`elsif		MCOC_ROM_16K
 `define		MCOC_ROM_ABIT	12
 `define		MCOC_ROM_SIZB	16*1024*8
 
-`else	//	MCOC_ROM_16K
-
-`ifdef		MCOC_ROM_8K
-
+`elsif		MCOC_ROM_8K
 `define		MCOC_ROM_ABIT	11
 `define		MCOC_ROM_SIZB	8*1024*8
 
-`else	//	MCOC_ROM_8K
-
+`else
 `define		MCOC_ROM_ABIT	10
 `define		MCOC_ROM_SIZB	4*1024*8
 
-`endif	//	MCOC_ROM_8K
-`endif	//	MCOC_ROM_16K
+`endif
 
 xpm_memory_tdpram	#(
 	.ADDR_WIDTH_A(`MCOC_ROM_ABIT),		// DECIMAL
@@ -790,6 +792,14 @@ output	[31:0]	fdat,
 output	[31:0]	bdatr);
 
 
+`ifdef		MCOC_ROM_48K
+wire	[15:0]	fadr_top=16'hc000;
+`elsif		MCOC_ROM_32K
+wire	[15:0]	fadr_top=16'h8000;
+`else
+wire	[15:0]	fadr_top=16'h4000;
+`endif
+
 wire	[3:0]	iram_we;
 wire	[15:0]	iram_fadr;
 wire	[15:0]	iram_badr;
@@ -809,6 +819,7 @@ iram_wrap32		iramwp (
 	.bcmdl(bcmdl),	// Input
 	.bcs_iram_n(bcs_iram_n),	// Input
 	.fadr(fadr[15:0]),	// Input
+	.fadr_top(fadr_top[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.rom_fdat(rom_fdat[31:0]),	// Input
@@ -1016,14 +1027,33 @@ wire	[31:0]	ram_datr3;
 wire	[31:0]	ram_datr4;
 
 
-// ERAM enable or not
+// E-RAM enable or not
 `ifdef		MCOC_ERAM
-`undef		MCOC_RAM_4K
-wire	enb_eram_n=bcs_eram_n;
+wire	ram_eram_n=bcs_eram_n;
 `else	//	MCOC_ERAM
-wire	enb_eram_n=1'b1;
+wire	ram_eram_n=1'b1;
 `endif	//	MCOC_ERAM
 
+// Extended ROM option selected
+`ifdef	MCOC_ROM_48K
+wire	ram_ram0_n=bcs_ram4_n;
+wire	ram_ram1_n=1'b1;
+wire	ram_ram2_n=1'b1;
+wire	ram_ram3_n=1'b1;
+wire	ram_ram4_n=1'b1;
+`elsif	MCOC_ROM_32K
+wire	ram_ram0_n=bcs_ram2_n;
+wire	ram_ram1_n=bcs_ram3_n;
+wire	ram_ram2_n=bcs_ram4_n;
+wire	ram_ram3_n=1'b1;
+wire	ram_ram4_n=1'b1;
+`else
+wire	ram_ram0_n=bcs_ram0_n;
+wire	ram_ram1_n=bcs_ram1_n;
+wire	ram_ram2_n=bcs_ram2_n;
+wire	ram_ram3_n=bcs_ram3_n;
+wire	ram_ram4_n=bcs_ram4_n;
+`endif
 
 ram_wrap32	ramwp (
 	.clk(clk),	// Input
@@ -1033,12 +1063,12 @@ ram_wrap32	ramwp (
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
-	.bcs_ram0_n(bcs_ram0_n),	// Input
-	.bcs_ram1_n(bcs_ram1_n),	// Input
-	.bcs_ram2_n(bcs_ram2_n),	// Input
-	.bcs_ram3_n(bcs_ram3_n),	// Input
-	.bcs_ram4_n(bcs_ram4_n),	// Input
-	.bcs_eram_n(enb_eram_n),	// Input
+	.bcs_ram0_n(ram_ram0_n),	// Input
+	.bcs_ram1_n(ram_ram1_n),	// Input
+	.bcs_ram2_n(ram_ram2_n),	// Input
+	.bcs_ram3_n(ram_ram3_n),	// Input
+	.bcs_ram4_n(ram_ram4_n),	// Input
+	.bcs_eram_n(ram_eram_n),	// Input
 	.badr(badr[1:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
 	.bdatr(bdatr[31:0]),	// Output
@@ -1138,7 +1168,7 @@ xpm_memory_spram	#(
 	.addra(badr[12:2]),
 	.clka(clk),
 	.dina(ram_datw[31:0]),
-	.ena(ram_ce && !bcs_ram4_n),
+	.ena(ram_ce && !ram_ram4_n),
 	.injectdbiterra(1'b0),
 	.injectsbiterra(1'b0),
 	.regcea(1'b1),
@@ -1182,7 +1212,7 @@ xpm_memory_spram	#(
 	.addra(badr[12:2]),
 	.clka(clk),
 	.dina(ram_datw[31:0]),
-	.ena(ram_ce && !bcs_ram3_n),
+	.ena(ram_ce && !ram_ram3_n),
 	.injectdbiterra(1'b0),
 	.injectsbiterra(1'b0),
 	.regcea(1'b1),
@@ -1225,7 +1255,7 @@ xpm_memory_spram	#(
 	.addra(badr[12:2]),
 	.clka(clk),
 	.dina(ram_datw[31:0]),
-	.ena(ram_ce && !bcs_ram2_n),
+	.ena(ram_ce && !ram_ram2_n),
 	.injectdbiterra(1'b0),
 	.injectsbiterra(1'b0),
 	.regcea(1'b1),
@@ -1266,7 +1296,7 @@ xpm_memory_spram	#(
 	.addra(badr[12:2]),
 	.clka(clk),
 	.dina(ram_datw[31:0]),
-	.ena(ram_ce && !bcs_ram1_n),
+	.ena(ram_ce && !ram_ram1_n),
 	.injectdbiterra(1'b0),
 	.injectsbiterra(1'b0),
 	.regcea(1'b1),
@@ -1306,7 +1336,7 @@ xpm_memory_spram	#(
 	.addra(badr[12:2]),
 	.clka(clk),
 	.dina(ram_datw[31:0]),
-	.ena(ram_ce && !bcs_ram0_n),
+	.ena(ram_ce && !ram_ram0_n),
 	.injectdbiterra(1'b0),
 	.injectsbiterra(1'b0),
 	.regcea(1'b1),
@@ -1375,6 +1405,9 @@ output	bcs_cm76_n);
 //		(c) 2023	1YEN Toru
 //
 //
+//	2024/09/21	ver.1.10
+//		add: compile option MCOC_ROM_32K, MCOC_ROM_48K
+//
 //	2024/06/15	ver.1.08
 //		add: bcs_cm76_n; CAM7670 unit, OV7670 camera I/F
 //
@@ -1386,7 +1419,7 @@ output	bcs_cm76_n);
 //		add: bcs_sram_n; External SRAM area for the Cmod A7 FPGA board
 //
 //	2023/10/21	ver.1.02
-//		change: IRAM to 32 bit access area
+//		change: I-RAM to 32 bit access area
 //
 //	2023/09/23	ver.1.00
 //		separate bus state controller and address decoder.
@@ -1395,11 +1428,25 @@ output	bcs_cm76_n);
 
 // area
 wire	bcs_extadr=(badr[23:16]!=8'h0);
+`ifdef		MCOC_ROM_48K
+assign	bcs_rom_n=(!bcs_extadr && badr[15:0]<16'hc000)? 1'b0: 1'b1;
+assign	bcs_iram_n=(!bcs_extadr &&
+			16'hc000<=badr[15:0] && badr[15:0]<16'hd000)? 1'b0: 1'b1;
+wire	bcs_ram_n=(!bcs_extadr &&
+			16'hd000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
+`elsif		MCOC_ROM_32K
+assign	bcs_rom_n=(!bcs_extadr && badr[15:0]<16'h8000)? 1'b0: 1'b1;
+assign	bcs_iram_n=(!bcs_extadr &&
+			16'h8000<=badr[15:0] && badr[15:0]<16'h9000)? 1'b0: 1'b1;
+wire	bcs_ram_n=(!bcs_extadr &&
+			16'h9000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
+`else
 assign	bcs_rom_n=(!bcs_extadr && badr[15:0]<16'h4000)? 1'b0: 1'b1;
 assign	bcs_iram_n=(!bcs_extadr &&
 			16'h4000<=badr[15:0] && badr[15:0]<16'h5000)? 1'b0: 1'b1;
 wire	bcs_ram_n=(!bcs_extadr &&
 			16'h5000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
+`endif
 assign	bcs_iou_n=(!bcs_extadr && 16'hf000<=badr[15:0])? 1'b0: 1'b1;
 assign	bcs_eram_n=((badr[23:16] & 8'hf8)==8'h08)? 1'b0: 1'b1;
 assign	bcs_sram_n=((badr[23:16] & 8'hf8)==8'h10)? 1'b0: 1'b1;

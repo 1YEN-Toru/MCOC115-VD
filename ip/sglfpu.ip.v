@@ -19305,7 +19305,7 @@ module sglfpu
     sfpu_dsp_a,
     sfpu_dsp_b);
 //
-//	Single precision FPU (Single precision floating point unit)
+//	Single precision Floating Point Unit
 //		(c) 2021,2023	1YEN Toru
 //
 //

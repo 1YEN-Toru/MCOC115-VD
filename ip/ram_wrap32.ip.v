@@ -31,7 +31,7 @@ module ram_wrap32
 //
 //
 //	2023/11/18	ver.1.08
-//		corresponding to ERAM (Extended RAM) area
+//		corresponding to E-RAM(Extended RAM) area
 //
 //	2023/10/21	ver.1.06
 //		brushed up

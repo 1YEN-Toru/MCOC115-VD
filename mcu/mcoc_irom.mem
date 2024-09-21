@@ -1,9 +1,9 @@
 // ================================
 // Assemble list:
 //
-//		// Moscovium series macro assembler ver.1.36
+//		// Moscovium series macro assembler ver.1.46
 //		// ================================
-//		// RGB LED Blink with Serial monitor
+//		//	RGB LED Blink with Serial monitor
 //		//		(c) 2021	1YEN Toru
 //		//
 //		//
@@ -16,7 +16,7 @@
 //		//			brushed up
 //		//
 //		//		2022/04/23	ver.1.04
-//		//			corresponding to dual core edition
+//		//			corresponding to dual core cpu edition
 //		//
 //		//		2021/09/04	ver.1.02
 //		//			corresponding to new idrgedit register
@@ -39,17 +39,17 @@
 //	@0007	b003	// 000e    ldbiu  r0,uart_rxe|uart_txe
 //	@0008	7bf8	// 0010    stw    r7,r0
 //		// check Tennessine core
-//	@0009	7f91	// 0012    sesrl  1 (srbk sreg_bk_3)
-//	@000a	7f90	// 0014    sesrl  0 (srbk sreg_bk_3)
+//	@0009	7f91	// 0012    sesrl  1 (srbk  sreg_bk_3)
+//	@000a	7f90	// 0014    sesrl  0 (srbk  sreg_bk_3)
 //	@000b	7940	// 0016    movfc  r0,sr
 //	@000c	8803	// 0018    andi   r0,sreg_bk_3
 //	@000d	a800	// 001a    cmpi   r0,sreg_bk_0
-//	@000e	7fa1	// 001c    clsrl  1 (srbk sreg_bk_0)
-//	@000f	7fa0	// 001e    clsrl  0 (srbk sreg_bk_0)
+//	@000e	7fa1	// 001c    clsrl  1 (srbk  sreg_bk_0)
+//	@000f	7fa0	// 001e    clsrl  0 (srbk  sreg_bk_0)
 //	@0010	1007	// 0020    bne    target_cpu_ok
 //		// ERROR: not target CPU=moscovium, halt
-//	@0011	d2f1	// 0022    ldch   sp,((iomedat7+2)>>8)&0xff
-//	@0012	ca60	// 0024    ldcl   sp,(iomedat7+2)&0xff
+//	@0011	d2f1	// 0022    ldch   sp,((iome_botm)>>8)&0xff
+//	@0012	ca60	// 0024    ldcl   sp,(iome_botm)&0xff
 //	@0013	b12d	// 0026    ldbiu  r1,chr_mns
 //	@0014	c704	// 0028    ldbih  r7,(lab_print_chr)>>8
 //	@0015	bf46	// 002a    ldbil  r7,(lab_print_chr)&0xff
@@ -57,7 +57,7 @@
 //	@0017	0001	// 002e    pause 
 //		// ================================		// target cpu codes from here
 //			// target_cpu_ok:
-//		// stop if cpu2 for dual core edition
+//		// stop if cpu2 for dual core cpu edition
 //	@0018	7940	// 0030    movfc  r0,sr
 //	@0019	d8f4	// 0032    lsfti  r0,-(sreg_b_id0)
 //	@001a	8802	// 0034    andi   r0,sreg_id_2>>sreg_b_id0
@@ -474,8 +474,8 @@
 //	@017b	bfe0	// 02f6    ldbil  r7,(lab_print)&0xff
 //	@017c	7f8f	// 02f8    jalw   r7
 //	@017d	0800	// 02fa    bra    no_data
-//			// no_data:
 //		// end of command interpretation
+//			// no_data:
 //		// ================================
 //		// led blink
 //	@017e	c750	// 02fc    ldbih  r7,((led_stat)>>8)&0xff
@@ -626,7 +626,7 @@
 //	@01e6	b000	// 03cc    ldbiu  r0,0
 //	@01e7	a501	// 03ce    subi   r5,1
 //	@01e8	7b68	// 03d0    stb    r5,r0
-//		// check CR code
+//		// CR code check
 //	@01e9	a501	// 03d2    subi   r5,1
 //	@01ea	7b05	// 03d4    ldb    r0,r5
 //	@01eb	a80d	// 03d6    cmpi   r0,chr_cr
@@ -1017,6 +1017,48 @@
 //		//	0xf0ee	adcdat3
 //		//	0xf0e2	adcint
 //		//	0xf0e4	adcperi
+//		//	0x0001	adcx_bsy
+//		//	0x0014	adcx_drp_ain0
+//		//	0x001c	adcx_drp_ain1
+//		//	0x0040	adcx_drp_cfg0
+//		//	0x0100	adcx_drp_cfg0_acq
+//		//	0x0000	adcx_drp_cfg0_avg_0
+//		//	0x1000	adcx_drp_cfg0_avg_1
+//		//	0x2000	adcx_drp_cfg0_avg_2
+//		//	0x3000	adcx_drp_cfg0_avg_3
+//		//	0x0400	adcx_drp_cfg0_bu
+//		//	0x0200	adcx_drp_cfg0_ec
+//		//	0x0041	adcx_drp_cfg1
+//		//	0x2000	adcx_drp_cfg1_seq_cont
+//		//	0xf000	adcx_drp_cfg1_seq_mask
+//		//	0x3000	adcx_drp_cfg1_seq_sglc
+//		//	0x1000	adcx_drp_cfg1_seq_sglp
+//		//	0x4000	adcx_drp_cfg1_seq_smul
+//		//	0x0042	adcx_drp_cfg2
+//		//	0x003f	adcx_drp_flag
+//		//	0x0048	adcx_drp_seq0_csel
+//		//	0x0010	adcx_drp_seq1_ain0
+//		//	0x1000	adcx_drp_seq1_ain1
+//		//	0x0049	adcx_drp_seq1_csel
+//		//	0x004a	adcx_drp_seq2_cave
+//		//	0x004b	adcx_drp_seq3_cave
+//		//	0x004c	adcx_drp_seq4_amod
+//		//	0x004d	adcx_drp_seq5_amod
+//		//	0x004e	adcx_drp_seq6_stim
+//		//	0x004f	adcx_drp_seq7_stim
+//		//	0x001c	adcx_drp_vaux12
+//		//	0x0014	adcx_drp_vaux4
+//		//	0x0008	adcx_drpe
+//		//	0x0020	adcx_eocf
+//		//	0x0040	adcx_eosf
+//		//	0x0080	adcx_xbsy
+//		//	0xf178	adcxadrr
+//		//	0xf17c	adcxadrw
+//		//	0xf174	adcxain0
+//		//	0xf176	adcxain1
+//		//	0xf170	adcxctl
+//		//	0xf17a	adcxdatr
+//		//	0xf17e	adcxdatw
 //		//	0x5048	array_va
 //		//	0x2580	baud
 //		//	0xf0f8	cachcnth
@@ -1034,6 +1076,19 @@
 //		//	0x000a	chr_lf
 //		//	0x002d	chr_mns
 //		//	0x0020	chr_spc
+//		//	0x0003	cm76_b10
+//		//	0x0002	cm76_cenb
+//		//	0x0040	cm76_fabl
+//		//	0x0080	cm76_fful
+//		//	0x0020	cm76_frbs
+//		//	0x000c	cm76_g10
+//		//	0x0040	cm76_hsyn
+//		//	0x0010	cm76_pckv
+//		//	0x0030	cm76_r10
+//		//	0x0080	cm76_vsyn
+//		//	0x0001	cm76_xcke
+//		//	0xf180	cm76ctl
+//		//	0xf182	cm76pix
 //		//	0x0040	dac_bitw_10b
 //		//	0x0050	dac_bitw_11b
 //		//	0x0060	dac_bitw_12b
@@ -1057,6 +1112,7 @@
 //		//	0xf110	distctl
 //		//	0xf114	distecho
 //		//	0xf112	disttrig
+//		//	0x00080000	eramtop
 //		//	0x016e3600	fcpu
 //		//	0x0008	fnjp_flp_h
 //		//	0x0004	fnjp_flp_v
@@ -1302,6 +1358,7 @@
 //		//	0xf06c	intmskh
 //		//	0xf060	intnum
 //		//	0xf060	intofs
+//		//	0xf160	iome_botm
 //		//	0xf150	iomedat0
 //		//	0xf152	iomedat1
 //		//	0xf154	iomedat2
@@ -1311,6 +1368,8 @@
 //		//	0xf15c	iomedat6
 //		//	0xf15e	iomedat7
 //		//	0x4000	iramtop
+//		//	0x8000	iramtop_rom32k
+//		//	0xc000	iramtop_rom48k
 //		//	0x0001	ivec_ve
 //		//	0x0182	lab_cmd_who
 //		//	0x02f0	lab_err_syntx
@@ -1416,6 +1475,8 @@
 //		//	0xfff8	prinhlf
 //		//	0xfffc	prinhxl
 //		//	0x5000	ramtop
+//		//	0x9000	ramtop_rom32k
+//		//	0xd000	ramtop_rom48k
 //		//	0x0080	rtc_eavl
 //		//	0x0040	rtc_esel
 //		//	0x0040	rtc_houe
@@ -1490,6 +1551,8 @@
 //		//	0xffc00000	sngl_nan
 //		//	0x0000	sngl_zer
 //		//	0x80000000	sngl_zer_n
+//		//	0x00080000	sramsiz
+//		//	0x00100000	sramtop
 //		//	0x0000	sreg_b_b0
 //		//	0x0001	sreg_b_b1
 //		//	0x0000	sreg_b_bk0
@@ -1663,11 +1726,32 @@
 //		//	prog_vers	"1.08"
 //		//	s	"#"
 //		// user macro lists
+//		//	movw	rd rs
+//		//	andw	rd rs
+//		//	orw		rd rs
+//		//	eorw	rd rs
+//		//	addw	rd rs
+//		//	subw	rd rs
+//		//	cmpw	rd rs
+//		//	negw	rn
+//		//	notw	rn
+//		//	addwi	rd imm
+//		//	subwi	rd imm
+//		//	cmpwi	rd imm
+//		//	andwi	rd imm
+//		//	lslwi	rd imm
+//		//	lsrwi	rd imm
+//		//	aslwi	rd imm
+//		//	asrwi	rd imm
+//		//	cslwi	rd imm
+//		//	csrwi	rd imm
+//		//	muluw	rd rs
+//		//	mulsw	rd rs
 //		// ================================
 // ================================
 // Assemble data:
 //
-// Moscovium series macro assembler ver.1.36
+// Moscovium series macro assembler ver.1.46
 @0000
 c7f0bf32
 c009b8c3

@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/09/21	ver.1.06
+//			change: _rtlt_var_top label to determine variables area
+//
 //		2024/09/07	ver.1.04
 //			add: _strfcmp_r1_r2, _strchr_r0_r1, _strofst_r1_r0
 //
@@ -13,7 +16,7 @@
 //
 
 
-equ		_rtlb_vers,0x0104				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0106				// beta(1),major(1),minor(2)
 
 
 # constants
@@ -72,7 +75,7 @@ cmpi	r0,sreg_id_2>>sreg_b_id0
 bne		_rtlb_core_ok
 // WARNING: dual core edition is not supported, now
 // cpu#2 halt, suppress errmsg
-srie	0
+srie	sreg_ie_0
 pause
 _rtlb_core_ok:
 
@@ -164,8 +167,8 @@ dats	"ERR: no FPU found, halted.\r\n\0"
 _rtlb_fpu_ok:
 
 // clear variables
-ldwi	r7,ramtop
-ldwi	r1,static_va
+ldwi	r7,_rtlb_var_top
+ldwi	r1,_rtlb_var_static
 ldbiu	r0,0
 _rtlb_clrv:
 st$(z)	[r7],r0
@@ -928,7 +931,7 @@ $(s)ldwi	r0,simneut
 $(s)ldwi	r7,simfnsh
 $(s)stw		[r7],r0
 $(s)// ********************************
-srie	0
+srie	sreg_ie_0
 pause
 
 _prgh_message:

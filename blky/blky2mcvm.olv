@@ -1,12 +1,16 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.04";
+	macro	prog_vers="1.06";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2024/09/21	ver.1.06
+//			determine RAM top address from @rom_siz@ translator option
+//			add: translator option @var_top@ 
 //
 //		2024/09/07	ver.1.04
 //			add: mcoc_string_compare_left, mcoc_string_ctoa, mcoc_string_find,
@@ -58,6 +62,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		opt_opr_typ=opt_int;		// opt: operation type (int / float)
 	var		opt_cstr_siz=64;			// opt: string buffer size
 	var		opt_rom_siz=4*1024;			// opt: instruction ROM size
+	var		opt_var_top=-1;				// opt: variable area top address
 	macro	vlst_vars;					// list of variables
 	macro	vlst_cstr;					// list of string variables
 	macro	dir,mynam,ext;
@@ -3301,7 +3306,7 @@ if (false)
 	procedure	do_blk_delay_custom
 	{
 		var		cmp;
-		nvar	millis_times=1;
+		nvar	millis_times=1;			// uint16
 		macro	nval;
 
 		while (true)
@@ -6196,12 +6201,13 @@ if (false)
 	fprint	fout,"equ	_rtlb_mul_need,@mul_need@"$,;
 	fprint	fout,"equ	_rtlb_div_need,@div_need@"$,;
 	fprint	fout,"equ	_rtlb_fpu_need,@fpu_need@"$,;
+	fprint	fout,"equ	_rtlb_var_top,@var_top@"$,;
 	fprint	fout,"## string macros"$,;
 	fprint	fout,"def	s,"$""@sim_mod@"$""	// simulation="
 			$"$"" / real fpga="$""##"$"$,;
 	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(ong) / w(ord)"$,;
 	fprint	fout,"## variables"$,;
-	fprint	fout,"equ	va,ramtop"$,;
+	fprint	fout,"equ	_va,_rtlb_var_top"$,;
 	fprint	fout,"##@vars_def@"$,;
 	
 	do_xml;
@@ -6213,6 +6219,16 @@ if (false)
 	fclose	fin;
 	fclose	fout;
 
+
+	// 変数記憶領域先頭アドレスを確定する
+	if (opt_var_top<0x5000)
+	{
+		opt_var_top=opt_rom_siz + 4*1024;	// ROMSIZ + IRAMSIZ(4KB)
+		maxv	opt_var_top=0x5000;		// default RAM top address
+	}
+	opt_var_top=floor (opt_var_top/4)*4;	// long word align
+	macro	str_var_top;
+	num2str		str_var_top=opt_var_top,"%x";
 
 	// 変数定義を埋め込む
 	fopen	fin,$(fnam_out),"r";
@@ -6241,8 +6257,8 @@ if (false)
 			while (idx<num)
 			{
 				// assembler
-				fprint	fout,"equ	"$(vlst_vars#(idx))",va"$,;
-				fprint	fout,"equ	va,va+_var_siz$(z)"$,;
+				fprint	fout,"equ	"$(vlst_vars#(idx))",_va"$,;
+				fprint	fout,"equ	_va,_va+_var_siz$(z)"$,;
 
 				// continue
 				idx=idx + 1;
@@ -6250,7 +6266,7 @@ if (false)
 
 			// assembler
 			fprint	fout,"## end of define variables"$,;
-			fprint	fout,"equ	static_va,va"$,;
+			fprint	fout,"equ	_rtlb_var_static,_va"$,;
 			fprint	fout,""$,;
 			fprint	fout,"## define string buffers"$,;
 			fprint	fout,"equ	_str_siz,#"$,,opt_cstr_siz;
@@ -6261,8 +6277,8 @@ if (false)
 			while (idx<num)
 			{
 				// assembler
-				fprint	fout,"equ	_cstr_"$(vlst_cstr#(idx))",va"$,;
-				fprint	fout,"equ	va,va+_str_siz"$,;
+				fprint	fout,"equ	_cstr_"$(vlst_cstr#(idx))",_va"$,;
+				fprint	fout,"equ	_va,_va+_str_siz"$,;
 
 				// continue
 				idx=idx + 1;
@@ -6270,7 +6286,7 @@ if (false)
 
 			// assembler
 			fprint	fout,"## end of define string buffers"$,;
-			fprint	fout,"equ	array_va,va"$,;
+			fprint	fout,"equ	_rtlb_var_array,_va"$,;
 			fprint	fout,""$,;
 			fprint	fout,"## include run time library"$,;
 			fprint	fout,"incl	"$"$(mynam)".incl"$"$,;
@@ -6290,45 +6306,49 @@ if (false)
 			continue;
 		}
 
+		if (true)
+		{
+			sub		"@var_top@","0x"$(str_var_top),lbuf;
+		}
 		if (opt_mul_need)
 		{
-			psub	"@mul_need@","true",lbuf;
+			sub		"@mul_need@","true",lbuf;
 		}
 		else
 		{
-			psub	"@mul_need@","false",lbuf;
+			sub		"@mul_need@","false",lbuf;
 		}
 		if (opt_div_need)
 		{
-			psub	"@div_need@","true",lbuf;
+			sub		"@div_need@","true",lbuf;
 		}
 		else
 		{
-			psub	"@div_need@","false",lbuf;
+			sub		"@div_need@","false",lbuf;
 		}
 		if (opt_fpu_need)
 		{
-			psub	"@fpu_need@","true",lbuf;
+			sub		"@fpu_need@","true",lbuf;
 		}
 		else
 		{
-			psub	"@fpu_need@","false",lbuf;
+			sub		"@fpu_need@","false",lbuf;
 		}
 		if (opt_cpu_mod=opt_nh)
 		{
-			psub	"@cpu_mod@","l",lbuf;
+			sub		"@cpu_mod@","l",lbuf;
 		}
 		else
 		{
-			psub	"@cpu_mod@","w",lbuf;
+			sub		"@cpu_mod@","w",lbuf;
 		}
 		if (opt_sim_mod)
 		{
-			psub	"@sim_mod@","",lbuf;
+			sub		"@sim_mod@","",lbuf;
 		}
 		else
 		{
-			psub	"@sim_mod@","#",lbuf;
+			sub		"@sim_mod@","#",lbuf;
 		}
 		fputl	fout,$(lbuf);
 

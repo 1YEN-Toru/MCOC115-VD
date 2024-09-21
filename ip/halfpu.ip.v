@@ -12,7 +12,7 @@ module halfpu
     hfpu_dsp_a,
     hfpu_dsp_b);
 //
-//	Half precision FPU (Half precision floating point unit)
+//	Half precision Floating Point Unit
 //		(c) 2021	1YEN Toru
 //
 //

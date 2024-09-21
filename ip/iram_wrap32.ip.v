@@ -11,6 +11,7 @@ module iram_wrap32
     bcmdl,
     bcs_iram_n,
     fadr,
+    fadr_top,
     badr,
     bdatw,
     rom_fdat,
@@ -26,6 +27,9 @@ module iram_wrap32
 //	32 bit instruction RAM wrapper
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/09/21	ver.1.04
+//		corresponding to variable fadr_top[15:0]
 //
 //	2023/10/21	ver.1.02
 //		corresponding to 32 bit data bus
@@ -43,6 +47,7 @@ module iram_wrap32
   input bcmdl;
   input bcs_iram_n;
   input [15:0]fadr;
+  input [15:0]fadr_top;
   input [15:0]badr;
   input [31:0]bdatw;
   input [31:0]rom_fdat;
@@ -77,10 +82,35 @@ module iram_wrap32
   wire [15:0]fadr;
   wire fadr1_b;
   wire fadr1_b_i_1_n_0;
+  wire [15:0]fadr_top;
   wire fcmdl;
   wire [31:0]fdat;
+  wire frd;
   wire frd_b;
+  wire frd_b_i_10_n_0;
+  wire frd_b_i_11_n_0;
+  wire frd_b_i_12_n_0;
+  wire frd_b_i_13_n_0;
+  wire frd_b_i_14_n_0;
+  wire frd_b_i_15_n_0;
+  wire frd_b_i_16_n_0;
+  wire frd_b_i_17_n_0;
+  wire frd_b_i_18_n_0;
+  wire frd_b_i_19_n_0;
   wire frd_b_i_1_n_0;
+  wire frd_b_i_4_n_0;
+  wire frd_b_i_5_n_0;
+  wire frd_b_i_6_n_0;
+  wire frd_b_i_7_n_0;
+  wire frd_b_i_8_n_0;
+  wire frd_b_i_9_n_0;
+  wire frd_b_reg_i_2_n_1;
+  wire frd_b_reg_i_2_n_2;
+  wire frd_b_reg_i_2_n_3;
+  wire frd_b_reg_i_3_n_0;
+  wire frd_b_reg_i_3_n_1;
+  wire frd_b_reg_i_3_n_2;
+  wire frd_b_reg_i_3_n_3;
   wire [31:0]iram_bdatr;
   wire [31:16]\^iram_bdatw ;
   wire [31:0]iram_fdat;
@@ -695,19 +725,160 @@ module iram_wrap32
         .I4(frd_b),
         .I5(rom_fdat[9]),
         .O(fdat[9]));
-  LUT3 #(
-    .INIT(8'hE0)) 
+  LUT2 #(
+    .INIT(4'h8)) 
     frd_b_i_1
-       (.I0(fadr[14]),
-        .I1(fadr[15]),
-        .I2(rst_n),
+       (.I0(frd),
+        .I1(rst_n),
         .O(frd_b_i_1_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_10
+       (.I0(fadr[10]),
+        .I1(fadr_top[10]),
+        .I2(fadr[11]),
+        .I3(fadr_top[11]),
+        .O(frd_b_i_10_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_11
+       (.I0(fadr[8]),
+        .I1(fadr_top[8]),
+        .I2(fadr[9]),
+        .I3(fadr_top[9]),
+        .O(frd_b_i_11_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_12
+       (.I0(fadr[6]),
+        .I1(fadr_top[6]),
+        .I2(fadr_top[7]),
+        .I3(fadr[7]),
+        .O(frd_b_i_12_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_13
+       (.I0(fadr[4]),
+        .I1(fadr_top[4]),
+        .I2(fadr_top[5]),
+        .I3(fadr[5]),
+        .O(frd_b_i_13_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_14
+       (.I0(fadr[2]),
+        .I1(fadr_top[2]),
+        .I2(fadr_top[3]),
+        .I3(fadr[3]),
+        .O(frd_b_i_14_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_15
+       (.I0(fadr[0]),
+        .I1(fadr_top[0]),
+        .I2(fadr_top[1]),
+        .I3(fadr[1]),
+        .O(frd_b_i_15_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_16
+       (.I0(fadr[6]),
+        .I1(fadr_top[6]),
+        .I2(fadr[7]),
+        .I3(fadr_top[7]),
+        .O(frd_b_i_16_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_17
+       (.I0(fadr[4]),
+        .I1(fadr_top[4]),
+        .I2(fadr[5]),
+        .I3(fadr_top[5]),
+        .O(frd_b_i_17_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_18
+       (.I0(fadr[2]),
+        .I1(fadr_top[2]),
+        .I2(fadr[3]),
+        .I3(fadr_top[3]),
+        .O(frd_b_i_18_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_19
+       (.I0(fadr[0]),
+        .I1(fadr_top[0]),
+        .I2(fadr[1]),
+        .I3(fadr_top[1]),
+        .O(frd_b_i_19_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_4
+       (.I0(fadr[14]),
+        .I1(fadr_top[14]),
+        .I2(fadr_top[15]),
+        .I3(fadr[15]),
+        .O(frd_b_i_4_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_5
+       (.I0(fadr[12]),
+        .I1(fadr_top[12]),
+        .I2(fadr_top[13]),
+        .I3(fadr[13]),
+        .O(frd_b_i_5_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_6
+       (.I0(fadr[10]),
+        .I1(fadr_top[10]),
+        .I2(fadr_top[11]),
+        .I3(fadr[11]),
+        .O(frd_b_i_6_n_0));
+  LUT4 #(
+    .INIT(16'h2F02)) 
+    frd_b_i_7
+       (.I0(fadr[8]),
+        .I1(fadr_top[8]),
+        .I2(fadr_top[9]),
+        .I3(fadr[9]),
+        .O(frd_b_i_7_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_8
+       (.I0(fadr[14]),
+        .I1(fadr_top[14]),
+        .I2(fadr[15]),
+        .I3(fadr_top[15]),
+        .O(frd_b_i_8_n_0));
+  LUT4 #(
+    .INIT(16'h9009)) 
+    frd_b_i_9
+       (.I0(fadr[12]),
+        .I1(fadr_top[12]),
+        .I2(fadr[13]),
+        .I3(fadr_top[13]),
+        .O(frd_b_i_9_n_0));
   FDRE frd_b_reg
        (.C(clk),
         .CE(\<const1> ),
         .D(frd_b_i_1_n_0),
         .Q(frd_b),
         .R(\<const0> ));
+  (* COMPARATOR_THRESHOLD = "11" *) 
+  CARRY4 frd_b_reg_i_2
+       (.CI(frd_b_reg_i_3_n_0),
+        .CO({frd,frd_b_reg_i_2_n_1,frd_b_reg_i_2_n_2,frd_b_reg_i_2_n_3}),
+        .CYINIT(\<const0> ),
+        .DI({frd_b_i_4_n_0,frd_b_i_5_n_0,frd_b_i_6_n_0,frd_b_i_7_n_0}),
+        .S({frd_b_i_8_n_0,frd_b_i_9_n_0,frd_b_i_10_n_0,frd_b_i_11_n_0}));
+  (* COMPARATOR_THRESHOLD = "11" *) 
+  CARRY4 frd_b_reg_i_3
+       (.CI(\<const0> ),
+        .CO({frd_b_reg_i_3_n_0,frd_b_reg_i_3_n_1,frd_b_reg_i_3_n_2,frd_b_reg_i_3_n_3}),
+        .CYINIT(\<const1> ),
+        .DI({frd_b_i_12_n_0,frd_b_i_13_n_0,frd_b_i_14_n_0,frd_b_i_15_n_0}),
+        .S({frd_b_i_16_n_0,frd_b_i_17_n_0,frd_b_i_18_n_0,frd_b_i_19_n_0}));
   LUT3 #(
     .INIT(8'hB8)) 
     \iram_bdatw[16]_INST_0 

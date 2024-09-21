@@ -4,6 +4,9 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2024/09/21	ver.1.26
+//			change: ramtop label to idrgramt
+//
 //		2024/08/31	ver.1.24
 //			add: hdown
 //
@@ -251,7 +254,11 @@ bne		opc_no_fail
 // rtnw
 ldbiu	r1,0
 ldbiu	r2,0
-ldwi	r4,ramtop+24
+#ldwi	r4,ramtop+24
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,24
+#
 movtc	sp,r4
 ldwi	r0,lab_rtnw_pass1
 pushw	r0
@@ -268,7 +275,12 @@ cmpi	r2,1
 bne		opc_no_fail
 // ================================
 // rti
-ldc		sp,ramtop+6
+#ldc		sp,ramtop+6
+ldwi	r0,idrgramt
+ldw		r0,[r0]
+addi	r0,6
+movtc	sp,r0
+#
 ldc		iv,lab_rti_vect
 // interrupt emulation
 movfc	r1,iv
@@ -617,7 +629,11 @@ bne		opc_r_fail
 // ================================
 // jalw
 ldbiu	r3,0
-ldwi	r4,ramtop+16
+#ldwi	r4,ramtop+16
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,16
+#
 movtc	sp,r4
 ldwi	r7,lab_jalw_addr1
 jalw	r7								// **
@@ -731,7 +747,11 @@ cmpi	r1,sreg_nf
 bne		opc_r_fail
 // ================================
 // pushw
-ldwi	r4,ramtop+0x20
+#ldwi	r4,ramtop+0x20
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,0x20
+#
 movtc	sp,r4
 ldwi	r0,0x9abc
 pushw	r0								// **
@@ -744,7 +764,11 @@ cmp		r2,r0
 bne		opc_r_fail
 // ================================
 // popw
-ldwi	r4,ramtop+0x30
+#ldwi	r4,ramtop+0x30
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,0x30
+#
 ldwi	r0,0x2468
 stw		[r4],r0
 movtc	sp,r4
@@ -757,7 +781,11 @@ cmp		r2,r4
 bne		opc_r_fail
 // ================================
 // pushcw
-ldwi	r4,ramtop+0x18
+#ldwi	r4,ramtop+0x18
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,0x18
+#
 movtc	sp,r4
 ldcl	sr,sreg_fg
 pushcw	sr								// **
@@ -771,7 +799,11 @@ cmp		r2,r0
 bne		opc_r_fail
 // ================================
 // popcw
-ldwi	r4,ramtop+0x28
+#ldwi	r4,ramtop+0x28
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,0x28
+#
 ldwi	r0,0x1248
 stw		[r4],r0
 movtc	sp,r4
@@ -843,7 +875,11 @@ cmpi	r2,sreg_nf
 bne		opc_rr_fail
 // ================================
 // movtc
-ldwi	r7,ramtop+0x24
+#ldwi	r7,ramtop+0x24
+ldwi	r7,idrgramt
+ldw		r7,[r7]
+addi	r7,0x24
+#
 movtc	sp,r7							// **
 ldwi	r0,0x00
 subi	r7,2
@@ -974,7 +1010,11 @@ bne		opc_rr_fail
 // ================================
 // ldb
 ldwi	r0,0x3a5c
-ldwi	r1,ramtop
+#ldwi	r1,ramtop
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,0
+#
 stw		[r1],r0
 ldb		r2,[r1]							// **
 addi	r1,1
@@ -986,7 +1026,11 @@ bne		opc_rr_fail
 // ================================
 // stb
 ldwi	r0,0x9653
-ldwi	r1,ramtop+1
+#ldwi	r1,ramtop+1
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,1
+#
 mov		r2,r0
 lsfti	r2,-8
 stb		[r1],r0							// **
@@ -998,7 +1042,11 @@ bne		opc_rr_fail
 // ================================
 // ldw
 ldwi	r0,0x7531
-ldwi	r1,ramtop+10
+#ldwi	r1,ramtop+10
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,10
+#
 stw		[r1],r0
 ldw		r2,[r1]							// **
 cmp		r2,r0
@@ -1006,7 +1054,11 @@ bne		opc_rr_fail
 // ================================
 // stw
 ldwi	r0,0xfedc
-ldwi	r1,ramtop+6
+#ldwi	r1,ramtop+6
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,6
+#
 stw		[r1],r0							// **
 ldw		r3,[r1]
 cmp		r0,r3
@@ -1088,7 +1140,11 @@ bne		opc_rr_fail
 // ================================
 // ldwsp
 ldbiu	r3,8							// offset
-ldwi	r4,ramtop+14					// target address
+#ldwi	r4,ramtop+14					// target address
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,14
+#
 ldwi	r6,0x9753						// read data
 movtc	tr,r6							// set dummy
 stw		[r4],r6							// write data
@@ -1112,7 +1168,11 @@ bne		opc_rr_fail
 // ================================
 // stwsp
 ldbiu	r3,8							// offset
-ldwi	r4,ramtop+14					// target address
+#ldwi	r4,ramtop+14					// target address
+ldwi	r4,idrgramt
+ldw		r4,[r4]
+addi	r4,14
+#
 ldwi	r6,0xabcd						// write data
 movtc	tr,r6							// set dummy
 mov		r0,r6
@@ -1295,7 +1355,11 @@ divc_skip:
 // ldbx
 ldc		tr,0
 ldwi	r0,0xb1e6
-ldwi	r1,ramtop
+#ldwi	r1,ramtop
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,0
+#
 stwx	[r1],r0
 ldbx	r2,[r1]							// **
 addi	r1,1
@@ -1311,7 +1375,11 @@ bne		opc_rr_fail
 // stbx
 ldc		tr,0
 ldwi	r0,0xe941
-ldwi	r1,ramtop+1
+#ldwi	r1,ramtop+1
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,1
+#
 mov		r2,r0
 lsfti	r2,-8
 stbx	[r1],r0							// **
@@ -1324,7 +1392,11 @@ bne		opc_rr_fail
 // ldwx
 ldc		tr,0
 ldwi	r0,0xf92b
-ldwi	r1,ramtop+10
+#ldwi	r1,ramtop+10
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,10
+#
 stwx	[r1],r0
 ldwx	r2,[r1]							// **
 cmp		r2,r0
@@ -1333,7 +1405,11 @@ bne		opc_rr_fail
 // stwx
 ldc		tr,0
 ldwi	r0,0x018d
-ldwi	r1,ramtop+6
+#ldwi	r1,ramtop+6
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+addi	r1,6
+#
 stwx	[r1],r0							// **
 ldwx	r3,[r1]
 cmp		r0,r3

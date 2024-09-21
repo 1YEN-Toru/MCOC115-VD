@@ -59,6 +59,8 @@
 // Memory unit
 `define		MCOC_ROM_8K
 //`define		MCOC_ROM_16K
+//`define		MCOC_ROM_32K
+//`define		MCOC_ROM_48K
 //`define		MCOC_IRAM_4K
 //`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
 `define		MCOC_RAM_16K
@@ -134,8 +136,21 @@
 `define		MCOC_FCPU_MHZ	8'h24
 `endif
 
+`ifdef		MCOC_ROM_32K
+`undef		MCOC_RAM_32K
+`undef		MCOC_RAM_40K
+`endif	//	MCOC_ROM_32K
+
+`ifdef		MCOC_ROM_48K
+`undef		MCOC_RAM_16K
+`undef		MCOC_RAM_24K
+`undef		MCOC_RAM_32K
+`undef		MCOC_RAM_40K
+`endif	//	MCOC_ROM_48K
+
 `ifdef		MCOC_ERAM
 `undef		MCOC_RAM_LE1K
+`undef		MCOC_RAM_4K
 `endif	//	MCOC_ERAM
 
 `define		MCOC_PORT_HIZO				// default now

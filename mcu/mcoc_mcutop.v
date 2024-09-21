@@ -41,13 +41,16 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0222
+`define		MCOC_VERS		16'h0224
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/09/21	ver.2.24
+//		add: compile option MCOC_ROM32K, MCOC_ROM48K
 //
 //	2024/06/15	ver.2.22
 //		corresponding to CAM7670 unit
@@ -72,7 +75,7 @@ input	adcx_ain1n);
 //		corresponding to FONTJP and UNISJI unit
 //
 //	2023/11/18	ver.2.12
-//		corresponding to ERAM (Extended RAM) area
+//		corresponding to E-RAM(Extended RAM) area
 //		add: compile option MCOC_ERAM
 //
 //	2023/11/04	ver.2.10
@@ -80,10 +83,10 @@ input	adcx_ain1n);
 //		add: compile option MCOC_NO_SMPH, MCOC_NO_ICFF
 //
 //	2023/10/28	ver.2.08
-//		change: IRAM: WRITE_MODE="read_first" <- "no_change"
+//		change: I-RAM: WRITE_MODE="read_first" <- "no_change"
 //
 //	2023/10/21	ver.2.06
-//		modify: memory units (ROM, IRAM, RAM)
+//		modify: memory units (ROM, I-RAM, RAM)
 //
 //	2023/10/07	ver.2.04
 //		replace: UART8N1: FIFO macro -> fifo8s64
@@ -218,18 +221,36 @@ defparam	idrg.romtop=$clog2 (`MCOC_ERAM);
 `else	//	MCOC_ERAM
 defparam	idrg.romtop=16'h0000;
 `endif	//	MCOC_ERAM
-`ifdef		MCOC_ROM_16K
+`ifdef		MCOC_ROM_48K
+defparam	idrg.romsiz=16'd48*16'd1024;
+defparam	idrg.ramtop=16'hd000;
+`elsif		MCOC_ROM_32K
+defparam	idrg.romsiz=16'd32*16'd1024;
+defparam	idrg.ramtop=16'h9000;
+`elsif		MCOC_ROM_16K
 defparam	idrg.romsiz=16'd16*16'd1024;
+defparam	idrg.ramtop=16'h5000;
 `elsif		MCOC_ROM_8K
 defparam	idrg.romsiz=16'd8*16'd1024;
+defparam	idrg.ramtop=16'h5000;
 `else
 defparam	idrg.romsiz=16'd4*16'd1024;
-`endif
 defparam	idrg.ramtop=16'h5000;
+`endif
 `ifdef		MCOC_ERAM
+
+`ifdef		MCOC_ROM_48K
+defparam	idrg.ramsiz=16'd8*16'd1024;
+`elsif		MCOC_ROM_32K
+defparam	idrg.ramsiz=16'd24*16'd1024;
+`else
 defparam	idrg.ramsiz=16'd40*16'd1024;
+`endif
+
 `elsif		MCOC_RAM_LE1K
 defparam	idrg.ramsiz=`MCOC_RAM_LE1K;
+`elsif		MCOC_RAM_4K
+defparam	idrg.ramsiz=16'd4*16'd1024;
 `elsif		MCOC_RAM_40K
 defparam	idrg.ramsiz=16'd40*16'd1024;
 `elsif		MCOC_RAM_32K
@@ -238,8 +259,6 @@ defparam	idrg.ramsiz=16'd32*16'd1024;
 defparam	idrg.ramsiz=16'd24*16'd1024;
 `elsif		MCOC_RAM_16K
 defparam	idrg.ramsiz=16'd16*16'd1024;
-`elsif		MCOC_RAM_4K
-defparam	idrg.ramsiz=16'd4*16'd1024;
 `else
 defparam	idrg.ramsiz=16'd8*16'd1024;
 `endif
@@ -651,6 +670,15 @@ mcoc_rom	rom (
 );
 
 `ifdef		MCOC_RAM_LE1K
+
+`ifdef		MCOC_ROM_48K
+wire	le1k_ram_n=bcs_ram4_n;
+`elsif		MCOC_ROM_32K
+wire	le1k_ram_n=bcs_ram2_n;
+`else
+wire	le1k_ram_n=bcs_ram0_n;
+`endif
+
 mcoc_ram_le1k	ram (
     .clk(clk),  // Input
     .rst_n(rst_n),  // Input
@@ -659,7 +687,7 @@ mcoc_ram_le1k	ram (
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
-    .bcs_ram0_n(bcs_ram0_n),  // Input
+    .bcs_ram0_n(le1k_ram_n),  // Input
     .badr(badr[15:0]),    // Input
     .bdatw(bdatw[31:0]),  // Input
     .bdatr(bdatr_ram[31:0])   // Output

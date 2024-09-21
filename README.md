@@ -51,7 +51,7 @@
 - [Blockly](https://github.com/google/blockly)
 	- Block base visual programming environment.
 	![blky](img/a316_blky_edit.png)
-	- Assemble blocks to control MCU.
+	- Build up blocks to control MCU.
 	- Download program code in XML format, and translate it to Moscovium assembler source list.
 
 - Blockly.XML to Moscovium.ASM translator: [blky2mcvm.olv](blky/blky2mcvm.olv)
@@ -114,11 +114,11 @@
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
-- [HALFPU](http://hello.world.coocan.jp/ARDUINO16/arduino16_5.html)
-	- 16 bit half precision Floating Point Unit (FPU)
+- [H-FPU](http://hello.world.coocan.jp/ARDUINO16/arduino16_5.html)
+	- 16 bit Half precision Floating Point Unit (FPU)
 		- for Moscovium / Moscovium-SS / Nihonium / Nihonium-SS
-- [SGLFPU](http://hello.world.coocan.jp/ARDUINO24/arduino24_5.html)
-	- 32 bit single precision Floating Point Unit (FPU)
+- [S-FPU](http://hello.world.coocan.jp/ARDUINO24/arduino24_5.html)
+	- 32 bit Single precision Floating Point Unit (FPU)
 		- for Nihonium / Nihonium-SS
 
 ## System units
@@ -202,15 +202,15 @@
 - [ROM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IROM)
 	- Instruction ROM unit
 	- Boot loader ROM included
-- [IRAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IRAM)
+- [I-RAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IRAM)
 	- Instruction RAM unit
 - [RAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#MAINMEM)
 	- Main memory (RAM) unit
-- [ERAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_2.html#CA7MMAP)
+- [E-RAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_2.html#CA7MMAP)
 	- Extended memory (RAM) unit
 	- Over 64KB RAM in 24 bit extended address area
-- [SRAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_6.html#SRAMC512K)
-	- External SRAM unit
+- [SRAM512K](http://hello.world.coocan.jp/ARDUINO28/arduino28_6.html#SRAMC512K)
+	- External SRAM chip I/F unit
 	- 512KB, 8 bit SRAM on the Cmod A7 board
 
 --------
@@ -248,7 +248,7 @@
 1. [Moscovium series MCU](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP)
 	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html)
 	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
-	- [Assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
+	- [Macro assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
 		- [Moscovium instruction set manual](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](http://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)
 		- [Tennessine instruction set manual](http://hello.world.coocan.jp/ARDUINO26/a263_instset.html#MANTOP)
