@@ -1,15 +1,19 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.46";
+	macro	prog_vers="1.48";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
 //
+//		2024/10/12	ver.1.48
+//			pseudo: equ; immediate definition condition changed
+//
 //		2024/09/21	ver.1.46
-//			fix: (srbk, )srie; clsr integrated macro has priority
-//				to prevent higher levels during the change
+//			fix: integrated macro: (srbk, )srie;
+//				clsrl instruction has priority to prevent
+//				higher levels during the change
 //			optimized ROM code array rom#()
 //
 //		2024/08/31	ver.1.44
@@ -891,14 +895,14 @@ model	"Moscovium series macro assembler"
 			get_word;
 			mlet	opr2=$(get_word);
 			tolower		opr1;
-			pindex	cmp=$(opr2),"^[0-9_]+$";
+			pindex	cmp=$(opr2),"^[+-]?[0-9][0-9_]*$";
 			if (cmp=0)
 			{
-				pindex	cmp=$(opr2),"^0[xX][0-9a-fA-F_]+$";
+				pindex	cmp=$(opr2),"^[+-]?0[xX][0-9a-fA-F_]+$";
 			}
 			if (cmp=0)
 			{
-				pindex	cmp=$(opr2),"^0[bB][01_]+$";
+				pindex	cmp=$(opr2),"^[+-]?0[bB][01_]+$";
 			}
 			if (cmp>0)
 			{

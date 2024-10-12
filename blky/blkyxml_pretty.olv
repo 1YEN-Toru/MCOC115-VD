@@ -6,6 +6,9 @@ model	"Blockly.XML pretty printer"
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/10/12	ver.1.02
+//			corresponding to S-JIS encoding XML
+//
 //		2024/08/31	ver.1.00
 //
 // ================================
@@ -40,10 +43,21 @@ model	"Blockly.XML pretty printer"
 		}
 	}
 	pathsplit	$(fnam_in), dir,fnam,ext;
-	mlet	fnam_out=$(dir)$/$(fnam)"_out.txt";
+	mlet	fnam_out=$(dir)$/$(fnam)"_out.xml";
 
 
 	// procedures
+	procedure	fget_sjis
+	{
+		// codがS-JISコード1バイト目範囲内なら2バイト目を読み込む
+		if (0x81<=cod & cod<0xa0 | 0xe0<=cod & cod<0xfd)
+		{
+			var		cod2;
+
+			fgetb	fin,cod2;
+			cod=@((cod<<8) + cod2);
+		}
+	}
 	procedure	fget_xml
 	{
 		// "<"～">"を取ってくる。
@@ -57,6 +71,7 @@ model	"Blockly.XML pretty printer"
 
 		// 読み出し
 		fgetb	fin,cod;
+		fget_sjis;
 		num2chr		chr=cod;
 		strcmp	cmp="<",$(chr);
 		if (cmp=0)
@@ -66,6 +81,7 @@ model	"Blockly.XML pretty printer"
 			{
 				strcat	fget_xml, $(chr);
 				fgetb	fin,cod;
+				fget_sjis;
 				if (cod<0)
 				{
 					// ERROR:
@@ -87,6 +103,7 @@ model	"Blockly.XML pretty printer"
 				strcat	fget_xml, $(chr);
 				ftell	fin,fpos;
 				fgetb	fin,cod;
+				fget_sjis;
 				if (cod<0)
 				{
 					// ERROR:

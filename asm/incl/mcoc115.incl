@@ -11,6 +11,7 @@ equ		simc_int0_0,0x1000				// simintr[INT0] field
 equ		simc_int0_1,0x1100
 equ		simc_int1_0,0x2000				// simintr[INT1] field
 equ		simc_int1_1,0x2200
+equ		simc_intw_ff,0x00ff				// simintr[WAIT] field
 equ		simpord,0xf002					// simulation port direction
 equ		simpori,0xf004					// simulation port input
 equ		simusrd,0xf006					// simulation user port direction
@@ -108,6 +109,46 @@ equ		sngl_inf,0x7f80_0000			// sfpu, +inf
 equ		sngl_inf_n,0xff80_0000			// sfpu, -inf
 equ		sngl_nan,0xffc0_0000			// sfpu, nan
 equ		sngl_mpi,0x4049_0fdb			// sfpu, pi
+# ================================
+equ		asc_nil,0x00					// asc: NIL code
+equ		asc_bs,0x08						// asc: BS code
+equ		asc_tab,0x09					// asc: TAB code
+equ		asc_lf,0x0a						// asc: LF code
+equ		asc_cr,0x0d						// asc: CR' code
+equ		asc_spc,0x20					// asc: ' ' code
+equ		asc_exc,0x21					// asc: '!' code
+equ		asc_dqt,0x22					// asc: '"' code
+equ		asc_num,0x23					// asc: '#' code
+equ		asc_dol,0x24					// asc: '$' code
+equ		asc_per,0x25					// asc: '%' code
+equ		asc_amp,0x26					// asc: '&' code
+equ		asc_sqt,0x27					// asc: ''' code
+equ		asc_bri,0x28					// asc: '(' code
+equ		asc_bro,0x29					// asc: ')' code
+equ		asc_ast,0x2a					// asc: '*' code
+equ		asc_pls,0x2b					// asc: '+' code
+equ		asc_cma,0x2c					// asc: ',' code
+equ		asc_mns,0x2d					// asc: '-' code
+equ		asc_dot,0x2e					// asc: '.' code
+equ		asc_sla,0x2f					// asc: '/' code
+equ		asc_cln,0x3a					// asc: ':' code
+equ		asc_sem,0x3b					// asc: ';' code
+equ		asc_lt,0x3c						// asc: '<' code
+equ		asc_eq,0x3d						// asc: '=' code
+equ		asc_gt,0x3e						// asc: '>' code
+equ		asc_que,0x3f					// asc: '?' code
+equ		asc_atm,0x40					// asc: '@' code
+equ		asc_sqi,0x5b					// asc: '[' code
+equ		asc_yen,0x5c					// asc: '\' code
+equ		asc_sqo,0x5d					// asc: ']' code
+equ		asc_cir,0x5e					// asc: '^' code
+equ		asc_und,0x5f					// asc: '_' code
+equ		asc_bqt,0x60					// asc: '`' code
+equ		asc_cbi,0x7a					// asc: '[' code
+equ		asc_vrt,0x7b					// asc: '|' code
+equ		asc_cbo,0x7c					// asc: ']' code
+equ		asc_tld,0x7d					// asc: '~' code
+equ		asc_c2s,0x20					// capital to small
 # ================================
 # IDREG
 equ		idrgcode,0xf000					// idrg, R, word

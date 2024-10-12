@@ -38,7 +38,7 @@ module intc322dvl
 //		fixed: intmskh register read
 //
 //	2022/01/29	ver.1.04
-//		fixed: priority encoder for CPU#2 estimated a latch.
+//		fixed: priority encoder for CPU2 estimated a latch.
 //
 //	2021/07/31	ver.1.02
 //		corresponding to dual core cpu

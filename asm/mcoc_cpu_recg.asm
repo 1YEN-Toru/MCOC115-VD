@@ -6,10 +6,10 @@
 asm		"mcoc_irom.mem"
 incl	"mcoc115.incl"
 # ================================
-equ		stkptr1,iome_botm				// stack pointer for cpu#0 or #1
-equ		stkptr2,iome_botm-8				// stack pointer for cpu#2
+equ		stkptr1,iome_botm				// stack pointer for cpu0 or cpu1
+equ		stkptr2,iome_botm-8				// stack pointer for cpu2
 equ		chr_nil,0x00					// nil code
-equ		wait_times,96					// wait times between cpu#1 and #2
+equ		wait_times,96					// wait times between cpu1 and cpu2
 # ================================
 
 
@@ -49,9 +49,9 @@ lsri	r0,sreg_b_id0-8
 andi	r0,sreg_id_3>>sreg_b_id0
 cmpi	r0,sreg_id_2>>sreg_b_id0
 bne		cpu_0_or_1
-// cpu#2
+// cpu2
 ldc		sp,stkptr2
-// wait until cpu#1 finished
+// wait until cpu1 finished
 ldbiu	r1,wait_times
 subi	r1,1
 bne		pcnt-4
@@ -123,16 +123,15 @@ bra		print_and_finish
 // print and finish
 print_and_finish:
 jalwr7	print
-// cpu#0
+// cpu0 (single core cpu)
 cmpi	r6,sreg_id_0>>sreg_b_id0
 beq		tstpass
-// cpu#2
+// cpu2 (dual core, sub cpu)
 cmpi	r6,sreg_id_2>>sreg_b_id0
 beq		tstpass
-// cpu#3: illegal
-cmpi	r6,sreg_id_3>>sreg_b_id0
-beq		tstfail
-// cpu#1: halt, wait cpu#2 to finish processing
+// cpu1 (smp dual core, main cpu)
+// cpu3 (amp dual core, main cpu)
+// halt, wait cpu2 to finish processing
 pause
 
 

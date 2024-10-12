@@ -1,6 +1,6 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
   <variables>
-    <variable id="],Rj:AJ1C,P1N[dbIAmq">idx_i</variable>
+    <variable id="],Rj:AJ1C,P1N[dbIAmq">indx</variable>
   </variables>
   <block type="mcoc_port_write" id="IM0B6P;yE=}0VhkhYt{t" x="13" y="13">
     <comment pinned="false" h="109" w="334">\n&#9;brink RGB LED\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.02\n&#9;&#9;&#9;Blockly demo edition\n\n&#9;&#9;2024/07/27&#9;ver.1.00\n</comment>
@@ -40,7 +40,7 @@
             </value>
             <next>
               <block type="variables_set" id="+_JJMGkQ53MD~Y!8j@tL">
-                <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                 <value name="VALUE">
                   <block type="math_number" id="ofw]/`7}@OKOAG.yk5}I">
                     <field name="NUM">0</field>
@@ -59,7 +59,7 @@
                       <block type="mcoc_port_write" id="ucBwF-hQ_x0HO?S(KGOs">
                         <value name="PIN">
                           <block type="variables_get" id="8l*YBK]LziV#}9pFA1~q">
-                            <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                            <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                           </block>
                         </value>
                         <value name="VAL">
@@ -78,7 +78,7 @@
                               <block type="mcoc_port_write" id="/B{q7iQMr=PE|PV7qwO2">
                                 <value name="PIN">
                                   <block type="variables_get" id="s}#/Rx~8Ef(SQ1{*~wP!">
-                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                                   </block>
                                 </value>
                                 <value name="VAL">
@@ -97,7 +97,7 @@
                                       <block type="mcoc_port_write" id="Dfx69:8lXVU%UGvhx+v2">
                                         <value name="PIN">
                                           <block type="variables_get" id="yDfuU})UmiAzXrE4jPfa">
-                                            <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                            <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                                           </block>
                                         </value>
                                         <value name="VAL">
@@ -116,7 +116,7 @@
                                               <block type="mcoc_port_write" id="KVe0S~O.QcUg;i7;g~3a">
                                                 <value name="PIN">
                                                   <block type="variables_get" id="{Q[)JtiE=zd?yaL~n#mV">
-                                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                                                   </block>
                                                 </value>
                                                 <value name="VAL">
@@ -133,7 +133,7 @@
                                                     </value>
                                                     <next>
                                                       <block type="math_change" id="-6n619S7Tln)HV$pv|5O">
-                                                        <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                        <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                                                         <value name="DELTA">
                                                           <shadow type="math_number" id="~-Nnz.b}Um+;t8/x+6%}">
                                                             <field name="NUM">1</field>
@@ -146,7 +146,7 @@
                                                                 <field name="OP">GTE</field>
                                                                 <value name="A">
                                                                   <block type="variables_get" id="-B%wv{{C:H6;mGB*tLzI">
-                                                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                                    <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                                                                   </block>
                                                                 </value>
                                                                 <value name="B">
@@ -158,7 +158,7 @@
                                                             </value>
                                                             <statement name="DO0">
                                                               <block type="variables_set" id="(o.Mujf#HmOrT]X8D7a*">
-                                                                <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">idx_i</field>
+                                                                <field name="VAR" id="],Rj:AJ1C,P1N[dbIAmq">indx</field>
                                                                 <value name="VALUE">
                                                                   <block type="math_number" id="TEr_eF@(q[t):Xze^@hz">
                                                                     <field name="NUM">0</field>

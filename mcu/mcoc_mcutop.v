@@ -41,13 +41,19 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0224
+`define		MCOC_VERS		16'h0226
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/10/12	ver.2.26
+//		change: main CPU1; CPU ID to 3 for AMP edition
+//				main CPU1; CPU ID is 1 for SMP edition (not changed)
+//				sub CPU2; CPU ID is 2 (not changed)
+//				single CPU0; CPU ID is 0 (not changed)
 //
 //	2024/09/21	ver.2.24
 //		add: compile option MCOC_ROM32K, MCOC_ROM48K
@@ -376,7 +382,14 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 	.bdatw(bdatw2[15:0])	// Output
 );
 
+`ifdef		MCOC_DUAL_AMP_TS
+wire	[1:0]	cpuid1=2'h3;
+`elsif		MCOC_DUAL_AMP_MC
+wire	[1:0]	cpuid1=2'h3;
+`else
 wire	[1:0]	cpuid1=2'h1;
+`endif
+
 `else	//	MCOC_DUAL
 wire	[1:0]	cpuid1=2'h0;
 assign	fadr2[15:0]=16'h0;
