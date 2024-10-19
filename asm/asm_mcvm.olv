@@ -433,7 +433,7 @@ model	"Moscovium series macro assembler"
 	// procedures
 	procedure	dbl2half	dbl
 	{
-		// 浮動小数点数値dblをhalf型のバイナリデータに変換する
+		// convert floating point number dbl to half type binary data
 		var		sx,ex,fx;
 
 		// sign
@@ -483,7 +483,7 @@ model	"Moscovium series macro assembler"
 	}
 	procedure	dbl2sngl	dbl
 	{
-		// 浮動小数点数値dblをfloat型のバイナリデータに変換する
+		// convert floating point number dbl to float type binary data
 		var		sx,ex,fx;
 
 		// sign
@@ -2387,7 +2387,7 @@ var		asm_start,asm_end;
 vtime	asm_start;
 	macro	fnam_inp=$(file)".asm";
 	var		rtn;
-	gui		openfile, rtn, "入力ファイル","入力ファイルを指定",fnam_inp;
+	gui		openfile, rtn, "Input File","Specify the input file",fnam_inp;
 	if (rtn!=guiOK)
 	{
 		ifnacc	$(fnam_inp)

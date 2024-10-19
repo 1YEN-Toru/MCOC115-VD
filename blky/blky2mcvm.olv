@@ -1,16 +1,23 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.06";
+	macro	prog_vers="1.08";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/10/19	ver.1.08
+//			corresponding to dual core cpu
+//			corresponding to S-JIS encoding XML
+//			add: translator option @var_iram@
+//			del: translator option @var_top@
+//			add: mcoc_task, mcoc_sytm_delay_cyc, mcvm_mem_addr
+//
 //		2024/09/21	ver.1.06
 //			determine RAM top address from @rom_siz@ translator option
-//			add: translator option @var_top@ 
+//			add: translator option @var_top@ (must be ramtop or iramtop)
 //
 //		2024/09/07	ver.1.04
 //			add: mcoc_string_compare_left, mcoc_string_ctoa, mcoc_string_find,
@@ -54,15 +61,16 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		labid;						// label id
 	var		in_var_set;					// in variables_set block
 	var		defp_1st=true;				// encounter 1st define procedure
+	var		tsk_def_cpu2=false;			// tsk: task CPU2 defined
 	var		opt_cpu_mod=0;				// opt: CPU mode Mc (0,1) / Nh (2)
 	var		opt_sim_mod=false;			// opt: simulation mode
 	var		opt_mul_need=false;			// opt: need MULC16 / or not
 	var		opt_div_need=false;			// opt: need DIVC32 / or not
 	var		opt_fpu_need=false;			// opt: need FPU / or not
+	var		opt_iram_need=false;		// opt: need I-RAM / or not
 	var		opt_opr_typ=opt_int;		// opt: operation type (int / float)
 	var		opt_cstr_siz=64;			// opt: string buffer size
 	var		opt_rom_siz=4*1024;			// opt: instruction ROM size
-	var		opt_var_top=-1;				// opt: variable area top address
 	macro	vlst_vars;					// list of variables
 	macro	vlst_cstr;					// list of string variables
 	macro	dir,mynam,ext;
@@ -75,7 +83,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	macro	fnam_in;
 	macro	fnam_out;
 	macro	fnam_tmp;
-	gui		openfile, rtn, "入力ファイル","",fnam_in;
+	gui		openfile, rtn, "Input File","",fnam_in;
 	if (rtn=guiCancel)
 	{
 		// cancelled; select default source
@@ -93,28 +101,42 @@ model	"Blockly.XML to Moscovium.ASM translator"
 
 
 	// procedures
+	procedure	fget_sjis
+	{
+		// If cod is within the range of the first byte of S-JIS code,
+		//	read the second byte.
+		if (0x81<=cod & cod<0xa0 | 0xe0<=cod & cod<0xfd)
+		{
+			var		cod2;
+
+			fgetb	fin,cod2;
+			cod=@((cod<<8) + cod2);
+		}
+	}
 	procedure	fget_xml
 	{
-		// "<"～">"を取ってくる。
-		// 先頭文字が"<"では無かった場合、次の"<"手前までを取り出す。
+		// get string between "<" ~ ">"
+		//	If the first character is not "<", extract up to the next "<".
 		var		cmp;
 		var		cod;
 		macro	chr;
 
 		ftell	fin,fpos;
-		progress	"変換中…",100*fpos/fsiz;
+		progress	"Translating...",100*fpos/fsiz;
 
-		// 読み出し
+		// read
 		fgetb	fin,cod;
+		fget_sjis;
 		num2chr		chr=cod;
 		strcmp	cmp="<",$(chr);
 		if (cmp=0)
 		{
-			// "<"～">"
+			// "<" ~ ">"
 			repeat
 			{
 				strcat	fget_xml, $(chr);
 				fgetb	fin,cod;
+				fget_sjis;
 				if (cod<0)
 				{
 					// ERROR:
@@ -128,7 +150,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 		}
 		else
 		{
-			// 次の"<"手前まで
+			// to the next "<"
 			var		fpos;
 
 			repeat
@@ -136,6 +158,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 				strcat	fget_xml, $(chr);
 				ftell	fin,fpos;
 				fgetb	fin,cod;
+				fget_sjis;
 				if (cod<0)
 				{
 					// ERROR:
@@ -153,14 +176,14 @@ model	"Blockly.XML to Moscovium.ASM translator"
 				strcmp	cmp="<",$(chr);
 			} until (cmp=0);
 			fseek	fin,fpos;
-			// 改行とインデントを無視
+			// ignore newline and indentation
 			psub	"^"$," *$","",fget_xml;
-			// 改行を"\n"に置換
+			// replace newline with "\n"
 			gsub	$,,"\n",fget_xml;
 		}
-		// 不要な項目を削除
+		// remove unnecessary items
 		pgsub	"\\"$",$",fget_xml;
-		// タグ
+		// tag
 		pindex	cmp=$(fget_xml),"^<[^>]*>$";
 		if (cmp>0)
 		{
@@ -170,29 +193,30 @@ model	"Blockly.XML to Moscovium.ASM translator"
 			pgsub	" inline="$""[^"$""]*"$","",fget_xml;
 			pgsub	" pinned="$""[^"$""]*"$","",fget_xml;
 			pgsub	" deletable="$""[^"$""]*"$","",fget_xml;
-			// パラメータをスペース区切りに変更
+			// change parameters to be space-separated
 			repeat
 			{
 				psub	" ([A-z]+)=("$""[^"$""]*)"," \1 \2",fget_xml;
 			} until (status=0);
 		}
-		// タグ以外
+		// except tag
 		pindex	cmp=$(fget_xml),"^<";
 		if (cmp<=0)
 		{
 			gsub	"&#9;","\t",fget_xml;
 			gsub	"&#10;","\n",fget_xml;
 			gsub	"&gt;",">",fget_xml;
-//			gsub	"&lt;","<",fget_xml;	// 変換しない。
+//			gsub	"&lt;","<",fget_xml;	// do not convert
 			gsub	"&amp;","&",fget_xml;
 		}
-		// 読み込みエラーが発生した時に終了
+		// exit when a read error occurs
 		if (fget_xml)
 		{
 			// error injection
 			mlet	fget_xml="<error>";
 		}
-		// 空文字列だったら、更に次を読み出す(上のエラー処理が先)
+		// If empty string, read the next one
+		//	(the above error processing should be done first)
 		strcmp	cmp=$(fget_xml),"";
 		if (cmp=0)
 		{
@@ -207,7 +231,7 @@ if (false)
 	}
 	procedure	analyze_xml		$$xstr
 	{
-		// XML解析
+		// analyze XML
 		nvar	ax_idx;
 		nvar	ax_num;
 		nvar	ax_cmp;
@@ -239,8 +263,7 @@ if (false)
 	}
 	procedure	skip_one	$$sxml
 	{
-		// ブロックsxmlを読み飛ばす。
-		// 途中で<next>を見つけると、そこで終了して戻る。
+		// skip the block sxml (return if it finds <next>.)
 		var		cmp;
 
 		while (true)
@@ -277,13 +300,13 @@ if (false)
 	}
 	procedure	is_cstr		$$vnam
 	{
-		// 変数名vnamが、C言語文字列変数として登録されているかどうか調べる。
+		// return true if variable vnam was C-string variable
 		pindex	is_cstr=$(vlst_cstr),"@"$(vnam)"@";
 		is_cstr=!( is_cstr=false );
 	}
 	procedure	register_cstr	$$vnam
 	{
-		// 変数名vnamを、C言語文字列変数として登録する。
+		// register C-string variable vnam
 		is_cstr		$(vnam);
 		if (!is_cstr)
 		{
@@ -293,12 +316,12 @@ if (false)
 	}
 	procedure	is_vars		$$vnam
 	{
-		// 変数名vnamが、変数として登録されているかどうか調べる。
+		// return true if variable vnam was registered
 		pindex	is_vars=$(vlst_vars),"@"$(vnam)"@";
 	}
 	procedure	register_vars	$$vnam
 	{
-		// 変数名vnamを、変数(文字列変数含む)として登録する。
+		// register variable vnam
 		is_vars		$(vnam);
 		if (!is_vars)
 		{
@@ -306,20 +329,37 @@ if (false)
 			gsub	"@@","@",vlst_vars;
 		}
 	}
+	procedure	asm_ld_var_adr	$$reg,$$vnam
+	{
+		// load address of variable vnam to general register reg
+		//	outputs the assembler source list and returns
+		//	R6: starting address of the variable area
+
+		// assembler
+		fprint	fout,"ldwi	"$(reg)","$(vnam)$,;
+		fprint	fout,"add	"$(reg)",r6"$,;
+	}
+	procedure	asm_ld_var	$$reg,$$vnam,$$treg
+	{
+		// load the value of the variable vnam into general register reg
+		//	outputs the assembler source list and returns
+		//	uses general register treg for the pointer to the variable
+		//	if treg is omitted, uses treg = reg
+		nmacro	treg=$(reg);
+
+		// assembler
+		fprint	fout,"// "$(reg)"="$(vnam)$,;
+		asm_ld_var_adr	$(treg),$(vnam);
+		fprint	fout,"ld$(z)	"$(reg)",["$(treg)"]"$,;
+	}
 	procedure	define_cstr
 	{
-		// C言語文字列変数領域を確保・初期化するアセンブラソースを出力
+		// outputs assembler source list to allocate
+		//	and initialize C-string variable area
 		var		idx;
 		var		num;
 
 		// assembler
-		if (defp_1st)
-		{
-			defp_1st=false;
-			fprint	fout,""$,;
-			fprint	fout,"// halt"$,;
-			fprint	fout,"jmpr7	_program_halt"$,;
-		}
 		fprint	fout,""$,;
 		fprint	fout,"// initialize string variables"$,;
 		fprint	fout,"_rtlb_vlst_cstr:"$,;
@@ -332,8 +372,8 @@ if (false)
 			// assembler
 			fprint	fout,"// "$(vlst_cstr#(idx))"=&(_cstr_"
 					$(vlst_cstr#(idx))"="$"$"")"$,;
-			fprint	fout,"ldwi	r7,"$(vlst_cstr#(idx))$,;
-			fprint	fout,"ldwi	r0,_cstr_"$(vlst_cstr#(idx))$,;
+			asm_ld_var_adr	"r7",$(vlst_cstr#(idx));
+			asm_ld_var_adr	"r0","_cstr_"$(vlst_cstr#(idx));
 			fprint	fout,"st$(z)	[r7],r0"$,;
 			fprint	fout,"ldbiu	r7,0"$,;
 			fprint	fout,"stb	[r0],r7"$,;
@@ -348,7 +388,7 @@ if (false)
 	}
 	procedure	translator_options
 	{
-		// <comment>(cmnt)中のコンパイルオプションを解釈する。
+		// interpret the compile options in <comment>(cmnt)
 		//	translator option: <comment>.*@<options>@.*</comment>
 		//	<options>: <option>[,<option>[,...]]
 		//	<option>: Mc / Nh / sim / int / float / <opt_name>=<val>
@@ -423,6 +463,11 @@ if (false)
 			{
 				opt_opr_typ=opt_float;
 				opt_fpu_need=true;
+			}
+			strcmp	cmp=$(copt#(idx)),"var_iram";
+			if (cmp=0)
+			{
+				opt_iram_need=true;
 			}
 			index	cmp=$(copt#(idx)),"=";
 			if (cmp>0)
@@ -582,16 +627,18 @@ if (false)
 		strcmp	cmp=$(do_value),$",left;
 		if (!val_done & cmp=0)
 		{
+// this code has never been activated.(?)
 			// assembler
 			labid=labid + 1;
 			macro	slabid;
 			num2str		slabid=labid,"%04x";
 			macro	cstr=$(do_value);
-			fprint	fout,"// r1="$(cstr)$,;
-			fprint	fout,"ldwi	r1,lab__auto_"$(slabid)_text$,;
+			psub	"^"$""([^"$""]*)"$""$","\1",cstr;
+			gsub	"&lt;","<",cstr;
+			fprint	fout,"// r1="$(do_value)$,;
+			fprint	fout,"ldwi	r1,lab__auto_"$(slabid)"_text"$,;
 			fprint	fout,"bra	_auto_"$(slabid)_pool$,;
 			fprint	fout,"_auto_"$(slabid)"_text:"$,;
-			psub	"^"$""([^"$""]*)"$""$","\1",cstr;
 			fprint	fout,"dats	"$"$(cstr)"\0"$"$,;
 			fprint	fout,"_auto_"$(slabid)"_pool:"$,;
 		}
@@ -714,11 +761,7 @@ if (false)
 						// string variable
 
 						// assembler
-						fprint	fout,"// r0(="$(vnam)")="$"$"$,;
-						fprint	fout,"ldwi	r0,"$(vnam)$,;
-						fprint	fout,"ld$(z)	r0,[r0]"$,;
-						fprint	fout,"ldbiu	r7,0"$,;
-						fprint	fout,"stb	[r0],r7"$,;
+						asm_ld_var	"r0",$(vnam);
 						fprint	fout,"push$(z)	r0"$,;
 					}
 				}
@@ -734,11 +777,7 @@ if (false)
 						register_cstr	$(vnam);
 
 						// assembler
-						fprint	fout,"// r0(="$(vnam)")="$"$"$,;
-						fprint	fout,"ldwi	r0,"$(vnam)$,;
-						fprint	fout,"ld$(z)	r0,[r0]"$,;
-						fprint	fout,"ldbiu	r7,0"$,;
-						fprint	fout,"stb	[r0],r7"$,;
+						asm_ld_var	"r0",$(vnam);
 						fprint	fout,"push$(z)	r0"$,;
 					}
 				}
@@ -755,7 +794,7 @@ if (false)
 
 			// assembler
 			fprint	fout,"// "$(vnam)"=r0(="$(nval)")"$,;
-			fprint	fout,"ldwi	r7,"$(vnam)$,;
+			asm_ld_var_adr	"r7",$(vnam);
 			fprint	fout,"st$(z)	[r7],r0"$,;
 		}
 		else
@@ -852,15 +891,11 @@ if (false)
 		is_cstr		$(vnam);
 		if (is_cstr)
 		{
-			fprint	fout,"// r1="$(vnam)$,;
-			fprint	fout,"ldwi	r1,"$(vnam)$,;
-			fprint	fout,"ld$(z)	r1,[r1]"$,;
+			asm_ld_var	"r1",$(vnam);
 		}
 		else
 		{
-			fprint	fout,"// r0="$(vnam)$,;
-			fprint	fout,"ldwi	r0,"$(vnam)$,;
-			fprint	fout,"ld$(z)	r0,[r0]"$,;
+			asm_ld_var	"r0",$(vnam);
 		}
 	}
 	procedure	do_blk_mcvm_cpu_asm
@@ -1252,6 +1287,57 @@ if (false)
 		fprint	fout,"$(s)stw	[r7],r0"$,;
 		fprint	fout,"$(s)// ********************************"$,;
 	}
+	procedure	do_blk_mcvm_mem_addr
+	{
+		var		cmp;
+		macro	vnam;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vnam=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		is_cstr		$(vnam);
+		if (is_cstr)
+		{
+			// string variable
+			asm_ld_var	"r0",$(vnam);
+			mlet	do_blk_mcvm_mem_addr=$(vnam);
+		}
+		else
+		{
+			// variable
+			fprint	fout,"// r0=&"$(vnam)$,;
+			asm_ld_var_adr	"r0",$(vnam);
+			mlet	do_blk_mcvm_mem_addr="&"$(vnam);
+		}
+	}
 	procedure	do_blk_mcvm_mem_read
 	{
 		var		cmp;
@@ -1323,7 +1409,7 @@ if (false)
 		mlet	do_blk_mcvm_mem_read="["$(adr)"]";
 
 		// check
-		if (asiz=4 & opt_cpu_mod≠opt_nh)
+		if (asiz=4 & opt_cpu_mod!=opt_nh)
 		{
 			// ERROR:
 			errmsg	"mcvm_mem_read: need @Nh@ translator option"
@@ -1428,7 +1514,8 @@ if (false)
 						mlet	adrx=$(do_$(dxml));
 
 						// assembler
-						fprint	fout,"push$(z)	r0"$,;
+						fprint	fout,"// tr=r0(="$(adrx)")"$,;
+						fprint	fout,"movtc	tr,r0"$,;
 					}
 					strcmp	cmp=$(dnam),"ADR";
 					if (cmp=0)
@@ -1444,15 +1531,15 @@ if (false)
 						mlet	dat=$(do_$(dxml));
 
 						// assembler
-						fprint	fout,"// r1(="$(adr)")"$,;
-						fprint	fout,"pop$(z)	r1"$,;
+						fprint	fout,"// r7(="$(adr)")"$,;
+						fprint	fout,"pop$(z)	r7"$,;
 					}
 				}
 			}
 		}
 
 		// check
-		if (asiz=4 & opt_cpu_mod≠opt_nh)
+		if (asiz=4 & opt_cpu_mod!=opt_nh)
 		{
 			// ERROR:
 			errmsg	"mcvm_mem_write: need @Nh@ translator option"
@@ -1464,32 +1551,30 @@ if (false)
 		strcmp	cmp=$(adrx),"";
 		if (cmp=0)
 		{
-			fprint	fout,"// [r1(="$(adr)")] = r0(="$(dat)")"$,;
+			fprint	fout,"// [r7(="$(adr)")] = r0(="$(dat)")"$,;
 			if (asiz=4)
 			{
-				fprint	fout,"stl	[r1],r0"$,;
+				fprint	fout,"stl	[r7],r0"$,;
 			}
 			elif (asiz=2)
 			{
-				fprint	fout,"stw	[r1],r0"$,;
+				fprint	fout,"stw	[r7],r0"$,;
 			}
 			else
 			{
-				fprint	fout,"stb	[r1],r0"$,;
+				fprint	fout,"stb	[r7],r0"$,;
 			}
 		}
 		else
 		{
-			fprint	fout,"// tr(="$(adrx)")"$,;
-			fprint	fout,"popc$(z)	tr"$,;
-			fprint	fout,"// [tr(="$(adrx)"):r1(="$(adr)")] = r0(="$(dat)")"$,;
+			fprint	fout,"// [tr(="$(adrx)"):r7(="$(adr)")] = r0(="$(dat)")"$,;
 			if (asiz=2)
 			{
-				fprint	fout,"stwx	[tr:r1],r0"$,;
+				fprint	fout,"stwx	[tr:r7],r0"$,;
 			}
 			else
 			{
-				fprint	fout,"stbx	[tr:r1],r0"$,;
+				fprint	fout,"stbx	[tr:r7],r0"$,;
 			}
 		}
 	}
@@ -1911,6 +1996,7 @@ if (false)
 					pindex	cmp=$(cxml),"^<statement[ >]";
 					if (cmp>0)
 					{
+						// pack
 						strcmp	cmp=$(enbl),"true";
 						if (cmp=0)
 						{
@@ -2050,12 +2136,121 @@ if (false)
 
 		// assembler
 		fprint	fout,"// swap "$(vnam1)" and "$(vnam2)$,;
-		fprint	fout,"ldwi	r0,"$(vnam1)$,;
-		fprint	fout,"ldwi	r1,"$(vnam2)$,;
+		asm_ld_var_adr	"r0",$(vnam1);
+		asm_ld_var_adr	"r1",$(vnam2);
 		fprint	fout,"ld$(z)	r2,[r0]"$,;
 		fprint	fout,"ld$(z)	r3,[r1]"$,;
 		fprint	fout,"st$(z)	[r0],r3"$,;
 		fprint	fout,"st$(z)	[r1],r2"$,;
+	}
+	procedure	do_blk_mcoc_task
+	{
+		var		cmp;
+		var		stat;
+		macro	tskf;
+
+		// assembler
+		if (defp_1st)
+		{
+			defp_1st=false;
+			fprint	fout,""$,;
+			fprint	fout,"// halt"$,;
+			fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
+		}
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						// task
+						stat=1;
+
+						// assembler
+						fprint	fout,""$,;
+						fprint	fout,"// task"$,;
+						fprint	fout,"_rtlb_task_"$(tskf)":"$,;
+
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// task block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of statement
+
+					// assembler
+					fprint	fout,"// end of task"$,;
+					fprint	fout,"rtn$(z)"$,;
+
+					// end of task
+					stat=2;
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of task
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	tskf=$(do_$(dxml));
+						tolower		tskf;
+						if (tsk_def_$(tskf))
+						{
+							// ERROR:
+							errmsg	"mcoc_task: re-defined task "$(tskf);
+							leave	stop_error;
+						}
+						tsk_def_$(tskf)=true;
+					}
+				}
+			}
+		}
 	}
 	procedure	do_blk_mcoc_text_itoa
 	{
@@ -2068,9 +2263,7 @@ if (false)
 			register_cstr	"_tmp_str";
 
 			// assembler
-			fprint	fout,"// r0=_tmp_str"$,;
-			fprint	fout,"ldwi r0,_tmp_str"$,;
-			fprint	fout,"ld$(z) r0,[r0]"$,;
+			asm_ld_var	"r0","_tmp_str";
 			fprint	fout,"push$(z) r0"$,;
 		}
 
@@ -2110,9 +2303,7 @@ if (false)
 		fprint	fout,"push$(z)	r0"$,;
 		if (!in_var_set)
 		{
-			fprint	fout,"// r1=_tmp_str(='"$(nval)"')"$,;
-			fprint	fout,"ldwi r1,_tmp_str"$,;
-			fprint	fout,"ld$(z) r1,[r1]"$,;
+			asm_ld_var	"r1","_tmp_str";
 			fprint	fout,"pop$(z) r0	// discard"$,;
 		}
 	}
@@ -2128,9 +2319,7 @@ if (false)
 			register_cstr	"_tmp_str";
 
 			// assembler
-			fprint	fout,"// r0=_tmp_str"$,;
-			fprint	fout,"ldwi r0,_tmp_str"$,;
-			fprint	fout,"ld$(z) r0,[r0]"$,;
+			asm_ld_var	"r0","_tmp_str";
 		}
 
 		while (true)
@@ -2178,9 +2367,7 @@ if (false)
 		fprint	fout,"push$(z)	r0"$,;
 		if (!in_var_set)
 		{
-			fprint	fout,"// r1=_tmp_str(='"$(nval)"')"$,;
-			fprint	fout,"ldwi r1,_tmp_str"$,;
-			fprint	fout,"ld$(z) r1,[r1]"$,;
+			asm_ld_var	"r1","_tmp_str";
 			fprint	fout,"pop$(z) r0	// discard"$,;
 		}
 	}
@@ -2314,9 +2501,8 @@ if (false)
 		// assembler
 		fprint	fout,"// r3=r1(="$(cstr)")"$,;
 		fprint	fout,"mov	r3,r1"$,;
+		asm_ld_var	"r1",$(vstr);
 		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
-		fprint	fout,"ldwi	r1,"$(vstr)$,;
-		fprint	fout,"ld$(z)	r1,[r1]"$,;
 		fprint	fout,"pop$(z)	r0"$,;
 		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
 		fprint	fout,"// r2=r3(="$(cstr)")"$,;
@@ -2340,9 +2526,7 @@ if (false)
 			register_cstr	"_tmp_str";
 
 			// assembler
-			fprint	fout,"// r0=_tmp_str"$,;
-			fprint	fout,"ldwi r0,_tmp_str"$,;
-			fprint	fout,"ld$(z) r0,[r0]"$,;
+			asm_ld_var	"r0","_tmp_str";
 			fprint	fout,"push$(z) r0"$,;
 		}
 
@@ -2385,9 +2569,7 @@ if (false)
 		fprint	fout,"push$(z)	r0"$,;
 		if (!in_var_set)
 		{
-			fprint	fout,"// r1=_tmp_str(='"$(cchr)"')"$,;
-			fprint	fout,"ldwi r1,_tmp_str"$,;
-			fprint	fout,"ld$(z) r1,[r1]"$,;
+			asm_ld_var	"r1","_tmp_str";
 			fprint	fout,"pop$(z) r0	// discard"$,;
 		}
 	}
@@ -2454,9 +2636,8 @@ if (false)
 		fprint	fout,"// r3=r0(="$(cchr)"), r0="$(ofst)$,;
 		fprint	fout,"mov	r3,r0"$,;
 		fprint	fout,"pop$(z)	r0"$,;
-		fprint	fout,"// r4=r1="$(vstr)$,;
-		fprint	fout,"ldwi	r1,"$(vstr)$,;
-		fprint	fout,"ld$(z)	r1,[r1]"$,;
+		asm_ld_var	"r1",$(vstr);
+		fprint	fout,"// r4=r1(="$(vstr)")"$,;
 		fprint	fout,"mov	r4,r1"$,;
 		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
 		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
@@ -2519,9 +2700,8 @@ if (false)
 		mlet	do_blk_mcoc_string_get_char="["$(vstr)" + "$(ofst)"]";
 
 		// assembler
+		asm_ld_var	"r1",$(vstr);
 		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
-		fprint	fout,"ldwi	r1,"$(vstr)$,;
-		fprint	fout,"ld$(z)	r1,[r1]"$,;
 		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
 		fprint	fout,"// get char r0=[r1(="$(vstr)" + "$(ofst)")]"$,;
 		fprint	fout,"ldb	r0,[r1]"$,;
@@ -2613,9 +2793,7 @@ if (false)
 		mlet	do_blk_mcoc_string_pointer=$"$(vstr)" + "$(ofst)$";
 
 		// assembler
-		fprint	fout,"// r1="$(vstr)$,;
-		fprint	fout,"ldwi	r1,"$(vstr)$,;
-		fprint	fout,"ld$(z)	r1,[r1]"$,;
+		asm_ld_var	"r1",$(vstr);
 		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
 		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
 	}
@@ -2671,9 +2849,7 @@ if (false)
 						mlet	ofst=$(do_$(dxml));
 
 						// assembler
-						fprint	fout,"// r1="$(vstr)$,;
-						fprint	fout,"ldwi	r1,"$(vstr)$,;
-						fprint	fout,"ld$(z)	r1,[r1]"$,;
+						asm_ld_var	"r1",$(vstr);
 						fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
 						fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
 						fprint	fout,"// r0=r1(="$(vstr)" + "$(ofst)")"$,;
@@ -2756,6 +2932,43 @@ if (false)
 	{
 		do_blk_delayMicroseconds_custom;
 	}
+	procedure	do_blk_mcoc_sytm_delay_cyc
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+
+		// assembler
+		fprint	fout,"// delayTicks (r0(="$(nval)"))"$,;
+		fprint	fout,"_delay_cyc_r0"$,;
+	}
 	procedure	do_blk_mcoc_sytm_ticks
 	{
 		// assembler
@@ -2786,9 +2999,9 @@ if (false)
 
 		// assembler
 		fprint	fout,"// print CR+LF"$,;
-		fprint	fout,"ldbiu	r0,0x0d"$,;
+		fprint	fout,"ldbiu	r0,asc_cr"$,;
 		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
-		fprint	fout,"ldbiu	r0,0x0a"$,;
+		fprint	fout,"ldbiu	r0,asc_lf"$,;
 		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
 	}
 	procedure	do_blk_mcoc_uart_getline
@@ -2801,9 +3014,7 @@ if (false)
 			register_cstr	"_tmp_str";
 
 			// assembler
-			fprint	fout,"// r0=_tmp_str"$,;
-			fprint	fout,"ldwi r0,_tmp_str"$,;
-			fprint	fout,"ld$(z) r0,[r0]"$,;
+			asm_ld_var	"r0","_tmp_str";
 		}
 
 		while (true)
@@ -3024,14 +3235,7 @@ if (false)
 	}
 	procedure	do_blk_serial_println
 	{
-		do_blk_text_print;
-
-		// assembler
-		fprint	fout,"// print CR+LF"$,;
-		fprint	fout,"ldbiu	r0,0x0d"$,;
-		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
-		fprint	fout,"ldbiu	r0,0x0a"$,;
-		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
+		do_blk_mcoc_uart_println;
 	}
 	procedure	do_blk_inout_digital_read
 	{
@@ -3742,9 +3946,8 @@ if (false)
 		{
 			mlet	mne="f"$(mne);
 		}
+		asm_ld_var	"r1",$(vnam), "r7";
 		fprint	fout,"// r1(="$(vnam)") "$(opr)"= r0(="$(nval)")"$,;
-		fprint	fout,"ldwi	r7,"$(vnam)$,;
-		fprint	fout,"ld$(z)	r1,[r7]"$,;
 		fprint	fout,$(mne)"	r1,r0"$,;
 		fprint	fout,"st$(z)	[r7],r1"$,;
 	}
@@ -4300,7 +4503,7 @@ if (false)
 								is_cstr=true;
 							}
 						}
-						is_cstr_cmp=is_cstr_cmp + ( is_cstr≠0 );
+						is_cstr_cmp=is_cstr_cmp + ( is_cstr!=0 );
 
 						// assembler
 						if (is_cstr)
@@ -4327,7 +4530,7 @@ if (false)
 								is_cstr=true;
 							}
 						}
-						is_cstr_cmp=is_cstr_cmp + ( is_cstr≠0 )*2;
+						is_cstr_cmp=is_cstr_cmp + ( is_cstr!=0 )*2;
 
 						// assembler
 						if (is_cstr)
@@ -4644,7 +4847,7 @@ if (false)
 		psub	"^"$""([^"$""]*)"$""$","\1",cstr;
 		gsub	"&lt;","<",cstr;
 		fprint	fout,"// r1="$(do_blk_text)$,;
-		fprint	fout,"ldwi	r1,lab__auto_"$(slabid)_text$,;
+		fprint	fout,"ldwi	r1,lab__auto_"$(slabid)"_text"$,;
 		fprint	fout,"bra	_auto_"$(slabid)_pool$,;
 		fprint	fout,"_auto_"$(slabid)"_text:"$,;
 		fprint	fout,"dats	"$"$(cstr)"\0"$"$,;
@@ -4803,15 +5006,12 @@ if (false)
 					register_cstr	"_tmp_str";
 
 					// assembler
-					fprint	fout,"// r1=r0(="$(cstr)"); r0=_tmp_str"$,;
+					fprint	fout,"// r1=r0(="$(cstr)")"$,;
 					fprint	fout,"mov	r1,r0"$,;
-					fprint	fout,"ldwi	r0,_tmp_str"$,;
-					fprint	fout,"ld$(z) r0,[r0]"$,;
+					asm_ld_var	"r0","_tmp_str";
 					fprint	fout,"// r0=strdec (r0,r1(="$(cstr)"))"$,;
 					fprint	fout,"jal$(z)r7	_strdec_r0_r1"$,;
-					fprint	fout,"// r1=_tmp_str(='"$(cstr)"')"$,;
-					fprint	fout,"ldwi	r1,_tmp_str"$,;
-					fprint	fout,"ld$(z) r1,[r1]"$,;
+					asm_ld_var	"r1","_tmp_str";
 					fprint	fout,"// print r1(='"$(cstr)"')"$,;
 					fprint	fout,"jal$(z)r7	_print_r1"$,;
 
@@ -4844,9 +5044,7 @@ if (false)
 			register_cstr	"_tmp_str";
 
 			// assembler
-			fprint	fout,"// r0=_tmp_str"$,;
-			fprint	fout,"ldwi r0,_tmp_str"$,;
-			fprint	fout,"ld$(z) r0,[r0]"$,;
+			asm_ld_var	"r0","_tmp_str";
 		}
 		fprint	fout,"push$(z)	r0"$,;
 
@@ -4932,9 +5130,7 @@ if (false)
 		fprint	fout,"pop$(z)	r0	// discard"$,;
 		if (!in_var_set)
 		{
-			fprint	fout,"// r1=_tmp_str"$,;
-			fprint	fout,"ldwi r1,_tmp_str"$,;
-			fprint	fout,"ld$(z) r1,[r1]"$,;
+			asm_ld_var	"r1","_tmp_str";
 		}
 	}
 	procedure	do_blk_text_append
@@ -4970,9 +5166,7 @@ if (false)
 					mlet	vnam=$(do_$(dxml));
 
 					// assembler
-					fprint	fout,"// r0="$(vnam)$,;
-					fprint	fout,"ldwi	r0,"$(vnam)$,;
-					fprint	fout,"ld$(z)	r0,[r0]"$,;
+					asm_ld_var	"r0",$(vnam);
 					fprint	fout,"// r0=tail of string "$(vnam)$,;
 					fprint	fout,"ldb	r7,[r0]"$,;
 					fprint	fout,"addi	r0,1"$,;
@@ -5216,7 +5410,7 @@ if (false)
 							defp_1st=false;
 							fprint	fout,""$,;
 							fprint	fout,"// halt"$,;
-							fprint	fout,"jmpr7	_program_halt"$,;
+							fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 						}
 						fprint	fout,""$,;
 						fprint	fout,"// function: "$(fnam);
@@ -5304,7 +5498,7 @@ if (false)
 
 					// assembler
 					fprint	fout,"// "$(muta#(narg))"=r0(="$(do_$(dxml))")"$,;
-					fprint	fout,"ldwi	r7,"$(muta#(narg))$,;
+					asm_ld_var_adr	"r7",$(muta#(narg));
 					fprint	fout,"st$(z)	[r7],r0"$,;
 				}
 			}
@@ -5362,8 +5556,7 @@ if (false)
 
 					// assembler
 					fprint	fout,"// backup _rpt_cnt variable"$,;
-					fprint	fout,"ldwi	r7,_rpt_cnt"$,;
-					fprint	fout,"ld$(z)	r1,[r7]"$,;
+					asm_ld_var	"r1","_rpt_cnt", "r7";
 					fprint	fout,"push$(z)	r1"$,;
 					if (ld_rpt)
 					{
@@ -5418,15 +5611,14 @@ if (false)
 					fprint	fout,""$,;
 					fprint	fout,"// end of repeat loop"$,;
 					fprint	fout,"_auto_"$(slabid)"_continue:"$,;
-					fprint	fout,"ldwi	r7,_rpt_cnt"$,;
-					fprint	fout,"ld$(z)	r0,[r7]"$,;
+					asm_ld_var	"r0","_rpt_cnt", "r7";
 					fprint	fout,"subi	r0,1"$,;
 					fprint	fout,"st$(z)	[r7],r0"$,;
 					fprint	fout,"bne	_auto_"$(slabid)"_repeat"$,;
 					fprint	fout,""$,;
 					fprint	fout,"_auto_"$(slabid)"_break:"$,;
 					fprint	fout,"// restore _rpt_cnt variable"$,;
-					fprint	fout,"ldwi	r7,_rpt_cnt"$,;
+					asm_ld_var_adr	"r7","_rpt_cnt";
 					fprint	fout,"pop$(z)	r0"$,;
 					fprint	fout,"st$(z)	[r7],r0"$,;
 					num2str		slabid_loop=0,"%04x";
@@ -5522,9 +5714,7 @@ if (false)
 					fprint	fout,"ldbiu	r3,false"$,;
 					fprint	fout,"ldbiu	r2,0"$,;
 					fprint	fout,"push$(z)	r3"$,;
-					fprint	fout,"// r0="$(vnam)$,;
-					fprint	fout,"ldwi	r7,"$(vnam)$,;
-					fprint	fout,"ld$(z)	r0,[r7]"$,;
+					asm_ld_var	"r0",$(vnam), "r7";
 					fprint	fout,"// r0(="$(vnam)") += r2(="$(vstp)")"$,;
 					fprint	fout,$(fi)"add	r0,r2"$,;
 					fprint	fout,"st$(z)	[r7],r0"$,;
@@ -5610,7 +5800,7 @@ if (false)
 
 							// assembler
 							fprint	fout,"// "$(vnam)"=r0(="$(vsta)")"$,;
-							fprint	fout,"ldwi	r7,"$(vnam)$,;
+							asm_ld_var_adr	"r7",$(vnam);
 							fprint	fout,"st$(z)	[r7],r0"$,;
 							fprint	fout,"// set start mark"$,;
 							fprint	fout,"ldbiu	r3,true"$,;
@@ -5709,7 +5899,7 @@ if (false)
 				pindex	cmp=$(cxml),"^</statement[ >]";
 				if (cmp>0)
 				{
-					// end of loop
+					// end of loop block
 					stat=2;
 					continue;
 				}
@@ -5793,7 +5983,6 @@ if (false)
 		// assembler
 		fprint	fout,"// "$(flws)$,;
 		fprint	fout,"bra	_auto_"$(slabid_loop)"_"$(flws)$,;
-		fprint	fout,""$,;
 	}
 	procedure	do_blk_controls_if
 	{
@@ -6201,36 +6390,48 @@ if (false)
 	fprint	fout,"equ	_rtlb_mul_need,@mul_need@"$,;
 	fprint	fout,"equ	_rtlb_div_need,@div_need@"$,;
 	fprint	fout,"equ	_rtlb_fpu_need,@fpu_need@"$,;
-	fprint	fout,"equ	_rtlb_var_top,@var_top@"$,;
+	fprint	fout,"equ	_rtlb_iram_need,@iram_need@"$,;
+	fprint	fout,"equ	_rtlb_cstr_siz,@cstr_siz@"$,;
 	fprint	fout,"## string macros"$,;
 	fprint	fout,"def	s,"$""@sim_mod@"$""	// simulation="
 			$"$"" / real fpga="$""##"$"$,;
 	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(ong) / w(ord)"$,;
-	fprint	fout,"## variables"$,;
-	fprint	fout,"equ	_va,_rtlb_var_top"$,;
 	fprint	fout,"##@vars_def@"$,;
 	
 	do_xml;
 	progress	"",-1;
 
+	// assembler
+	if (defp_1st)
+	{
+		defp_1st=false;
+		fprint	fout,""$,;
+		fprint	fout,"// halt"$,;
+		fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
+	}
 	define_cstr;
+	fprint	fout,""$,;
+	fprint	fout,"// task entry point"$,;
+	fprint	fout,"_rtlb_cpu2:"$,;
+	if (tsk_def_cpu2)
+	{
+		fprint	fout,"datw	lab__rtlb_task_cpu2"$,;
+	}
+	else
+	{
+		fprint	fout,"datw	_rtlb_null"$,;
+	}
 
 	// close files
 	fclose	fin;
 	fclose	fout;
 
 
-	// 変数記憶領域先頭アドレスを確定する
-	if (opt_var_top<0x5000)
-	{
-		opt_var_top=opt_rom_siz + 4*1024;	// ROMSIZ + IRAMSIZ(4KB)
-		maxv	opt_var_top=0x5000;		// default RAM top address
-	}
-	opt_var_top=floor (opt_var_top/4)*4;	// long word align
-	macro	str_var_top;
-	num2str		str_var_top=opt_var_top,"%x";
+	// translator options
+	opt_cstr_siz=@(opt_cstr_siz);
+	clip	opt_cstr_siz=16,32767;
 
-	// 変数定義を埋め込む
+	// embed variable definitions
 	fopen	fin,$(fnam_out),"r";
 	fopen	fout,$(fnam_tmp),"w";
 
@@ -6248,8 +6449,9 @@ if (false)
 			// assembler
 			fprint	fout,""$,;
 			fprint	fout,"## define variables"$,;
-			fprint	fout,"equ	_var_sizw,2"$,;
-			fprint	fout,"equ	_var_sizl,4"$,;
+			fprint	fout,"equ	_rtlb_var_sizw,2"$,;
+			fprint	fout,"equ	_rtlb_var_sizl,4"$,;
+			fprint	fout,"equ	_va,0"$,;
 
 			psub	"^@","",vlst_vars;
 			field	num=vlst_vars,"@";
@@ -6258,7 +6460,7 @@ if (false)
 			{
 				// assembler
 				fprint	fout,"equ	"$(vlst_vars#(idx))",_va"$,;
-				fprint	fout,"equ	_va,_va+_var_siz$(z)"$,;
+				fprint	fout,"equ	_va,_va+_rtlb_var_siz$(z)"$,;
 
 				// continue
 				idx=idx + 1;
@@ -6269,7 +6471,6 @@ if (false)
 			fprint	fout,"equ	_rtlb_var_static,_va"$,;
 			fprint	fout,""$,;
 			fprint	fout,"## define string buffers"$,;
-			fprint	fout,"equ	_str_siz,#"$,,opt_cstr_siz;
 
 			psub	"^@","",vlst_cstr;
 			field	num=vlst_cstr,"@";
@@ -6278,7 +6479,7 @@ if (false)
 			{
 				// assembler
 				fprint	fout,"equ	_cstr_"$(vlst_cstr#(idx))",_va"$,;
-				fprint	fout,"equ	_va,_va+_str_siz"$,;
+				fprint	fout,"equ	_va,_va+_rtlb_cstr_siz"$,;
 
 				// continue
 				idx=idx + 1;
@@ -6306,10 +6507,6 @@ if (false)
 			continue;
 		}
 
-		if (true)
-		{
-			sub		"@var_top@","0x"$(str_var_top),lbuf;
-		}
 		if (opt_mul_need)
 		{
 			sub		"@mul_need@","true",lbuf;
@@ -6334,6 +6531,14 @@ if (false)
 		{
 			sub		"@fpu_need@","false",lbuf;
 		}
+		if (opt_iram_need)
+		{
+			sub		"@iram_need@","true",lbuf;
+		}
+		else
+		{
+			sub		"@iram_need@","false",lbuf;
+		}
 		if (opt_cpu_mod=opt_nh)
 		{
 			sub		"@cpu_mod@","l",lbuf;
@@ -6349,6 +6554,10 @@ if (false)
 		else
 		{
 			sub		"@sim_mod@","#",lbuf;
+		}
+		if (true)
+		{
+			sub		"@cstr_siz@",#(opt_cstr_siz),lbuf;
 		}
 		fputl	fout,$(lbuf);
 

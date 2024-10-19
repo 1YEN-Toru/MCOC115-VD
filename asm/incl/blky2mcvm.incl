@@ -3,6 +3,14 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/10/19	ver.1.08
+//			corresponding to dual core cpu
+//			change: _getline_r0; temporary register r6 to r5
+//			change: _delay_ms_r0, _delay_us_r0; sytmctl not use
+//			add: user macro: _delay_cyc_r0
+//			fix: cpu halt code
+//			del: _rtlb_var_top
+//
 //		2024/09/21	ver.1.06
 //			change: _rtlt_var_top label to determine variables area
 //
@@ -16,12 +24,13 @@
 //
 
 
-equ		_rtlb_vers,0x0106				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0108				// beta(1),major(1),minor(2)
 
 
 # constants
 equ		low,0							// LOW / HIGH level
 equ		high,1
+equ		_rtlb_null,0x0000				// NULL pointer
 equ		_rtlb_max_intl,0x7fff_ffff		// cpu: int32: maximum number
 equ		_rtlb_max_intw,0x7fff			// cpu: int16: maximum number
 equ		_rtlb_min_intl,0x8000_0000		// cpu: int32: minimum number
@@ -36,12 +45,6 @@ equ		_rtlb_sytmmcrl,sytmmcrh
 equ		_rtlb_sytmmcrw,sytmmcrl
 equ		_rtlb_sytmmill,sytmmilh
 equ		_rtlb_sytmmilw,sytmmill
-equ		_getl_chr_bs,0x08				// asc: BS code
-equ		_getl_chr_lf,0x0a				// asc: LF code
-equ		_getl_chr_cr,0x0d				// asc: CR code
-equ		_atoi_chr_pl,0x2b				// asc: '+' code
-equ		_atoi_chr_mi,0x2d				// asc: '-' code
-equ		_xtoi_chr_capa,0aa-0x20			// asc: 'A' code
 # macros
 macro	fldli	rn,val					// fpu: float: load constant to rn
 fldi	$(rn),$(val)
@@ -49,7 +52,151 @@ endm
 macro	fldwi	rn,val					// fpu: half: load constant to rn
 hldi	$(rn),$(val)
 endm
+macro	_delay_cyc_r0
+// delay at least r0[cyc]
+#	int r0>=0, super scalar cpu ready
+subi	r0,2							// 1 cyc
+asri	r0,2							// 1 cyc
+# repeat r0'(=(r0 - 2)/4) times
+brn										// 1*N cyc
+subi	r0,1							// 1*N cyc
+bpl		pcnt-6							// 2*N cyc
+endm
 
+
+// reject Tennessine
+// set sr
+ldch	sr,(sreg_dr|sreg_sd|sreg_nh)>>8
+movfc	r0,sr
+// clear sr
+ldch	sr,0x00
+// CPU recognition
+cendw	r0
+andi	r0,(sreg_dr|sreg_sd|sreg_nh)>>8
+cmpi	r0,0
+bne		_rtlb_rjts_not_ts
+// ERROR: Ts
+// halt, suppress error message
+$(s)// ********************************
+$(s)ldwi	r0,simfail
+$(s)ldwi	r7,simfnsh
+$(s)stw		[r7],r0
+$(s)// ********************************
+pause
+bra		pcnt-4
+
+_rtlb_rjts_not_ts:
+
+// determine RAM area
+#	ram_top:	RAM top address
+#		ram_top=idrgramt
+#	ram_btm:	RAM bottom address + 1
+#		ram_btm=ram_top + ram_siz
+#	ram_siz:	RAM size
+#		ram_siz=idrgrams
+#	iram_top:	I-RAM top address
+#		iram_top=ram_top - 4096
+#	stk_btm:	stack area bottom address
+#		stk_btm=ram_btm
+#	stk_btm2:	stack area bottom address for cpu2
+#		stk_btm2=stk_btm - stk_siz
+#	stk_siz:	stack area size
+#		stk_siz=(_rtlb_iram_need)? ram_siz/2: ram_siz/4
+#	var_top:	variables area top address
+#		var_top=(_rtlb_iram_need)? iram_top: ram_top
+#	var_top2:	variables area top address for cpu2
+#		var_top2=(_rtlb_iram_need)? iram_top: ram_top + stk_siz
+// r1=ram_top
+ldwi	r1,idrgramt
+ldw		r1,[r1]
+// r2=ram_siz
+ldwi	r2,idrgrams
+ldw		r2,[r2]
+// r3=iram_top
+mov		r3,r1
+ldwi	r0,4*1024
+sub		r3,r0
+// r6=var_top
+ldbiu	r0,_rtlb_iram_need
+cmpi	r0,false
+beq		pcnt+4
+mov		r6,r3							// r3=iram_top
+bra		pcnt+2
+mov		r6,r1							// r1=ram_top
+// set sp to the bottom of ram area
+mov		r7,r1
+add		r7,r2							// r2=ram_siz
+movtc	sp,r7
+// r2=stk_siz=(_rtlb_iram_need)? ram_siz/2: ram_siz/4
+ldbiu	r0,_rtlb_iram_need
+cmpi	r0,false
+bne		pcnt+2
+lsri	r2,1
+lsri	r2,1
+
+// dual core cpu check
+movfc	r0,sr
+lsri	r0,sreg_b_id0
+andi	r0,sreg_id_3>>sreg_b_id0
+// reject amp dual core cpu
+cmpi	r0,sreg_id_3>>sreg_b_id0
+bne		_rtlb_core_smp
+// ERROR: amp
+// halt, suppress error message
+$(s)// ********************************
+$(s)ldwi	r0,simfail
+$(s)ldwi	r7,simfnsh
+$(s)stw		[r7],r0
+$(s)// ********************************
+pause
+bra		pcnt-4
+
+_rtlb_core_smp:
+// fork cpu2 or cpu0/cpu1
+cmpi	r0,sreg_id_2>>sreg_b_id0
+bne		_rtlb_core_cpu2n
+
+// cpu2 fork
+// move stk_btm(=sp) and var_top(=r6) for cpu2
+movfc	r7,sp
+sub		r7,r2							// r2=stk_siz
+movtc	sp,r7
+ldbiu	r0,_rtlb_iram_need
+cmpi	r0,false
+bne		pcnt+2
+add		r6,r2							// r2=stk_siz
+
+// clear variables for cpu2
+ldwi	r1,_rtlb_var_static
+add		r1,r6
+mov		r7,r6
+ldbiu	r0,0
+_rtlb_clrv2:
+st$(z)	[r7],r0
+addi	r7,_rtlb_var_siz$(z)
+cmp		r7,r1
+blo		_rtlb_clrv2
+
+// string variables
+jal$(z)r7	_rtlb_vlst_cstr
+
+_rtlb_clrv_skip:
+
+// goto setup (user program entry point) for cpu2
+ldwi	r7,lab__rtlb_cpu2
+ldw		r7,[r7]
+// do not jump if NULL pointer
+cmpi	r7,_rtlb_null
+beq		pcnt+2
+jal$(z)		r7
+
+// cpu2 halt, suppress error message
+pause
+bra		pcnt-4
+
+// cpu0/cpu1 fork
+_rtlb_core_cpu2n:
+push$(z)	r0
 
 // uart setting: RXE, TXE, baud rate
 ldwi	r7,uartbaud
@@ -59,25 +206,48 @@ ldwi	r7,uartctl
 ldbiu	r0,uart_rxe|uart_txe
 stw		[r7],r0
 
-// set sp to the bottom of ram area
-ldwi	r7,idrgramt
-ldw		r7,[r7]
-ldwi	r0,idrgrams
+// dual core cpu check
+pop$(z)	r0
+cmpi	r0,sreg_id_0>>sreg_b_id0
+bne		_rtlb_core_cpu0n
+// single core
+ldwi	r0,lab__rtlb_cpu2
 ldw		r0,[r0]
-add		r7,r0
-movtc	sp,r7
+cmpi	r0,_rtlb_null
+beq		_rtlb_core_cpu0n
+// ERROR: not a dual core cpu
+ldwi	r1,lab__rtlb_core_err
+jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
+// halt
+jmpr7	_rtlb_prog_halt
+_rtlb_core_err:
+dats	"ERR: not a dual core cpu, halted.\r\n\0"
+_rtlb_core_cpu0n:
 
-// dual core check
-movfc	r0,sr
-lsri	r0,sreg_b_id0
-andi	r0,sreg_id_3>>sreg_b_id0
-cmpi	r0,sreg_id_2>>sreg_b_id0
-bne		_rtlb_core_ok
-// WARNING: dual core edition is not supported, now
-// cpu#2 halt, suppress errmsg
-srie	sreg_ie_0
-pause
-_rtlb_core_ok:
+// I-RAM check
+ldbiu	r0,_rtlb_iram_need
+cmpi	r0,false
+beq		_rtlb_iram_ok
+// I-RAM write test
+ldwi	r0,0x0123
+stw		[r6],r0
+ldw		r7,[r6]
+cmp		r0,r7
+bne		_rtlb_iram_fail
+not		r0
+stw		[r6],r0
+ldw		r7,[r6]
+cmp		r0,r7
+beq		_rtlb_iram_ok
+// ERROR: no I-RAM
+_rtlb_iram_fail:
+ldwi	r1,lab__rtlb_iram_err
+jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
+// halt
+jmpr7	_rtlb_prog_halt
+_rtlb_iram_err:
+dats	"ERR: no I-RAM found, halted.\r\n\0"
+_rtlb_iram_ok:
 
 // access size check
 #	cend$(z)	z="l"			z="w"
@@ -101,7 +271,7 @@ bne		_rtlb_mcnh_ok
 ldwi	r1,lab__rtlb_mcnh_err
 jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
 // halt
-jmpr7	_program_halt
+jmpr7	_rtlb_prog_halt
 _rtlb_mcnh_err:
 dats	"ERR: not a Nihonium core, halted.\r\n\0"
 _rtlb_mcnh_ok:
@@ -120,7 +290,7 @@ beq		_rtlb_mul_ok
 ldwi	r1,lab__rtlb_mul_err
 jalwr7	_errmsg_r1
 // halt
-jmpr7	_program_halt
+jmpr7	_rtlb_prog_halt
 _rtlb_mul_err:
 dats	"ERR: no MULC16 found, halted.\r\n\0"
 _rtlb_mul_ok:
@@ -139,7 +309,7 @@ beq		_rtlb_div_ok
 ldwi	r1,lab__rtlb_div_err
 jalwr7	_errmsg_r1
 // halt
-jmpr7	_program_halt
+jmpr7	_rtlb_prog_halt
 _rtlb_div_err:
 dats	"ERR: no DIVC32 found, halted.\r\n\0"
 _rtlb_div_ok:
@@ -161,18 +331,19 @@ beq		_rtlb_fpu_ok
 ldwi	r1,lab__rtlb_fpu_err
 jalwr7	_errmsg_r1
 // halt
-jmpr7	_program_halt
+jmpr7	_rtlb_prog_halt
 _rtlb_fpu_err:
 dats	"ERR: no FPU found, halted.\r\n\0"
 _rtlb_fpu_ok:
 
 // clear variables
-ldwi	r7,_rtlb_var_top
 ldwi	r1,_rtlb_var_static
+add		r1,r6
+mov		r7,r6
 ldbiu	r0,0
 _rtlb_clrv:
 st$(z)	[r7],r0
-addi	r7,4
+addi	r7,_rtlb_var_siz$(z)
 cmp		r7,r1
 blo		_rtlb_clrv
 
@@ -239,7 +410,7 @@ bra		_sdec_return
 _sdec_not_0:
 // negative value?
 bpl		_sdec_not_nega
-ldbiu	r4,_atoi_chr_mi
+ldbiu	r4,asc_mns
 stb		[r0],r4
 addi	r0,1
 neg		r1
@@ -626,52 +797,48 @@ rtn$(z)
 // ================================
 //	delay (r0);
 //		r0: delay period [ms]
-//	disturbed: r1,r7,sytmctl
+//	disturbed: r1,r2,r7
 //		r1: temporary data
+//		r2: start time
 //		r7: i/o register address
-//	return: delay r0 [ms]
+//	return: delay r0 [ms] (dual core cpu safe)
 // ================================
 align	4
 _delay_ms_r0:
 $(s)// ********************************
 $(s)lsri	r0,6						// reduce period 1/64 for simulation
 $(s)// ********************************
-ldwi	r7,sytmctl
-ldbiu	r1,sytm_mloe
-stw		[r7],r1
 ldwi	r7,_rtlb_sytmmil$(z)
+ld$(z)	r2,[r7]
+// wait
 ld$(z)	r1,[r7]
+sub		r1,r2
 cmp		r1,r0
-blo		pcnt-6
-ldwi	r7,sytmctl
-ldbiu	r1,0
-stw		[r7],r1
+blo		pcnt-8
 // end of subroutine
 rtn$(z)
 
 // ================================
 //	delayMicroseconds (r0);
 //		r0: delay period [us]
-//	disturbed: r1,r7,sytmctl
+//	disturbed: r1,r2,r7
 //		r1: temporary data
+//		r2: start time
 //		r7: i/o register address
-//	return: delay r0 [us]
+//	return: delay r0 [us] (dual core cpu safe)
 // ================================
 align	4
 _delay_us_r0:
 $(s)// ********************************
-$(s)lsri	r0,4						// reduce period 1/16 for simulation
+$(s)lsri	r0,3						// reduce period 1/8 for simulation
 $(s)// ********************************
-ldwi	r7,sytmctl
-ldbiu	r1,sytm_mcoe
-stw		[r7],r1
 ldwi	r7,_rtlb_sytmmcr$(z)
+ld$(z)	r2,[r7]
+// wait
 ld$(z)	r1,[r7]
+sub		r1,r2
 cmp		r1,r0
-blo		pcnt-6
-ldwi	r7,sytmctl
-ldbiu	r1,0
-stw		[r7],r1
+blo		pcnt-8
 // end of subroutine
 rtn$(z)
 
@@ -691,14 +858,14 @@ ldbiu	r0,0
 ldbiu	r4,true							// positive
 // sign [+-]
 ldb		r2,[r1]
-cmpi	r2,_atoi_chr_mi
+cmpi	r2,asc_mns
 bne		_atoi_not_minu
 // minus
 ldbiu	r4,false						// negative
 addi	r1,1
 bra		_atoi_loop
 _atoi_not_minu:
-cmpi	r2,_atoi_chr_pl
+cmpi	r2,asc_pls
 bne		_atoi_loop
 // plus, ignore
 addi	r1,1
@@ -747,11 +914,11 @@ subi	r2,0a0
 blo		_xtoi_break						// [r1]<'0'
 cmpi	r2,10
 blo		_xtoi_next						// [r1]<='9'
-subi	r2,_xtoi_chr_capa-0a0-10
+subi	r2,0aa-asc_c2s-0a0-10
 blo		_xtoi_break						// [r1]<'A'
 cmpi	r2,16
 blo		_xtoi_next						// [r1]<='F'
-subi	r2,0aa-_xtoi_chr_capa
+subi	r2,0aa-(0aa-asc_c2s)
 blo		_xtoi_break						// [r1]<'a'
 cmpi	r2,16
 bhs		_xtoi_break						// [r1]>'f'
@@ -768,25 +935,25 @@ rtn$(z)
 
 // ================================
 // r0,r1=getline (r0)
-//		r0: pointer to line buffer (size of _str_siz [byte])
-//	disturbed: r2,r6,r7
+//		r0: pointer to line buffer (size of _rtlb_cstr_siz [byte])
+//	disturbed: r2,r5,r7
 //		r2: temporary data
-//		r6: i/o register uartctl
+//		r5: i/o register uartctl
 //		r7: i/o register uartdat
 //	return: get a line data from UART with BS code handling
 //		r0: pointer to last nil ('\0') code
-//		r1: pointer to line buffer (size of _str_siz [byte])
+//		r1: pointer to line buffer (size of _rtlb_cstr_siz [byte])
 // ================================
 align	4
 _getline_r0:
 ldwi	r7,uartrdat
-ldwi	r6,uartctl
+ldwi	r5,uartctl
 mov		r1,r0
 _getl_loop:
 // check baud rate detection
 jal$(z)r2	_getl_det_baud
 // polling until RAVL=1
-ldw		r2,[r6]
+ldw		r2,[r5]
 andi	r2,uart_ravl
 beq		_getl_loop
 // get byte
@@ -794,10 +961,10 @@ ldw		r2,[r7]
 stb		[r0],r2
 addi	r0,1
 // LF code check
-cmpi	r2,_getl_chr_lf
+cmpi	r2,asc_lf
 beq		_getl_got
 // BS code check
-cmpi	r2,_getl_chr_bs
+cmpi	r2,asc_bs
 bne		_getl_bs_endif
 subi	r0,2
 cmp		r0,r1
@@ -805,7 +972,7 @@ bhs		_getl_bs_endif
 mov		r0,r1
 _getl_bs_endif:
 // size check
-ldwi	r2,_str_siz-1
+ldwi	r2,_rtlb_cstr_siz-1
 add		r2,r1
 cmp		r0,r2
 blo		_getl_loop
@@ -820,7 +987,7 @@ stb		[r0],r2
 subi	r0,1
 ldb		r2,[r0]
 addi	r0,1
-cmpi	r2,_getl_chr_cr
+cmpi	r2,asc_cr
 bne		_getl_notcr
 ldbiu	r2,0
 subi	r0,1
@@ -921,7 +1088,7 @@ rtnw
 //	halt;
 // ================================
 align	4
-_program_halt:
+_rtlb_prog_halt:
 // send message
 ldwi	r1,lab__prgh_message
 jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
@@ -931,8 +1098,8 @@ $(s)ldwi	r0,simneut
 $(s)ldwi	r7,simfnsh
 $(s)stw		[r7],r0
 $(s)// ********************************
-srie	sreg_ie_0
 pause
+bra		pcnt-4
 
 _prgh_message:
 dats	"WRN: program encountered a halt code.\r\n\0"
@@ -941,6 +1108,9 @@ dats	"WRN: program encountered a halt code.\r\n\0"
 // end of run time library
 datw	_rtlb_vers
 
+// ================================
+//	_rtlb_main: start user program code
+// ================================
 align	4
 _rtlb_main:
 

@@ -8,7 +8,7 @@ Blockly.Blocks['mcvm_cpu_asm'] = {
     this.setNextStatement(true, null);
     this.setColour(0);
  this.setTooltip("inline assembler");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -21,7 +21,7 @@ Blockly.Blocks['mcvm_cpu_cend'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("convert endian, big and little");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -34,7 +34,7 @@ Blockly.Blocks['mcvm_cpu_reg'] = {
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(0);
  this.setTooltip("CPU register reference");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -50,7 +50,7 @@ Blockly.Blocks['mcvm_cpu_set'] = {
     this.setNextStatement(true, null);
     this.setColour(0);
  this.setTooltip("CPU register set");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -63,7 +63,7 @@ Blockly.Blocks['mcvm_fpu_fdown'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("round down to zero");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -76,7 +76,7 @@ Blockly.Blocks['mcvm_fpu_ftoi'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("cast float to integer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -89,7 +89,7 @@ Blockly.Blocks['mcvm_fpu_isinf'] = {
     this.setOutput(true, "Boolean");
     this.setColour(0);
  this.setTooltip("is INF or -INF");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -102,7 +102,7 @@ Blockly.Blocks['mcvm_fpu_isnan'] = {
     this.setOutput(true, "Boolean");
     this.setColour(0);
  this.setTooltip("is NaN");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -115,7 +115,7 @@ Blockly.Blocks['mcvm_fpu_itof'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("cast integer to float");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -128,7 +128,7 @@ Blockly.Blocks['mcvm_sim_fail'] = {
     this.setNextStatement(true, null);
     this.setColour(0);
  this.setTooltip("simulation fail");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
   }
 };
 
@@ -141,7 +141,20 @@ Blockly.Blocks['mcvm_sim_pass'] = {
     this.setNextStatement(true, null);
     this.setColour(0);
  this.setTooltip("simulation pass");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+  }
+};
+
+Blockly.Blocks['mcvm_mem_addr'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("mem addr")
+        .appendField(new Blockly.FieldVariable("item"), "VAR");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(15);
+ this.setTooltip("get memory address to variable");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
   }
 };
 
@@ -157,7 +170,7 @@ Blockly.Blocks['mcvm_mem_read'] = {
     this.setOutput(true, "Number");
     this.setColour(15);
  this.setTooltip("memory read");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
   }
 };
 
@@ -177,7 +190,7 @@ Blockly.Blocks['mcvm_mem_write'] = {
     this.setNextStatement(true, null);
     this.setColour(15);
  this.setTooltip("memory write");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
   }
 };
 
@@ -196,7 +209,7 @@ Blockly.Blocks['mcvm_memx_read'] = {
     this.setOutput(true, "Number");
     this.setColour(15);
  this.setTooltip("memory read (extended address)");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
   }
 };
 
@@ -219,7 +232,7 @@ Blockly.Blocks['mcvm_memx_write'] = {
     this.setNextStatement(true, null);
     this.setColour(15);
  this.setTooltip("memory write (extended address)");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
   }
 };
 
@@ -232,7 +245,7 @@ Blockly.Blocks['mcoc_math_ascii'] = {
     this.setOutput(true, "Number");
     this.setColour(30);
  this.setTooltip("math number (ASCII code)");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -247,7 +260,7 @@ Blockly.Blocks['mcoc_math_bit_operation'] = {
     this.setOutput(true, "Number");
     this.setColour(30);
  this.setTooltip("bit wise logic operation");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -259,7 +272,7 @@ Blockly.Blocks['mcoc_math_number'] = {
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(30);
  this.setTooltip("math number (extended)");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -272,21 +285,23 @@ Blockly.Blocks['mcoc_math_unary'] = {
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(30);
  this.setTooltip("unary operation");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
 Blockly.Blocks['mcoc_pack'] = {
   init: function() {
-    this.appendStatementInput("PAC")
-        .setCheck(null)
+    this.appendDummyInput()
+        .appendField("pack")
         .appendField(new Blockly.FieldCheckbox("TRUE"), "ENB");
+    this.appendStatementInput("PAC")
+        .setCheck(null);
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(30);
  this.setTooltip("packing block");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -303,7 +318,21 @@ Blockly.Blocks['mcoc_swap'] = {
     this.setNextStatement(true, null);
     this.setColour(30);
  this.setTooltip("swap variables A and B");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+  }
+};
+
+Blockly.Blocks['mcoc_task'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("task")
+        .appendField(new Blockly.FieldDropdown([["CPU2","CPU2"]]), "TASK");
+    this.appendStatementInput("DO")
+        .setCheck(null);
+    this.setInputsInline(true);
+    this.setColour(30);
+ this.setTooltip("define task");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -316,7 +345,7 @@ Blockly.Blocks['mcoc_text_atoi'] = {
     this.setOutput(true, "Number");
     this.setColour(30);
  this.setTooltip("convert ASCII text to integer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -329,7 +358,7 @@ Blockly.Blocks['mcoc_text_itoa'] = {
     this.setOutput(true, "String");
     this.setColour(30);
  this.setTooltip("convert integer to ASCII text");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -345,7 +374,7 @@ Blockly.Blocks['mcoc_text_itox'] = {
     this.setOutput(true, "String");
     this.setColour(30);
  this.setTooltip("convert integer to hexadecimal ASCII text");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -358,7 +387,7 @@ Blockly.Blocks['mcoc_text_xtoi'] = {
     this.setOutput(true, "Number");
     this.setColour(30);
  this.setTooltip("convert hexadecimal ASCII text to integer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -373,7 +402,7 @@ Blockly.Blocks['mcoc_port_read'] = {
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(60);
  this.setTooltip("digitalRead");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -392,7 +421,7 @@ Blockly.Blocks['mcoc_port_write'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("digitalWrite");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -406,7 +435,7 @@ Blockly.Blocks['mcoc_sytm_delay'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("delay [ms]");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -420,7 +449,21 @@ Blockly.Blocks['mcoc_sytm_delay_us'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("delay [us]");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
+  }
+};
+
+Blockly.Blocks['mcoc_sytm_delay_cyc'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField("delayTicks");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(60);
+ this.setTooltip("delay [tick]");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -432,7 +475,7 @@ Blockly.Blocks['mcoc_sytm_micros'] = {
     this.setOutput(true, "Number");
     this.setColour(60);
  this.setTooltip("micros");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -444,7 +487,7 @@ Blockly.Blocks['mcoc_sytm_millis'] = {
     this.setOutput(true, "Number");
     this.setColour(60);
  this.setTooltip("millis");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -456,7 +499,7 @@ Blockly.Blocks['mcoc_sytm_ticks'] = {
     this.setOutput(true, "Number");
     this.setColour(60);
  this.setTooltip("ticks");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -468,7 +511,7 @@ Blockly.Blocks['mcoc_uart_avail'] = {
     this.setOutput(true, ["Boolean", "Number"]);
     this.setColour(60);
  this.setTooltip("is UART receive data available");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -480,7 +523,7 @@ Blockly.Blocks['mcoc_uart_getline'] = {
     this.setOutput(true, "String");
     this.setColour(60);
  this.setTooltip("get a line from UART receive data");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -494,7 +537,7 @@ Blockly.Blocks['mcoc_uart_print'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("print text; UART transfer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -508,7 +551,7 @@ Blockly.Blocks['mcoc_uart_println'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("print text+CRLF; UART transfer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
   }
 };
 
@@ -527,7 +570,7 @@ Blockly.Blocks['mcoc_string_compare_left'] = {
     this.setOutput(true, "Boolean");
     this.setColour(45);
  this.setTooltip("compare left of string variable and text");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };
 
@@ -540,7 +583,7 @@ Blockly.Blocks['mcoc_string_ctoa'] = {
     this.setOutput(true, "String");
     this.setColour(45);
  this.setTooltip("convert ASCII code to ASCII text");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };
 
@@ -559,7 +602,7 @@ Blockly.Blocks['mcoc_string_find'] = {
     this.setOutput(true, "Number");
     this.setColour(45);
  this.setTooltip("find character in string variable");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };
 
@@ -575,7 +618,7 @@ Blockly.Blocks['mcoc_string_get_char'] = {
     this.setOutput(true, "Number");
     this.setColour(45);
  this.setTooltip("get character code from string variable");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };
 
@@ -591,7 +634,7 @@ Blockly.Blocks['mcoc_string_label'] = {
     this.setOutput(true, "String");
     this.setColour(45);
  this.setTooltip("pointer to string label");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };
 
@@ -607,7 +650,7 @@ Blockly.Blocks['mcoc_string_pointer'] = {
     this.setOutput(true, "String");
     this.setColour(45);
  this.setTooltip("pointer to string variable");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };
 
@@ -627,6 +670,6 @@ Blockly.Blocks['mcoc_string_set'] = {
     this.setNextStatement(true, null);
     this.setColour(45);
  this.setTooltip("set string variable");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
   }
 };

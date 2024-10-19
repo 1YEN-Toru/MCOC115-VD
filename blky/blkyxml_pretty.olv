@@ -6,6 +6,9 @@ model	"Blockly.XML pretty printer"
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/10/19	ver.1.04
+//			add: out4dif
+//
 //		2024/10/12	ver.1.02
 //			corresponding to S-JIS encoding XML
 //
@@ -15,6 +18,7 @@ model	"Blockly.XML pretty printer"
 
 
 	// constants
+	var		out4dif=false;				// output for diff tools
 	macro	str_indt="	";				// indent string
 
 
@@ -30,7 +34,7 @@ model	"Blockly.XML pretty printer"
 	macro	fnam_in;
 	macro	fnam_out;
 	macro	fnam_tmp;
-	gui		openfile, rtn, "入力ファイル","",fnam_in;
+	gui		openfile, rtn, "Input File","",fnam_in;
 	if (rtn=guiCancel)
 	{
 		// cancelled; select default source
@@ -49,7 +53,8 @@ model	"Blockly.XML pretty printer"
 	// procedures
 	procedure	fget_sjis
 	{
-		// codがS-JISコード1バイト目範囲内なら2バイト目を読み込む
+		// If cod is within the range of the first byte of S-JIS code,
+		//	read the second byte.
 		if (0x81<=cod & cod<0xa0 | 0xe0<=cod & cod<0xfd)
 		{
 			var		cod2;
@@ -60,23 +65,23 @@ model	"Blockly.XML pretty printer"
 	}
 	procedure	fget_xml
 	{
-		// "<"～">"を取ってくる。
-		// 先頭文字が"<"では無かった場合、次の"<"手前までを取り出す。
+		// get string between "<" ~ ">"
+		//	If the first character is not "<", extract up to the next "<".
 		var		cmp;
 		var		cod;
 		macro	chr;
 
 		ftell	fin,fpos;
-		progress	"変換中…",100*fpos/fsiz;
+		progress	"Converting...",100*fpos/fsiz;
 
-		// 読み出し
+		// read
 		fgetb	fin,cod;
 		fget_sjis;
 		num2chr		chr=cod;
 		strcmp	cmp="<",$(chr);
 		if (cmp=0)
 		{
-			// "<"～">"
+			// "<" ~ ">"
 			repeat
 			{
 				strcat	fget_xml, $(chr);
@@ -95,7 +100,7 @@ model	"Blockly.XML pretty printer"
 		}
 		else
 		{
-			// 次の"<"手前まで
+			// to the next "<"
 			var		fpos;
 
 			repeat
@@ -121,40 +126,50 @@ model	"Blockly.XML pretty printer"
 				strcmp	cmp="<",$(chr);
 			} until (cmp=0);
 			fseek	fin,fpos;
-			// 改行とインデントを無視
+			// ignore newline and indentation
 			psub	"^"$," *$","",fget_xml;
-			// 改行を"\n"に置換
+			// replace newline with "\n"
 			gsub	$,,"\n",fget_xml;
 		}
-		// 不要な項目を削除
+		// remove unnecessary items
 		pgsub	"\\"$",$",fget_xml;
-		// タグ
+		// tag
 		pindex	cmp=$(fget_xml),"^<[^>]*>$";
 		if (cmp>0)
 		{
-			pgsub	" id="$""[^"$""]*"$"," id="$"#(id_num)$",fget_xml;
+			if (out4dif)
+			{
+				pgsub	" id="$""[^"$""]*"$","",fget_xml;
+				pgsub	" x="$""[^"$""]*"$","",fget_xml;
+				pgsub	" y="$""[^"$""]*"$","",fget_xml;
+			}
+			else
+			{
+				pgsub	" id="$""[^"$""]*"$"," id="$"#(id_num)$",fget_xml;
+			}
 			if (status>0)
 			{
 				id_num=id_num + 1;
 			}
 		}
-		// タグ以外
+		// except tag
 		pindex	cmp=$(fget_xml),"^<";
 		if (cmp<=0)
 		{
 //			gsub	"&#9;","\t",fget_xml;
 //			gsub	"&#10;","\n",fget_xml;
 //			gsub	"&gt;",">",fget_xml;
-//			gsub	"&lt;","<",fget_xml;	// 変換しない。
+//			gsub	"&lt;","<",fget_xml;	// do not convert
 //			gsub	"&amp;","&",fget_xml;
 		}
-		// 読み込みエラーが発生した時に終了
+		// exit when a read error occurs
 		if (fget_xml)
 		{
 			// error injection
 			mlet	fget_xml="<error>";
 		}
-		// 空文字列だったら、更に次を読み出す(上のエラー処理が先)
+		// If empty string, read the next one
+		//	(the above error processing should be done first)
 		strcmp	cmp=$(fget_xml),"";
 		if (cmp=0)
 		{
@@ -252,6 +267,11 @@ if (false)
 	fseek	fin,-1;
 	ftell	fpos,fsiz;
 	fseek	fin,0;
+
+	if (out4dif)
+	{
+		mlet	str_indt="";			// no indent
+	}
 
 	do_xml;
 
