@@ -199,7 +199,7 @@
 -->
 
 ## Memory units
-- [ROM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IROM)
+- [ROM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#ROM)
 	- Instruction ROM unit
 	- Boot loader ROM included
 - [I-RAM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#IRAM)

@@ -25,6 +25,20 @@ Blockly.Blocks['mcvm_cpu_cend'] = {
   }
 };
 
+Blockly.Blocks['mcvm_cpu_irqen'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("irq enable")
+        .appendField(new Blockly.FieldDropdown([["level 0 (No)","sreg_ie_0"], ["level 1","sreg_ie_1"], ["level 2","sreg_ie_2"], ["level 3 (All)","sreg_ie_3"]]), "LEV");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(0);
+ this.setTooltip("set interrupts enable level");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+  }
+};
+
 Blockly.Blocks['mcvm_cpu_reg'] = {
   init: function() {
     this.appendDummyInput()
@@ -326,7 +340,7 @@ Blockly.Blocks['mcoc_task'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("task")
-        .appendField(new Blockly.FieldDropdown([["CPU2","CPU2"]]), "TASK");
+        .appendField(new Blockly.FieldDropdown([["CPU2","CPU2"], ["IRQ","IRQ"], ["IRQ2","IRQ2"]]), "TASK");
     this.appendStatementInput("DO")
         .setCheck(null);
     this.setInputsInline(true);
@@ -671,5 +685,37 @@ Blockly.Blocks['mcoc_string_set'] = {
     this.setColour(45);
  this.setTooltip("set string variable");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
+  }
+};
+
+Blockly.Blocks['mcoc_controls_dorept'] = {
+  init: function() {
+    this.appendStatementInput("DO")
+        .setCheck(null)
+        .appendField("do");
+    this.appendValueInput("BOOL")
+        .setCheck("Boolean")
+        .appendField("repeat")
+        .appendField(new Blockly.FieldDropdown([["while","WHILE"], ["until","UNTIL"]]), "MODE");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(120);
+ this.setTooltip("do repeat loop");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLOOP");
+  }
+};
+
+Blockly.Blocks['mcoc_controls_loop'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("loop");
+    this.appendStatementInput("DO")
+        .setCheck(null);
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setColour(120);
+ this.setTooltip("forever loop");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLOOP");
   }
 };

@@ -3,6 +3,10 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2024/10/26	ver.1.10
+//			corresponding to interrupt
+//			change: UART8N1 baud rate; _rtlb_uart_baud
+//
 //		2024/10/19	ver.1.08
 //			corresponding to dual core cpu
 //			change: _getline_r0; temporary register r6 to r5
@@ -24,7 +28,7 @@
 //
 
 
-equ		_rtlb_vers,0x0108				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0110				// beta(1),major(1),minor(2)
 
 
 # constants
@@ -166,6 +170,17 @@ cmpi	r0,false
 bne		pcnt+2
 add		r6,r2							// r2=stk_siz
 
+// interrupt vector
+ldc		iv,lab__rtlb_isr2
+
+ifexp	!(_rtlb_isr_bank<=0)
+// copy var_top (r6) to register bank for isr
+push$(z)	r6
+srbk	_rtlb_isr_bank
+pop$(z)	r6
+srbk	sreg_bk_0
+endi
+
 // clear variables for cpu2
 ldwi	r1,_rtlb_var_static
 add		r1,r6
@@ -198,9 +213,20 @@ bra		pcnt-4
 _rtlb_core_cpu2n:
 push$(z)	r0
 
+// interrupt vector
+ldc		iv,lab__rtlb_isr
+
+ifexp	!(_rtlb_isr_bank<=0)
+// copy var_top (r6) to register bank for isr
+push$(z)	r6
+srbk	_rtlb_isr_bank
+pop$(z)	r6
+srbk	sreg_bk_0
+endi
+
 // uart setting: RXE, TXE, baud rate
 ldwi	r7,uartbaud
-ldwi	r0,fcpu/9600-1
+ldwi	r0,fcpu/_rtlb_uart_baud-1
 stw		[r7],r0
 ldwi	r7,uartctl
 ldbiu	r0,uart_rxe|uart_txe
@@ -352,6 +378,47 @@ jal$(z)r7	_rtlb_vlst_cstr
 
 // goto setup (user program entry point)
 bra		_rtlb_main
+
+
+// ================================
+// ISR (interrupt service routine)
+//	_rtlb_isr: for cpu0, 1
+//	_rtlb_isr2: for cpu2
+// ================================
+_rtlb_isr2:
+ifexp	_rtlb_isr_bank<=0
+// store general registers
+push$(z)m	r0,r1,r2,r3,r4,r5,r6,r7
+elsi
+// use bank
+srbk	_rtlb_isr_bank
+endi
+// user task irq2
+ldwi	r0,lab__rtlb_irq2
+bra		_rtlb_isr_comn
+
+_rtlb_isr:
+ifexp	_rtlb_isr_bank<=0
+// store general registers
+push$(z)m	r0,r1,r2,r3,r4,r5,r6,r7
+elsi
+// use bank
+srbk	_rtlb_isr_bank
+endi
+// user task irq
+ldwi	r0,lab__rtlb_irq
+_rtlb_isr_comn:
+// subroutine jump to user task
+ldw		r0,[r0]
+cmpi	r0,_rtlb_null
+beq		pcnt+2
+jal$(z)		r0
+// end of isr
+ifexp	_rtlb_isr_bank<=0
+// restore general registers
+pop$(z)m	r7,r6,r5,r4,r3,r2,r1,r0
+endi
+rti
 
 
 // ================================

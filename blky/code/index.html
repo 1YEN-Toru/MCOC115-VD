@@ -15,6 +15,7 @@
   <script src="../../dist/lua_compressed.js"></script>
   <script src="../../dist/dart_compressed.js"></script>
   <script src="mcvm_blocks.js"></script>
+  <script src="mcvm_custom.js"></script>
   <script src="code.js"></script>
 </head>
 <body>
@@ -121,6 +122,8 @@
           </shadow>
         </value>
       </block>
+      <block type="mcoc_controls_dorept"></block>
+      <block type="mcoc_controls_loop"></block>
 <!--
       <block type="controls_forEach"></block>
 -->
@@ -374,6 +377,7 @@
     <category name="Moscovium" colour="#c84848">
       <block type="mcvm_cpu_asm"></block>
       <block type="mcvm_cpu_cend"></block>
+      <block type="mcvm_cpu_irqen"></block>
       <block type="mcvm_cpu_reg"></block>
       <block type="mcvm_cpu_set"></block>
       <block type="mcvm_fpu_fdown"></block>
