@@ -154,13 +154,13 @@ model	"Blockly.XML pretty printer"
 		}
 		// except tag
 		pindex	cmp=$(fget_xml),"^<";
-		if (cmp<=0)
+		if (false & cmp<=0)
 		{
-//			gsub	"&#9;","\t",fget_xml;
-//			gsub	"&#10;","\n",fget_xml;
-//			gsub	"&gt;",">",fget_xml;
+			gsub	"&#9;","\t",fget_xml;
+			gsub	"&#10;","\n",fget_xml;
+			gsub	"&gt;",">",fget_xml;
 //			gsub	"&lt;","<",fget_xml;	// do not convert
-//			gsub	"&amp;","&",fget_xml;
+			gsub	"&amp;","&",fget_xml;
 		}
 		// exit when a read error occurs
 		if (fget_xml)
