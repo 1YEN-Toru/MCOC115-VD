@@ -1,0 +1,104 @@
+model	"Blockly.XML asm block generator"
+{
+// ================================
+//
+//	Blockly.XML asm block generator
+//		(c) 2024	1YEN Toru
+//
+//
+//		2024/11/02	ver.1.00
+//
+// ================================
+
+
+	// constants
+
+
+	// variables
+	var		id_num;						// serial ID number
+	macro	dir,mynam,ext;
+	pathsplit	$(pathname), dir,mynam,ext;
+
+
+	// input text data to convert
+	var		rtn;
+	macro	asm_txt;
+	gui		txtinput, rtn, "text input", "text to convert asm block", asm_txt;
+	if (rtn!=guiOK)
+	{
+		leave	stop_error;
+	}
+	
+	// check
+	var		cmp;
+	strcmp	cmp=$(asm_txt),"";
+	if (cmp=0)
+	{
+		leave	stop_error;
+	}
+
+
+	// open files
+	var		fout;
+	fopen	fout,$(dir)$/$(mynam)"_out.xml","w";
+
+	// header
+	fputl	fout,"<xml>";
+	fputl	fout,"<block type="$""mcoc_pack"$"">";
+	id_num=id_num + 1;
+	fputl	fout,"<field name="$""ENB"$"">TRUE</field>";
+	fputl	fout,"<statement name="$""PAC"$"">";
+
+	// convert
+	var		idx;
+	var		num;
+	var		cnt_nxt;
+	field	num=asm_txt,$,;
+	idx=1;
+	while (idx<=num)
+	{
+		strcmp	cmp=$(asm_txt#(idx)),"";
+		if (cmp=0)
+		{
+			// continue
+			idx=idx + 1;
+			continue;
+		}
+
+		// translate
+		gsub	"&","&amp;",asm_txt#(idx);
+		gsub	"	","&#9;",asm_txt#(idx);
+		gsub	$","&quot;",asm_txt#(idx);
+		gsub	"<","&lt;",asm_txt#(idx);
+		gsub	">","&gt;",asm_txt#(idx);
+		// output
+		fputl	fout,"<block type="$""mcvm_cpu_asm"$"">";
+		id_num=id_num + 1;
+		fputl	fout,"<field name="$""ASM"$"">"$(asm_txt#(idx))"</field>";
+		fputl	fout,"<next>";
+		cnt_nxt=cnt_nxt + 1;
+
+		// continue
+		idx=idx + 1;
+	}
+
+	// footer
+	while (cnt_nxt>0)
+	{
+		fputl	fout,"</next>";
+		fputl	fout,"</block>";
+
+		// continue
+		cnt_nxt=cnt_nxt - 1;
+	}
+	fputl	fout,"</statement>";
+	fputl	fout,"</block>";
+	fputl	fout,"</xml>";
+
+	// close files
+	fclose	fout;
+
+
+	leave	stop_error;
+}
+

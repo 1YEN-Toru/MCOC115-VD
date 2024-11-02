@@ -1,0 +1,254 @@
+model	"Blockly.XML merger"
+{
+// ================================
+//
+//	Blockly.XML merger
+//		(c) 2024	1YEN Toru
+//
+//
+//		2024/11/02	ver.1.00
+//			1) Specify the Blockly.XML file name in the file open dialog.
+//				One file each open dialog.
+//				XML file must start <xml> tag.
+//			2) Once all XML files have been specified, cancel the dialog.
+//			3) A file will be generated that merges the specified all XML files.
+//
+// ================================
+
+
+	// constants
+
+
+	// variables
+	var		id_num;						// serial ID number
+	macro	dir,mynam,ext;
+	pathsplit	$(pathname), dir,mynam,ext;
+
+
+	// input file name
+	var		rtn;
+	var		cnt_fi;
+	macro	fnam;
+	macro	fnam_out;
+	static : repeat
+	{
+		macro	fnam_in#(cnt_fi);
+		gui		openfile, rtn, "Input File"#(cnt_fi + 1),"",fnam_in#(cnt_fi);
+		cnt_fi=cnt_fi + 1;
+	} until (rtn=guiCancel);
+	cnt_fi=cnt_fi - 1;
+	if (cnt_fi<2)
+	{
+		// ERROR:
+		errmsg	"too few input files specified";
+		leave	stop_error;
+	}
+	pathsplit	$(fnam_in0), dir,fnam,ext;
+	mlet	fnam_out=$(dir)$/$(fnam)"_mrg.xml";
+
+
+	// procedures
+	procedure	fget_sjis
+	{
+		// If cod is within the range of the first byte of S-JIS code,
+		//	read the second byte.
+		if (0x81<=cod & cod<0xa0 | 0xe0<=cod & cod<0xfd)
+		{
+			var		cod2;
+
+			fgetb	fin,cod2;
+			cod=@((cod<<8) + cod2);
+		}
+	}
+	procedure	fget_xml
+	{
+		// get string between "<" ~ ">"
+		//	If the first character is not "<", extract up to the next "<".
+		var		cmp;
+		var		cod;
+		macro	chr;
+
+		ftell	fin,fpos;
+		progress	"Merging("#(idx + 1)"/"#(cnt_fi)")...",100*fpos/fsiz;
+
+		// read
+		fgetb	fin,cod;
+		fget_sjis;
+		num2chr		chr=cod;
+		strcmp	cmp="<",$(chr);
+		if (cmp=0)
+		{
+			// "<" ~ ">"
+			repeat
+			{
+				strcat	fget_xml, $(chr);
+				fgetb	fin,cod;
+				fget_sjis;
+				if (cod<0)
+				{
+					// ERROR:
+					fget_xml=cod;
+					break;
+				}
+				num2chr		chr=cod;
+				strcmp	cmp=">",$(chr);
+			} until (cmp=0);
+			strcat	fget_xml, $(chr);
+		}
+		else
+		{
+			// to the next "<"
+			var		fpos;
+
+			repeat
+			{
+				strcat	fget_xml, $(chr);
+				ftell	fin,fpos;
+				fgetb	fin,cod;
+				fget_sjis;
+				if (cod<0)
+				{
+					// ERROR:
+					fget_xml=cod;
+					break;
+				}
+				if (cod=0x0a)
+				{
+					mlet	chr=$,;
+				}
+				else
+				{
+					num2chr		chr=cod;
+				}
+				strcmp	cmp="<",$(chr);
+			} until (cmp=0);
+			fseek	fin,fpos;
+			// ignore newline and indentation
+			psub	"^"$," *$","",fget_xml;
+			// replace newline with "\n"
+			gsub	$,,"\n",fget_xml;
+		}
+		// remove unnecessary items
+		pgsub	"\\"$",$",fget_xml;
+		// tag
+		pindex	cmp=$(fget_xml),"^<[^>]*>$";
+		if (cmp>0)
+		{
+			pgsub	" id="$""[^"$""]*"$","",fget_xml;
+			if (status>0)
+			{
+				id_num=id_num + 1;
+			}
+		}
+		// except tag
+		pindex	cmp=$(fget_xml),"^<";
+		if (false & cmp<=0)
+		{
+			gsub	"&#9;","\t",fget_xml;
+			gsub	"&#10;","\n",fget_xml;
+			gsub	"&gt;",">",fget_xml;
+//			gsub	"&lt;","<",fget_xml;	// do not convert
+			gsub	"&amp;","&",fget_xml;
+		}
+		// exit when a read error occurs
+		if (fget_xml)
+		{
+			// error injection
+			mlet	fget_xml="<error>";
+		}
+		// If empty string, read the next one
+		//	(the above error processing should be done first)
+		strcmp	cmp=$(fget_xml),"";
+		if (cmp=0)
+		{
+			fget_xml;
+		}
+if (false)
+{
+	macro	tmp=$(fget_xml);
+	pgsub	"#","##",tmp;
+	fprint	fout,"##fget_xml:"$(tmp)$,;
+}
+	}
+	procedure	do_xml	$$fnam_in
+	{
+		var		cmp;
+		var		fin;
+		var		fsiz;
+		var		fpos;
+		var		in_xml;
+
+		fopen	fin,$(fnam_in),"r";
+		fseek	fin,-1;
+		ftell	fin,fsiz;
+		fseek	fin,0;
+
+		while (true)
+		{
+			fget_xml;
+
+			pindex	cmp=$(fget_xml),"^<error[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(fget_xml),"^</xml[ >]";
+			}
+			if (cmp>0)
+			{
+				in_xml=false;
+				break;
+			}
+			pindex	cmp=$(fget_xml),"^<xml[ >]";
+			if (cmp>0)
+			{
+				in_xml=true;
+			}
+			if (cmp<=0)
+			{
+				pindex	cmp=$(fget_xml),"^</?variables[ >]";
+			}
+			if (cmp>0)
+			{
+				continue;
+			}
+
+			if (in_xml)
+			{
+				fputs	fout,$(fget_xml);
+
+				// new line
+				pindex	cmp=$(fget_xml),"^</";
+				if (cmp>0)
+				{
+					fprint	fout,$,;
+				}
+			}
+		}
+
+		fclose	fin;
+	}
+
+
+	// open files
+	var		fout;
+	fopen	fout,$(fnam_out),"w";
+
+	fprint	fout,"<xml>";
+
+	var		idx;
+	while (idx<cnt_fi)
+	{
+		do_xml	$(fnam_in#(idx));
+
+		// continue
+		idx=idx + 1;
+	}
+
+	fprint	fout,"</xml>";
+
+	// close files
+	fclose	fout;
+
+
+	leave	stop_error;
+}
+
