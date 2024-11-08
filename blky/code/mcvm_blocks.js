@@ -294,7 +294,7 @@ Blockly.Blocks['mcoc_math_unary'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck(["Number", "Boolean"])
-        .appendField(new Blockly.FieldDropdown([["-","-"], ["~","~"], ["!","!"], ["sq","sq"], ["2*","2*"], ["1+","1+"], ["-1+","-1+"], ["!!","!!"]]), "OP");
+        .appendField(new Blockly.FieldDropdown([["-","-"], ["inc","1+"], ["dec","-1+"], ["sq","sq"], ["2*","2*"], ["~","~"], ["!","!"], ["!!","!!"]]), "OP");
     this.setInputsInline(false);
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(30);

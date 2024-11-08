@@ -148,7 +148,7 @@ equ		asc_cbi,0x7a					// asc: '[' code
 equ		asc_vrt,0x7b					// asc: '|' code
 equ		asc_cbo,0x7c					// asc: ']' code
 equ		asc_tld,0x7d					// asc: '~' code
-equ		asc_c2s,0x20					// capital to small
+equ		asc_c2s,0x20					// capital to small character offset
 # ================================
 # IDREG
 equ		idrgcode,0xf000					// idrg, R, word
