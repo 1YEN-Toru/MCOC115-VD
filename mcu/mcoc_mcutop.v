@@ -41,13 +41,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0226
+`define		MCOC_VERS		16'h0228
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2024/12/14	ver.2.28
+//		corresponding to STFT61 unit
+//		add: compile option MCOC_NO_STFT
 //
 //	2024/10/12	ver.2.26
 //		change: main CPU1; CPU ID to 3 for AMP edition
@@ -309,6 +313,7 @@ wire	[15:0]	bdatr_dac1;
 wire	[15:0]	bdatr_iome;
 wire	[15:0]	bdatr_tled;
 wire	[15:0]	bdatr_cm76;
+wire	[15:0]	bdatr_stft;
 
 // memory bus command alias
 wire	bcmdr=bcmd[0];
@@ -553,7 +558,8 @@ mcoc_adrdec		adec (
 	.bcs_iome_n(bcs_iome_n),	// Output
 	.bcs_tled_n(bcs_tled_n),	// Output
 	.bcs_adcx_n(bcs_adcx_n),	// Output
-	.bcs_cm76_n(bcs_cm76_n)	// Output
+	.bcs_cm76_n(bcs_cm76_n),	// Output
+	.bcs_stft_n(bcs_stft_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -1219,11 +1225,11 @@ assign	bdatr_tled[15:0]=16'h0;
 timled5		timl (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcs_tled_n(bcs_tled_n),	// Input
-	.simumd(simumd),	// Input
 	.gpio_port(port_out_o[2:0]),	// Input
 	.gpio_port_oe(port_enb[2:0]),	// Input
 	.badr(badr[3:0]),	// Input
@@ -1268,6 +1274,47 @@ mcoc_cam76	cam76 (
 );
 `endif	//	MCOC_NO_CM76
 
+`ifdef		MCOC_NO_STFT
+assign	bdatr_stft[15:0]=16'h0;
+`else	//	MCOC_NO_STFT
+wire	[5:0]	stft_pout;
+wire	[5:0]	stft_poen;
+wire	[5:0]	stft_pinp=
+		{
+			pmod_iop[6],
+			pmod_iop[5],
+			pmod_iop[4],
+			pmod_iop[3],
+// skip		pmod_iop[2], because it has clock input constraint for cam7670 unit
+			pmod_iop[1],
+			pmod_iop[0]
+		};
+assign	pmod_iop[7]=stft_pwmo;
+assign	pmod_iop[6]=(stft_poen[5])? stft_pout[5]: 1'bz;
+assign	pmod_iop[5]=(stft_poen[4])? stft_pout[4]: 1'bz;
+assign	pmod_iop[4]=(stft_poen[3])? stft_pout[3]: 1'bz;
+assign	pmod_iop[3]=(stft_poen[2])? stft_pout[2]: 1'bz;
+// skip pmod_iop[2], because it has clock input constraint for cam7670 unit
+assign	pmod_iop[1]=(stft_poen[1])? stft_pout[1]: 1'bz;
+assign	pmod_iop[0]=(stft_poen[0])? stft_pout[0]: 1'bz;
+stft61	stft (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_stft_n(bcs_stft_n),	// Input
+	.stft_pinp(stft_pinp[5:0]),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.stft_pwmo(stft_pwmo),	// Output
+	.stft_pout(stft_pout[5:0]),	// Output
+	.stft_poen(stft_poen[5:0]),	// Output
+	.bdatr(bdatr_stft[15:0])	// Output
+);
+`endif	//	MCOC_NO_STFT
+
 
 // bus output
 assign	bdatr[15:0]=
@@ -1297,7 +1344,8 @@ assign	bdatr[15:0]=
 	bdatr_dac1[15:0] |
 	bdatr_iome[15:0] |
 	bdatr_tled[15:0] |
-	bdatr_cm76[15:0];
+	bdatr_cm76[15:0] |
+	bdatr_stft[15:0];
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |

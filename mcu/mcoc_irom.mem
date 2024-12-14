@@ -1,11 +1,15 @@
 // ================================
 // Assemble list:
 //
-//		// Moscovium series macro assembler ver.1.46
+//		// Moscovium series macro assembler ver.1.50
 //		// ================================
 //		//	RGB LED Blink with Serial monitor
 //		//		(c) 2021	1YEN Toru
 //		//
+//		//
+//		//		2024/12/14	ver.1.10
+//		//			corresponding to >=32KB ROM edition
+//		//				R6 always point at RAM top address
 //		//
 //		//		2023/09/23	ver.1.08
 //		//			corresponding to Cmod A7 FPGA board
@@ -50,9 +54,9 @@
 //		// ERROR: not target CPU=moscovium, halt
 //	@0011	d2f1	// 0022    ldch   sp,((iome_botm)>>8)&0xff
 //	@0012	ca60	// 0024    ldcl   sp,(iome_botm)&0xff
-//	@0013	b12d	// 0026    ldbiu  r1,chr_mns
+//	@0013	b12d	// 0026    ldbiu  r1,asc_mns
 //	@0014	c704	// 0028    ldbih  r7,(lab_print_chr)>>8
-//	@0015	bf46	// 002a    ldbil  r7,(lab_print_chr)&0xff
+//	@0015	bf84	// 002a    ldbil  r7,(lab_print_chr)&0xff
 //	@0016	7f8f	// 002c    jalw   r7
 //	@0017	0001	// 002e    pause 
 //		// ================================		// target cpu codes from here
@@ -64,41 +68,43 @@
 //	@001b	1801	// 0036    beq    pcnt+2
 //	@001c	0001	// 0038    pause 
 //		// set sp to the bottom of ram area
-//	@001d	c7f0	// 003a    ldbih  r7,((idrgramt)>>8)&0xff
-//	@001e	bf0c	// 003c    ldbil  r7,(idrgramt)&0xff
-//	@001f	7bbf	// 003e    ldw    r7,r7
-//	@0020	c6f0	// 0040    ldbih  r6,((idrgrams)>>8)&0xff
-//	@0021	be0e	// 0042    ldbil  r6,(idrgrams)&0xff
-//	@0022	7bb6	// 0044    ldw    r6,r6
+//	@001d	c6f0	// 003a    ldbih  r6,((idrgramt)>>8)&0xff
+//	@001e	be0c	// 003c    ldbil  r6,(idrgramt)&0xff
+//	@001f	7bb6	// 003e    ldw    r6,r6
+//	@0020	c7f0	// 0040    ldbih  r7,((idrgrams)>>8)&0xff
+//	@0021	bf0e	// 0042    ldbil  r7,(idrgrams)&0xff
+//	@0022	7bbf	// 0044    ldw    r7,r7
 //	@0023	79be	// 0046    add    r7,r6
 //	@0024	7917	// 0048    movtc  sp,r7
 //		// clear variables
-//	@0025	c750	// 004a    ldbih  r7,((ramtop)>>8)&0xff
-//	@0026	bf00	// 004c    ldbil  r7,(ramtop)&0xff
-//	@0027	c150	// 004e    ldbih  r1,((static_va)>>8)&0xff
-//	@0028	b908	// 0050    ldbil  r1,(static_va)&0xff
-//	@0029	b000	// 0052    ldbiu  r0,0
+//	@0025	c700	// 004a    ldbih  r7,((0)>>8)&0xff
+//	@0026	bf00	// 004c    ldbil  r7,(0)&0xff
+//	@0027	79be	// 004e    add    r7,r6
+//	@0028	c100	// 0050    ldbih  r1,((static_va)>>8)&0xff
+//	@0029	b908	// 0052    ldbil  r1,(static_va)&0xff
+//	@002a	798e	// 0054    add    r1,r6
+//	@002b	b000	// 0056    ldbiu  r0,0
 //			// st_clrvar:
-//	@002a	7bf8	// 0054    stw    r7,r0
-//	@002b	9f02	// 0056    addi   r7,2
-//	@002c	7ab9	// 0058    cmp    r7,r1
-//	@002d	2ffc	// 005a    blo    st_clrvar
+//	@002c	7bf8	// 0058    stw    r7,r0
+//	@002d	9f02	// 005a    addi   r7,2
+//	@002e	7ab9	// 005c    cmp    r7,r1
+//	@002f	2ffc	// 005e    blo    st_clrvar
 //		// port setting
-//	@002e	b007	// 005c    ldbiu  r0,led_builtin_r|led_builtin_g|led_builtin_b
-//	@002f	c7f0	// 005e    ldbih  r7,((porset)>>8)&0xff
-//	@0030	bf2a	// 0060    ldbil  r7,(porset)&0xff
-//	@0031	7bf8	// 0062    stw    r7,r0
-//	@0032	c7f0	// 0064    ldbih  r7,((pordir)>>8)&0xff
-//	@0033	bf26	// 0066    ldbil  r7,(pordir)&0xff
-//	@0034	7b87	// 0068    ldw    r0,r7
-//	@0035	88f8	// 006a    andi   r0,~(led_builtin_r|led_builtin_g|led_builtin_b)
-//	@0036	7bf8	// 006c    stw    r7,r0
+//	@0030	b007	// 0060    ldbiu  r0,led_builtin_r|led_builtin_g|led_builtin_b
+//	@0031	c7f0	// 0062    ldbih  r7,((porset)>>8)&0xff
+//	@0032	bf2a	// 0064    ldbil  r7,(porset)&0xff
+//	@0033	7bf8	// 0066    stw    r7,r0
+//	@0034	c7f0	// 0068    ldbih  r7,((pordir)>>8)&0xff
+//	@0035	bf26	// 006a    ldbil  r7,(pordir)&0xff
+//	@0036	7b87	// 006c    ldw    r0,r7
+//	@0037	88f8	// 006e    andi   r0,~(led_builtin_r|led_builtin_g|led_builtin_b)
+//	@0038	7bf8	// 0070    stw    r7,r0
 //		// send RDY
-//	@0037	c104	// 006e    ldbih  r1,((lab_str_msg_rdy)>>8)&0xff
-//	@0038	b9d0	// 0070    ldbil  r1,(lab_str_msg_rdy)&0xff
-//	@0039	c703	// 0072    ldbih  r7,(lab_print)>>8
-//	@003a	bfe0	// 0074    ldbil  r7,(lab_print)&0xff
-//	@003b	7f8f	// 0076    jalw   r7
+//	@0039	c105	// 0072    ldbih  r1,((lab_str_msg_rdy)>>8)&0xff
+//	@003a	b90e	// 0074    ldbil  r1,(lab_str_msg_rdy)&0xff
+//	@003b	c704	// 0076    ldbih  r7,(lab_print)>>8
+//	@003c	bf1a	// 0078    ldbil  r7,(lab_print)&0xff
+//	@003d	7f8f	// 007a    jalw   r7
 //		// ================================
 //		// loop
 //		// ================================
@@ -106,892 +112,921 @@
 //		// ================================
 //		// serial monitor handling
 //		// check uartctl.RAVL
-//	@003c	c7f0	// 0078    ldbih  r7,((uartctl)>>8)&0xff
-//	@003d	bf30	// 007a    ldbil  r7,(uartctl)&0xff
-//	@003e	7b87	// 007c    ldw    r0,r7
-//	@003f	8880	// 007e    andi   r0,uart_ravl
-//	@0040	193d	// 0080    beq    no_data
-//	@0041	c703	// 0082    ldbih  r7,(lab_get_line)>>8
-//	@0042	bfa8	// 0084    ldbil  r7,(lab_get_line)&0xff
-//	@0043	7f8f	// 0086    jalw   r7
+//	@003e	c7f0	// 007c    ldbih  r7,((uartctl)>>8)&0xff
+//	@003f	bf30	// 007e    ldbil  r7,(uartctl)&0xff
+//	@0040	7b87	// 0080    ldw    r0,r7
+//	@0041	8880	// 0082    andi   r0,uart_ravl
+//	@0042	194f	// 0084    beq    no_data
+//	@0043	c703	// 0086    ldbih  r7,(lab_get_line)>>8
+//	@0044	bfde	// 0088    ldbil  r7,(lab_get_line)&0xff
+//	@0045	7f8f	// 008a    jalw   r7
 //		// check "rd," command
-//	@0044	c150	// 0088    ldbih  r1,((lbuf)>>8)&0xff
-//	@0045	b908	// 008a    ldbil  r1,(lbuf)&0xff
-//	@0046	c206	// 008c    ldbih  r2,((lab_str_cmd_rd)>>8)&0xff
-//	@0047	ba04	// 008e    ldbil  r2,(lab_str_cmd_rd)&0xff
-//	@0048	b503	// 0090    ldbiu  r5,3
-//	@0049	c704	// 0092    ldbih  r7,(lab_strncmp)>>8
-//	@004a	bf70	// 0094    ldbil  r7,(lab_strncmp)&0xff
-//	@004b	7f8f	// 0096    jalw   r7
-//	@004c	a800	// 0098    cmpi   r0,0
-//	@004d	102b	// 009a    bne    rd_notid
+//	@0046	c100	// 008c    ldbih  r1,((lbuf)>>8)&0xff
+//	@0047	b908	// 008e    ldbil  r1,(lbuf)&0xff
+//	@0048	798e	// 0090    add    r1,r6
+//	@0049	c206	// 0092    ldbih  r2,((lab_str_cmd_rd)>>8)&0xff
+//	@004a	ba42	// 0094    ldbil  r2,(lab_str_cmd_rd)&0xff
+//	@004b	b503	// 0096    ldbiu  r5,3
+//	@004c	c704	// 0098    ldbih  r7,(lab_strncmp)>>8
+//	@004d	bfae	// 009a    ldbil  r7,(lab_strncmp)&0xff
+//	@004e	7f8f	// 009c    jalw   r7
+//	@004f	a800	// 009e    cmpi   r0,0
+//	@0050	1031	// 00a0    bne    rd_notid
 //		// ================================
 //		// rd,<adr_hex4>
 //		// <adr_hex4>
-//	@004e	c150	// 009c    ldbih  r1,((lbuf+3)>>8)&0xff
-//	@004f	b90b	// 009e    ldbil  r1,(lbuf+3)&0xff
-//	@0050	c704	// 00a0    ldbih  r7,(lab_xtoi)>>8
-//	@0051	bf8c	// 00a2    ldbil  r7,(lab_xtoi)&0xff
-//	@0052	7f8f	// 00a4    jalw   r7
-//	@0053	c750	// 00a6    ldbih  r7,((acc_adr)>>8)&0xff
-//	@0054	bf04	// 00a8    ldbil  r7,(acc_adr)&0xff
-//	@0055	7bf8	// 00aa    stw    r7,r0
+//	@0051	c100	// 00a2    ldbih  r1,((lbuf+3)>>8)&0xff
+//	@0052	b90b	// 00a4    ldbil  r1,(lbuf+3)&0xff
+//	@0053	798e	// 00a6    add    r1,r6
+//	@0054	c704	// 00a8    ldbih  r7,(lab_xtoi)>>8
+//	@0055	bfca	// 00aa    ldbil  r7,(lab_xtoi)&0xff
+//	@0056	7f8f	// 00ac    jalw   r7
+//	@0057	c700	// 00ae    ldbih  r7,((acc_adr)>>8)&0xff
+//	@0058	bf04	// 00b0    ldbil  r7,(acc_adr)&0xff
+//	@0059	79be	// 00b2    add    r7,r6
+//	@005a	7bf8	// 00b4    stw    r7,r0
 //		// read from <adr_hex4>
-//	@0056	c750	// 00ac    ldbih  r7,((acc_adr)>>8)&0xff
-//	@0057	bf04	// 00ae    ldbil  r7,(acc_adr)&0xff
-//	@0058	7bbf	// 00b0    ldw    r7,r7
-//	@0059	7b87	// 00b2    ldw    r0,r7
-//	@005a	c750	// 00b4    ldbih  r7,((acc_dat)>>8)&0xff
-//	@005b	bf06	// 00b6    ldbil  r7,(acc_dat)&0xff
-//	@005c	7bf8	// 00b8    stw    r7,r0
+//	@005b	c700	// 00b6    ldbih  r7,((acc_adr)>>8)&0xff
+//	@005c	bf04	// 00b8    ldbil  r7,(acc_adr)&0xff
+//	@005d	79be	// 00ba    add    r7,r6
+//	@005e	7bbf	// 00bc    ldw    r7,r7
+//	@005f	7b87	// 00be    ldw    r0,r7
+//	@0060	c700	// 00c0    ldbih  r7,((acc_dat)>>8)&0xff
+//	@0061	bf06	// 00c2    ldbil  r7,(acc_dat)&0xff
+//	@0062	79be	// 00c4    add    r7,r6
+//	@0063	7bf8	// 00c6    stw    r7,r0
 //		// response
-//	@005d	c105	// 00ba    ldbih  r1,((lab_str_msg_read)>>8)&0xff
-//	@005e	b9ae	// 00bc    ldbil  r1,(lab_str_msg_read)&0xff
-//	@005f	c703	// 00be    ldbih  r7,(lab_print)>>8
-//	@0060	bfe0	// 00c0    ldbil  r7,(lab_print)&0xff
-//	@0061	7f8f	// 00c2    jalw   r7
-//	@0062	7fe1	// 00c4    pushw  r1
-//		// acc_adr
-//	@0063	c750	// 00c6    ldbih  r7,((acc_adr)>>8)&0xff
-//	@0064	bf04	// 00c8    ldbil  r7,(acc_adr)&0xff
-//	@0065	7b8f	// 00ca    ldw    r1,r7
-//	@0066	c704	// 00cc    ldbih  r7,(lab_print_hex)>>8
-//	@0067	bf0a	// 00ce    ldbil  r7,(lab_print_hex)&0xff
+//	@0064	c105	// 00c8    ldbih  r1,((lab_str_msg_read)>>8)&0xff
+//	@0065	b9ec	// 00ca    ldbil  r1,(lab_str_msg_read)&0xff
+//	@0066	c704	// 00cc    ldbih  r7,(lab_print)>>8
+//	@0067	bf1a	// 00ce    ldbil  r7,(lab_print)&0xff
 //	@0068	7f8f	// 00d0    jalw   r7
-//	@0069	7fe9	// 00d2    popw   r1
-//	@006a	c703	// 00d4    ldbih  r7,(lab_print)>>8
-//	@006b	bfe0	// 00d6    ldbil  r7,(lab_print)&0xff
-//	@006c	7f8f	// 00d8    jalw   r7
-//	@006d	7fe1	// 00da    pushw  r1
+//	@0069	7fe1	// 00d2    pushw  r1
+//		// acc_adr
+//	@006a	c700	// 00d4    ldbih  r7,((acc_adr)>>8)&0xff
+//	@006b	bf04	// 00d6    ldbil  r7,(acc_adr)&0xff
+//	@006c	79be	// 00d8    add    r7,r6
+//	@006d	7b8f	// 00da    ldw    r1,r7
+//	@006e	c704	// 00dc    ldbih  r7,(lab_print_hex)>>8
+//	@006f	bf44	// 00de    ldbil  r7,(lab_print_hex)&0xff
+//	@0070	7f8f	// 00e0    jalw   r7
+//	@0071	7fe9	// 00e2    popw   r1
+//	@0072	c704	// 00e4    ldbih  r7,(lab_print)>>8
+//	@0073	bf1a	// 00e6    ldbil  r7,(lab_print)&0xff
+//	@0074	7f8f	// 00e8    jalw   r7
+//	@0075	7fe1	// 00ea    pushw  r1
 //		// acc_dat
-//	@006e	c750	// 00dc    ldbih  r7,((acc_dat)>>8)&0xff
-//	@006f	bf06	// 00de    ldbil  r7,(acc_dat)&0xff
-//	@0070	7b8f	// 00e0    ldw    r1,r7
-//	@0071	c704	// 00e2    ldbih  r7,(lab_print_hex)>>8
-//	@0072	bf0a	// 00e4    ldbil  r7,(lab_print_hex)&0xff
-//	@0073	7f8f	// 00e6    jalw   r7
-//	@0074	7fe9	// 00e8    popw   r1
-//	@0075	c703	// 00ea    ldbih  r7,(lab_print)>>8
-//	@0076	bfe0	// 00ec    ldbil  r7,(lab_print)&0xff
-//	@0077	7f8f	// 00ee    jalw   r7
-//	@0078	0905	// 00f0    bra    no_data
+//	@0076	c700	// 00ec    ldbih  r7,((acc_dat)>>8)&0xff
+//	@0077	bf06	// 00ee    ldbil  r7,(acc_dat)&0xff
+//	@0078	79be	// 00f0    add    r7,r6
+//	@0079	7b8f	// 00f2    ldw    r1,r7
+//	@007a	c704	// 00f4    ldbih  r7,(lab_print_hex)>>8
+//	@007b	bf44	// 00f6    ldbil  r7,(lab_print_hex)&0xff
+//	@007c	7f8f	// 00f8    jalw   r7
+//	@007d	7fe9	// 00fa    popw   r1
+//	@007e	c704	// 00fc    ldbih  r7,(lab_print)>>8
+//	@007f	bf1a	// 00fe    ldbil  r7,(lab_print)&0xff
+//	@0080	7f8f	// 0100    jalw   r7
+//	@0081	0910	// 0102    bra    no_data
 //			// rd_notid:
 //		// check "wr," command
-//	@0079	c150	// 00f2    ldbih  r1,((lbuf)>>8)&0xff
-//	@007a	b908	// 00f4    ldbil  r1,(lbuf)&0xff
-//	@007b	c206	// 00f6    ldbih  r2,((lab_str_cmd_wr)>>8)&0xff
-//	@007c	ba08	// 00f8    ldbil  r2,(lab_str_cmd_wr)&0xff
-//	@007d	b503	// 00fa    ldbiu  r5,3
-//	@007e	c704	// 00fc    ldbih  r7,(lab_strncmp)>>8
-//	@007f	bf70	// 00fe    ldbil  r7,(lab_strncmp)&0xff
-//	@0080	7f8f	// 0100    jalw   r7
-//	@0081	a800	// 0102    cmpi   r0,0
-//	@0082	1035	// 0104    bne    wr_notid
+//	@0082	c100	// 0104    ldbih  r1,((lbuf)>>8)&0xff
+//	@0083	b908	// 0106    ldbil  r1,(lbuf)&0xff
+//	@0084	798e	// 0108    add    r1,r6
+//	@0085	c206	// 010a    ldbih  r2,((lab_str_cmd_wr)>>8)&0xff
+//	@0086	ba46	// 010c    ldbil  r2,(lab_str_cmd_wr)&0xff
+//	@0087	b503	// 010e    ldbiu  r5,3
+//	@0088	c704	// 0110    ldbih  r7,(lab_strncmp)>>8
+//	@0089	bfae	// 0112    ldbil  r7,(lab_strncmp)&0xff
+//	@008a	7f8f	// 0114    jalw   r7
+//	@008b	a800	// 0116    cmpi   r0,0
+//	@008c	103c	// 0118    bne    wr_notid
 //		// ================================
 //		// wr,<adr_hex4>,<dat_hex4>
 //		// <adr_hex4>
-//	@0083	c150	// 0106    ldbih  r1,((lbuf+3)>>8)&0xff
-//	@0084	b90b	// 0108    ldbil  r1,(lbuf+3)&0xff
-//	@0085	c704	// 010a    ldbih  r7,(lab_xtoi)>>8
-//	@0086	bf8c	// 010c    ldbil  r7,(lab_xtoi)&0xff
-//	@0087	7f8f	// 010e    jalw   r7
-//	@0088	c750	// 0110    ldbih  r7,((acc_adr)>>8)&0xff
-//	@0089	bf04	// 0112    ldbil  r7,(acc_adr)&0xff
-//	@008a	7bf8	// 0114    stw    r7,r0
+//	@008d	c100	// 011a    ldbih  r1,((lbuf+3)>>8)&0xff
+//	@008e	b90b	// 011c    ldbil  r1,(lbuf+3)&0xff
+//	@008f	798e	// 011e    add    r1,r6
+//	@0090	c704	// 0120    ldbih  r7,(lab_xtoi)>>8
+//	@0091	bfca	// 0122    ldbil  r7,(lab_xtoi)&0xff
+//	@0092	7f8f	// 0124    jalw   r7
+//	@0093	c700	// 0126    ldbih  r7,((acc_adr)>>8)&0xff
+//	@0094	bf04	// 0128    ldbil  r7,(acc_adr)&0xff
+//	@0095	79be	// 012a    add    r7,r6
+//	@0096	7bf8	// 012c    stw    r7,r0
 //		// ,
-//	@008b	7b01	// 0116    ldb    r0,r1
-//	@008c	a82c	// 0118    cmpi   r0,chr_cma
-//	@008d	10ea	// 011a    bne    err_syntx
+//	@0097	7b01	// 012e    ldb    r0,r1
+//	@0098	a82c	// 0130    cmpi   r0,asc_cma
+//	@0099	10f2	// 0132    bne    err_syntx
 //		// <dat_hex4>
-//	@008e	9901	// 011c    addi   r1,1
-//	@008f	c704	// 011e    ldbih  r7,(lab_xtoi)>>8
-//	@0090	bf8c	// 0120    ldbil  r7,(lab_xtoi)&0xff
-//	@0091	7f8f	// 0122    jalw   r7
-//	@0092	c750	// 0124    ldbih  r7,((acc_dat)>>8)&0xff
-//	@0093	bf06	// 0126    ldbil  r7,(acc_dat)&0xff
-//	@0094	7bf8	// 0128    stw    r7,r0
+//	@009a	9901	// 0134    addi   r1,1
+//	@009b	c704	// 0136    ldbih  r7,(lab_xtoi)>>8
+//	@009c	bfca	// 0138    ldbil  r7,(lab_xtoi)&0xff
+//	@009d	7f8f	// 013a    jalw   r7
+//	@009e	c700	// 013c    ldbih  r7,((acc_dat)>>8)&0xff
+//	@009f	bf06	// 013e    ldbil  r7,(acc_dat)&0xff
+//	@00a0	79be	// 0140    add    r7,r6
+//	@00a1	7bf8	// 0142    stw    r7,r0
 //		// write <dat_hex4> to <adr_hex4>
-//	@0095	c750	// 012a    ldbih  r7,((acc_dat)>>8)&0xff
-//	@0096	bf06	// 012c    ldbil  r7,(acc_dat)&0xff
-//	@0097	7b87	// 012e    ldw    r0,r7
-//	@0098	c750	// 0130    ldbih  r7,((acc_adr)>>8)&0xff
-//	@0099	bf04	// 0132    ldbil  r7,(acc_adr)&0xff
-//	@009a	7bbf	// 0134    ldw    r7,r7
-//	@009b	7bf8	// 0136    stw    r7,r0
+//	@00a2	c700	// 0144    ldbih  r7,((acc_dat)>>8)&0xff
+//	@00a3	bf06	// 0146    ldbil  r7,(acc_dat)&0xff
+//	@00a4	79be	// 0148    add    r7,r6
+//	@00a5	7b87	// 014a    ldw    r0,r7
+//	@00a6	c700	// 014c    ldbih  r7,((acc_adr)>>8)&0xff
+//	@00a7	bf04	// 014e    ldbil  r7,(acc_adr)&0xff
+//	@00a8	79be	// 0150    add    r7,r6
+//	@00a9	7bbf	// 0152    ldw    r7,r7
+//	@00aa	7bf8	// 0154    stw    r7,r0
 //		// response
-//	@009c	c105	// 0138    ldbih  r1,((lab_str_msg_write)>>8)&0xff
-//	@009d	b9c2	// 013a    ldbil  r1,(lab_str_msg_write)&0xff
-//	@009e	c703	// 013c    ldbih  r7,(lab_print)>>8
-//	@009f	bfe0	// 013e    ldbil  r7,(lab_print)&0xff
-//	@00a0	7f8f	// 0140    jalw   r7
-//	@00a1	7fe1	// 0142    pushw  r1
+//	@00ab	c106	// 0156    ldbih  r1,((lab_str_msg_write)>>8)&0xff
+//	@00ac	b900	// 0158    ldbil  r1,(lab_str_msg_write)&0xff
+//	@00ad	c704	// 015a    ldbih  r7,(lab_print)>>8
+//	@00ae	bf1a	// 015c    ldbil  r7,(lab_print)&0xff
+//	@00af	7f8f	// 015e    jalw   r7
+//	@00b0	7fe1	// 0160    pushw  r1
 //		// acc_adr
-//	@00a2	c750	// 0144    ldbih  r7,((acc_adr)>>8)&0xff
-//	@00a3	bf04	// 0146    ldbil  r7,(acc_adr)&0xff
-//	@00a4	7b8f	// 0148    ldw    r1,r7
-//	@00a5	c704	// 014a    ldbih  r7,(lab_print_hex)>>8
-//	@00a6	bf0a	// 014c    ldbil  r7,(lab_print_hex)&0xff
-//	@00a7	7f8f	// 014e    jalw   r7
-//	@00a8	7fe9	// 0150    popw   r1
-//	@00a9	c703	// 0152    ldbih  r7,(lab_print)>>8
-//	@00aa	bfe0	// 0154    ldbil  r7,(lab_print)&0xff
-//	@00ab	7f8f	// 0156    jalw   r7
-//	@00ac	7fe1	// 0158    pushw  r1
+//	@00b1	c700	// 0162    ldbih  r7,((acc_adr)>>8)&0xff
+//	@00b2	bf04	// 0164    ldbil  r7,(acc_adr)&0xff
+//	@00b3	79be	// 0166    add    r7,r6
+//	@00b4	7b8f	// 0168    ldw    r1,r7
+//	@00b5	c704	// 016a    ldbih  r7,(lab_print_hex)>>8
+//	@00b6	bf44	// 016c    ldbil  r7,(lab_print_hex)&0xff
+//	@00b7	7f8f	// 016e    jalw   r7
+//	@00b8	7fe9	// 0170    popw   r1
+//	@00b9	c704	// 0172    ldbih  r7,(lab_print)>>8
+//	@00ba	bf1a	// 0174    ldbil  r7,(lab_print)&0xff
+//	@00bb	7f8f	// 0176    jalw   r7
+//	@00bc	7fe1	// 0178    pushw  r1
 //		// acc_dat
-//	@00ad	c750	// 015a    ldbih  r7,((acc_dat)>>8)&0xff
-//	@00ae	bf06	// 015c    ldbil  r7,(acc_dat)&0xff
-//	@00af	7b8f	// 015e    ldw    r1,r7
-//	@00b0	c704	// 0160    ldbih  r7,(lab_print_hex)>>8
-//	@00b1	bf0a	// 0162    ldbil  r7,(lab_print_hex)&0xff
-//	@00b2	7f8f	// 0164    jalw   r7
-//	@00b3	7fe9	// 0166    popw   r1
-//	@00b4	c703	// 0168    ldbih  r7,(lab_print)>>8
-//	@00b5	bfe0	// 016a    ldbil  r7,(lab_print)&0xff
-//	@00b6	7f8f	// 016c    jalw   r7
-//	@00b7	08c6	// 016e    bra    no_data
+//	@00bd	c700	// 017a    ldbih  r7,((acc_dat)>>8)&0xff
+//	@00be	bf06	// 017c    ldbil  r7,(acc_dat)&0xff
+//	@00bf	79be	// 017e    add    r7,r6
+//	@00c0	7b8f	// 0180    ldw    r1,r7
+//	@00c1	c704	// 0182    ldbih  r7,(lab_print_hex)>>8
+//	@00c2	bf44	// 0184    ldbil  r7,(lab_print_hex)&0xff
+//	@00c3	7f8f	// 0186    jalw   r7
+//	@00c4	7fe9	// 0188    popw   r1
+//	@00c5	c704	// 018a    ldbih  r7,(lab_print)>>8
+//	@00c6	bf1a	// 018c    ldbil  r7,(lab_print)&0xff
+//	@00c7	7f8f	// 018e    jalw   r7
+//	@00c8	08c9	// 0190    bra    no_data
 //			// wr_notid:
 //		// check "who" command
-//	@00b8	c150	// 0170    ldbih  r1,((lbuf)>>8)&0xff
-//	@00b9	b908	// 0172    ldbil  r1,(lbuf)&0xff
-//	@00ba	c206	// 0174    ldbih  r2,((lab_str_cmd_who)>>8)&0xff
-//	@00bb	ba0c	// 0176    ldbil  r2,(lab_str_cmd_who)&0xff
-//	@00bc	c704	// 0178    ldbih  r7,(lab_strcmp)>>8
-//	@00bd	bf58	// 017a    ldbil  r7,(lab_strcmp)&0xff
-//	@00be	7f8f	// 017c    jalw   r7
-//	@00bf	a800	// 017e    cmpi   r0,0
-//	@00c0	1093	// 0180    bne    who_notid
+//	@00c9	c100	// 0192    ldbih  r1,((lbuf)>>8)&0xff
+//	@00ca	b908	// 0194    ldbil  r1,(lbuf)&0xff
+//	@00cb	798e	// 0196    add    r1,r6
+//	@00cc	c206	// 0198    ldbih  r2,((lab_str_cmd_who)>>8)&0xff
+//	@00cd	ba4a	// 019a    ldbil  r2,(lab_str_cmd_who)&0xff
+//	@00ce	c704	// 019c    ldbih  r7,(lab_strcmp)>>8
+//	@00cf	bf96	// 019e    ldbil  r7,(lab_strcmp)&0xff
+//	@00d0	7f8f	// 01a0    jalw   r7
+//	@00d1	a800	// 01a2    cmpi   r0,0
+//	@00d2	1092	// 01a4    bne    who_notid
 //		// ================================
 //		// who
 //			// cmd_who:
 //		// idreg
-//	@00c1	c105	// 0182    ldbih  r1,((lab_str_msg_idrg)>>8)&0xff
-//	@00c2	b91e	// 0184    ldbil  r1,(lab_str_msg_idrg)&0xff
+//	@00d3	c105	// 01a6    ldbih  r1,((lab_str_msg_idrg)>>8)&0xff
+//	@00d4	b95c	// 01a8    ldbil  r1,(lab_str_msg_idrg)&0xff
 //		// idreg, idrgcode
-//	@00c3	c703	// 0186    ldbih  r7,(lab_print)>>8
-//	@00c4	bfe0	// 0188    ldbil  r7,(lab_print)&0xff
-//	@00c5	7f8f	// 018a    jalw   r7
-//	@00c6	7fe1	// 018c    pushw  r1
-//	@00c7	c1f0	// 018e    ldbih  r1,((idrgcode)>>8)&0xff
-//	@00c8	b900	// 0190    ldbil  r1,(idrgcode)&0xff
-//	@00c9	7b89	// 0192    ldw    r1,r1
-//	@00ca	c704	// 0194    ldbih  r7,(lab_print_hex)>>8
-//	@00cb	bf0a	// 0196    ldbil  r7,(lab_print_hex)&0xff
-//	@00cc	7f8f	// 0198    jalw   r7
-//	@00cd	7fe9	// 019a    popw   r1
-//	@00ce	c703	// 019c    ldbih  r7,(lab_print)>>8
-//	@00cf	bfe0	// 019e    ldbil  r7,(lab_print)&0xff
-//	@00d0	7f8f	// 01a0    jalw   r7
-//	@00d1	9901	// 01a2    addi   r1,1
+//	@00d5	c704	// 01aa    ldbih  r7,(lab_print)>>8
+//	@00d6	bf1a	// 01ac    ldbil  r7,(lab_print)&0xff
+//	@00d7	7f8f	// 01ae    jalw   r7
+//	@00d8	7fe1	// 01b0    pushw  r1
+//	@00d9	c1f0	// 01b2    ldbih  r1,((idrgcode)>>8)&0xff
+//	@00da	b900	// 01b4    ldbil  r1,(idrgcode)&0xff
+//	@00db	7b89	// 01b6    ldw    r1,r1
+//	@00dc	c704	// 01b8    ldbih  r7,(lab_print_hex)>>8
+//	@00dd	bf44	// 01ba    ldbil  r7,(lab_print_hex)&0xff
+//	@00de	7f8f	// 01bc    jalw   r7
+//	@00df	7fe9	// 01be    popw   r1
+//	@00e0	c704	// 01c0    ldbih  r7,(lab_print)>>8
+//	@00e1	bf1a	// 01c2    ldbil  r7,(lab_print)&0xff
+//	@00e2	7f8f	// 01c4    jalw   r7
+//	@00e3	9901	// 01c6    addi   r1,1
 //		// idreg, idrgvers
-//	@00d2	c703	// 01a4    ldbih  r7,(lab_print)>>8
-//	@00d3	bfe0	// 01a6    ldbil  r7,(lab_print)&0xff
-//	@00d4	7f8f	// 01a8    jalw   r7
-//	@00d5	7fe1	// 01aa    pushw  r1
-//	@00d6	c1f0	// 01ac    ldbih  r1,((idrgvers)>>8)&0xff
-//	@00d7	b902	// 01ae    ldbil  r1,(idrgvers)&0xff
-//	@00d8	7b89	// 01b0    ldw    r1,r1
-//	@00d9	c704	// 01b2    ldbih  r7,(lab_print_hex)>>8
-//	@00da	bf0a	// 01b4    ldbil  r7,(lab_print_hex)&0xff
-//	@00db	7f8f	// 01b6    jalw   r7
-//	@00dc	7fe9	// 01b8    popw   r1
-//	@00dd	c703	// 01ba    ldbih  r7,(lab_print)>>8
-//	@00de	bfe0	// 01bc    ldbil  r7,(lab_print)&0xff
-//	@00df	7f8f	// 01be    jalw   r7
-//	@00e0	9901	// 01c0    addi   r1,1
+//	@00e4	c704	// 01c8    ldbih  r7,(lab_print)>>8
+//	@00e5	bf1a	// 01ca    ldbil  r7,(lab_print)&0xff
+//	@00e6	7f8f	// 01cc    jalw   r7
+//	@00e7	7fe1	// 01ce    pushw  r1
+//	@00e8	c1f0	// 01d0    ldbih  r1,((idrgvers)>>8)&0xff
+//	@00e9	b902	// 01d2    ldbil  r1,(idrgvers)&0xff
+//	@00ea	7b89	// 01d4    ldw    r1,r1
+//	@00eb	c704	// 01d6    ldbih  r7,(lab_print_hex)>>8
+//	@00ec	bf44	// 01d8    ldbil  r7,(lab_print_hex)&0xff
+//	@00ed	7f8f	// 01da    jalw   r7
+//	@00ee	7fe9	// 01dc    popw   r1
+//	@00ef	c704	// 01de    ldbih  r7,(lab_print)>>8
+//	@00f0	bf1a	// 01e0    ldbil  r7,(lab_print)&0xff
+//	@00f1	7f8f	// 01e2    jalw   r7
+//	@00f2	9901	// 01e4    addi   r1,1
 //		// idreg, idrgfcpu
-//	@00e1	c703	// 01c2    ldbih  r7,(lab_print)>>8
-//	@00e2	bfe0	// 01c4    ldbil  r7,(lab_print)&0xff
-//	@00e3	7f8f	// 01c6    jalw   r7
-//	@00e4	7fe1	// 01c8    pushw  r1
-//	@00e5	c1f0	// 01ca    ldbih  r1,((idrgfcpu)>>8)&0xff
-//	@00e6	b904	// 01cc    ldbil  r1,(idrgfcpu)&0xff
-//	@00e7	7b89	// 01ce    ldw    r1,r1
-//	@00e8	c704	// 01d0    ldbih  r7,(lab_print_hex)>>8
-//	@00e9	bf0a	// 01d2    ldbil  r7,(lab_print_hex)&0xff
-//	@00ea	7f8f	// 01d4    jalw   r7
-//	@00eb	7fe9	// 01d6    popw   r1
-//	@00ec	c703	// 01d8    ldbih  r7,(lab_print)>>8
-//	@00ed	bfe0	// 01da    ldbil  r7,(lab_print)&0xff
-//	@00ee	7f8f	// 01dc    jalw   r7
-//	@00ef	9901	// 01de    addi   r1,1
+//	@00f3	c704	// 01e6    ldbih  r7,(lab_print)>>8
+//	@00f4	bf1a	// 01e8    ldbil  r7,(lab_print)&0xff
+//	@00f5	7f8f	// 01ea    jalw   r7
+//	@00f6	7fe1	// 01ec    pushw  r1
+//	@00f7	c1f0	// 01ee    ldbih  r1,((idrgfcpu)>>8)&0xff
+//	@00f8	b904	// 01f0    ldbil  r1,(idrgfcpu)&0xff
+//	@00f9	7b89	// 01f2    ldw    r1,r1
+//	@00fa	c704	// 01f4    ldbih  r7,(lab_print_hex)>>8
+//	@00fb	bf44	// 01f6    ldbil  r7,(lab_print_hex)&0xff
+//	@00fc	7f8f	// 01f8    jalw   r7
+//	@00fd	7fe9	// 01fa    popw   r1
+//	@00fe	c704	// 01fc    ldbih  r7,(lab_print)>>8
+//	@00ff	bf1a	// 01fe    ldbil  r7,(lab_print)&0xff
+//	@0100	7f8f	// 0200    jalw   r7
+//	@0101	9901	// 0202    addi   r1,1
 //		// idreg, idrgedit
-//	@00f0	c703	// 01e0    ldbih  r7,(lab_print)>>8
-//	@00f1	bfe0	// 01e2    ldbil  r7,(lab_print)&0xff
-//	@00f2	7f8f	// 01e4    jalw   r7
-//	@00f3	7fe1	// 01e6    pushw  r1
-//	@00f4	c1f0	// 01e8    ldbih  r1,((idrgedit)>>8)&0xff
-//	@00f5	b906	// 01ea    ldbil  r1,(idrgedit)&0xff
-//	@00f6	7b89	// 01ec    ldw    r1,r1
-//	@00f7	c704	// 01ee    ldbih  r7,(lab_print_hex)>>8
-//	@00f8	bf0a	// 01f0    ldbil  r7,(lab_print_hex)&0xff
-//	@00f9	7f8f	// 01f2    jalw   r7
-//	@00fa	c100	// 01f4    ldbih  r1,((chr_spc)>>8)&0xff
-//	@00fb	b920	// 01f6    ldbil  r1,(chr_spc)&0xff
-//	@00fc	c704	// 01f8    ldbih  r7,(lab_print_chr)>>8
-//	@00fd	bf46	// 01fa    ldbil  r7,(lab_print_chr)&0xff
-//	@00fe	7f8f	// 01fc    jalw   r7
-//	@00ff	c1f0	// 01fe    ldbih  r1,((idrgedit)>>8)&0xff
-//	@0100	b906	// 0200    ldbil  r1,(idrgedit)&0xff
-//	@0101	7b89	// 0202    ldw    r1,r1
-//	@0102	7fd1	// 0204    cendw  r1
-//	@0103	c704	// 0206    ldbih  r7,(lab_print_chr)>>8
-//	@0104	bf46	// 0208    ldbil  r7,(lab_print_chr)&0xff
-//	@0105	7f8f	// 020a    jalw   r7
+//	@0102	c704	// 0204    ldbih  r7,(lab_print)>>8
+//	@0103	bf1a	// 0206    ldbil  r7,(lab_print)&0xff
+//	@0104	7f8f	// 0208    jalw   r7
+//	@0105	7fe1	// 020a    pushw  r1
 //	@0106	c1f0	// 020c    ldbih  r1,((idrgedit)>>8)&0xff
 //	@0107	b906	// 020e    ldbil  r1,(idrgedit)&0xff
 //	@0108	7b89	// 0210    ldw    r1,r1
-//	@0109	89ff	// 0212    andi   r1,0xff
-//	@010a	c704	// 0214    ldbih  r7,(lab_print_chr)>>8
-//	@010b	bf46	// 0216    ldbil  r7,(lab_print_chr)&0xff
-//	@010c	7f8f	// 0218    jalw   r7
-//	@010d	7fe9	// 021a    popw   r1
-//	@010e	c703	// 021c    ldbih  r7,(lab_print)>>8
-//	@010f	bfe0	// 021e    ldbil  r7,(lab_print)&0xff
-//	@0110	7f8f	// 0220    jalw   r7
-//	@0111	9901	// 0222    addi   r1,1
+//	@0109	c704	// 0212    ldbih  r7,(lab_print_hex)>>8
+//	@010a	bf44	// 0214    ldbil  r7,(lab_print_hex)&0xff
+//	@010b	7f8f	// 0216    jalw   r7
+//	@010c	b120	// 0218    ldbiu  r1,asc_spc
+//	@010d	c704	// 021a    ldbih  r7,(lab_print_chr)>>8
+//	@010e	bf84	// 021c    ldbil  r7,(lab_print_chr)&0xff
+//	@010f	7f8f	// 021e    jalw   r7
+//	@0110	c1f0	// 0220    ldbih  r1,((idrgedit)>>8)&0xff
+//	@0111	b906	// 0222    ldbil  r1,(idrgedit)&0xff
+//	@0112	7b89	// 0224    ldw    r1,r1
+//	@0113	7fd1	// 0226    cendw  r1
+//	@0114	c704	// 0228    ldbih  r7,(lab_print_chr)>>8
+//	@0115	bf84	// 022a    ldbil  r7,(lab_print_chr)&0xff
+//	@0116	7f8f	// 022c    jalw   r7
+//	@0117	c1f0	// 022e    ldbih  r1,((idrgedit)>>8)&0xff
+//	@0118	b906	// 0230    ldbil  r1,(idrgedit)&0xff
+//	@0119	7b89	// 0232    ldw    r1,r1
+//	@011a	89ff	// 0234    andi   r1,0xff
+//	@011b	c704	// 0236    ldbih  r7,(lab_print_chr)>>8
+//	@011c	bf84	// 0238    ldbil  r7,(lab_print_chr)&0xff
+//	@011d	7f8f	// 023a    jalw   r7
+//	@011e	7fe9	// 023c    popw   r1
+//	@011f	c704	// 023e    ldbih  r7,(lab_print)>>8
+//	@0120	bf1a	// 0240    ldbil  r7,(lab_print)&0xff
+//	@0121	7f8f	// 0242    jalw   r7
+//	@0122	9901	// 0244    addi   r1,1
 //		// idreg, idrgromt
-//	@0112	c703	// 0224    ldbih  r7,(lab_print)>>8
-//	@0113	bfe0	// 0226    ldbil  r7,(lab_print)&0xff
-//	@0114	7f8f	// 0228    jalw   r7
-//	@0115	7fe1	// 022a    pushw  r1
-//	@0116	c1f0	// 022c    ldbih  r1,((idrgromt)>>8)&0xff
-//	@0117	b908	// 022e    ldbil  r1,(idrgromt)&0xff
-//	@0118	7b89	// 0230    ldw    r1,r1
-//	@0119	c704	// 0232    ldbih  r7,(lab_print_hex)>>8
-//	@011a	bf0a	// 0234    ldbil  r7,(lab_print_hex)&0xff
-//	@011b	7f8f	// 0236    jalw   r7
-//	@011c	7fe9	// 0238    popw   r1
-//	@011d	c703	// 023a    ldbih  r7,(lab_print)>>8
-//	@011e	bfe0	// 023c    ldbil  r7,(lab_print)&0xff
-//	@011f	7f8f	// 023e    jalw   r7
-//	@0120	9901	// 0240    addi   r1,1
+//	@0123	c704	// 0246    ldbih  r7,(lab_print)>>8
+//	@0124	bf1a	// 0248    ldbil  r7,(lab_print)&0xff
+//	@0125	7f8f	// 024a    jalw   r7
+//	@0126	7fe1	// 024c    pushw  r1
+//	@0127	c1f0	// 024e    ldbih  r1,((idrgromt)>>8)&0xff
+//	@0128	b908	// 0250    ldbil  r1,(idrgromt)&0xff
+//	@0129	7b89	// 0252    ldw    r1,r1
+//	@012a	c704	// 0254    ldbih  r7,(lab_print_hex)>>8
+//	@012b	bf44	// 0256    ldbil  r7,(lab_print_hex)&0xff
+//	@012c	7f8f	// 0258    jalw   r7
+//	@012d	7fe9	// 025a    popw   r1
+//	@012e	c704	// 025c    ldbih  r7,(lab_print)>>8
+//	@012f	bf1a	// 025e    ldbil  r7,(lab_print)&0xff
+//	@0130	7f8f	// 0260    jalw   r7
+//	@0131	9901	// 0262    addi   r1,1
 //		// idreg, idrgroms
-//	@0121	c703	// 0242    ldbih  r7,(lab_print)>>8
-//	@0122	bfe0	// 0244    ldbil  r7,(lab_print)&0xff
-//	@0123	7f8f	// 0246    jalw   r7
-//	@0124	7fe1	// 0248    pushw  r1
-//	@0125	c1f0	// 024a    ldbih  r1,((idrgroms)>>8)&0xff
-//	@0126	b90a	// 024c    ldbil  r1,(idrgroms)&0xff
-//	@0127	7b89	// 024e    ldw    r1,r1
-//	@0128	c704	// 0250    ldbih  r7,(lab_print_hex)>>8
-//	@0129	bf0a	// 0252    ldbil  r7,(lab_print_hex)&0xff
-//	@012a	7f8f	// 0254    jalw   r7
-//	@012b	7fe9	// 0256    popw   r1
-//	@012c	c703	// 0258    ldbih  r7,(lab_print)>>8
-//	@012d	bfe0	// 025a    ldbil  r7,(lab_print)&0xff
-//	@012e	7f8f	// 025c    jalw   r7
-//	@012f	9901	// 025e    addi   r1,1
+//	@0132	c704	// 0264    ldbih  r7,(lab_print)>>8
+//	@0133	bf1a	// 0266    ldbil  r7,(lab_print)&0xff
+//	@0134	7f8f	// 0268    jalw   r7
+//	@0135	7fe1	// 026a    pushw  r1
+//	@0136	c1f0	// 026c    ldbih  r1,((idrgroms)>>8)&0xff
+//	@0137	b90a	// 026e    ldbil  r1,(idrgroms)&0xff
+//	@0138	7b89	// 0270    ldw    r1,r1
+//	@0139	c704	// 0272    ldbih  r7,(lab_print_hex)>>8
+//	@013a	bf44	// 0274    ldbil  r7,(lab_print_hex)&0xff
+//	@013b	7f8f	// 0276    jalw   r7
+//	@013c	7fe9	// 0278    popw   r1
+//	@013d	c704	// 027a    ldbih  r7,(lab_print)>>8
+//	@013e	bf1a	// 027c    ldbil  r7,(lab_print)&0xff
+//	@013f	7f8f	// 027e    jalw   r7
+//	@0140	9901	// 0280    addi   r1,1
 //		// idreg, idrgramt
-//	@0130	c703	// 0260    ldbih  r7,(lab_print)>>8
-//	@0131	bfe0	// 0262    ldbil  r7,(lab_print)&0xff
-//	@0132	7f8f	// 0264    jalw   r7
-//	@0133	7fe1	// 0266    pushw  r1
-//	@0134	c1f0	// 0268    ldbih  r1,((idrgramt)>>8)&0xff
-//	@0135	b90c	// 026a    ldbil  r1,(idrgramt)&0xff
-//	@0136	7b89	// 026c    ldw    r1,r1
-//	@0137	c704	// 026e    ldbih  r7,(lab_print_hex)>>8
-//	@0138	bf0a	// 0270    ldbil  r7,(lab_print_hex)&0xff
-//	@0139	7f8f	// 0272    jalw   r7
-//	@013a	7fe9	// 0274    popw   r1
-//	@013b	c703	// 0276    ldbih  r7,(lab_print)>>8
-//	@013c	bfe0	// 0278    ldbil  r7,(lab_print)&0xff
-//	@013d	7f8f	// 027a    jalw   r7
-//	@013e	9901	// 027c    addi   r1,1
+//	@0141	c704	// 0282    ldbih  r7,(lab_print)>>8
+//	@0142	bf1a	// 0284    ldbil  r7,(lab_print)&0xff
+//	@0143	7f8f	// 0286    jalw   r7
+//	@0144	7fe1	// 0288    pushw  r1
+//	@0145	c1f0	// 028a    ldbih  r1,((idrgramt)>>8)&0xff
+//	@0146	b90c	// 028c    ldbil  r1,(idrgramt)&0xff
+//	@0147	7b89	// 028e    ldw    r1,r1
+//	@0148	c704	// 0290    ldbih  r7,(lab_print_hex)>>8
+//	@0149	bf44	// 0292    ldbil  r7,(lab_print_hex)&0xff
+//	@014a	7f8f	// 0294    jalw   r7
+//	@014b	7fe9	// 0296    popw   r1
+//	@014c	c704	// 0298    ldbih  r7,(lab_print)>>8
+//	@014d	bf1a	// 029a    ldbil  r7,(lab_print)&0xff
+//	@014e	7f8f	// 029c    jalw   r7
+//	@014f	9901	// 029e    addi   r1,1
 //		// idreg, idrgrams
-//	@013f	c703	// 027e    ldbih  r7,(lab_print)>>8
-//	@0140	bfe0	// 0280    ldbil  r7,(lab_print)&0xff
-//	@0141	7f8f	// 0282    jalw   r7
-//	@0142	7fe1	// 0284    pushw  r1
-//	@0143	c1f0	// 0286    ldbih  r1,((idrgrams)>>8)&0xff
-//	@0144	b90e	// 0288    ldbil  r1,(idrgrams)&0xff
-//	@0145	7b89	// 028a    ldw    r1,r1
-//	@0146	c704	// 028c    ldbih  r7,(lab_print_hex)>>8
-//	@0147	bf0a	// 028e    ldbil  r7,(lab_print_hex)&0xff
-//	@0148	7f8f	// 0290    jalw   r7
-//	@0149	7fe9	// 0292    popw   r1
-//	@014a	c703	// 0294    ldbih  r7,(lab_print)>>8
-//	@014b	bfe0	// 0296    ldbil  r7,(lab_print)&0xff
-//	@014c	7f8f	// 0298    jalw   r7
-//	@014d	9901	// 029a    addi   r1,1
-//		// response
-//	@014e	c104	// 029c    ldbih  r1,((lab_str_msg_who)>>8)&0xff
-//	@014f	b9b2	// 029e    ldbil  r1,(lab_str_msg_who)&0xff
-//	@0150	c703	// 02a0    ldbih  r7,(lab_print)>>8
-//	@0151	bfe0	// 02a2    ldbil  r7,(lab_print)&0xff
+//	@0150	c704	// 02a0    ldbih  r7,(lab_print)>>8
+//	@0151	bf1a	// 02a2    ldbil  r7,(lab_print)&0xff
 //	@0152	7f8f	// 02a4    jalw   r7
-//	@0153	082a	// 02a6    bra    no_data
+//	@0153	7fe1	// 02a6    pushw  r1
+//	@0154	c1f0	// 02a8    ldbih  r1,((idrgrams)>>8)&0xff
+//	@0155	b90e	// 02aa    ldbil  r1,(idrgrams)&0xff
+//	@0156	7b89	// 02ac    ldw    r1,r1
+//	@0157	c704	// 02ae    ldbih  r7,(lab_print_hex)>>8
+//	@0158	bf44	// 02b0    ldbil  r7,(lab_print_hex)&0xff
+//	@0159	7f8f	// 02b2    jalw   r7
+//	@015a	7fe9	// 02b4    popw   r1
+//	@015b	c704	// 02b6    ldbih  r7,(lab_print)>>8
+//	@015c	bf1a	// 02b8    ldbil  r7,(lab_print)&0xff
+//	@015d	7f8f	// 02ba    jalw   r7
+//	@015e	9901	// 02bc    addi   r1,1
+//		// response
+//	@015f	c104	// 02be    ldbih  r1,((lab_str_msg_who)>>8)&0xff
+//	@0160	b9f0	// 02c0    ldbil  r1,(lab_str_msg_who)&0xff
+//	@0161	c704	// 02c2    ldbih  r7,(lab_print)>>8
+//	@0162	bf1a	// 02c4    ldbil  r7,(lab_print)&0xff
+//	@0163	7f8f	// 02c6    jalw   r7
+//	@0164	082d	// 02c8    bra    no_data
 //			// who_notid:
 //		// check "help" command
-//	@0154	c150	// 02a8    ldbih  r1,((lbuf)>>8)&0xff
-//	@0155	b908	// 02aa    ldbil  r1,(lbuf)&0xff
-//	@0156	c206	// 02ac    ldbih  r2,((lab_str_cmd_help)>>8)&0xff
-//	@0157	ba10	// 02ae    ldbil  r2,(lab_str_cmd_help)&0xff
-//	@0158	c704	// 02b0    ldbih  r7,(lab_strcmp)>>8
-//	@0159	bf58	// 02b2    ldbil  r7,(lab_strcmp)&0xff
-//	@015a	7f8f	// 02b4    jalw   r7
-//	@015b	a800	// 02b6    cmpi   r0,0
-//	@015c	1006	// 02b8    bne    help_notid
+//	@0165	c100	// 02ca    ldbih  r1,((lbuf)>>8)&0xff
+//	@0166	b908	// 02cc    ldbil  r1,(lbuf)&0xff
+//	@0167	798e	// 02ce    add    r1,r6
+//	@0168	c206	// 02d0    ldbih  r2,((lab_str_cmd_help)>>8)&0xff
+//	@0169	ba4e	// 02d2    ldbil  r2,(lab_str_cmd_help)&0xff
+//	@016a	c704	// 02d4    ldbih  r7,(lab_strcmp)>>8
+//	@016b	bf96	// 02d6    ldbil  r7,(lab_strcmp)&0xff
+//	@016c	7f8f	// 02d8    jalw   r7
+//	@016d	a800	// 02da    cmpi   r0,0
+//	@016e	1006	// 02dc    bne    help_notid
 //		// ================================
 //		// help
 //		// response
-//	@015d	c104	// 02ba    ldbih  r1,((lab_str_msg_help)>>8)&0xff
-//	@015e	b9d6	// 02bc    ldbil  r1,(lab_str_msg_help)&0xff
-//	@015f	c703	// 02be    ldbih  r7,(lab_print_lst)>>8
-//	@0160	bffc	// 02c0    ldbil  r7,(lab_print_lst)&0xff
-//	@0161	7f8f	// 02c2    jalw   r7
-//	@0162	081b	// 02c4    bra    no_data
+//	@016f	c105	// 02de    ldbih  r1,((lab_str_msg_help)>>8)&0xff
+//	@0170	b914	// 02e0    ldbil  r1,(lab_str_msg_help)&0xff
+//	@0171	c704	// 02e2    ldbih  r7,(lab_print_lst)>>8
+//	@0172	bf36	// 02e4    ldbil  r7,(lab_print_lst)&0xff
+//	@0173	7f8f	// 02e6    jalw   r7
+//	@0174	081d	// 02e8    bra    no_data
 //			// help_notid:
 //		// ================================
 //		// ignore empty line
-//	@0163	c150	// 02c6    ldbih  r1,((lbuf)>>8)&0xff
-//	@0164	b908	// 02c8    ldbil  r1,(lbuf)&0xff
-//	@0165	7b01	// 02ca    ldb    r0,r1
-//	@0166	a800	// 02cc    cmpi   r0,0
-//	@0167	1816	// 02ce    beq    no_data
+//	@0175	c100	// 02ea    ldbih  r1,((lbuf)>>8)&0xff
+//	@0176	b908	// 02ec    ldbil  r1,(lbuf)&0xff
+//	@0177	798e	// 02ee    add    r1,r6
+//	@0178	7b01	// 02f0    ldb    r0,r1
+//	@0179	a800	// 02f2    cmpi   r0,0
+//	@017a	1817	// 02f4    beq    no_data
 //		// ================================
 //		// ERROR: unsupported command
-//	@0168	c105	// 02d0    ldbih  r1,((lab_str_err_unspt)>>8)&0xff
-//	@0169	b9d8	// 02d2    ldbil  r1,(lab_str_err_unspt)&0xff
-//	@016a	c703	// 02d4    ldbih  r7,(lab_print)>>8
-//	@016b	bfe0	// 02d6    ldbil  r7,(lab_print)&0xff
-//	@016c	7f8f	// 02d8    jalw   r7
-//	@016d	7fe1	// 02da    pushw  r1
-//	@016e	c150	// 02dc    ldbih  r1,((lbuf)>>8)&0xff
-//	@016f	b908	// 02de    ldbil  r1,(lbuf)&0xff
-//	@0170	c703	// 02e0    ldbih  r7,(lab_print)>>8
-//	@0171	bfe0	// 02e2    ldbil  r7,(lab_print)&0xff
-//	@0172	7f8f	// 02e4    jalw   r7
-//	@0173	7fe9	// 02e6    popw   r1
-//	@0174	c703	// 02e8    ldbih  r7,(lab_print)>>8
-//	@0175	bfe0	// 02ea    ldbil  r7,(lab_print)&0xff
-//	@0176	7f8f	// 02ec    jalw   r7
-//	@0177	0806	// 02ee    bra    no_data
+//	@017b	c106	// 02f6    ldbih  r1,((lab_str_err_unspt)>>8)&0xff
+//	@017c	b916	// 02f8    ldbil  r1,(lab_str_err_unspt)&0xff
+//	@017d	c704	// 02fa    ldbih  r7,(lab_print)>>8
+//	@017e	bf1a	// 02fc    ldbil  r7,(lab_print)&0xff
+//	@017f	7f8f	// 02fe    jalw   r7
+//	@0180	7fe1	// 0300    pushw  r1
+//	@0181	c100	// 0302    ldbih  r1,((lbuf)>>8)&0xff
+//	@0182	b908	// 0304    ldbil  r1,(lbuf)&0xff
+//	@0183	798e	// 0306    add    r1,r6
+//	@0184	c704	// 0308    ldbih  r7,(lab_print)>>8
+//	@0185	bf1a	// 030a    ldbil  r7,(lab_print)&0xff
+//	@0186	7f8f	// 030c    jalw   r7
+//	@0187	7fe9	// 030e    popw   r1
+//	@0188	c704	// 0310    ldbih  r7,(lab_print)>>8
+//	@0189	bf1a	// 0312    ldbil  r7,(lab_print)&0xff
+//	@018a	7f8f	// 0314    jalw   r7
+//	@018b	0806	// 0316    bra    no_data
 //		// ERROR: syntax
 //			// err_syntx:
-//	@0178	c105	// 02f0    ldbih  r1,((lab_str_err_syntx)>>8)&0xff
-//	@0179	b9f6	// 02f2    ldbil  r1,(lab_str_err_syntx)&0xff
-//	@017a	c703	// 02f4    ldbih  r7,(lab_print)>>8
-//	@017b	bfe0	// 02f6    ldbil  r7,(lab_print)&0xff
-//	@017c	7f8f	// 02f8    jalw   r7
-//	@017d	0800	// 02fa    bra    no_data
+//	@018c	c106	// 0318    ldbih  r1,((lab_str_err_syntx)>>8)&0xff
+//	@018d	b934	// 031a    ldbil  r1,(lab_str_err_syntx)&0xff
+//	@018e	c704	// 031c    ldbih  r7,(lab_print)>>8
+//	@018f	bf1a	// 031e    ldbil  r7,(lab_print)&0xff
+//	@0190	7f8f	// 0320    jalw   r7
+//	@0191	0800	// 0322    bra    no_data
 //		// end of command interpretation
 //			// no_data:
 //		// ================================
 //		// led blink
-//	@017e	c750	// 02fc    ldbih  r7,((led_stat)>>8)&0xff
-//	@017f	bf00	// 02fe    ldbil  r7,(led_stat)&0xff
-//	@0180	7b87	// 0300    ldw    r0,r7
-//	@0181	8806	// 0302    andi   r0,0x06
-//	@0182	c703	// 0304    ldbih  r7,((lab_led_jmptab)>>8)&0xff
-//	@0183	bf0e	// 0306    ldbil  r7,(lab_led_jmptab)&0xff
-//	@0184	79b8	// 0308    add    r7,r0
-//	@0185	7bbf	// 030a    ldw    r7,r7
-//	@0186	7f87	// 030c    jmp    r7
+//	@0192	c700	// 0324    ldbih  r7,((led_stat)>>8)&0xff
+//	@0193	bf00	// 0326    ldbil  r7,(led_stat)&0xff
+//	@0194	79be	// 0328    add    r7,r6
+//	@0195	7b87	// 032a    ldw    r0,r7
+//	@0196	8806	// 032c    andi   r0,0x06
+//	@0197	c703	// 032e    ldbih  r7,((lab_led_jmptab)>>8)&0xff
+//	@0198	bf38	// 0330    ldbil  r7,(lab_led_jmptab)&0xff
+//	@0199	79b8	// 0332    add    r7,r0
+//	@019a	7bbf	// 0334    ldw    r7,r7
+//	@019b	7f87	// 0336    jmp    r7
 //			// led_jmptab:
-//	@0187	0316	// 030e    datw   lab_led_st0
-//	@0188	0332	// 0310    datw   lab_led_st1
-//	@0189	034e	// 0312    datw   lab_led_st2
-//	@018a	0376	// 0314    datw   lab_led_st3
+//	@019c	0340	// 0338    datw   lab_led_st0
+//	@019d	035e	// 033a    datw   lab_led_st1
+//	@019e	037c	// 033c    datw   lab_led_st2
+//	@019f	03a8	// 033e    datw   lab_led_st3
 //		// ================================
 //		// led on, msec_s[ms]
 //			// led_st0:
 //		// check millis()
-//	@018b	c7f0	// 0316    ldbih  r7,((sytmmill)>>8)&0xff
-//	@018c	bf1e	// 0318    ldbil  r7,(sytmmill)&0xff
-//	@018d	7b87	// 031a    ldw    r0,r7
-//	@018e	c100	// 031c    ldbih  r1,((msec_s)>>8)&0xff
-//	@018f	b996	// 031e    ldbil  r1,(msec_s)&0xff
-//	@0190	7a81	// 0320    cmp    r0,r1
-//	@0191	2841	// 0322    blo    led_end
+//	@01a0	c7f0	// 0340    ldbih  r7,((sytmmill)>>8)&0xff
+//	@01a1	bf1e	// 0342    ldbil  r7,(sytmmill)&0xff
+//	@01a2	7b87	// 0344    ldw    r0,r7
+//	@01a3	c100	// 0346    ldbih  r1,((msec_s)>>8)&0xff
+//	@01a4	b996	// 0348    ldbil  r1,(msec_s)&0xff
+//	@01a5	7a81	// 034a    cmp    r0,r1
+//	@01a6	2847	// 034c    blo    led_end
 //		// update led driver
-//	@0192	c750	// 0324    ldbih  r7,((led_colr)>>8)&0xff
-//	@0193	bf02	// 0326    ldbil  r7,(led_colr)&0xff
-//	@0194	7b87	// 0328    ldw    r0,r7
-//	@0195	c7f0	// 032a    ldbih  r7,((porset)>>8)&0xff
-//	@0196	bf2a	// 032c    ldbil  r7,(porset)&0xff
-//	@0197	7bf8	// 032e    stw    r7,r0
-//	@0198	0830	// 0330    bra    led_updt
+//	@01a7	c700	// 034e    ldbih  r7,((led_colr)>>8)&0xff
+//	@01a8	bf02	// 0350    ldbil  r7,(led_colr)&0xff
+//	@01a9	79be	// 0352    add    r7,r6
+//	@01aa	7b87	// 0354    ldw    r0,r7
+//	@01ab	c7f0	// 0356    ldbih  r7,((porset)>>8)&0xff
+//	@01ac	bf2a	// 0358    ldbil  r7,(porset)&0xff
+//	@01ad	7bf8	// 035a    stw    r7,r0
+//	@01ae	0834	// 035c    bra    led_updt
 //		// ================================
 //		// led off, msec_s[ms]
 //			// led_st1:
 //		// check millis()
-//	@0199	c7f0	// 0332    ldbih  r7,((sytmmill)>>8)&0xff
-//	@019a	bf1e	// 0334    ldbil  r7,(sytmmill)&0xff
-//	@019b	7b87	// 0336    ldw    r0,r7
-//	@019c	c100	// 0338    ldbih  r1,((msec_s)>>8)&0xff
-//	@019d	b996	// 033a    ldbil  r1,(msec_s)&0xff
-//	@019e	7a81	// 033c    cmp    r0,r1
-//	@019f	2833	// 033e    blo    led_end
+//	@01af	c7f0	// 035e    ldbih  r7,((sytmmill)>>8)&0xff
+//	@01b0	bf1e	// 0360    ldbil  r7,(sytmmill)&0xff
+//	@01b1	7b87	// 0362    ldw    r0,r7
+//	@01b2	c100	// 0364    ldbih  r1,((msec_s)>>8)&0xff
+//	@01b3	b996	// 0366    ldbil  r1,(msec_s)&0xff
+//	@01b4	7a81	// 0368    cmp    r0,r1
+//	@01b5	2838	// 036a    blo    led_end
 //		// update led driver
-//	@01a0	c750	// 0340    ldbih  r7,((led_colr)>>8)&0xff
-//	@01a1	bf02	// 0342    ldbil  r7,(led_colr)&0xff
-//	@01a2	7b87	// 0344    ldw    r0,r7
-//	@01a3	c7f0	// 0346    ldbih  r7,((porclr)>>8)&0xff
-//	@01a4	bf2c	// 0348    ldbil  r7,(porclr)&0xff
-//	@01a5	7bf8	// 034a    stw    r7,r0
-//	@01a6	0822	// 034c    bra    led_updt
+//	@01b6	c700	// 036c    ldbih  r7,((led_colr)>>8)&0xff
+//	@01b7	bf02	// 036e    ldbil  r7,(led_colr)&0xff
+//	@01b8	79be	// 0370    add    r7,r6
+//	@01b9	7b87	// 0372    ldw    r0,r7
+//	@01ba	c7f0	// 0374    ldbih  r7,((porclr)>>8)&0xff
+//	@01bb	bf2c	// 0376    ldbil  r7,(porclr)&0xff
+//	@01bc	7bf8	// 0378    stw    r7,r0
+//	@01bd	0825	// 037a    bra    led_updt
 //		// ================================
 //		// led on, msec_s[ms]
 //			// led_st2:
 //		// check millis()
-//	@01a7	c7f0	// 034e    ldbih  r7,((sytmmill)>>8)&0xff
-//	@01a8	bf1e	// 0350    ldbil  r7,(sytmmill)&0xff
-//	@01a9	7b87	// 0352    ldw    r0,r7
-//	@01aa	c100	// 0354    ldbih  r1,((msec_s)>>8)&0xff
-//	@01ab	b996	// 0356    ldbil  r1,(msec_s)&0xff
-//	@01ac	7a81	// 0358    cmp    r0,r1
-//	@01ad	2825	// 035a    blo    led_end
+//	@01be	c7f0	// 037c    ldbih  r7,((sytmmill)>>8)&0xff
+//	@01bf	bf1e	// 037e    ldbil  r7,(sytmmill)&0xff
+//	@01c0	7b87	// 0380    ldw    r0,r7
+//	@01c1	c100	// 0382    ldbih  r1,((msec_s)>>8)&0xff
+//	@01c2	b996	// 0384    ldbil  r1,(msec_s)&0xff
+//	@01c3	7a81	// 0386    cmp    r0,r1
+//	@01c4	2829	// 0388    blo    led_end
 //		// update led driver
-//	@01ae	c750	// 035c    ldbih  r7,((led_colr)>>8)&0xff
-//	@01af	bf02	// 035e    ldbil  r7,(led_colr)&0xff
-//	@01b0	7b87	// 0360    ldw    r0,r7
-//	@01b1	c7f0	// 0362    ldbih  r7,((porset)>>8)&0xff
-//	@01b2	bf2a	// 0364    ldbil  r7,(porset)&0xff
-//	@01b3	7bf8	// 0366    stw    r7,r0
+//	@01c5	c700	// 038a    ldbih  r7,((led_colr)>>8)&0xff
+//	@01c6	bf02	// 038c    ldbil  r7,(led_colr)&0xff
+//	@01c7	79be	// 038e    add    r7,r6
+//	@01c8	7b87	// 0390    ldw    r0,r7
+//	@01c9	c7f0	// 0392    ldbih  r7,((porset)>>8)&0xff
+//	@01ca	bf2a	// 0394    ldbil  r7,(porset)&0xff
+//	@01cb	7bf8	// 0396    stw    r7,r0
 //		// update led_colr
-//	@01b4	c750	// 0368    ldbih  r7,((led_colr)>>8)&0xff
-//	@01b5	bf02	// 036a    ldbil  r7,(led_colr)&0xff
-//	@01b6	7b87	// 036c    ldw    r0,r7
-//	@01b7	9801	// 036e    addi   r0,0x01
-//	@01b8	8807	// 0370    andi   r0,0x07
-//	@01b9	7bf8	// 0372    stw    r7,r0
-//	@01ba	080e	// 0374    bra    led_updt
+//	@01cc	c700	// 0398    ldbih  r7,((led_colr)>>8)&0xff
+//	@01cd	bf02	// 039a    ldbil  r7,(led_colr)&0xff
+//	@01ce	79be	// 039c    add    r7,r6
+//	@01cf	7b87	// 039e    ldw    r0,r7
+//	@01d0	9801	// 03a0    addi   r0,0x01
+//	@01d1	8807	// 03a2    andi   r0,0x07
+//	@01d2	7bf8	// 03a4    stw    r7,r0
+//	@01d3	080f	// 03a6    bra    led_updt
 //		// ================================
 //		// led off, msec_l[ms]
 //			// led_st3:
 //		// check millis()
-//	@01bb	c7f0	// 0376    ldbih  r7,((sytmmill)>>8)&0xff
-//	@01bc	bf1e	// 0378    ldbil  r7,(sytmmill)&0xff
-//	@01bd	7b87	// 037a    ldw    r0,r7
-//	@01be	c102	// 037c    ldbih  r1,((msec_l)>>8)&0xff
-//	@01bf	b926	// 037e    ldbil  r1,(msec_l)&0xff
-//	@01c0	7a81	// 0380    cmp    r0,r1
-//	@01c1	2811	// 0382    blo    led_end
+//	@01d4	c7f0	// 03a8    ldbih  r7,((sytmmill)>>8)&0xff
+//	@01d5	bf1e	// 03aa    ldbil  r7,(sytmmill)&0xff
+//	@01d6	7b87	// 03ac    ldw    r0,r7
+//	@01d7	c102	// 03ae    ldbih  r1,((msec_l)>>8)&0xff
+//	@01d8	b926	// 03b0    ldbil  r1,(msec_l)&0xff
+//	@01d9	7a81	// 03b2    cmp    r0,r1
+//	@01da	2813	// 03b4    blo    led_end
 //		// update led driver
-//	@01c2	c750	// 0384    ldbih  r7,((led_colr)>>8)&0xff
-//	@01c3	bf02	// 0386    ldbil  r7,(led_colr)&0xff
-//	@01c4	7b87	// 0388    ldw    r0,r7
-//	@01c5	c7f0	// 038a    ldbih  r7,((porclr)>>8)&0xff
-//	@01c6	bf2c	// 038c    ldbil  r7,(porclr)&0xff
-//	@01c7	7bf8	// 038e    stw    r7,r0
-//	@01c8	0800	// 0390    bra    led_updt
+//	@01db	c700	// 03b6    ldbih  r7,((led_colr)>>8)&0xff
+//	@01dc	bf02	// 03b8    ldbil  r7,(led_colr)&0xff
+//	@01dd	79be	// 03ba    add    r7,r6
+//	@01de	7b87	// 03bc    ldw    r0,r7
+//	@01df	c7f0	// 03be    ldbih  r7,((porclr)>>8)&0xff
+//	@01e0	bf2c	// 03c0    ldbil  r7,(porclr)&0xff
+//	@01e1	7bf8	// 03c2    stw    r7,r0
+//	@01e2	0800	// 03c4    bra    led_updt
 //		// update led state
 //			// led_updt:
 //		// sytm reset
-//	@01c9	c7f0	// 0392    ldbih  r7,((sytmctl)>>8)&0xff
-//	@01ca	bf10	// 0394    ldbil  r7,(sytmctl)&0xff
-//	@01cb	b001	// 0396    ldbiu  r0,sytm_rst
-//	@01cc	7bf8	// 0398    stw    r7,r0
+//	@01e3	c7f0	// 03c6    ldbih  r7,((sytmctl)>>8)&0xff
+//	@01e4	bf10	// 03c8    ldbil  r7,(sytmctl)&0xff
+//	@01e5	b001	// 03ca    ldbiu  r0,sytm_rst
+//	@01e6	7bf8	// 03cc    stw    r7,r0
 //		// update led_stat
-//	@01cd	c750	// 039a    ldbih  r7,((led_stat)>>8)&0xff
-//	@01ce	bf00	// 039c    ldbil  r7,(led_stat)&0xff
-//	@01cf	7b87	// 039e    ldw    r0,r7
-//	@01d0	9802	// 03a0    addi   r0,0x02
-//	@01d1	8806	// 03a2    andi   r0,0x06
-//	@01d2	7bf8	// 03a4    stw    r7,r0
+//	@01e7	c700	// 03ce    ldbih  r7,((led_stat)>>8)&0xff
+//	@01e8	bf00	// 03d0    ldbil  r7,(led_stat)&0xff
+//	@01e9	79be	// 03d2    add    r7,r6
+//	@01ea	7b87	// 03d4    ldw    r0,r7
+//	@01eb	9802	// 03d6    addi   r0,0x02
+//	@01ec	8806	// 03d8    andi   r0,0x06
+//	@01ed	7bf8	// 03da    stw    r7,r0
 //			// led_end:
 //		// ================================
 //		// end of loop
-//	@01d3	0e68	// 03a6    bra    loop
+//	@01ee	0e4f	// 03dc    bra    loop
 //		// ================================
-//		// get line from uart ; disturbed r0,r5~r7
+//		// get line from uart ; disturbed r0,r4,r5,r7
 //		// ================================
 //			// get_line:
-//	@01d4	c7f0	// 03a8    ldbih  r7,((uartrdat)>>8)&0xff
-//	@01d5	bf36	// 03aa    ldbil  r7,(uartrdat)&0xff
-//	@01d6	c6f0	// 03ac    ldbih  r6,((uartctl)>>8)&0xff
-//	@01d7	be30	// 03ae    ldbil  r6,(uartctl)&0xff
-//	@01d8	c550	// 03b0    ldbih  r5,((lbuf)>>8)&0xff
-//	@01d9	bd08	// 03b2    ldbil  r5,(lbuf)&0xff
+//	@01ef	c7f0	// 03de    ldbih  r7,((uartrdat)>>8)&0xff
+//	@01f0	bf36	// 03e0    ldbil  r7,(uartrdat)&0xff
+//	@01f1	c5f0	// 03e2    ldbih  r5,((uartctl)>>8)&0xff
+//	@01f2	bd30	// 03e4    ldbil  r5,(uartctl)&0xff
+//	@01f3	c400	// 03e6    ldbih  r4,((lbuf)>>8)&0xff
+//	@01f4	bc08	// 03e8    ldbil  r4,(lbuf)&0xff
+//	@01f5	79a6	// 03ea    add    r4,r6
 //			// gl_loop:
 //		// polling until RAVL=1
-//	@01da	7b86	// 03b4    ldw    r0,r6
-//	@01db	8880	// 03b6    andi   r0,uart_ravl
-//	@01dc	1ffd	// 03b8    beq    gl_loop
+//	@01f6	7b85	// 03ec    ldw    r0,r5
+//	@01f7	8880	// 03ee    andi   r0,uart_ravl
+//	@01f8	1ffd	// 03f0    beq    gl_loop
 //		// get byte
-//	@01dd	7b87	// 03ba    ldw    r0,r7
-//	@01de	7b68	// 03bc    stb    r5,r0
-//	@01df	9d01	// 03be    addi   r5,1
+//	@01f9	7b87	// 03f2    ldw    r0,r7
+//	@01fa	7b60	// 03f4    stb    r4,r0
+//	@01fb	9c01	// 03f6    addi   r4,1
 //		// LF code check
-//	@01e0	a80a	// 03c0    cmpi   r0,chr_lf
-//	@01e1	1804	// 03c2    beq    gl_got
+//	@01fc	a80a	// 03f8    cmpi   r0,asc_lf
+//	@01fd	1805	// 03fa    beq    gl_got
 //		// size check
-//	@01e2	c050	// 03c4    ldbih  r0,((lbuf+max_lbuf-1)>>8)&0xff
-//	@01e3	b847	// 03c6    ldbil  r0,(lbuf+max_lbuf-1)&0xff
-//	@01e4	7aa8	// 03c8    cmp    r5,r0
-//	@01e5	2ff4	// 03ca    blo    gl_loop
+//	@01fe	c000	// 03fc    ldbih  r0,((lbuf+max_lbuf-1)>>8)&0xff
+//	@01ff	b847	// 03fe    ldbil  r0,(lbuf+max_lbuf-1)&0xff
+//	@0200	7986	// 0400    add    r0,r6
+//	@0201	7aa0	// 0402    cmp    r4,r0
+//	@0202	2ff3	// 0404    blo    gl_loop
 //		// got line
 //			// gl_got:
 //		// string terminate
-//	@01e6	b000	// 03cc    ldbiu  r0,0
-//	@01e7	a501	// 03ce    subi   r5,1
-//	@01e8	7b68	// 03d0    stb    r5,r0
+//	@0203	b000	// 0406    ldbiu  r0,0
+//	@0204	a401	// 0408    subi   r4,1
+//	@0205	7b60	// 040a    stb    r4,r0
 //		// CR code check
-//	@01e9	a501	// 03d2    subi   r5,1
-//	@01ea	7b05	// 03d4    ldb    r0,r5
-//	@01eb	a80d	// 03d6    cmpi   r0,chr_cr
-//	@01ec	1002	// 03d8    bne    gl_notcr
-//	@01ed	b000	// 03da    ldbiu  r0,0
-//	@01ee	7b68	// 03dc    stb    r5,r0
+//	@0206	a401	// 040c    subi   r4,1
+//	@0207	7b04	// 040e    ldb    r0,r4
+//	@0208	a80d	// 0410    cmpi   r0,asc_cr
+//	@0209	1002	// 0412    bne    gl_notcr
+//	@020a	b000	// 0414    ldbiu  r0,0
+//	@020b	7b60	// 0416    stb    r4,r0
 //			// gl_notcr:
-//	@01ef	0002	// 03de    rtnw  
+//	@020c	0002	// 0418    rtnw  
 //		// ================================
-//		// print r1 ; disturbed r0~r2,r6,r7
+//		// print r1 ; disturbed r0~r2,r5,r7
 //		// ================================
 //			// print:
-//	@01f0	c7f0	// 03e0    ldbih  r7,((uarttdat)>>8)&0xff
-//	@01f1	bf34	// 03e2    ldbil  r7,(uarttdat)&0xff
-//	@01f2	c6f0	// 03e4    ldbih  r6,((uartctl)>>8)&0xff
-//	@01f3	be30	// 03e6    ldbil  r6,(uartctl)&0xff
+//	@020d	c7f0	// 041a    ldbih  r7,((uarttdat)>>8)&0xff
+//	@020e	bf34	// 041c    ldbil  r7,(uarttdat)&0xff
+//	@020f	c5f0	// 041e    ldbih  r5,((uartctl)>>8)&0xff
+//	@0210	bd30	// 0420    ldbil  r5,(uartctl)&0xff
 //			// pr_loop:
 //		// get 1 byte
-//	@01f4	7b11	// 03e8    ldb    r2,r1
-//	@01f5	9901	// 03ea    addi   r1,1
-//	@01f6	aa00	// 03ec    cmpi   r2,0
-//	@01f7	1805	// 03ee    beq    pr_finish
+//	@0211	7b11	// 0422    ldb    r2,r1
+//	@0212	9901	// 0424    addi   r1,1
+//	@0213	aa00	// 0426    cmpi   r2,0
+//	@0214	1805	// 0428    beq    pr_finish
 //		// polling uartctl.TFUL=0
 //			// pr_poll:
-//	@01f8	7b86	// 03f0    ldw    r0,r6
-//	@01f9	8810	// 03f2    andi   r0,uart_tful
-//	@01fa	17fd	// 03f4    bne    pr_poll
+//	@0215	7b85	// 042a    ldw    r0,r5
+//	@0216	8810	// 042c    andi   r0,uart_tful
+//	@0217	17fd	// 042e    bne    pr_poll
 //		// send data
-//	@01fb	7bfa	// 03f6    stw    r7,r2
-//	@01fc	0ff7	// 03f8    bra    pr_loop
+//	@0218	7bfa	// 0430    stw    r7,r2
+//	@0219	0ff7	// 0432    bra    pr_loop
 //			// pr_finish:
-//	@01fd	0002	// 03fa    rtnw  
+//	@021a	0002	// 0434    rtnw  
 //		// ================================
-//		// print_lst r1 ; disturbed r0~r2,r6,r7
+//		// print_lst r1 ; disturbed r0~r2,r5,r7
 //		// ================================
 //			// print_lst:
-//	@01fe	c703	// 03fc    ldbih  r7,(lab_print)>>8
-//	@01ff	bfe0	// 03fe    ldbil  r7,(lab_print)&0xff
-//	@0200	7f8f	// 0400    jalw   r7
-//	@0201	7b01	// 0402    ldb    r0,r1
-//	@0202	a800	// 0404    cmpi   r0,0
-//	@0203	17fa	// 0406    bne    print_lst
-//	@0204	0002	// 0408    rtnw  
+//	@021b	c704	// 0436    ldbih  r7,(lab_print)>>8
+//	@021c	bf1a	// 0438    ldbil  r7,(lab_print)&0xff
+//	@021d	7f8f	// 043a    jalw   r7
+//	@021e	7b01	// 043c    ldb    r0,r1
+//	@021f	a800	// 043e    cmpi   r0,0
+//	@0220	17fa	// 0440    bne    print_lst
+//	@0221	0002	// 0442    rtnw  
 //		// ================================
-//		// print_hex r1 ; disturbed r0~r7
+//		// print_hex r1 ; disturbed r0~r5,r7
 //		//		print r1 as 4 digits hexadecimal number
 //		// ================================
 //			// print_hex:
-//	@0205	b304	// 040a    ldbiu  r3,4
-//	@0206	c7f0	// 040c    ldbih  r7,((uarttdat)>>8)&0xff
-//	@0207	bf34	// 040e    ldbil  r7,(uarttdat)&0xff
-//	@0208	c6f0	// 0410    ldbih  r6,((uartctl)>>8)&0xff
-//	@0209	be30	// 0412    ldbil  r6,(uartctl)&0xff
-//	@020a	c504	// 0414    ldbih  r5,((lab_ph_hexdig)>>8)&0xff
-//	@020b	bd36	// 0416    ldbil  r5,(lab_ph_hexdig)&0xff
+//	@0222	b304	// 0444    ldbiu  r3,4
+//	@0223	7fe6	// 0446    pushw  r6
+//	@0224	c7f0	// 0448    ldbih  r7,((uarttdat)>>8)&0xff
+//	@0225	bf34	// 044a    ldbil  r7,(uarttdat)&0xff
+//	@0226	c6f0	// 044c    ldbih  r6,((uartctl)>>8)&0xff
+//	@0227	be30	// 044e    ldbil  r6,(uartctl)&0xff
+//	@0228	c504	// 0450    ldbih  r5,((lab_ph_hexdig)>>8)&0xff
+//	@0229	bd74	// 0452    ldbil  r5,(lab_ph_hexdig)&0xff
 //			// ph_loop:
 //		// print nibble
-//	@020c	78c1	// 0418    mov    r0,r1
-//	@020d	78e5	// 041a    mov    r4,r5
-//	@020e	7fd0	// 041c    cendw  r0
-//	@020f	d8fc	// 041e    lsfti  r0,-(4)
-//	@0210	880f	// 0420    andi   r0,0x0f
-//	@0211	79a0	// 0422    add    r4,r0
-//	@0212	7b14	// 0424    ldb    r2,r4
+//	@022a	78c1	// 0454    mov    r0,r1
+//	@022b	78e5	// 0456    mov    r4,r5
+//	@022c	7fd0	// 0458    cendw  r0
+//	@022d	d8fc	// 045a    lsfti  r0,-(4)
+//	@022e	880f	// 045c    andi   r0,0x0f
+//	@022f	79a0	// 045e    add    r4,r0
+//	@0230	7b14	// 0460    ldb    r2,r4
 //		// polling uartctl.TFUL=0
 //			// ph_poll:
-//	@0213	7b86	// 0426    ldw    r0,r6
-//	@0214	8810	// 0428    andi   r0,uart_tful
-//	@0215	17fd	// 042a    bne    ph_poll
+//	@0231	7b86	// 0462    ldw    r0,r6
+//	@0232	8810	// 0464    andi   r0,uart_tful
+//	@0233	17fd	// 0466    bne    ph_poll
 //		// send data
-//	@0216	7bfa	// 042c    stw    r7,r2
+//	@0234	7bfa	// 0468    stw    r7,r2
 //		// loop
-//	@0217	d904	// 042e    lsfti  r1,(4)
-//	@0218	a301	// 0430    subi   r3,1
-//	@0219	17f2	// 0432    bne    ph_loop
-//	@021a	0002	// 0434    rtnw  
+//	@0235	d904	// 046a    lsfti  r1,(4)
+//	@0236	a301	// 046c    subi   r3,1
+//	@0237	17f2	// 046e    bne    ph_loop
+//	@0238	7fee	// 0470    popw   r6
+//	@0239	0002	// 0472    rtnw  
 //			// ph_hexdig:
-//	@021b	3031	// 0436    datw   0x3031  01
-//	@021c	3233	// 0438    datw   0x3233  23
-//	@021d	3435	// 043a    datw   0x3435  45
-//	@021e	3637	// 043c    datw   0x3637  67
-//	@021f	3839	// 043e    datw   0x3839  89
-//	@0220	6162	// 0440    datw   0x6162  ab
-//	@0221	6364	// 0442    datw   0x6364  cd
-//	@0222	6566	// 0444    datw   0x6566  ef
+//	@023a	3031	// 0474    datw   0x3031  01
+//	@023b	3233	// 0476    datw   0x3233  23
+//	@023c	3435	// 0478    datw   0x3435  45
+//	@023d	3637	// 047a    datw   0x3637  67
+//	@023e	3839	// 047c    datw   0x3839  89
+//	@023f	6162	// 047e    datw   0x6162  ab
+//	@0240	6364	// 0480    datw   0x6364  cd
+//	@0241	6566	// 0482    datw   0x6566  ef
 //		// ================================
 //		// print_chr r1 ; disturbed r0,r7
 //		// ================================
 //			// print_chr:
 //		// polling uartctl.TFUL=0
-//	@0223	c7f0	// 0446    ldbih  r7,((uartctl)>>8)&0xff
-//	@0224	bf30	// 0448    ldbil  r7,(uartctl)&0xff
+//	@0242	c7f0	// 0484    ldbih  r7,((uartctl)>>8)&0xff
+//	@0243	bf30	// 0486    ldbil  r7,(uartctl)&0xff
 //			// pc_poll:
-//	@0225	7b87	// 044a    ldw    r0,r7
-//	@0226	8810	// 044c    andi   r0,uart_tful
-//	@0227	17fd	// 044e    bne    pc_poll
+//	@0244	7b87	// 0488    ldw    r0,r7
+//	@0245	8810	// 048a    andi   r0,uart_tful
+//	@0246	17fd	// 048c    bne    pc_poll
 //		// send data
-//	@0228	c7f0	// 0450    ldbih  r7,((uarttdat)>>8)&0xff
-//	@0229	bf34	// 0452    ldbil  r7,(uarttdat)&0xff
-//	@022a	7bf9	// 0454    stw    r7,r1
-//	@022b	0002	// 0456    rtnw  
+//	@0247	c7f0	// 048e    ldbih  r7,((uarttdat)>>8)&0xff
+//	@0248	bf34	// 0490    ldbil  r7,(uarttdat)&0xff
+//	@0249	7bf9	// 0492    stw    r7,r1
+//	@024a	0002	// 0494    rtnw  
 //		// ================================
 //		// string compare: r0=strcmp (r1,r2) ; disturbed r1~r4
 //		// ================================
 //			// strcmp:
-//	@022c	7b19	// 0458    ldb    r3,r1
-//	@022d	9901	// 045a    addi   r1,1
-//	@022e	7b22	// 045c    ldb    r4,r2
-//	@022f	9a01	// 045e    addi   r2,1
-//	@0230	78c3	// 0460    mov    r0,r3
-//	@0231	7a04	// 0462    sub    r0,r4
-//	@0232	1004	// 0464    bne    sc_finish
+//	@024b	7b19	// 0496    ldb    r3,r1
+//	@024c	9901	// 0498    addi   r1,1
+//	@024d	7b22	// 049a    ldb    r4,r2
+//	@024e	9a01	// 049c    addi   r2,1
+//	@024f	78c3	// 049e    mov    r0,r3
+//	@0250	7a04	// 04a0    sub    r0,r4
+//	@0251	1004	// 04a2    bne    sc_finish
 //		// check nil code
-//	@0233	ab00	// 0466    cmpi   r3,0
-//	@0234	1802	// 0468    beq    sc_finish
-//	@0235	ac00	// 046a    cmpi   r4,0
-//	@0236	17f5	// 046c    bne    strcmp
+//	@0252	ab00	// 04a4    cmpi   r3,0
+//	@0253	1802	// 04a6    beq    sc_finish
+//	@0254	ac00	// 04a8    cmpi   r4,0
+//	@0255	17f5	// 04aa    bne    strcmp
 //			// sc_finish:
-//	@0237	0002	// 046e    rtnw  
+//	@0256	0002	// 04ac    rtnw  
 //		// ================================
 //		// string n compare: r0=strncmp (r1,r2,r5) ; disturbed r1~r5
 //		// ================================
 //			// strncmp:
-//	@0238	7b19	// 0470    ldb    r3,r1
-//	@0239	9901	// 0472    addi   r1,1
-//	@023a	7b22	// 0474    ldb    r4,r2
-//	@023b	9a01	// 0476    addi   r2,1
-//	@023c	78c3	// 0478    mov    r0,r3
-//	@023d	7a04	// 047a    sub    r0,r4
-//	@023e	1006	// 047c    bne    snc_finish
+//	@0257	7b19	// 04ae    ldb    r3,r1
+//	@0258	9901	// 04b0    addi   r1,1
+//	@0259	7b22	// 04b2    ldb    r4,r2
+//	@025a	9a01	// 04b4    addi   r2,1
+//	@025b	78c3	// 04b6    mov    r0,r3
+//	@025c	7a04	// 04b8    sub    r0,r4
+//	@025d	1006	// 04ba    bne    snc_finish
 //		// check n character
-//	@023f	a501	// 047e    subi   r5,1
-//	@0240	1804	// 0480    beq    snc_finish
+//	@025e	a501	// 04bc    subi   r5,1
+//	@025f	1804	// 04be    beq    snc_finish
 //		// check nil code
-//	@0241	ab00	// 0482    cmpi   r3,0
-//	@0242	1802	// 0484    beq    snc_finish
-//	@0243	ac00	// 0486    cmpi   r4,0
-//	@0244	17f3	// 0488    bne    strncmp
+//	@0260	ab00	// 04c0    cmpi   r3,0
+//	@0261	1802	// 04c2    beq    snc_finish
+//	@0262	ac00	// 04c4    cmpi   r4,0
+//	@0263	17f3	// 04c6    bne    strncmp
 //			// snc_finish:
-//	@0245	0002	// 048a    rtnw  
+//	@0264	0002	// 04c8    rtnw  
 //		// ================================
 //		// hexadecimal to integer: r0=xtoi (r1) ; disturbed r1,r2
 //		// ================================
 //			// xtoi:
-//	@0246	b000	// 048c    ldbiu  r0,0
+//	@0265	b000	// 04ca    ldbiu  r0,0
 //		// r2=[r1]-'0'
-//	@0247	7b11	// 048e    ldb    r2,r1
-//	@0248	a230	// 0490    subi   r2,0a0
-//	@0249	280e	// 0492    blo    x2i_finish
-//	@024a	aa0a	// 0494    cmpi   r2,10
-//	@024b	2808	// 0496    blo    x2i_next
-//	@024c	a207	// 0498    subi   r2,(0aa-0x20)-0a0-10
-//	@024d	280a	// 049a    blo    x2i_finish
-//	@024e	aa10	// 049c    cmpi   r2,16
-//	@024f	2804	// 049e    blo    x2i_next
-//	@0250	a220	// 04a0    subi   r2,0aa-(0aa-0x20)
-//	@0251	2806	// 04a2    blo    x2i_finish
-//	@0252	aa10	// 04a4    cmpi   r2,16
-//	@0253	2004	// 04a6    bhs    x2i_finish
+//	@0266	7b11	// 04cc    ldb    r2,r1
+//	@0267	a230	// 04ce    subi   r2,0a0
+//	@0268	280e	// 04d0    blo    x2i_finish
+//	@0269	aa0a	// 04d2    cmpi   r2,10
+//	@026a	2808	// 04d4    blo    x2i_next
+//	@026b	a207	// 04d6    subi   r2,(0aa-0x20)-0a0-10
+//	@026c	280a	// 04d8    blo    x2i_finish
+//	@026d	aa10	// 04da    cmpi   r2,16
+//	@026e	2804	// 04dc    blo    x2i_next
+//	@026f	a220	// 04de    subi   r2,0aa-(0aa-0x20)
+//	@0270	2806	// 04e0    blo    x2i_finish
+//	@0271	aa10	// 04e2    cmpi   r2,16
+//	@0272	2004	// 04e4    bhs    x2i_finish
 //			// x2i_next:
 //		// r0=16*r0+r2
-//	@0254	d804	// 04a8    lsfti  r0,(4)
-//	@0255	7982	// 04aa    add    r0,r2
+//	@0273	d804	// 04e6    lsfti  r0,(4)
+//	@0274	7982	// 04e8    add    r0,r2
 //		// end of loop
-//	@0256	9901	// 04ac    addi   r1,1
-//	@0257	0fef	// 04ae    bra    xtoi+2
+//	@0275	9901	// 04ea    addi   r1,1
+//	@0276	0fef	// 04ec    bra    xtoi+2
 //			// x2i_finish:
-//	@0258	0002	// 04b0    rtnw  
+//	@0277	0002	// 04ee    rtnw  
 //		// ================================
 //		// c string data
 //		// ================================
 //			// str_msg_who:
-//	@0259	4f4b	// 04b2    datw   0x4f4b  OK
-//	@025a	3a20	// 04b4    datw   0x3a20  : 
-//	@025b	7267	// 04b6    datw   0x7267  rg
-//	@025c	625f	// 04b8    datw   0x625f  b_
-//	@025d	6c65	// 04ba    datw   0x6c65  le
-//	@025e	645f	// 04bc    datw   0x645f  d_
-//	@025f	626c	// 04be    datw   0x626c  bl
-//	@0260	696e	// 04c0    datw   0x696e  in
-//	@0261	6b20	// 04c2    datw   0x6b20  k 
-//	@0262	7665	// 04c4    datw   0x7665  ve
-//	@0263	722e	// 04c6    datw   0x722e  r.
-//	@0264	312e	// 04c8    datw   0x312e  1.
-//	@0265	3038	// 04ca    datw   0x3038  08
-//	@0266	0d0a	// 04cc    datw   0x0d0a    
-//	@0267	0000	// 04ce    datw   0x0000    
+//	@0278	4f4b	// 04f0    datw   0x4f4b  OK
+//	@0279	3a20	// 04f2    datw   0x3a20  : 
+//	@027a	7267	// 04f4    datw   0x7267  rg
+//	@027b	625f	// 04f6    datw   0x625f  b_
+//	@027c	6c65	// 04f8    datw   0x6c65  le
+//	@027d	645f	// 04fa    datw   0x645f  d_
+//	@027e	626c	// 04fc    datw   0x626c  bl
+//	@027f	696e	// 04fe    datw   0x696e  in
+//	@0280	6b20	// 0500    datw   0x6b20  k 
+//	@0281	7665	// 0502    datw   0x7665  ve
+//	@0282	722e	// 0504    datw   0x722e  r.
+//	@0283	312e	// 0506    datw   0x312e  1.
+//	@0284	3130	// 0508    datw   0x3130  10
+//	@0285	0d0a	// 050a    datw   0x0d0a    
+//	@0286	0000	// 050c    datw   0x0000    
 //			// str_msg_rdy:
-//	@0268	5244	// 04d0    datw   0x5244  RD
-//	@0269	590d	// 04d2    datw   0x590d  Y 
-//	@026a	0a00	// 04d4    datw   0x0a00    
+//	@0287	5244	// 050e    datw   0x5244  RD
+//	@0288	590d	// 0510    datw   0x590d  Y 
+//	@0289	0a00	// 0512    datw   0x0a00    
 //			// str_msg_help:
-//	@026b	4f4b	// 04d6    datw   0x4f4b  OK
-//	@026c	2b20	// 04d8    datw   0x2b20  + 
-//	@026d	7264	// 04da    datw   0x7264  rd
-//	@026e	2c3c	// 04dc    datw   0x2c3c  ,<
-//	@026f	6164	// 04de    datw   0x6164  ad
-//	@0270	725f	// 04e0    datw   0x725f  r_
-//	@0271	6865	// 04e2    datw   0x6865  he
-//	@0272	7834	// 04e4    datw   0x7834  x4
-//	@0273	3e0d	// 04e6    datw   0x3e0d  > 
-//	@0274	0a00	// 04e8    datw   0x0a00    
-//	@0275	4f4b	// 04ea    datw   0x4f4b  OK
-//	@0276	2b20	// 04ec    datw   0x2b20  + 
-//	@0277	7772	// 04ee    datw   0x7772  wr
-//	@0278	2c3c	// 04f0    datw   0x2c3c  ,<
-//	@0279	6164	// 04f2    datw   0x6164  ad
-//	@027a	725f	// 04f4    datw   0x725f  r_
-//	@027b	6865	// 04f6    datw   0x6865  he
-//	@027c	7834	// 04f8    datw   0x7834  x4
-//	@027d	3e2c	// 04fa    datw   0x3e2c  >,
-//	@027e	3c64	// 04fc    datw   0x3c64  <d
-//	@027f	6174	// 04fe    datw   0x6174  at
-//	@0280	5f68	// 0500    datw   0x5f68  _h
-//	@0281	6578	// 0502    datw   0x6578  ex
-//	@0282	343e	// 0504    datw   0x343e  4>
-//	@0283	0d0a	// 0506    datw   0x0d0a    
-//	@0284	4f4b	// 0508    datw   0x4f4b  OK
-//	@0285	2b20	// 050a    datw   0x2b20  + 
-//	@0286	7768	// 050c    datw   0x7768  wh
-//	@0287	6f0d	// 050e    datw   0x6f0d  o 
-//	@0288	0a00	// 0510    datw   0x0a00    
-//	@0289	4f4b	// 0512    datw   0x4f4b  OK
-//	@028a	3a20	// 0514    datw   0x3a20  : 
-//	@028b	6865	// 0516    datw   0x6865  he
-//	@028c	6c70	// 0518    datw   0x6c70  lp
-//	@028d	0d0a	// 051a    datw   0x0d0a    
-//	@028e	0000	// 051c    datw   0x0000    
+//	@028a	4f4b	// 0514    datw   0x4f4b  OK
+//	@028b	2b20	// 0516    datw   0x2b20  + 
+//	@028c	7264	// 0518    datw   0x7264  rd
+//	@028d	2c3c	// 051a    datw   0x2c3c  ,<
+//	@028e	6164	// 051c    datw   0x6164  ad
+//	@028f	725f	// 051e    datw   0x725f  r_
+//	@0290	6865	// 0520    datw   0x6865  he
+//	@0291	7834	// 0522    datw   0x7834  x4
+//	@0292	3e0d	// 0524    datw   0x3e0d  > 
+//	@0293	0a00	// 0526    datw   0x0a00    
+//	@0294	4f4b	// 0528    datw   0x4f4b  OK
+//	@0295	2b20	// 052a    datw   0x2b20  + 
+//	@0296	7772	// 052c    datw   0x7772  wr
+//	@0297	2c3c	// 052e    datw   0x2c3c  ,<
+//	@0298	6164	// 0530    datw   0x6164  ad
+//	@0299	725f	// 0532    datw   0x725f  r_
+//	@029a	6865	// 0534    datw   0x6865  he
+//	@029b	7834	// 0536    datw   0x7834  x4
+//	@029c	3e2c	// 0538    datw   0x3e2c  >,
+//	@029d	3c64	// 053a    datw   0x3c64  <d
+//	@029e	6174	// 053c    datw   0x6174  at
+//	@029f	5f68	// 053e    datw   0x5f68  _h
+//	@02a0	6578	// 0540    datw   0x6578  ex
+//	@02a1	343e	// 0542    datw   0x343e  4>
+//	@02a2	0d0a	// 0544    datw   0x0d0a    
+//	@02a3	4f4b	// 0546    datw   0x4f4b  OK
+//	@02a4	2b20	// 0548    datw   0x2b20  + 
+//	@02a5	7768	// 054a    datw   0x7768  wh
+//	@02a6	6f0d	// 054c    datw   0x6f0d  o 
+//	@02a7	0a00	// 054e    datw   0x0a00    
+//	@02a8	4f4b	// 0550    datw   0x4f4b  OK
+//	@02a9	3a20	// 0552    datw   0x3a20  : 
+//	@02aa	6865	// 0554    datw   0x6865  he
+//	@02ab	6c70	// 0556    datw   0x6c70  lp
+//	@02ac	0d0a	// 0558    datw   0x0d0a    
+//	@02ad	0000	// 055a    datw   0x0000    
 //			// str_msg_idrg:
-//	@028f	4f4b	// 051e    datw   0x4f4b  OK
-//	@0290	2b20	// 0520    datw   0x2b20  + 
-//	@0291	6964	// 0522    datw   0x6964  id
-//	@0292	2063	// 0524    datw   0x2063   c
-//	@0293	6f64	// 0526    datw   0x6f64  od
-//	@0294	653a	// 0528    datw   0x653a  e:
-//	@0295	2000	// 052a    datw   0x2000    
-//	@0296	0d0a	// 052c    datw   0x0d0a    
-//	@0297	0000	// 052e    datw   0x0000    
-//	@0298	4f4b	// 0530    datw   0x4f4b  OK
-//	@0299	2b20	// 0532    datw   0x2b20  + 
-//	@029a	7665	// 0534    datw   0x7665  ve
-//	@029b	7273	// 0536    datw   0x7273  rs
-//	@029c	696f	// 0538    datw   0x696f  io
-//	@029d	6e3a	// 053a    datw   0x6e3a  n:
-//	@029e	2000	// 053c    datw   0x2000    
-//	@029f	0d0a	// 053e    datw   0x0d0a    
-//	@02a0	0000	// 0540    datw   0x0000    
-//	@02a1	4f4b	// 0542    datw   0x4f4b  OK
-//	@02a2	2b20	// 0544    datw   0x2b20  + 
-//	@02a3	6663	// 0546    datw   0x6663  fc
-//	@02a4	7075	// 0548    datw   0x7075  pu
-//	@02a5	206b	// 054a    datw   0x206b   k
-//	@02a6	487a	// 054c    datw   0x487a  Hz
-//	@02a7	3a00	// 054e    datw   0x3a00  : 
-//	@02a8	0d0a	// 0550    datw   0x0d0a    
-//	@02a9	0000	// 0552    datw   0x0000    
-//	@02aa	4f4b	// 0554    datw   0x4f4b  OK
-//	@02ab	2b20	// 0556    datw   0x2b20  + 
-//	@02ac	6564	// 0558    datw   0x6564  ed
-//	@02ad	6974	// 055a    datw   0x6974  it
-//	@02ae	696f	// 055c    datw   0x696f  io
-//	@02af	6e3a	// 055e    datw   0x6e3a  n:
-//	@02b0	2000	// 0560    datw   0x2000    
-//	@02b1	0d0a	// 0562    datw   0x0d0a    
-//	@02b2	0000	// 0564    datw   0x0000    
-//	@02b3	4f4b	// 0566    datw   0x4f4b  OK
-//	@02b4	2b20	// 0568    datw   0x2b20  + 
-//	@02b5	726f	// 056a    datw   0x726f  ro
-//	@02b6	6d20	// 056c    datw   0x6d20  m 
-//	@02b7	746f	// 056e    datw   0x746f  to
-//	@02b8	703a	// 0570    datw   0x703a  p:
-//	@02b9	2000	// 0572    datw   0x2000    
-//	@02ba	0d0a	// 0574    datw   0x0d0a    
-//	@02bb	0000	// 0576    datw   0x0000    
-//	@02bc	4f4b	// 0578    datw   0x4f4b  OK
-//	@02bd	2b20	// 057a    datw   0x2b20  + 
-//	@02be	726f	// 057c    datw   0x726f  ro
-//	@02bf	6d20	// 057e    datw   0x6d20  m 
-//	@02c0	7369	// 0580    datw   0x7369  si
-//	@02c1	7a65	// 0582    datw   0x7a65  ze
-//	@02c2	3a00	// 0584    datw   0x3a00  : 
-//	@02c3	0d0a	// 0586    datw   0x0d0a    
-//	@02c4	0000	// 0588    datw   0x0000    
-//	@02c5	4f4b	// 058a    datw   0x4f4b  OK
-//	@02c6	2b20	// 058c    datw   0x2b20  + 
-//	@02c7	7261	// 058e    datw   0x7261  ra
-//	@02c8	6d20	// 0590    datw   0x6d20  m 
-//	@02c9	746f	// 0592    datw   0x746f  to
-//	@02ca	703a	// 0594    datw   0x703a  p:
-//	@02cb	2000	// 0596    datw   0x2000    
-//	@02cc	0d0a	// 0598    datw   0x0d0a    
-//	@02cd	0000	// 059a    datw   0x0000    
-//	@02ce	4f4b	// 059c    datw   0x4f4b  OK
-//	@02cf	2b20	// 059e    datw   0x2b20  + 
-//	@02d0	7261	// 05a0    datw   0x7261  ra
-//	@02d1	6d20	// 05a2    datw   0x6d20  m 
-//	@02d2	7369	// 05a4    datw   0x7369  si
-//	@02d3	7a65	// 05a6    datw   0x7a65  ze
-//	@02d4	3a00	// 05a8    datw   0x3a00  : 
-//	@02d5	0d0a	// 05aa    datw   0x0d0a    
-//	@02d6	0000	// 05ac    datw   0x0000    
+//	@02ae	4f4b	// 055c    datw   0x4f4b  OK
+//	@02af	2b20	// 055e    datw   0x2b20  + 
+//	@02b0	6964	// 0560    datw   0x6964  id
+//	@02b1	2063	// 0562    datw   0x2063   c
+//	@02b2	6f64	// 0564    datw   0x6f64  od
+//	@02b3	653a	// 0566    datw   0x653a  e:
+//	@02b4	2000	// 0568    datw   0x2000    
+//	@02b5	0d0a	// 056a    datw   0x0d0a    
+//	@02b6	0000	// 056c    datw   0x0000    
+//	@02b7	4f4b	// 056e    datw   0x4f4b  OK
+//	@02b8	2b20	// 0570    datw   0x2b20  + 
+//	@02b9	7665	// 0572    datw   0x7665  ve
+//	@02ba	7273	// 0574    datw   0x7273  rs
+//	@02bb	696f	// 0576    datw   0x696f  io
+//	@02bc	6e3a	// 0578    datw   0x6e3a  n:
+//	@02bd	2000	// 057a    datw   0x2000    
+//	@02be	0d0a	// 057c    datw   0x0d0a    
+//	@02bf	0000	// 057e    datw   0x0000    
+//	@02c0	4f4b	// 0580    datw   0x4f4b  OK
+//	@02c1	2b20	// 0582    datw   0x2b20  + 
+//	@02c2	6663	// 0584    datw   0x6663  fc
+//	@02c3	7075	// 0586    datw   0x7075  pu
+//	@02c4	206b	// 0588    datw   0x206b   k
+//	@02c5	487a	// 058a    datw   0x487a  Hz
+//	@02c6	3a00	// 058c    datw   0x3a00  : 
+//	@02c7	0d0a	// 058e    datw   0x0d0a    
+//	@02c8	0000	// 0590    datw   0x0000    
+//	@02c9	4f4b	// 0592    datw   0x4f4b  OK
+//	@02ca	2b20	// 0594    datw   0x2b20  + 
+//	@02cb	6564	// 0596    datw   0x6564  ed
+//	@02cc	6974	// 0598    datw   0x6974  it
+//	@02cd	696f	// 059a    datw   0x696f  io
+//	@02ce	6e3a	// 059c    datw   0x6e3a  n:
+//	@02cf	2000	// 059e    datw   0x2000    
+//	@02d0	0d0a	// 05a0    datw   0x0d0a    
+//	@02d1	0000	// 05a2    datw   0x0000    
+//	@02d2	4f4b	// 05a4    datw   0x4f4b  OK
+//	@02d3	2b20	// 05a6    datw   0x2b20  + 
+//	@02d4	726f	// 05a8    datw   0x726f  ro
+//	@02d5	6d20	// 05aa    datw   0x6d20  m 
+//	@02d6	746f	// 05ac    datw   0x746f  to
+//	@02d7	703a	// 05ae    datw   0x703a  p:
+//	@02d8	2000	// 05b0    datw   0x2000    
+//	@02d9	0d0a	// 05b2    datw   0x0d0a    
+//	@02da	0000	// 05b4    datw   0x0000    
+//	@02db	4f4b	// 05b6    datw   0x4f4b  OK
+//	@02dc	2b20	// 05b8    datw   0x2b20  + 
+//	@02dd	726f	// 05ba    datw   0x726f  ro
+//	@02de	6d20	// 05bc    datw   0x6d20  m 
+//	@02df	7369	// 05be    datw   0x7369  si
+//	@02e0	7a65	// 05c0    datw   0x7a65  ze
+//	@02e1	3a00	// 05c2    datw   0x3a00  : 
+//	@02e2	0d0a	// 05c4    datw   0x0d0a    
+//	@02e3	0000	// 05c6    datw   0x0000    
+//	@02e4	4f4b	// 05c8    datw   0x4f4b  OK
+//	@02e5	2b20	// 05ca    datw   0x2b20  + 
+//	@02e6	7261	// 05cc    datw   0x7261  ra
+//	@02e7	6d20	// 05ce    datw   0x6d20  m 
+//	@02e8	746f	// 05d0    datw   0x746f  to
+//	@02e9	703a	// 05d2    datw   0x703a  p:
+//	@02ea	2000	// 05d4    datw   0x2000    
+//	@02eb	0d0a	// 05d6    datw   0x0d0a    
+//	@02ec	0000	// 05d8    datw   0x0000    
+//	@02ed	4f4b	// 05da    datw   0x4f4b  OK
+//	@02ee	2b20	// 05dc    datw   0x2b20  + 
+//	@02ef	7261	// 05de    datw   0x7261  ra
+//	@02f0	6d20	// 05e0    datw   0x6d20  m 
+//	@02f1	7369	// 05e2    datw   0x7369  si
+//	@02f2	7a65	// 05e4    datw   0x7a65  ze
+//	@02f3	3a00	// 05e6    datw   0x3a00  : 
+//	@02f4	0d0a	// 05e8    datw   0x0d0a    
+//	@02f5	0000	// 05ea    datw   0x0000    
 //			// str_msg_read:
-//	@02d7	4f4b	// 05ae    datw   0x4f4b  OK
-//	@02d8	3a20	// 05b0    datw   0x3a20  : 
-//	@02d9	7265	// 05b2    datw   0x7265  re
-//	@02da	6164	// 05b4    datw   0x6164  ad
-//	@02db	5b30	// 05b6    datw   0x5b30  [0
-//	@02dc	7800	// 05b8    datw   0x7800  x 
-//	@02dd	5d3d	// 05ba    datw   0x5d3d  ]=
-//	@02de	3078	// 05bc    datw   0x3078  0x
-//	@02df	000d	// 05be    datw   0x000d    
-//	@02e0	0a00	// 05c0    datw   0x0a00    
+//	@02f6	4f4b	// 05ec    datw   0x4f4b  OK
+//	@02f7	3a20	// 05ee    datw   0x3a20  : 
+//	@02f8	7265	// 05f0    datw   0x7265  re
+//	@02f9	6164	// 05f2    datw   0x6164  ad
+//	@02fa	5b30	// 05f4    datw   0x5b30  [0
+//	@02fb	7800	// 05f6    datw   0x7800  x 
+//	@02fc	5d3d	// 05f8    datw   0x5d3d  ]=
+//	@02fd	3078	// 05fa    datw   0x3078  0x
+//	@02fe	000d	// 05fc    datw   0x000d    
+//	@02ff	0a00	// 05fe    datw   0x0a00    
 //			// str_msg_write:
-//	@02e1	4f4b	// 05c2    datw   0x4f4b  OK
-//	@02e2	3a20	// 05c4    datw   0x3a20  : 
-//	@02e3	7772	// 05c6    datw   0x7772  wr
-//	@02e4	6974	// 05c8    datw   0x6974  it
-//	@02e5	655b	// 05ca    datw   0x655b  e[
-//	@02e6	3078	// 05cc    datw   0x3078  0x
-//	@02e7	005d	// 05ce    datw   0x005d  ]
-//	@02e8	3d30	// 05d0    datw   0x3d30  =0
-//	@02e9	7800	// 05d2    datw   0x7800  x 
-//	@02ea	0d0a	// 05d4    datw   0x0d0a    
-//	@02eb	0000	// 05d6    datw   0x0000    
-//			// str_err_unspt:
-//	@02ec	4552	// 05d8    datw   0x4552  ER
-//	@02ed	523a	// 05da    datw   0x523a  R:
-//	@02ee	2075	// 05dc    datw   0x2075   u
-//	@02ef	6e73	// 05de    datw   0x6e73  ns
-//	@02f0	7570	// 05e0    datw   0x7570  up
-//	@02f1	706f	// 05e2    datw   0x706f  po
-//	@02f2	7274	// 05e4    datw   0x7274  rt
-//	@02f3	6564	// 05e6    datw   0x6564  ed
-//	@02f4	2063	// 05e8    datw   0x2063   c
-//	@02f5	6f6d	// 05ea    datw   0x6f6d  om
-//	@02f6	6d61	// 05ec    datw   0x6d61  ma
-//	@02f7	6e64	// 05ee    datw   0x6e64  nd
-//	@02f8	3a20	// 05f0    datw   0x3a20  : 
-//	@02f9	000d	// 05f2    datw   0x000d    
-//	@02fa	0a00	// 05f4    datw   0x0a00    
-//			// str_err_syntx:
-//	@02fb	4552	// 05f6    datw   0x4552  ER
-//	@02fc	523a	// 05f8    datw   0x523a  R:
-//	@02fd	2073	// 05fa    datw   0x2073   s
-//	@02fe	796e	// 05fc    datw   0x796e  yn
-//	@02ff	7461	// 05fe    datw   0x7461  ta
-//	@0300	780d	// 0600    datw   0x780d  x 
-//	@0301	0a00	// 0602    datw   0x0a00    
-//			// str_cmd_rd:
-//	@0302	7264	// 0604    datw   0x7264  rd
-//	@0303	2c00	// 0606    datw   0x2c00  , 
-//			// str_cmd_wr:
-//	@0304	7772	// 0608    datw   0x7772  wr
-//	@0305	2c00	// 060a    datw   0x2c00  , 
-//			// str_cmd_who:
-//	@0306	7768	// 060c    datw   0x7768  wh
-//	@0307	6f00	// 060e    datw   0x6f00  o 
-//			// str_cmd_help:
-//	@0308	6865	// 0610    datw   0x6865  he
-//	@0309	6c70	// 0612    datw   0x6c70  lp
+//	@0300	4f4b	// 0600    datw   0x4f4b  OK
+//	@0301	3a20	// 0602    datw   0x3a20  : 
+//	@0302	7772	// 0604    datw   0x7772  wr
+//	@0303	6974	// 0606    datw   0x6974  it
+//	@0304	655b	// 0608    datw   0x655b  e[
+//	@0305	3078	// 060a    datw   0x3078  0x
+//	@0306	005d	// 060c    datw   0x005d  ]
+//	@0307	3d30	// 060e    datw   0x3d30  =0
+//	@0308	7800	// 0610    datw   0x7800  x 
+//	@0309	0d0a	// 0612    datw   0x0d0a    
 //	@030a	0000	// 0614    datw   0x0000    
+//			// str_err_unspt:
+//	@030b	4552	// 0616    datw   0x4552  ER
+//	@030c	523a	// 0618    datw   0x523a  R:
+//	@030d	2075	// 061a    datw   0x2075   u
+//	@030e	6e73	// 061c    datw   0x6e73  ns
+//	@030f	7570	// 061e    datw   0x7570  up
+//	@0310	706f	// 0620    datw   0x706f  po
+//	@0311	7274	// 0622    datw   0x7274  rt
+//	@0312	6564	// 0624    datw   0x6564  ed
+//	@0313	2063	// 0626    datw   0x2063   c
+//	@0314	6f6d	// 0628    datw   0x6f6d  om
+//	@0315	6d61	// 062a    datw   0x6d61  ma
+//	@0316	6e64	// 062c    datw   0x6e64  nd
+//	@0317	3a20	// 062e    datw   0x3a20  : 
+//	@0318	000d	// 0630    datw   0x000d    
+//	@0319	0a00	// 0632    datw   0x0a00    
+//			// str_err_syntx:
+//	@031a	4552	// 0634    datw   0x4552  ER
+//	@031b	523a	// 0636    datw   0x523a  R:
+//	@031c	2073	// 0638    datw   0x2073   s
+//	@031d	796e	// 063a    datw   0x796e  yn
+//	@031e	7461	// 063c    datw   0x7461  ta
+//	@031f	780d	// 063e    datw   0x780d  x 
+//	@0320	0a00	// 0640    datw   0x0a00    
+//			// str_cmd_rd:
+//	@0321	7264	// 0642    datw   0x7264  rd
+//	@0322	2c00	// 0644    datw   0x2c00  , 
+//			// str_cmd_wr:
+//	@0323	7772	// 0646    datw   0x7772  wr
+//	@0324	2c00	// 0648    datw   0x2c00  , 
+//			// str_cmd_who:
+//	@0325	7768	// 064a    datw   0x7768  wh
+//	@0326	6f00	// 064c    datw   0x6f00  o 
+//			// str_cmd_help:
+//	@0327	6865	// 064e    datw   0x6865  he
+//	@0328	6c70	// 0650    datw   0x6c70  lp
+//	@0329	0000	// 0652    datw   0x0000    
 //		// ================================
 //		// label lists
-//		//	0x5004	acc_adr
-//		//	0x5006	acc_dat
+//		//	0x0004	acc_adr
+//		//	0x0006	acc_dat
 //		//	0x0040	adc_adce
 //		//	0x0080	adc_ardy
 //		//	0x0010	adc_cenb
@@ -1059,7 +1094,46 @@
 //		//	0xf170	adcxctl
 //		//	0xf17a	adcxdatr
 //		//	0xf17e	adcxdatw
-//		//	0x5048	array_va
+//		//	0x0048	array_va
+//		//	0x0026	asc_amp
+//		//	0x002a	asc_ast
+//		//	0x0040	asc_atm
+//		//	0x0060	asc_bqt
+//		//	0x0028	asc_bri
+//		//	0x0029	asc_bro
+//		//	0x0008	asc_bs
+//		//	0x0020	asc_c2s
+//		//	0x007a	asc_cbi
+//		//	0x007c	asc_cbo
+//		//	0x005e	asc_cir
+//		//	0x003a	asc_cln
+//		//	0x002c	asc_cma
+//		//	0x000d	asc_cr
+//		//	0x0024	asc_dol
+//		//	0x002e	asc_dot
+//		//	0x0022	asc_dqt
+//		//	0x003d	asc_eq
+//		//	0x0021	asc_exc
+//		//	0x003e	asc_gt
+//		//	0x000a	asc_lf
+//		//	0x003c	asc_lt
+//		//	0x002d	asc_mns
+//		//	0x0000	asc_nil
+//		//	0x0023	asc_num
+//		//	0x0025	asc_per
+//		//	0x002b	asc_pls
+//		//	0x003f	asc_que
+//		//	0x003b	asc_sem
+//		//	0x002f	asc_sla
+//		//	0x0020	asc_spc
+//		//	0x005b	asc_sqi
+//		//	0x005d	asc_sqo
+//		//	0x0027	asc_sqt
+//		//	0x0009	asc_tab
+//		//	0x007d	asc_tld
+//		//	0x005f	asc_und
+//		//	0x007b	asc_vrt
+//		//	0x005c	asc_yen
 //		//	0x2580	baud
 //		//	0xf0f8	cachcnth
 //		//	0xf0fa	cachcntl
@@ -1071,11 +1145,6 @@
 //		//	0x0001	cchc_cche
 //		//	0x8000	cchc_cclr
 //		//	0x8000	cchc_vclr
-//		//	0x002c	chr_cma
-//		//	0x000d	chr_cr
-//		//	0x000a	chr_lf
-//		//	0x002d	chr_mns
-//		//	0x0020	chr_spc
 //		//	0x0003	cm76_b10
 //		//	0x0002	cm76_cenb
 //		//	0x0040	cm76_fabl
@@ -1371,64 +1440,64 @@
 //		//	0x8000	iramtop_rom32k
 //		//	0xc000	iramtop_rom48k
 //		//	0x0001	ivec_ve
-//		//	0x0182	lab_cmd_who
-//		//	0x02f0	lab_err_syntx
-//		//	0x03a8	lab_get_line
-//		//	0x03cc	lab_gl_got
-//		//	0x03b4	lab_gl_loop
-//		//	0x03de	lab_gl_notcr
-//		//	0x02c6	lab_help_notid
-//		//	0x03a6	lab_led_end
-//		//	0x030e	lab_led_jmptab
-//		//	0x0316	lab_led_st0
-//		//	0x0332	lab_led_st1
-//		//	0x034e	lab_led_st2
-//		//	0x0376	lab_led_st3
-//		//	0x0392	lab_led_updt
-//		//	0x0078	lab_loop
-//		//	0x02fc	lab_no_data
-//		//	0x044a	lab_pc_poll
-//		//	0x0436	lab_ph_hexdig
-//		//	0x0418	lab_ph_loop
-//		//	0x0426	lab_ph_poll
-//		//	0x03fa	lab_pr_finish
-//		//	0x03e8	lab_pr_loop
-//		//	0x03f0	lab_pr_poll
-//		//	0x03e0	lab_print
-//		//	0x0446	lab_print_chr
-//		//	0x040a	lab_print_hex
-//		//	0x03fc	lab_print_lst
-//		//	0x00f2	lab_rd_notid
-//		//	0x046e	lab_sc_finish
-//		//	0x048a	lab_snc_finish
-//		//	0x0054	lab_st_clrvar
-//		//	0x0610	lab_str_cmd_help
-//		//	0x0604	lab_str_cmd_rd
-//		//	0x060c	lab_str_cmd_who
-//		//	0x0608	lab_str_cmd_wr
-//		//	0x05f6	lab_str_err_syntx
-//		//	0x05d8	lab_str_err_unspt
-//		//	0x04d6	lab_str_msg_help
-//		//	0x051e	lab_str_msg_idrg
-//		//	0x04d0	lab_str_msg_rdy
-//		//	0x05ae	lab_str_msg_read
-//		//	0x04b2	lab_str_msg_who
-//		//	0x05c2	lab_str_msg_write
-//		//	0x0458	lab_strcmp
-//		//	0x0470	lab_strncmp
+//		//	0x01a6	lab_cmd_who
+//		//	0x0318	lab_err_syntx
+//		//	0x03de	lab_get_line
+//		//	0x0406	lab_gl_got
+//		//	0x03ec	lab_gl_loop
+//		//	0x0418	lab_gl_notcr
+//		//	0x02ea	lab_help_notid
+//		//	0x03dc	lab_led_end
+//		//	0x0338	lab_led_jmptab
+//		//	0x0340	lab_led_st0
+//		//	0x035e	lab_led_st1
+//		//	0x037c	lab_led_st2
+//		//	0x03a8	lab_led_st3
+//		//	0x03c6	lab_led_updt
+//		//	0x007c	lab_loop
+//		//	0x0324	lab_no_data
+//		//	0x0488	lab_pc_poll
+//		//	0x0474	lab_ph_hexdig
+//		//	0x0454	lab_ph_loop
+//		//	0x0462	lab_ph_poll
+//		//	0x0434	lab_pr_finish
+//		//	0x0422	lab_pr_loop
+//		//	0x042a	lab_pr_poll
+//		//	0x041a	lab_print
+//		//	0x0484	lab_print_chr
+//		//	0x0444	lab_print_hex
+//		//	0x0436	lab_print_lst
+//		//	0x0104	lab_rd_notid
+//		//	0x04ac	lab_sc_finish
+//		//	0x04c8	lab_snc_finish
+//		//	0x0058	lab_st_clrvar
+//		//	0x064e	lab_str_cmd_help
+//		//	0x0642	lab_str_cmd_rd
+//		//	0x064a	lab_str_cmd_who
+//		//	0x0646	lab_str_cmd_wr
+//		//	0x0634	lab_str_err_syntx
+//		//	0x0616	lab_str_err_unspt
+//		//	0x0514	lab_str_msg_help
+//		//	0x055c	lab_str_msg_idrg
+//		//	0x050e	lab_str_msg_rdy
+//		//	0x05ec	lab_str_msg_read
+//		//	0x04f0	lab_str_msg_who
+//		//	0x0600	lab_str_msg_write
+//		//	0x0496	lab_strcmp
+//		//	0x04ae	lab_strncmp
 //		//	0x0030	lab_target_cpu_ok
-//		//	0x02a8	lab_who_notid
-//		//	0x0170	lab_wr_notid
-//		//	0x04b0	lab_x2i_finish
-//		//	0x04a8	lab_x2i_next
-//		//	0x048c	lab_xtoi
-//		//	0x5008	lbuf
+//		//	0x02ca	lab_who_notid
+//		//	0x0192	lab_wr_notid
+//		//	0x04ee	lab_x2i_finish
+//		//	0x04e6	lab_x2i_next
+//		//	0x04ca	lab_xtoi
+//		//	0x0008	lbuf
 //		//	0x0007	led_builtin
 //		//	0x0001	led_builtin_b
 //		//	0x0004	led_builtin_g
 //		//	0x0002	led_builtin_r
-//		//	0x5002	led_colr
-//		//	0x5000	led_stat
+//		//	0x0002	led_colr
+//		//	0x0000	led_stat
 //		//	0x0002	loga_abt
 //		//	0x0020	loga_davl
 //		//	0x0004	loga_frst
@@ -1460,6 +1529,7 @@
 //		//	0xf024	porsel
 //		//	0xf02a	porset
 //		//	0xf0da	porset1
+//		//	0xff00	prin_chr_m
 //		//	0x0002	prin_dec
 //		//	0x0000	prin_flt_0
 //		//	0x0004	prin_flt_1
@@ -1502,6 +1572,7 @@
 //		//	0x1100	simc_int0_1
 //		//	0x2000	simc_int1_0
 //		//	0x2200	simc_int1_1
+//		//	0x00ff	simc_intw_ff
 //		//	0x0001	simc_noto
 //		//	0x0002	simc_rtck
 //		//	0x0004	simc_tsim
@@ -1592,7 +1663,22 @@
 //		//	0x0200	sreg_sd
 //		//	0x0020	sreg_vf
 //		//	0x0010	sreg_zf
-//		//	0x5008	static_va
+//		//	0x0008	static_va
+//		//	0x0040	stft_pinv
+//		//	0x0001	stft_port_0
+//		//	0x0002	stft_port_1
+//		//	0x0004	stft_port_2
+//		//	0x0008	stft_port_3
+//		//	0x0010	stft_port_4
+//		//	0x0020	stft_port_5
+//		//	0x003f	stft_port_a
+//		//	0x0080	stft_pwme
+//		//	0xf190	stftctl
+//		//	0xf196	stftduty
+//		//	0xf194	stftpclr
+//		//	0xf192	stftpind
+//		//	0xf194	stftpins
+//		//	0xf192	stftpset
 //		//	0xf0a6	stwmbaud
 //		//	0xf0a0	stwmctl
 //		//	0xf0a2	stwmdatr
@@ -1715,7 +1801,7 @@
 //		//	0xf106	unsjkutn
 //		//	0xf104	unsjsjis
 //		//	0xf102	unsjunic
-//		//	0x5048	va
+//		//	0x0048	va
 //		// string macro lists
 //		//	target		"moscovium"
 //		//	target_mc	""
@@ -1723,9 +1809,10 @@
 //		//	target_ts	"#"
 //		//	target_mn	""
 //		//	prog_name	"rgb_led_blink"
-//		//	prog_vers	"1.08"
+//		//	prog_vers	"1.10"
 //		//	s	"#"
 //		// user macro lists
+//		//	ldvar	rd vnam
 //		//	movw	rd rs
 //		//	andw	rd rs
 //		//	orw		rd rs
@@ -1751,7 +1838,7 @@
 // ================================
 // Assemble data:
 //
-// Moscovium series macro assembler ver.1.46
+// Moscovium series macro assembler ver.1.50
 @0000
 c7f0bf32
 c009b8c3
@@ -1763,258 +1850,273 @@ bf30b003
 7fa17fa0
 1007d2f1
 ca60b12d
-c704bf46
+c704bf84
 7f8f0001
 7940d8f4
 88021801
-0001c7f0
-bf0c7bbf
-c6f0be0e
-7bb679be
-7917c750
-bf00c150
-b908b000
+0001c6f0
+be0c7bb6
+c7f0bf0e
+7bbf79be
+7917c700
+bf0079be
+c100b908
+798eb000
 7bf89f02
 7ab92ffc
 b007c7f0
 bf2a7bf8
 c7f0bf26
 7b8788f8
-7bf8c104
-b9d0c703
-bfe07f8f
+7bf8c105
+b90ec704
+bf1a7f8f
 c7f0bf30
 7b878880
-193dc703
-bfa87f8f
-c150b908
-c206ba04
-b503c704
-bf707f8f
-a800102b
-c150b90b
-c704bf8c
-7f8fc750
-bf047bf8
-c750bf04
+194fc703
+bfde7f8f
+c100b908
+798ec206
+ba42b503
+c704bfae
+7f8fa800
+1031c100
+b90b798e
+c704bfca
+7f8fc700
+bf0479be
+7bf8c700
+bf0479be
 7bbf7b87
-c750bf06
-7bf8c105
-b9aec703
-bfe07f8f
-7fe1c750
-bf047b8f
-c704bf0a
-7f8f7fe9
-c703bfe0
+c700bf06
+79be7bf8
+c105b9ec
+c704bf1a
 7f8f7fe1
-c750bf06
-7b8fc704
-bf0a7f8f
-7fe9c703
-bfe07f8f
-0905c150
-b908c206
-ba08b503
-c704bf70
+c700bf04
+79be7b8f
+c704bf44
+7f8f7fe9
+c704bf1a
+7f8f7fe1
+c700bf06
+79be7b8f
+c704bf44
+7f8f7fe9
+c704bf1a
+7f8f0910
+c100b908
+798ec206
+ba46b503
+c704bfae
 7f8fa800
-1035c150
-b90bc704
-bf8c7f8f
-c750bf04
+103cc100
+b90b798e
+c704bfca
+7f8fc700
+bf0479be
 7bf87b01
-a82c10ea
+a82c10f2
 9901c704
-bf8c7f8f
-c750bf06
-7bf8c750
-bf067b87
-c750bf04
-7bbf7bf8
-c105b9c2
-c703bfe0
-7f8f7fe1
-c750bf04
+bfca7f8f
+c700bf06
+79be7bf8
+c700bf06
+79be7b87
+c700bf04
+79be7bbf
+7bf8c106
+b900c704
+bf1a7f8f
+7fe1c700
+bf0479be
 7b8fc704
-bf0a7f8f
-7fe9c703
-bfe07f8f
-7fe1c750
-bf067b8f
-c704bf0a
-7f8f7fe9
-c703bfe0
-7f8f08c6
-c150b908
-c206ba0c
-c704bf58
+bf447f8f
+7fe9c704
+bf1a7f8f
+7fe1c700
+bf0679be
+7b8fc704
+bf447f8f
+7fe9c704
+bf1a7f8f
+08c9c100
+b908798e
+c206ba4a
+c704bf96
 7f8fa800
-1093c105
-b91ec703
-bfe07f8f
+1092c105
+b95cc704
+bf1a7f8f
 7fe1c1f0
 b9007b89
-c704bf0a
+c704bf44
 7f8f7fe9
-c703bfe0
+c704bf1a
 7f8f9901
-c703bfe0
+c704bf1a
 7f8f7fe1
 c1f0b902
 7b89c704
-bf0a7f8f
-7fe9c703
-bfe07f8f
-9901c703
-bfe07f8f
+bf447f8f
+7fe9c704
+bf1a7f8f
+9901c704
+bf1a7f8f
 7fe1c1f0
 b9047b89
-c704bf0a
+c704bf44
 7f8f7fe9
-c703bfe0
+c704bf1a
 7f8f9901
-c703bfe0
+c704bf1a
 7f8f7fe1
 c1f0b906
 7b89c704
-bf0a7f8f
-c100b920
-c704bf46
+bf447f8f
+b120c704
+bf847f8f
+c1f0b906
+7b897fd1
+c704bf84
 7f8fc1f0
 b9067b89
-7fd1c704
-bf467f8f
-c1f0b906
-7b8989ff
-c704bf46
-7f8f7fe9
-c703bfe0
-7f8f9901
-c703bfe0
-7f8f7fe1
-c1f0b908
-7b89c704
-bf0a7f8f
-7fe9c703
-bfe07f8f
-9901c703
-bfe07f8f
+89ffc704
+bf847f8f
+7fe9c704
+bf1a7f8f
+9901c704
+bf1a7f8f
 7fe1c1f0
-b90a7b89
-c704bf0a
+b9087b89
+c704bf44
 7f8f7fe9
-c703bfe0
+c704bf1a
 7f8f9901
-c703bfe0
+c704bf1a
 7f8f7fe1
-c1f0b90c
+c1f0b90a
 7b89c704
-bf0a7f8f
-7fe9c703
-bfe07f8f
-9901c703
-bfe07f8f
+bf447f8f
+7fe9c704
+bf1a7f8f
+9901c704
+bf1a7f8f
 7fe1c1f0
-b90e7b89
-c704bf0a
+b90c7b89
+c704bf44
 7f8f7fe9
-c703bfe0
+c704bf1a
 7f8f9901
-c104b9b2
-c703bfe0
-7f8f082a
-c150b908
-c206ba10
-c704bf58
+c704bf1a
+7f8f7fe1
+c1f0b90e
+7b89c704
+bf447f8f
+7fe9c704
+bf1a7f8f
+9901c104
+b9f0c704
+bf1a7f8f
+082dc100
+b908798e
+c206ba4e
+c704bf96
 7f8fa800
-1006c104
-b9d6c703
-bffc7f8f
-081bc150
-b9087b01
-a8001816
-c105b9d8
-c703bfe0
-7f8f7fe1
-c150b908
-c703bfe0
+1006c105
+b914c704
+bf367f8f
+081dc100
+b908798e
+7b01a800
+1817c106
+b916c704
+bf1a7f8f
+7fe1c100
+b908798e
+c704bf1a
 7f8f7fe9
-c703bfe0
+c704bf1a
 7f8f0806
-c105b9f6
-c703bfe0
+c106b934
+c704bf1a
 7f8f0800
-c750bf00
-7b878806
-c703bf0e
-79b87bbf
-7f870316
-0332034e
-0376c7f0
-bf1e7b87
-c100b996
-7a812841
-c750bf02
+c700bf00
+79be7b87
+8806c703
+bf3879b8
+7bbf7f87
+0340035e
+037c03a8
+c7f0bf1e
+7b87c100
+b9967a81
+2847c700
+bf0279be
 7b87c7f0
 bf2a7bf8
-0830c7f0
+0834c7f0
 bf1e7b87
 c100b996
-7a812833
-c750bf02
-7b87c7f0
-bf2c7bf8
-0822c7f0
-bf1e7b87
-c100b996
-7a812825
-c750bf02
+7a812838
+c700bf02
+79be7b87
+c7f0bf2c
+7bf80825
+c7f0bf1e
+7b87c100
+b9967a81
+2829c700
+bf0279be
 7b87c7f0
 bf2a7bf8
-c750bf02
-7b879801
-88077bf8
-080ec7f0
-bf1e7b87
-c102b926
-7a812811
-c750bf02
+c700bf02
+79be7b87
+98018807
+7bf8080f
+c7f0bf1e
+7b87c102
+b9267a81
+2813c700
+bf0279be
 7b87c7f0
 bf2c7bf8
 0800c7f0
 bf10b001
-7bf8c750
-bf007b87
-98028806
-7bf80e68
-c7f0bf36
-c6f0be30
-c550bd08
-7b868880
+7bf8c700
+bf0079be
+7b879802
+88067bf8
+0e4fc7f0
+bf36c5f0
+bd30c400
+bc0879a6
+7b858880
 1ffd7b87
-7b689d01
-a80a1804
-c050b847
-7aa82ff4
-b000a501
-7b68a501
-7b05a80d
-1002b000
-7b680002
+7b609c01
+a80a1805
+c000b847
+79867aa0
+2ff3b000
+a4017b60
+a4017b04
+a80d1002
+b0007b60
+0002c7f0
+bf34c5f0
+bd307b11
+9901aa00
+18057b85
+881017fd
+7bfa0ff7
+0002c704
+bf1a7f8f
+7b01a800
+17fa0002
+b3047fe6
 c7f0bf34
 c6f0be30
-7b119901
-aa001805
-7b868810
-17fd7bfa
-0ff70002
-c703bfe0
-7f8f7b01
-a80017fa
-0002b304
-c7f0bf34
-c6f0be30
-c504bd36
+c504bd74
 78c178e5
 7fd0d8fc
 880f79a0
@@ -2022,124 +2124,124 @@ c504bd36
 881017fd
 7bfad904
 a30117f2
-00023031
-32333435
-36373839
-61626364
-6566c7f0
-bf307b87
-881017fd
-c7f0bf34
-7bf90002
-7b199901
-7b229a01
-78c37a04
-1004ab00
-1802ac00
-17f50002
-7b199901
-7b229a01
-78c37a04
-1006a501
-1804ab00
-1802ac00
-17f30002
-b0007b11
-a230280e
-aa0a2808
-a207280a
-aa102804
-a2202806
-aa102004
-d8047982
-99010fef
-00024f4b
-3a207267
-625f6c65
-645f626c
-696e6b20
-7665722e
-312e3038
-0d0a0000
-5244590d
-0a004f4b
-2b207264
-2c3c6164
-725f6865
-78343e0d
-0a004f4b
-2b207772
-2c3c6164
-725f6865
-78343e2c
-3c646174
-5f686578
-343e0d0a
+7fee0002
+30313233
+34353637
+38396162
+63646566
+c7f0bf30
+7b878810
+17fdc7f0
+bf347bf9
+00027b19
+99017b22
+9a0178c3
+7a041004
+ab001802
+ac0017f5
+00027b19
+99017b22
+9a0178c3
+7a041006
+a5011804
+ab001802
+ac0017f3
+0002b000
+7b11a230
+280eaa0a
+2808a207
+280aaa10
+2804a220
+2806aa10
+2004d804
+79829901
+0fef0002
+4f4b3a20
+7267625f
+6c65645f
+626c696e
+6b207665
+722e312e
+31300d0a
+00005244
+590d0a00
 4f4b2b20
-77686f0d
-0a004f4b
-3a206865
-6c700d0a
-00004f4b
-2b206964
-20636f64
-653a2000
+72642c3c
+6164725f
+68657834
+3e0d0a00
+4f4b2b20
+77722c3c
+6164725f
+68657834
+3e2c3c64
+61745f68
+6578343e
+0d0a4f4b
+2b207768
+6f0d0a00
+4f4b3a20
+68656c70
 0d0a0000
 4f4b2b20
-76657273
-696f6e3a
+69642063
+6f64653a
 20000d0a
 00004f4b
-2b206663
-7075206b
-487a3a00
+2b207665
+7273696f
+6e3a2000
 0d0a0000
 4f4b2b20
-65646974
-696f6e3a
-20000d0a
+66637075
+206b487a
+3a000d0a
 00004f4b
-2b20726f
-6d20746f
-703a2000
+2b206564
+6974696f
+6e3a2000
 0d0a0000
 4f4b2b20
 726f6d20
-73697a65
-3a000d0a
+746f703a
+20000d0a
 00004f4b
-2b207261
-6d20746f
-703a2000
+2b20726f
+6d207369
+7a653a00
 0d0a0000
 4f4b2b20
 72616d20
-73697a65
-3a000d0a
+746f703a
+20000d0a
 00004f4b
-3a207265
-61645b30
-78005d3d
-3078000d
-0a004f4b
-3a207772
-6974655b
-3078005d
-3d307800
+2b207261
+6d207369
+7a653a00
 0d0a0000
+4f4b3a20
+72656164
+5b307800
+5d3d3078
+000d0a00
+4f4b3a20
+77726974
+655b3078
+005d3d30
+78000d0a
+00004552
+523a2075
+6e737570
+706f7274
+65642063
+6f6d6d61
+6e643a20
+000d0a00
 4552523a
-20756e73
-7570706f
-72746564
-20636f6d
-6d616e64
-3a20000d
-0a004552
-523a2073
-796e7461
-780d0a00
-72642c00
-77722c00
-77686f00
-68656c70
-0000ffff
+2073796e
+7461780d
+0a007264
+2c007772
+2c007768
+6f006865
+6c700000

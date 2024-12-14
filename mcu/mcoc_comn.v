@@ -1397,13 +1397,17 @@ output	bcs_dacu_n,
 output	bcs_iome_n,
 output	bcs_tled_n,
 output	bcs_adcx_n,
-output	bcs_cm76_n);
+output	bcs_cm76_n,
+output	bcs_stft_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2024/12/14	ver.1.12
+//		add: bcs_stft_n; STFT61 unit, SPI-TFT controller
 //
 //	2024/09/21	ver.1.10
 //		add: compile option MCOC_ROM_32K, MCOC_ROM_48K
@@ -1508,6 +1512,7 @@ assign	bcs_iome_n=(!bcs_iou_n && badr[11:4]==8'h15)? 1'b0: 1'b1;
 assign	bcs_tled_n=(!bcs_iou_n && badr[11:4]==8'h16)? 1'b0: 1'b1;
 assign	bcs_adcx_n=(!bcs_iou_n && badr[11:4]==8'h17)? 1'b0: 1'b1;
 assign	bcs_cm76_n=(!bcs_iou_n && badr[11:4]==8'h18)? 1'b0: 1'b1;
+assign	bcs_stft_n=(!bcs_iou_n && badr[11:4]==8'h19)? 1'b0: 1'b1;
 
 
 endmodule

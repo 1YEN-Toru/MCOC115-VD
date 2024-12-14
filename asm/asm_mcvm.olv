@@ -1,11 +1,15 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.48";
+	macro	prog_vers="1.50";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2024/12/14	ver.1.50
+//			fix: branch too far check
+//			pseudo: romsiz; optimize warning message
 //
 //		2024/10/12	ver.1.48
 //			pseudo: equ; immediate definition condition changed
@@ -676,17 +680,17 @@ model	"Moscovium series macro assembler"
 				strcmp	cmp=$(chr),"t";
 				if (cmp=0)
 				{
-					get_chr_cod=9;
+					get_chr_cod=0x09;
 				}
 				strcmp	cmp=$(chr),"n";
 				if (cmp=0)
 				{
-					get_chr_cod=10;
+					get_chr_cod=0x0a;
 				}
 				strcmp	cmp=$(chr),"r";
 				if (cmp=0)
 				{
-					get_chr_cod=13;
+					get_chr_cod=0x0d;
 				}
 				strcmp	cmp=$(chr),"x";
 				if (cmp=0)
@@ -2634,9 +2638,9 @@ vtime	asm_start;
 				{
 					mlet	buf=$(lbuf2);
 					psub	".*@","@@",buf;
-					psub	"0x07ff","0xf800",buf;
+					psub	"0x07ff","0xfc00",buf;
 					cod=$(buf);
-					if (cod!=0 & cod!=0xf800)
+					if (cod!=0 & cod!=0xfc00)
 					{
 						pgsub	"#","##",lbuf;
 						errmsg	"branch too far: "$,$(lbuf);
@@ -2796,7 +2800,8 @@ vtime	asm_start;
 	}
 	if (ROMBIT<int (ceil (ln (ROMSIZ)/ln (2))))
 	{
-		message		"WARNING: correct "$""romsiz"$"" pseudo instruction";
+		message		"WARNING: correct "$""romsiz #"
+					$"" pseudo instruction (>>=#)",2**ROMBIT,ROMSIZ;
 	}
 
 	var		romi0, romi1;

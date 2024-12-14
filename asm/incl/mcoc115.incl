@@ -34,6 +34,7 @@ equ		prin_flt_0,0x0000				// princtl[FLT] field
 equ		prin_flt_1,0x0004				//	"%f"
 equ		prin_flt_2,0x0008				//	"%e"
 equ		prin_flt_3,0x000c				//	"%g"
+equ		prin_chr_m,0xff00				// princtl[CHR] field
 # ================================
 equ		iramtop,0x4000					// iram top address; <MCOC_ROM_16K
 equ		ramtop,0x5000					// ram top address; <MCOC_ROM_16K
@@ -727,5 +728,21 @@ equ		cm76_hsyn,0x40					// cm76pix[HSYN] bit
 equ		cm76_r10,0x30					// cm76pix[R10] field
 equ		cm76_g10,0x0c					// cm76pix[G10] field
 equ		cm76_b10,0x03					// cm76pix[B10] field
+# STFT61
+equ		stftctl,0xf190					// stft, RW, word
+equ		stftpind,0xf192					// stft, R, word
+equ		stftpset,0xf192					// stft, RW, word
+equ		stftpins,0xf194					// stft, R, word
+equ		stftpclr,0xf194					// stft, RW, word
+equ		stftduty,0xf196					// stft, RW, word
+equ		stft_pwme,0x80					// stftctl[PWME] bit
+equ		stft_pinv,0x40					// stftctl[PINV] bit
+equ		stft_port_5,0x20				// [PORT5] bit
+equ		stft_port_4,0x10				// [PORT4] bit
+equ		stft_port_3,0x08				// [PORT3] bit
+equ		stft_port_2,0x04				// [PORT2] bit
+equ		stft_port_1,0x02				// [PORT1] bit
+equ		stft_port_0,0x01				// [PORT0] bit
+equ		stft_port_a,0x3f				// [PORT*] mask
 # ================================
 

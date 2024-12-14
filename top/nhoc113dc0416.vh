@@ -54,7 +54,10 @@
 //`define		MCOC_NO_SMPH
 //`define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
+
+// I/O unit (PMOD connector)
 `define		MCOC_NO_CM76
+`define		MCOC_NO_STFT
 
 // Memory unit
 //`define		MCOC_ROM_8K
@@ -152,6 +155,11 @@
 `undef		MCOC_RAM_LE1K
 `undef		MCOC_RAM_4K
 `endif	//	MCOC_ERAM
+
+`ifdef		MCOC_NO_STFT61
+`else	//	MCOC_NO_STFT61
+`define		MCOC_NO_CM76
+`endif	//	MCOC_NO_STFT61
 
 `define		MCOC_PORT_HIZO				// default now
 

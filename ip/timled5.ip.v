@@ -3,11 +3,11 @@
 module timled5
    (clk,
     rst_n,
+    simumd,
     brdy,
     bcmdr,
     bcmdw,
     bcs_tled_n,
-    simumd,
     gpio_port,
     gpio_port_oe,
     badr,
@@ -38,11 +38,11 @@ module timled5
 //
   input clk;
   input rst_n;
+  input simumd;
   input brdy;
   input bcmdr;
   input bcmdw;
   input bcs_tled_n;
-  input simumd;
   input [2:0]gpio_port;
   input [2:0]gpio_port_oe;
   input [3:0]badr;

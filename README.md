@@ -106,11 +106,11 @@
 
 ## Coprocessor
 - [MULC16](http://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
-	- Multiply coprocessor
+	- Multiply co-processor
 		- for Moscovium / Moscovium-SS
 	- 16 * 16 = 32 bit multiply, signed and unsigned
 - [DIVC32](http://hello.world.coocan.jp/ARDUINO16/arduino16_3.html#HYBDIV)
-	- Divide coprocessor
+	- Divide co-processor (flush / step hyblid divider)
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
@@ -193,6 +193,13 @@
 	- OV7670 camera I/F unit
 	- VGA size (640x480[dot])
 	- RGB222 pixel format (64 colors)
+- [STFT61](http://hello.world.coocan.jp/ARDUINO3x/arduino33_1.html#STFT61)
+	- SPI-TFT (ST7735R) controller unit
+	- I/O port for software SPI * 6
+		- SS, SCLK, MOSI, MISO
+		- Reset, Strobe, etc.
+	- PWM output for back light LED * 1
+		- Tpwm=192*255/fcpu
 <!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit

@@ -136,7 +136,7 @@ pause
 
 
 // ================================
-// print r1; disturbed r0, r1, r7
+// print r1; disturbed r0,r1,r7
 print:
 ldwi	r7,princhr
 prn_loop:
