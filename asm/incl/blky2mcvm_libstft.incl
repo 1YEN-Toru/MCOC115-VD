@@ -1,0 +1,1289 @@
+// ================================
+//	blky2mcvm SPI-TFT (ST7735R) library
+//		(c) 2025	1YEN Toru
+//
+//
+//		2025/01/11	ver.1.00
+//			_stft_init: initialize SPI-TFT module
+//			_stft_clear: clear screen
+//			_stft_pixel_r2_r1_r0: RGB888 (r2,r1,r0) to BGR565 conversion
+//			_stft_print_r1: print string r1 (S-JIS encoding)
+//			_stft_box_fill: draw box fill
+//			_stft_box_wire: draw box wire
+//			_stft_dot_r2_r1_r0: draw dot (r2,r1) by pixel r0
+//				draw subroutines need MULC16
+//			_stft_getpix_r1_r0: get pixel at (r1,r0) position
+//			_stft_send_r1_r2: SPI send command / data
+//			_stft_recv_r1_r2: SPI receive command / data
+//
+// ================================
+# string macros
+def		stft_vers,"1.00"				// library version
+# constants
+equ		_stft_ss,stft_port_4			// spi: ss pin
+equ		_stft_sck,stft_port_3			// spi: sck pin
+equ		_stft_mosi,stft_port_0			// spi: mosi pin
+equ		_stft_miso,_stft_mosi			// spi: miso pin (multiplexed)
+equ		_stft_dcx,stft_port_1			// tft: d/cx pin
+equ		_stft_res,stft_port_2			// tft: reset pin
+equ		_stft_siz_dh,128				// tft: horizontal size [dot]
+equ		_stft_siz_dv,160				// tft: vertical size [dot]
+equ		_stft_siz_ch,_stft_siz_dh/8		// tft: horizontal size [character]
+equ		_stft_siz_cv,_stft_siz_dv/8		// tft: vertical size [character]
+equ		_stft_opt_store,0				// tft: _stft_putpix() option command
+equ		_stft_opt_init,1
+equ		_stft_opt_flush,2
+equ		_stft_spi_shiftl,16				// spi: additional amount of data shift
+equ		_stft_spi_shiftw,0
+# pixel BGR565
+equ		_stft_black,((0x00>>3)<<11)|((0x00>>2)<<5)|(0x00>>3)		// HUE/360
+equ		_stft_blue,((0xff>>3)<<11)|((0x00>>2)<<5)|(0x00>>3)			// 240
+equ		_stft_red,((0x00>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)			// 0
+equ		_stft_magenta,((0xff>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)
+equ		_stft_green,((0x00>>3)<<11)|((0xff>>2)<<5)|(0x00>>3)		// 120
+equ		_stft_cyan,((0xff>>3)<<11)|((0xff>>2)<<5)|(0x00>>3)
+equ		_stft_yellow,((0x00>>3)<<11)|((0xff>>2)<<5)|(0xff>>3)
+equ		_stft_white,((0xff>>3)<<11)|((0xff>>2)<<5)|(0xff>>3)
+equ		_stft_gray,((0x80>>3)<<11)|((0x80>>2)<<5)|(0x80>>3)
+equ		_stft_purple,((0xff>>3)<<11)|((0x00>>2)<<5)|(0x80>>3)		// 270
+equ		_stft_pink,((0x80>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)			// 330
+equ		_stft_orange,((0x00>>3)<<11)|((0x80>>2)<<5)|(0xff>>3)		// 30
+equ		_stft_lawn,((0x00>>3)<<11)|((0xff>>2)<<5)|(0x80>>3)			// 90
+equ		_stft_emerald,((0x80>>3)<<11)|((0xff>>2)<<5)|(0x00>>3)		// 150
+equ		_stft_cobalt,((0xff>>3)<<11)|((0x80>>2)<<5)|(0x00>>3)		// 210
+# ================================
+# user macros
+macro	_stft_ss_0
+// ss=0
+ldbiu	r0,_stft_ss
+stw		[r5],r0
+endm
+
+macro	_stft_ss_1
+// ss=1
+ldbiu	r0,_stft_ss
+stw		[r7],r0
+endm
+
+macro	_stft_sck_0
+// sck=0
+ldbiu	r0,_stft_sck
+stw		[r5],r0
+endm
+
+macro	_stft_sck_1
+// sck=1
+ldbiu	r0,_stft_sck
+stw		[r7],r0
+endm
+
+macro	_stft_mosi_o
+// mosi
+ldbiu	r0,_stft_mosi
+lsli	r1,1
+bcs		pcnt+4
+stw		[r5],r0							// clear
+bra		pcnt+2
+stw		[r7],r0							// set
+endm
+
+macro	_stft_dcx_0
+// d/cx=0
+ldbiu	r0,_stft_dcx
+stw		[r5],r0
+endm
+
+macro	_stft_dcx_1
+// d/cx=1
+ldbiu	r0,_stft_dcx
+stw		[r7],r0
+endm
+
+macro	_stft_res_0
+// reset=0
+ldwi	r5,stftpclr
+ldbiu	r0,_stft_res
+stw		[r5],r0
+endm
+
+macro	_stft_res_1
+// reset=1
+ldwi	r7,stftpset
+ldbiu	r0,_stft_res
+stw		[r7],r0
+endm
+# ================================
+
+
+// ================================
+// update cursor position ; disturbed r0,r2,r7
+// ================================
+align	4
+_stft_upd_curs:
+//	if (_stft_prn_lx>_stft_siz_dh/8 - 1)
+ldvar	r7,_stft_prn_lx
+ld$(z)	r0,[r7]
+ldwi	r2,_stft_siz_ch
+cmp		r0,r2
+blt		_stft_tuc_wid_else
+//	{
+//		_stft_prn_lx=0;
+ldvar	r7,_stft_prn_lx
+ldbiu	r0,0
+st$(z)	[r7],r0
+//		_stft_prn_ly += 2;
+ldvar	r7,_stft_prn_ly
+ld$(z)	r0,[r7]
+addi	r0,1
+ldvar	r2,_stft_prn_2x2
+ld$(z)	r2,[r2]
+cmpi	r2,false
+beq		pcnt+2
+addi	r0,1
+st$(z)	[r7],r0
+bra		_stft_tuc_wid_endi
+//	}
+_stft_tuc_wid_else:
+//	else if (_stft_prn_lx<0)
+cmpi	r0,0
+bpl		_stft_tuc_wid_endi
+//	{
+//		_stft_prn_lx=_stft_siz_dh/8 - 1;
+subi	r2,1
+ldvar	r7,_stft_prn_lx
+st$(z)	[r7],r2
+//		_stft_prn_ly -= 2;
+ldvar	r7,_stft_prn_ly
+ld$(z)	r0,[r7]
+subi	r0,1
+st$(z)	[r7],r0
+//	}
+_stft_tuc_wid_endi:
+
+//	if (_stft_prn_ly>_stft_siz_dv/8 - 2)
+ldvar	r7,_stft_prn_ly
+ld$(z)	r0,[r7]
+ldwi	r2,_stft_siz_cv
+cmp		r0,r2
+blt		_stft_tuc_hei_else
+//	{
+//		_stft_prn_ly=0;
+ldvar	r7,_stft_prn_ly
+ldbiu	r0,0
+st$(z)	[r7],r0
+bra		_stft_tuc_hei_endi
+//	}
+_stft_tuc_hei_else:
+//	else if (_stft_prn_ly<0)
+cmpi	r0,0
+bpl		_stft_tuc_hei_endi
+//	{
+//		_stft_prn_ly=_stft_siz_dv/8 - 2;
+subi	r2,1
+ldvar	r7,_stft_prn_ly
+st$(z)	[r7],r2
+//	}
+_stft_tuc_hei_endi:
+rtn$(z)
+
+// ================================
+// control code ; do not disturb r1
+// ================================
+_stft_jmp_tab:
+datw	lab__stft_ctrl_00
+datw	lab__stft_ctrl_01
+datw	lab__stft_ctrl_02
+datw	lab__stft_ctrl_03
+datw	lab__stft_ctrl_04
+datw	lab__stft_ctrl_05
+datw	lab__stft_ctrl_06
+datw	lab__stft_ctrl_07
+datw	lab__stft_ctrl_08
+datw	lab__stft_ctrl_09
+datw	lab__stft_ctrl_0a
+datw	lab__stft_ctrl_0b
+datw	lab__stft_ctrl_0c
+datw	lab__stft_ctrl_0d
+datw	lab__stft_ctrl_0e
+datw	lab__stft_ctrl_0f
+datw	lab__stft_ctrl_10
+datw	lab__stft_ctrl_11
+datw	lab__stft_ctrl_12
+datw	lab__stft_ctrl_13
+datw	lab__stft_ctrl_14
+datw	lab__stft_ctrl_15
+datw	lab__stft_ctrl_16
+datw	lab__stft_ctrl_17
+datw	lab__stft_ctrl_18
+datw	lab__stft_ctrl_19
+datw	lab__stft_ctrl_1a
+datw	lab__stft_ctrl_1b
+datw	lab__stft_ctrl_1c
+datw	lab__stft_ctrl_1d
+datw	lab__stft_ctrl_1e
+datw	lab__stft_ctrl_1f
+
+// CR(\x0d, \r) code; return
+align	4
+_stft_ctrl_0d:
+ldvar	r7,_stft_prn_lx
+ldbiu	r0,0
+st$(z)	[r7],r0
+rtn$(z)
+
+// LF(\x0a, \n) code; line feed
+align	4
+_stft_ctrl_0a:
+ldvar	r7,_stft_prn_ly
+ld$(z)	r0,[r7]
+addi	r0,1
+st$(z)	[r7],r0
+jal$(z)r7	_stft_upd_curs
+rtn$(z)
+
+// VT(\x0b, \v) code; cursor up
+align	4
+_stft_ctrl_0b:
+ldvar	r7,_stft_prn_ly
+ld$(z)	r0,[r7]
+subi	r0,1
+st$(z)	[r7],r0
+jal$(z)r7	_stft_upd_curs
+rtn$(z)
+
+// BS(\x08, \b) code; cursor left
+align	4
+_stft_ctrl_08:
+ldvar	r7,_stft_prn_lx
+ld$(z)	r0,[r7]
+subi	r0,1
+st$(z)	[r7],r0
+jal$(z)r7	_stft_upd_curs
+rtn$(z)
+
+// HT(\x09, \t) code; cursor right
+align	4
+_stft_ctrl_09:
+ldvar	r7,_stft_prn_lx
+ld$(z)	r0,[r7]
+addi	r0,1
+st$(z)	[r7],r0
+jal$(z)r7	_stft_upd_curs
+rtn$(z)
+
+// FF(\x0c, \f) code; clear screen
+align	4
+_stft_ctrl_0c:
+push$(z)	r1
+// clear screen (box fill)
+ldbiu	r0,0
+push$(z)	r0
+push$(z)	r0
+ldwi	r0,_stft_siz_dh-1
+push$(z)	r0
+ldwi	r0,_stft_siz_dv-1
+push$(z)	r0
+ldvar	r7,_stft_prn_bg
+ld$(z)	r0,[r7]
+push$(z)	r0
+jal$(z)r7	_stft_box_fill
+movfc	r0,sp
+addi	r0,5*_rtlb_var_siz$(z)
+movtc	sp,r0
+// reset variables
+ldbiu	r0,0
+ldvar	r7,_stft_prn_lx
+st$(z)	[r7],r0
+ldvar	r7,_stft_prn_ly
+st$(z)	[r7],r0
+// end of subroutine
+pop$(z)	r1
+rtn$(z)
+
+// SO(\x0e) code; 1x1 font
+align	4
+_stft_ctrl_0e:
+ldvar	r7,_stft_prn_2x2
+ldbiu	r0,false
+st$(z)	[r7],r0
+rtn$(z)
+
+// SI(\x0f) code; 2x2 font
+align	4
+_stft_ctrl_0f:
+ldvar	r7,_stft_prn_2x2
+ldbiu	r0,true
+st$(z)	[r7],r0
+rtn$(z)
+
+// \x10 code; set cursor x
+align	4
+_stft_ctrl_10:
+ldb		r0,[r1]
+addi	r1,1
+ldwi	r2,_stft_siz_ch
+cmp		r0,r2
+blo		pcnt+2
+ldbiu	r0,0
+ldvar	r7,_stft_prn_lx
+st$(z)	[r7],r0
+rtn$(z)
+
+// \x11 code; set cursor y
+align	4
+_stft_ctrl_11:
+ldb		r0,[r1]
+addi	r1,1
+ldwi	r2,_stft_siz_cv
+cmp		r0,r2
+blo		pcnt+2
+ldbiu	r0,0
+ldvar	r7,_stft_prn_ly
+st$(z)	[r7],r0
+rtn$(z)
+
+// \x12 code; set foreground color
+align	4
+_stft_ctrl_12:
+ldb		r0,[r1]
+addi	r1,1
+mov		r2,r0
+ldb		r0,[r1]
+addi	r1,1
+lsli	r2,8
+add		r0,r2
+ldvar	r7,_stft_prn_fg
+st$(z)	[r7],r0
+rtn$(z)
+
+// \x13 code; set background color
+align	4
+_stft_ctrl_13:
+ldb		r0,[r1]
+addi	r1,1
+mov		r2,r0
+ldb		r0,[r1]
+addi	r1,1
+lsli	r2,8
+add		r0,r2
+ldvar	r7,_stft_prn_bg
+st$(z)	[r7],r0
+rtn$(z)
+
+// \x14 code; set affine transformation
+align	4
+_stft_ctrl_14:
+ldb		r0,[r1]
+addi	r1,1
+ldwi	r7,fnjpctl
+andi	r0,fnjp_inv|fnjp_flp_h|fnjp_flp_v|fnjp_rot_3
+stw		[r7],r0
+rtn$(z)
+
+// \x15 code; wait *10[ms]
+align	4
+_stft_ctrl_15:
+ldb		r0,[r1]
+addi	r1,1
+// r0=r0*10
+mov		r2,r0
+lsli	r0,3
+add		r0,r2
+add		r0,r2
+push$(z)	r1
+jal$(z)r7	_delay_ms_r0
+pop$(z)	r1
+rtn$(z)
+
+// \x16 code; set pwm duty (backlight led intensity)
+align	4
+_stft_ctrl_16:
+ldb		r0,[r1]
+addi	r1,1
+ldwi	r7,stftduty
+stw		[r7],r0
+rtn$(z)
+
+// not defined, ignore
+align	4
+_stft_ctrl_00:
+_stft_ctrl_01:
+_stft_ctrl_02:
+_stft_ctrl_03:
+_stft_ctrl_04:
+_stft_ctrl_05:
+_stft_ctrl_06:
+_stft_ctrl_07:
+_stft_ctrl_17:
+_stft_ctrl_18:
+_stft_ctrl_19:
+_stft_ctrl_1a:
+_stft_ctrl_1b:
+_stft_ctrl_1c:
+_stft_ctrl_1d:
+_stft_ctrl_1e:
+_stft_ctrl_1f:
+rtn$(z)
+
+// ================================
+// software spi send ; disturbed r0~r3,r5,r7
+//	mode 0, MSB first, 8 bit, r1 bytes
+//	parameter:	r1=size of data, r2=pointer to tbuf[]
+// ================================
+align	4
+_stft_send_r1_r2:
+ldwi	r7,stftpset
+ldwi	r5,stftpclr
+_stft_ss_0
+_stft_dcx_0								// the 1st byte is a command
+mov		r3,r1
+_stft_spi_loop_send:
+ldb		r1,[r2]
+addi	r2,1
+lsli	r1,8+_stft_spi_shift$(z)
+// spi 8 bits transfer
+rept	8
+// spi bit $(reptr)
+_stft_mosi_o
+_stft_sck_1
+_stft_sck_0
+endr
+_stft_dcx_1								// the N th bytes are data (N>1)
+// end of loop
+subi	r3,1
+bne		_stft_spi_loop_send
+_stft_ss_1
+rtn$(z)
+
+// ================================
+// software spi receive ; disturbed r0~r4,r5,r7
+//	mode 0, MSB first, 8 bit, r1 bytes (including command byte)
+//	parameter:	r1=size of data (>1), r2=pointer to tbuf[]
+// ================================
+align	4
+_stft_recv_r1_r2:
+ldwi	r7,stftpset
+ldwi	r5,stftpclr
+// send command byte
+_stft_ss_0
+_stft_dcx_0								// the 1st byte is a command
+mov		r3,r1
+ldb		r1,[r2]
+addi	r2,1
+lsli	r1,8+_stft_spi_shift$(z)
+// spi 8 bits transfer
+rept	8
+// spi bit $(reptr)
+_stft_sck_0
+_stft_mosi_o
+_stft_sck_1
+endr
+// miso input enable (output disable)
+ldwi	r4,stftctl
+ldw		r0,[r4]
+andi	r0,~_stft_miso
+stw		[r4],r0
+_stft_sck_0
+_stft_dcx_1								// the N th bytes are data (N>1)
+// receive data
+subi	r3,1
+ldwi	r4,stftpind
+_stft_spi_loop_recv:
+// spi 8 bits receive
+ldbiu	r1,0
+rept	8
+// spi bit $(reptr)
+lsli	r1,1
+_stft_sck_1
+// miso
+ldw		r0,[r4]
+andi	r0,_stft_miso
+beq		pcnt+2
+ori		r1,1
+_stft_sck_0
+endr
+// store received data
+stb		[r2],r1
+addi	r2,1
+// end of loop
+subi	r3,1
+bne		_stft_spi_loop_recv
+_stft_ss_1
+// mosi output enable
+ldwi	r4,stftctl
+ldw		r0,[r4]
+ori		r0,_stft_miso
+stw		[r4],r0
+rtn$(z)
+
+// ================================
+// tft pixel ; disturbed r1,r2
+//	parameter:	r2=Red, r1=Green, r0=Blue (0~255)
+//	return: r0=pixel (BGR565)
+// ================================
+align	4
+_stft_pixel_r2_r1_r0:
+// only the lower 8 bits are valid
+andi	r0,0xff
+andi	r1,0xff
+andi	r2,0xff
+// RGB888 to BGR565 conversion
+lsri	r0,3
+lsri	r1,2
+lsri	r2,3
+lsli	r0,5+6
+lsli	r1,5
+or		r0,r2
+or		r0,r1
+rtn$(z)
+
+// ================================
+// tft get pixel ; disturbed r0~r3,r5,r7
+//	parameter: r1=px, r0=py
+//	return: r0=pixel (BGR565)
+// ================================
+align	4
+_stft_getpix_r1_r0:
+push$(z)	r0
+// CASET
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2a
+stb		[r7],r0
+addi	r7,1
+// px
+mov		r0,r1
+lsri	r0,8
+stb		[r7],r0
+addi	r7,1
+stb		[r7],r1
+addi	r7,1
+// px
+stb		[r7],r0
+addi	r7,1
+stb		[r7],r1
+// spi
+ldbiu	r1,5
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// RASET
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2b
+stb		[r7],r0
+addi	r7,1
+// py
+pop$(z)	r1
+mov		r0,r1
+lsri	r0,8
+stb		[r7],r0
+addi	r7,1
+stb		[r7],r1
+addi	r7,1
+// py
+stb		[r7],r0
+addi	r7,1
+stb		[r7],r1
+// spi
+ldbiu	r1,5
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// COLMOD ; set 18 bit color mode
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x3a
+stb		[r7],r0
+addi	r7,1
+ldbiu	r0,0x06
+stb		[r7],r0
+// spi
+ldbiu	r1,2
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// RAMRD
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2e
+stb		[r7],r0
+// spi
+ldbiu	r1,5							// RAMRD, dummy read, B,G,R
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_recv_r1_r2
+// COLMOD ; set 16 bit color mode
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x3a
+stb		[r7],r0
+addi	r7,1
+ldbiu	r0,0x05
+stb		[r7],r0
+addi	r7,1
+// spi
+ldbiu	r1,2
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// RGB888 to BGR565 conversion
+ldvar	r7,_stft_spi_buf+2
+ldb		r0,[r7]
+addi	r7,1
+ldb		r1,[r7]
+addi	r7,1
+ldb		r2,[r7]
+# ATTN! The ST7735R datasheet states that the pixel data
+#	in the RAMRD command is left aligned RGB666 in RGB888 format,
+#	but the actual response seems to not be.
+lsli	r0,1
+lsli	r1,1
+lsli	r2,1
+andi	r0,0xfc
+andi	r1,0xfc
+andi	r2,0xfc
+#
+jal$(z)r7	_stft_pixel_r2_r1_r0
+// end of subroutine
+rtn$(z)
+
+// ================================
+// tft ram write ; disturbed r0~r3,r5,r7
+// ================================
+align	4
+_stft_ram_write:
+ldvar	r2,_stft_pix_ptr
+ld$(z)	r2,[r2]
+cmpi	r2,0
+beq		_stft_trw_return
+ldwi	r7,stftpset
+ldwi	r5,stftpclr
+// send pixel data
+ldvar	r3,_stft_pix_buf
+_stft_trw_loop:
+ld$(z)	r1,[r3]
+addi	r3,2
+// spi 16 bits transfer
+rept	16
+// spi bit $(reptr)
+_stft_mosi_o
+_stft_sck_1
+_stft_sck_0
+endr
+// end of loop
+subi	r2,1
+bne		_stft_trw_loop
+// end of subroutine
+_stft_trw_return:
+rtn$(z)
+
+// ================================
+// tft put pixel ; disturbed r0~r3,r5,r7
+//	parameter:	r1=pixel, r0=option
+// ================================
+align	4
+_stft_putpix:
+cmpi	r0,_stft_opt_init
+bne		_stft_tpx_not_init
+// initialize
+ldvar	r7,_stft_pix_ptr
+ldbiu	r0,0
+st$(z)	[r7],r0
+// send RAMWR command
+ldwi	r7,stftpset
+ldwi	r5,stftpclr
+_stft_ss_0
+_stft_dcx_0
+ldbiu	r1,0x2c
+lsli	r1,8+_stft_spi_shift$(z)
+// spi 8 bits transfer
+rept	8
+// spi bit $(reptr)
+_stft_mosi_o
+_stft_sck_1
+_stft_sck_0
+endr
+_stft_dcx_1
+rtn$(z)
+
+_stft_tpx_not_init:
+cmpi	r0,_stft_opt_flush
+bne		_stft_tpx_not_flush
+// flush pixel data
+jal$(z)r7	_stft_ram_write
+ldvar	r7,_stft_pix_ptr
+ldbiu	r0,0
+st$(z)	[r7],r0
+// exit RAMWR
+ldwi	r7,stftpset
+_stft_ss_1
+rtn$(z)
+
+_stft_tpx_not_flush:
+// store pixel
+ldvar	r7,_stft_pix_buf
+ldvar	r0,_stft_pix_ptr
+ld$(z)	r0,[r0]
+add		r7,r0
+add		r7,r0
+st$(z)	[r7],r1
+addi	r0,1
+ldvar	r7,_stft_pix_ptr
+st$(z)	[r7],r0
+cmpi	r0,_stft_pix_max
+blo		_stft_tpx_not_full
+// flush pixel data
+jal$(z)r7	_stft_ram_write
+ldvar	r7,_stft_pix_ptr
+ldbiu	r0,0
+st$(z)	[r7],r0
+_stft_tpx_not_full:
+rtn$(z)
+
+// ================================
+// tft draw box fill ; disturbed r0~r4,r5,r7
+//	parameter:
+//		sp+5:	px1
+//		sp+4:	py1
+//		sp+3:	px2
+//		sp+2:	py2
+//		sp+1:	pix
+//		sp+0:	caller address
+// ================================
+equ		_stft_box_fill_px1,5*_rtlb_var_siz$(z)
+equ		_stft_box_fill_py1,4*_rtlb_var_siz$(z)
+equ		_stft_box_fill_px2,3*_rtlb_var_siz$(z)
+equ		_stft_box_fill_py2,2*_rtlb_var_siz$(z)
+equ		_stft_box_fill_pix,1*_rtlb_var_siz$(z)
+align	4
+_stft_box_fill:
+$(s)// ********************************
+$(s)rtn$(z)
+$(s)// ********************************
+// px1<px2; swap if need
+ldbiu	r5,_stft_box_fill_px1
+ld$(z)sp	r0,[r5]
+ldbiu	r7,_stft_box_fill_px2
+ld$(z)sp	r1,[r7]
+cmp		r0,r1
+blt		pcnt+4
+st$(z)sp	[r7],r1
+st$(z)sp	[r7],r0
+// py1<py2; swap if need
+ldbiu	r5,_stft_box_fill_py1
+ld$(z)sp	r0,[r5]
+ldbiu	r7,_stft_box_fill_py2
+ld$(z)sp	r1,[r7]
+cmp		r0,r1
+blt		pcnt+4
+st$(z)sp	[r7],r1
+st$(z)sp	[r7],r0
+// CASET
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2a
+stb		[r7],r0
+addi	r7,1
+// px1
+ldbiu	r0,_stft_box_fill_px1
+ld$(z)sp	r0,[r0]
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// px2
+ldbiu	r0,_stft_box_fill_px2
+ld$(z)sp	r0,[r0]
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// spi
+ldbiu	r1,5
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// RASET
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2b
+stb		[r7],r0
+addi	r7,1
+// py1
+ldbiu	r0,_stft_box_fill_py1
+ld$(z)sp	r0,[r0]
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// py2
+ldbiu	r0,_stft_box_fill_py2
+ld$(z)sp	r0,[r0]
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// spi
+ldbiu	r1,5
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// calculate box square
+ldbiu	r0,_stft_box_fill_px1
+ld$(z)sp	r0,[r0]
+ldbiu	r1,_stft_box_fill_px2
+ld$(z)sp	r1,[r1]
+sub		r1,r0
+addi	r1,1
+ldbiu	r0,_stft_box_fill_py1
+ld$(z)sp	r0,[r0]
+ldbiu	r2,_stft_box_fill_py2
+ld$(z)sp	r2,[r2]
+sub		r2,r0
+addi	r2,1
+mulu	r1,r2
+mov		r3,r1
+// put pixel
+ldbiu	r0,_stft_opt_init
+jal$(z)r7	_stft_putpix
+ldbiu	r4,_stft_box_fill_pix
+ld$(z)sp	r4,[r4]
+_stft_tbf_loop:
+mov		r1,r4
+ldbiu	r0,_stft_opt_store
+push$(z)	r3
+jal$(z)r7	_stft_putpix
+pop$(z)	r3
+subi	r3,1
+bne		_stft_tbf_loop
+ldbiu	r0,_stft_opt_flush
+jal$(z)r7	_stft_putpix
+rtn$(z)
+
+// ================================
+// tft draw box wire ; disturbed r0~r4,r5,r7
+//	parameter:
+//		sp+5:	px1
+//		sp+4:	py1
+//		sp+3:	px2
+//		sp+2:	py2
+//		sp+1:	pix
+//		sp+0:	caller address
+// ================================
+align	4
+_stft_box_wire:
+// px1<px2; swap if need
+ldbiu	r5,_stft_box_fill_px1
+ld$(z)sp	r0,[r5]
+ldbiu	r7,_stft_box_fill_px2
+ld$(z)sp	r1,[r7]
+cmp		r0,r1
+blt		pcnt+4
+st$(z)sp	[r7],r1
+st$(z)sp	[r7],r0
+// py1<py2; swap if need
+ldbiu	r5,_stft_box_fill_py1
+ld$(z)sp	r0,[r5]
+ldbiu	r7,_stft_box_fill_py2
+ld$(z)sp	r1,[r7]
+cmp		r0,r1
+blt		pcnt+4
+st$(z)sp	[r7],r1
+st$(z)sp	[r7],r0
+// upper line
+ldwi	r0,_stft_box_fill_px1
+ld$(z)sp	r0,[r0]
+ldwi	r1,_stft_box_fill_py1
+ld$(z)sp	r1,[r1]
+ldwi	r2,_stft_box_fill_px2
+ld$(z)sp	r2,[r2]
+ldwi	r3,_stft_box_fill_py2
+ld$(z)sp	r3,[r3]
+ldwi	r4,_stft_box_fill_pix
+ld$(z)sp	r4,[r4]
+push$(z)m	r0,r1,r2,r1,r4
+jal$(z)r7	_stft_box_fill
+pop$(z)m	r4,r3,r2,r1,r0
+// lower line
+ldwi	r3,_stft_box_fill_py2
+ld$(z)sp	r3,[r3]
+push$(z)m	r0,r3,r2,r3,r4
+jal$(z)r7	_stft_box_fill
+pop$(z)m	r4,r3,r2,r1,r0
+// left line
+ldwi	r1,_stft_box_fill_py1
+ld$(z)sp	r1,[r1]
+push$(z)m	r0,r1,r0,r3,r4
+jal$(z)r7	_stft_box_fill
+pop$(z)m	r4,r3,r2,r1,r0
+// right line
+ldwi	r2,_stft_box_fill_px2
+ld$(z)sp	r2,[r2]
+push$(z)m	r2,r1,r2,r3,r4
+jal$(z)r7	_stft_box_fill
+// end of subroutine
+movfc	r0,sp
+addi	r0,5*_rtlb_var_siz$(z)
+movtc	sp,r0
+rtn$(z)
+
+// ================================
+// tft draw dot ; disturbed r0~r4,r5,r7
+//	parameter: r2=px, r1=py, r0=pixel (BGR565)
+// ================================
+align	4
+_stft_dot_r2_r1_r0:
+push$(z)m	r2,r1,r2,r1,r0
+jal$(z)r7	_stft_box_fill
+// end of subroutine
+movfc	r0,sp
+addi	r0,5*_rtlb_var_siz$(z)
+movtc	sp,r0
+rtn$(z)
+
+// ================================
+// tft KANJI print 1 character ; disturbed r0~r5,r7
+//		and update cursor position
+//	parameter:	set fnjpcod to character code to print
+//		_stft_prn_2x2=0(normal size) / 1(2x2 size)
+// ================================
+align	4
+_stft_print_chr:
+ldvar	r4,_stft_prn_2x2
+ld$(z)	r4,[r4]
+// adjust cursor position
+jal$(z)r7	_stft_upd_curs
+// CASET
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2a
+stb		[r7],r0
+addi	r7,1
+// px1
+ldvar	r0,_stft_prn_lx
+ld$(z)	r0,[r0]
+lsli	r0,3
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// px2
+addi	r0,7
+cmpi	r4,false
+beq		pcnt+2
+addi	r0,8
+ldwi	r1,_stft_siz_dh
+cmp		r0,r1
+blo		pcnt+4
+ldwi	r0,_stft_siz_dh-1
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// spi
+ldbiu	r1,5
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// RASET
+ldvar	r7,_stft_spi_buf
+ldbiu	r0,0x2b
+stb		[r7],r0
+addi	r7,1
+// py1
+ldvar	r0,_stft_prn_ly
+ld$(z)	r0,[r0]
+lsli	r0,3
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// py2
+addi	r0,7
+cmpi	r4,false
+beq		pcnt+2
+addi	r0,8
+ldwi	r1,_stft_siz_dv
+cmp		r0,r1
+blo		pcnt+4
+ldwi	r0,_stft_siz_dv-1
+mov		r1,r0
+lsri	r1,8
+stb		[r7],r1
+addi	r7,1
+stb		[r7],r0
+addi	r7,1
+// spi
+ldbiu	r1,5
+ldvar	r2,_stft_spi_buf
+jal$(z)r7	_stft_send_r1_r2
+// put pixel
+ldbiu	r0,_stft_opt_init
+jal$(z)r7	_stft_putpix
+ldbiu	r3,0							// font line number 0~7 or 15
+_stft_tpc_loop2:
+// get font data
+mov		r2,r3
+cmpi	r4,false
+beq		pcnt+2
+lsri	r2,1
+ldwi	r7,fnjpdata
+add		r7,r2
+ldb		r0,[r7]
+// draw 2x2?
+push$(z)	r4
+cmpi	r4,false
+beq		_stft_tpc_else_2x2
+// 2x2 size
+ldbiu	r4,16
+ldwi	r7,fnjpdbl
+stw		[r7],r0
+ldw		r0,[r7]
+lsli	r0,_stft_spi_shift$(z)
+bra		_stft_tpc_endi_2x2
+_stft_tpc_else_2x2:
+// 1x1 size
+ldbiu	r4,8
+lsli	r0,8+_stft_spi_shift$(z)
+_stft_tpc_endi_2x2:
+// loop
+_stft_tpc_loop1:
+lsli	r0,1
+push$(z)	r0
+bcc		tpc_else_dot
+ldvar	r7,_stft_prn_fg
+bra		tpc_endi_dot
+tpc_else_dot:
+ldvar	r7,_stft_prn_bg
+tpc_endi_dot:
+ld$(z)	r1,[r7]
+ldbiu	r0,_stft_opt_store
+push$(z)	r3
+jal$(z)r7	_stft_putpix
+pop$(z)	r3
+pop$(z)	r0
+// end of loop1
+subi	r4,1
+bne		_stft_tpc_loop1
+pop$(z)	r4
+// end of loop2
+addi	r3,1
+cmpi	r4,false
+bne		_stft_tpc_yes_2x2
+cmpi	r3,8
+blo		_stft_tpc_loop2
+bra		_stft_tpc_break
+
+_stft_tpc_yes_2x2:
+cmpi	r3,16
+blo		_stft_tpc_loop2
+
+_stft_tpc_break:
+ldbiu	r0,_stft_opt_flush
+jal$(z)r7	_stft_putpix
+
+_stft_tpc_return:
+// update cursor position
+ldvar	r7,_stft_prn_lx
+ld$(z)	r0,[r7]
+addi	r0,1
+cmpi	r4,false
+beq		pcnt+2
+addi	r0,1
+st$(z)	[r7],r0
+rtn$(z)
+
+// ================================
+// tft KANJI print ; disturbed r0~r5,r7
+//	parameter:	r1=pointer to print string
+// ================================
+align	4
+_stft_print_r1:
+$(s)// ********************************
+$(s)ldwi	r7,princhr
+$(s)_stft_sim_kpr_loop:
+$(s)ldb		r0,[r1]
+$(s)cmpi	r0,0
+$(s)beq		_stft_sim_kpr_break
+$(s)addi	r1,1
+$(s)stw		[r7],r0
+$(s)bra		_stft_sim_kpr_loop
+$(s)_stft_sim_kpr_break:
+$(s)rtn$(z)
+$(s)// ********************************
+_stft_tkp_loop:
+ldb		r0,[r1]
+addi	r1,1
+cmpi	r0,0
+beq		_stft_tkp_return
+// check control code?
+cmpi	r0,asc_spc
+bhs		_stft_tkp_not_ctrl
+// control code
+ldwi	r7,lab__stft_jmp_tab
+add		r7,r0
+add		r7,r0
+ldw		r7,[r7]
+jal$(z)	r7
+bra		_stft_tkp_loop
+
+_stft_tkp_not_ctrl:
+// ASCII or S-JIS code
+lsli	r0,8
+ldwi	r7,fnjpcod
+stw		[r7],r0
+ldwi	r7,fnjpctl
+ldw		r2,[r7]
+andi	r2,fnjp_sjs1
+beq		_stft_tkp_not_sjis
+// S-JIS code, read 2nd byte
+ldb		r2,[r1]
+addi	r1,1
+add		r0,r2
+ldwi	r7,fnjpcod
+stw		[r7],r0
+_stft_tkp_not_sjis:
+// print 1 character
+push$(z)	r1
+jal$(z)r7	_stft_print_chr
+pop$(z)	r1
+bra		_stft_tkp_loop
+
+// end of subroutine
+_stft_tkp_return:
+rtn$(z)
+
+// ================================
+// tft clear ; disturbed r0~r4,r5,r7
+// ================================
+align	4
+_stft_clear:
+// clear screen (box fill)
+ldbiu	r0,0
+push$(z)	r0
+push$(z)	r0
+ldwi	r0,_stft_siz_dh-1
+push$(z)	r0
+ldwi	r0,_stft_siz_dv-1
+push$(z)	r0
+ldvar	r7,_stft_prn_bg
+ld$(z)	r0,[r7]
+push$(z)	r0
+jal$(z)r7	_stft_box_fill
+movfc	r0,sp
+addi	r0,5*_rtlb_var_siz$(z)
+movtc	sp,r0
+// set cursor to the home position
+ldbiu	r0,0
+ldvar	r7,_stft_prn_lx
+st$(z)	[r7],r0
+ldvar	r7,_stft_prn_ly
+st$(z)	[r7],r0
+rtn$(z)
+
+// ================================
+// tft initialize ; disturbed r0~r5,r7
+// ================================
+align	4
+_stft_init:
+// stft61 unit setting
+ldbiu	r0,stft_pwme|stft_pinv|_stft_ss|_stft_sck|_stft_mosi|_stft_dcx|_stft_res
+ldwi	r7,stftctl
+stw		[r7],r0
+ldw		r1,[r7]
+cmp		r1,r0
+beq		_rtlb_stft_ok
+// ERROR: no STFT61
+ldwi	r1,lab__rtlb_stft_err
+jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
+// halt
+jmpr7	_rtlb_prog_halt
+_rtlb_stft_err:
+dats	"ERR: no STFT61 unit found, halted.\r\n\0"
+_rtlb_stft_ok:
+ldbiu	r0,_stft_ss
+ldwi	r7,stftpset
+stw		[r7],r0
+
+// initialize spi-tft
+// reset st7735r
+_stft_res_0
+ldbiu	r0,1
+jal$(z)r7	_delay_ms_r0
+_stft_res_1
+ldbiu	r0,120
+jal$(z)r7	_delay_ms_r0
+// initialize st7735r i/o registers
+ldwi	r4,lab__stft_init_reg
+_stft_tin_loop:
+ldb		r1,[r4]
+addi	r4,1
+mov		r2,r4
+cmpi	r1,0xff
+beq		_stft_tin_break
+add		r4,r1
+cmpi	r1,0
+beq		_stft_tin_loop
+jal$(z)r7	_stft_send_r1_r2
+// delay
+ldb		r0,[r4]
+addi	r4,1
+jal$(z)r7	_delay_ms_r0
+bra		_stft_tin_loop
+_stft_tin_break:
+
+// initial state, library version
+ldwi	r1,lab__stft_init_msg
+jal$(z)r7	_stft_print_r1
+rtn$(z)
+
+// tft (st7735r) initialization data
+//		<ndat>, <data1>~<data<ndat>>, <delay_ms>
+_stft_init_reg:
+// SWRESET
+datb	1,0x01,120
+// SLPOUT
+datb	1,0x11,120
+// FRMCTR1
+datb	4,0xb1,0x01,0x2c,0x2d,0
+// FRMCTR2
+datb	4,0xb2,0x01,0x2c,0x2d,0
+// FRMCTR3
+datb	7,0xb3,0x01,0x2c,0x2d,0x01,0x2c,0x2d,0
+// INVCTR
+datb	2,0xb4,0x07,0
+// PWCTR1
+datb	4,0xc0,0xa2,0x02,0x84,0
+// PWCTR2
+datb	2,0xc1,0xc5,0
+// PWCTR3
+datb	3,0xc2,0x0a,0x00,0
+// PWCTR4
+datb	3,0xc3,0x8a,0x2a,0
+// PWCTR5
+datb	3,0xc4,0x8a,0xee,0
+// VMCTR1
+datb	2,0xc5,0x0e,0
+// MADCTL
+datb	2,0x36,0xc8,0
+// COLMOD
+datb	2,0x3a,0x05,0
+
+// CASET
+datb	5,0x2a,0x00,0x00,0x00,0x7f,0
+// RASET
+datb	5,0x2b,0x00,0x00,0x00,0x9f,0
+
+// NORON
+datb	1,0x13,0
+// DISPON
+datb	1,0x29,120
+// end of sequence
+datb	0xff
+
+// initial state:
+//	\x0c:	clear screen
+//	\x16\xff:	duty cycle 255 for back light LED
+//	\x12\xff\xff:	foreground color white
+_stft_init_msg:
+dats	"\x0c\x16\xff\x12\xff\xff\r\nSPI-TFT library\r\n  ver.$(stft_vers)\r\n"
+
