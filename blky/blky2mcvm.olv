@@ -1,12 +1,21 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.10";
+	macro	prog_vers="1.12";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/01/11	ver.1.12
+//			corresponding to SPI-TFT (STFT61 unit, ST7735R)
+//			add: mcoc_stft_*
+//			add: mcoc_math_func; abs, rand, rseed, floor, ceil, round
+//			update: corresponding to S-JIS encode string;
+//				mcoc_math_ascii, mcoc_string_ctoa, mcoc_string_get_char
+//			fix: atoi, xtoi; in_var_set=false for text_join control
+//			fix: itox; need "push r0" for !in_var_set
 //
 //		2024/10/26	ver.1.10
 //			corresponding to interrupt
@@ -70,6 +79,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		in_var_set;					// in variables_set block
 	var		defp_1st=true;				// encounter 1st define procedure
 	var		n_str_cnst=0;				// number of string constants
+	var		need_stft=false;			// SPI-TFT blocks used
 	var		tsk_def_cpu2=false;			// tsk: task CPU2 defined
 	var		tsk_def_irq=false;			// tsk: task IRQ defined
 	var		tsk_def_irq2=false;			// tsk: task IRQ2 defined
@@ -361,7 +371,15 @@ if (false)
 		nmacro	treg=$(reg);
 
 		// assembler
-		fprint	fout,"// "$(reg)"="$(vnam)$,;
+		is_cstr		$(vnam);
+		if (is_cstr)
+		{
+			fprint	fout,"// "$(reg)"=&"$(vnam)"[]"$,;
+		}
+		else
+		{
+			fprint	fout,"// "$(reg)"="$(vnam)$,;
+		}
 		asm_ld_var_adr	$(treg),$(vnam);
 		fprint	fout,"ld$(z)	"$(reg)",["$(treg)"]"$,;
 	}
@@ -375,6 +393,7 @@ if (false)
 		// assembler
 		fprint	fout,""$,;
 		fprint	fout,"// initialize string variables"$,;
+		fprint	fout,"align	4"$,;
 		fprint	fout,"_rtlb_vlst_cstr:"$,;
 
 		psub	"^@","",vlst_cstr;
@@ -383,8 +402,8 @@ if (false)
 		while (idx<num)
 		{
 			// assembler
-			fprint	fout,"// "$(vlst_cstr#(idx))"=&(_cstr_"
-					$(vlst_cstr#(idx))"="$"$"")"$,;
+			fprint	fout,"// "$(vlst_cstr#(idx))"=&_cstr_"
+					$(vlst_cstr#(idx))"[](="$"$"")"$,;
 			asm_ld_var_adr	"r7",$(vlst_cstr#(idx));
 			asm_ld_var_adr	"r0","_cstr_"$(vlst_cstr#(idx));
 			fprint	fout,"st$(z)	[r7],r0"$,;
@@ -948,6 +967,7 @@ if (false)
 		pgsub	"\\t","	",iasm;
 		pgsub	"\\n",$,,iasm;
 		pgsub	"#","##",iasm;
+		pgsub	"&lt;","<",iasm;
 		fprint	fout,$(iasm)$,;
 	}
 	procedure	do_blk_mcvm_cpu_cend
@@ -1361,8 +1381,6 @@ if (false)
 			{
 				static : analyze_xml	$(cxml);
 				macro	dxml=$(_xml_);
-				nmacro	_xml_name;
-				macro	dnam=$(_xml_name);
 				do_$(dxml);
 				strcmp	cmp=$(dxml),"field";
 				if (cmp=0)
@@ -1378,7 +1396,7 @@ if (false)
 		{
 			// string variable
 			asm_ld_var	"r0",$(vnam);
-			mlet	do_blk_mcvm_mem_addr=$(vnam);
+			mlet	do_blk_mcvm_mem_addr="&"$(vnam)"[]";
 		}
 		else
 		{
@@ -1392,6 +1410,7 @@ if (false)
 	{
 		var		cmp;
 		nvar	asiz=2;
+		macro	siz;
 		macro	adrx;
 		macro	adr;
 
@@ -1420,7 +1439,7 @@ if (false)
 				strcmp	cmp=$(dxml),"field";
 				if (cmp=0)
 				{
-					macro	siz=$(do_$(dxml));
+					mlet	siz=$(do_$(dxml));
 					strcmp	cmp=$(siz),"B",ics_left;
 					if (cmp=0)
 					{
@@ -1468,6 +1487,7 @@ if (false)
 		}
 
 		// assembler
+		fprint	fout,"// memory read "$(siz)$,;
 		strcmp	cmp=$(adrx),"";
 		if (cmp=0)
 		{
@@ -1509,6 +1529,7 @@ if (false)
 	{
 		var		cmp;
 		nvar	asiz=2;
+		macro	siz;
 		macro	adrx;
 		macro	adr;
 		macro	dat;
@@ -1538,7 +1559,7 @@ if (false)
 				strcmp	cmp=$(dxml),"field";
 				if (cmp=0)
 				{
-					macro	siz=$(do_$(dxml));
+					mlet	siz=$(do_$(dxml));
 					strcmp	cmp=$(siz),"B",ics_left;
 					if (cmp=0)
 					{
@@ -1598,6 +1619,7 @@ if (false)
 		}
 
 		// assembler
+		fprint	fout,"// memory write "$(siz)$,;
 		strcmp	cmp=$(adrx),"";
 		if (cmp=0)
 		{
@@ -1669,12 +1691,26 @@ if (false)
 		psub	"^(.).*","\1",cstr;
 		gsub	"#","##",cstr;
 		chr2num		chr=$(cstr);
-		num2str		shex=chr,"%02x";
-		mlet	do_blk_mcoc_math_ascii="0a"$(cstr);
+		if (chr>255)
+		{
+			num2str		shex=chr,"%04x";
+		}
+		else
+		{
+			num2str		shex=chr,"%02x";
+		}
+		mlet	do_blk_mcoc_math_ascii="0x"$(shex);
 
 		// assembler
-		fprint	fout,"// r0=0a"$(cstr)"(=0x"$(shex)")"$,;
-		fprint	fout,"ldbiu	r0,0x"$(shex)$,;
+		fprint	fout,"// r0=0x"$(shex)"(=0a"$(cstr)")"$,;
+		if (chr>255)
+		{
+			fprint	fout,"ldwi	r0,0x"$(shex)$,;	// do not use '0a'
+		}
+		else
+		{
+			fprint	fout,"ldbiu	r0,0x"$(shex)$,;	// do not use '0a'
+		}
 
 		val_done=true;
 	}
@@ -2018,6 +2054,128 @@ if (false)
 		}
 		mlet	do_blk_mcoc_math_bit_operation=$(lval)" "$(opr)" "$(rval);
 	}
+	procedure	do_blk_mcoc_math_func
+	{
+		var		cmp;
+		macro	func;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	func=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		tolower		func;
+
+		// assembler
+		fprint	fout,"// r0="$(func)" (r0(="$(nval)"))"$,;
+
+		// function
+		strcmp	cmp=$(func),"abs";
+		if (cmp=0)
+		{
+			// assembler
+			if (opt_opr_typ=opt_int)
+			{
+				fprint	fout,"cmpi	r0,0"$,;
+				fprint	fout,"bge	pcnt+2"$,;
+				fprint	fout,"neg	r0"$,;
+			}
+			else
+			{
+				fprint	fout,"ldbiu	r1,0"$,;
+				fprint	fout,"fmvsg	r0,r1"$,;
+			}
+		}
+		strcmp	cmp=$(func),"rand";
+		if (cmp=0)
+		{
+			// assembler
+			strcmp	cmp=$(nval),"";
+			if (cmp)
+			{
+				fprint	fout,"mov	r3,r0"$,;
+			}
+			fprint	fout,"// r0=_rand"$,;
+			fprint	fout,"jal$(z)r7	_rand"$,;
+			if (cmp)
+			{
+				fprint	fout,"// r0=r0(=_rand) % r3(="$(nval)")"$,;
+				fprint	fout,"cmpi	r3,0"$,;
+				fprint	fout,"beq	pcnt+4"$,;
+				fprint	fout,"divur	r0,r3"$,;
+				fprint	fout,"mov	r0,r3"$,;
+
+				opt_div_need=true;
+			}
+			opt_mul_need=true;
+		}
+		strcmp	cmp=$(func),"rseed";
+		if (cmp=0)
+		{
+			// assembler
+			asm_ld_var_adr	"r7","_rtlb_rand_seed";
+			fprint	fout,"st$(z)	[r7],r0"$,;
+		}
+		strcmp	cmp=$(func),"floor";
+		if (cmp=0)
+		{
+			// assembler
+			fprint	fout,"fdown	r1,r0"$,;
+			fprint	fout,"fcmp	r0,r1"$,;
+			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress slabid
+			fprint	fout,"bge	pcnt+2"$,;
+			fprint	fout,"fsub	r1,r0"$,;
+			fprint	fout,"mov	r0,r1"$,;
+		}
+		strcmp	cmp=$(func),"ceil";
+		if (cmp=0)
+		{
+			// assembler
+			fprint	fout,"fdown	r1,r0"$,;
+			fprint	fout,"fcmp	r1,r0"$,;
+			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress slabid
+			fprint	fout,"bge	pcnt+2"$,;
+			fprint	fout,"fadd	r1,r0"$,;
+			fprint	fout,"mov	r0,r1"$,;
+		}
+		strcmp	cmp=$(func),"round";
+		if (cmp=0)
+		{
+			// assembler
+			fprint	fout,"mov	r2,r0"$,;
+			fprint	fout,"fld$(z)i	r1,0.5"$,;
+			fprint	fout,"fmvsg	r0,r1"$,;
+			fprint	fout,"fadd	r0,r1"$,;
+			fprint	fout,"fdown	r0,r0"$,;
+			fprint	fout,"fmvsg	r0,r2"$,;
+		}
+
+		mlet	do_blk_mcoc_math_func=$(func)" ("$(nval)")";
+	}
 	procedure	do_blk_mcoc_pack
 	{
 		var		cmp;
@@ -2234,7 +2392,8 @@ if (false)
 
 						// assembler
 						fprint	fout,""$,;
-						fprint	fout,"// task"$,;
+						fprint	fout,"// task "$(tskf)$,;
+						fprint	fout,"align	4"$,;
 						fprint	fout,"_rtlb_task_"$(tskf)":"$,;
 
 						continue;
@@ -2243,6 +2402,10 @@ if (false)
 					{
 						// empty block
 						stat=2;
+
+						// ERROR:
+						errmsg	"mcoc_task: inhibited empty block.";
+						leave	stop_error;
 					}
 				}
 			}
@@ -2370,6 +2533,7 @@ if (false)
 
 			// assembler
 			asm_ld_var	"r0","_tmp_str";
+			fprint	fout,"push$(z)	r0"$,;
 		}
 
 		while (true)
@@ -2428,6 +2592,8 @@ if (false)
 
 		while (true)
 		{
+			var		in_var_set=false;
+
 			fget_xml;
 			macro	cxml=$(fget_xml);
 			pindex	cmp=$(cxml),"^</block[ >]";
@@ -2462,6 +2628,8 @@ if (false)
 
 		while (true)
 		{
+			var		in_var_set=false;
+
 			fget_xml;
 			macro	cxml=$(fget_xml);
 			pindex	cmp=$(cxml),"^</block[ >]";
@@ -2611,7 +2779,14 @@ if (false)
 		fprint	fout,"// r1=r0(="$(cchr)")"$,;
 		fprint	fout,"mov	r1,r0"$,;
 		fprint	fout,"pop$(z)	r0"$,;
-		fprint	fout,"// [r0++]=r1(="$(cchr)") ++ '\0'"$,;
+		fprint	fout,"// ctoa [r0++]=r1(="$(cchr)") ++ '\0'"$,;
+		fprint	fout,"// 2 bytes code?"$,;
+		fprint	fout,"mov	r2,r1"$,;
+		fprint	fout,"lsri	r2,8"$,;
+		fprint	fout,"beq	pcnt+4"$,;
+		fprint	fout,"stb	[r0],r2"$,;
+		fprint	fout,"addi	r0,1"$,;
+		fprint	fout,"// 1 byte code"$,;
 		fprint	fout,"stb	[r0],r1"$,;
 		fprint	fout,"addi	r0,1"$,;
 		fprint	fout,"ldbiu	r1,0"$,;
@@ -2754,7 +2929,7 @@ if (false)
 		fprint	fout,"// r1(="$(vstr)") += r0(="$(ofst)")"$,;
 		fprint	fout,"jal$(z)r7	_strofst_r1_r0"$,;
 		fprint	fout,"// get char r0=[r1(="$(vstr)" + "$(ofst)")]"$,;
-		fprint	fout,"ldb	r0,[r1]"$,;
+		fprint	fout,"jal$(z)r7	_chrsjis_r1"$,;
 	}
 	procedure	do_blk_mcoc_string_label
 	{
@@ -3031,13 +3206,23 @@ if (false)
 	}
 	procedure	do_blk_mcoc_sytm_micros
 	{
-		do_blk_micros;
-		mlet	do_blk_mcoc_sytm_micros=$(do_blk_micros);
+		// assembler
+		fprint	fout,"// r0=micros"$,;
+		fprint	fout,"ldwi	r7,_rtlb_sytmmcr$(z)"$,;
+		fprint	fout,"ld$(z)	r0,[r7]"$,;
+
+		skip_one	"block";
+		mlet	do_blk_mcoc_sytm_micros="micros";
 	}
 	procedure	do_blk_mcoc_sytm_millis
 	{
-		do_blk_millis;
-		mlet	do_blk_mcoc_sytm_millis=$(do_blk_millis);
+		// assembler
+		fprint	fout,"// r0=millis"$,;
+		fprint	fout,"ldwi	r7,_rtlb_sytmmil$(z)"$,;
+		fprint	fout,"ld$(z)	r0,[r7]"$,;
+
+		skip_one	"block";
+		mlet	do_blk_mcoc_sytm_millis="millis";
 	}
 	procedure	do_blk_mcoc_uart_print
 	{
@@ -3225,8 +3410,717 @@ if (false)
 		}
 
 		// assembler
-		fprint	fout,"// digitalWrite (r0(="$(npin)"), r1(="$(nval)"))"$,;
+		fprint	fout,"// digitalWrite (r0(="$(npin)"),r1(="$(nval)"))"$,;
 		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
+	}
+	procedure	do_blk_mcoc_stft_init
+	{
+		var		cmp;
+		macro	cmnd;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	cmnd=$(do_$(dxml));
+				}
+			}
+		}
+		need_stft=true;
+		opt_mul_need=true;
+		tolower		cmnd;
+
+		// assembler
+		fprint	fout,"// SPI-TFT initialize ("$(cmnd)")"$,;
+		fprint	fout,"jal$(z)r7	_stft_"$(cmnd)$,;
+	}
+	procedure	do_blk_mcoc_stft_bright
+	{
+		var		cmp;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// SPI-TFT brightness"$,;
+		fprint	fout,"cmpi	r0,0"$,;
+		fprint	fout,"bge	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,0"$,;
+		fprint	fout,"cmpi	r0,255"$,;
+		fprint	fout,"blt	pcnt+2"$,;
+		fprint	fout,"ldbiu	r0,255"$,;
+		fprint	fout,"ldwi	r7,stftduty"$,;
+		fprint	fout,"stw	[r7],r0"$,;
+	}
+	procedure	do_blk_mcoc_stft_pixel
+	{
+		var		cmp;
+		macro	nvalr;
+		macro	nvalg;
+		macro	nvalb;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"R8";
+					if (cmp=0)
+					{
+						mlet	nvalr=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"G8";
+					if (cmp=0)
+					{
+						mlet	nvalg=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"B8";
+					if (cmp=0)
+					{
+						mlet	nvalb=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// r0=pixel (r2(="$(nvalr)"),r1(="$(nvalg)"),r0(="
+					$(nvalb)"))"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"pop$(z)	r2"$,;
+		fprint	fout,"jal$(z)r7	_stft_pixel_r2_r1_r0"$,;
+
+		mlet	do_blk_mcoc_stft_pixel=
+				"pixel ("$(nvalr)","$(nvalg)","$(nvalb)")";
+	}
+	procedure	do_blk_mcoc_stft_pixel_embed
+	{
+		var		cmp;
+		macro	cpix;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	cpix=$(do_$(dxml));
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// r0="$(cpix)$,;
+		fprint	fout,"ldwi	r0,"$(cpix)$,;
+
+		mlet	do_blk_mcoc_stft_pixel_embed=$(cpix);
+	}
+	procedure	do_blk_mcoc_stft_draw_box
+	{
+		var		cmp;
+		macro	opt;
+		macro	px1;
+		macro	py1;
+		macro	px2;
+		macro	py2;
+		macro	pix;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opt=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PX1";
+					if (cmp=0)
+					{
+						mlet	px1=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"PY1";
+					if (cmp=0)
+					{
+						mlet	py1=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"PX2";
+					if (cmp=0)
+					{
+						mlet	px2=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"PY2";
+					if (cmp=0)
+					{
+						mlet	py2=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"PIX";
+					if (cmp=0)
+					{
+						mlet	pix=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+				}
+			}
+		}
+		need_stft=true;
+		opt_mul_need=true;
+		tolower		opt;
+
+		// assembler
+		fprint	fout,"// SPI-TFT draw box ("$(px1)","$(py1)")-("$(px2)","
+				$(py2)"),"$(pix)","$(opt)$,;
+		strcmp	cmp=$(opt),"fill";
+		if (cmp=0)
+		{
+			fprint	fout,"jal$(z)r7	_stft_box_fill"$,;
+		}
+		else
+		{
+			fprint	fout,"jal$(z)r7	_stft_box_wire"$,;
+		}
+		fprint	fout,"movfc	r0,sp"$,;
+		fprint	fout,"addi	r0,5*_rtlb_var_siz$(z)"$,;
+		fprint	fout,"movtc	sp,r0"$,;
+	}
+	procedure	do_blk_mcoc_stft_affine
+	{
+		var		cmp;
+		macro	affn;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(do_$(dxml)),"TRUE";
+					if (cmp=0)
+					{
+						mlet	affn=$(affn)"|"$(dnam);
+					}
+				}
+			}
+		}
+		need_stft=true;
+		tolower		affn;
+		psub	"^|","",affn;
+
+		// invert
+		macro	scod;
+		index	cmp=$(affn),"inv";
+		if (cmp>0)
+		{
+			mlet	scod=$(scod)"|fnjp_inv";
+		}
+		// affine
+		index	cmp=$(affn),"flph";
+		if (cmp>0)
+		{
+			mlet	scod=$(scod)"|fnjp_flp_h";
+		}
+		index	cmp=$(affn),"flpv";
+		if (cmp>0)
+		{
+			mlet	scod=$(scod)"|fnjp_flp_v";
+		}
+		var		nrot;
+		index	cmp=$(affn),"rot1";
+		if (cmp>0)
+		{
+			nrot=nrot + 1;
+		}
+		index	cmp=$(affn),"rot2";
+		if (cmp>0)
+		{
+			nrot=nrot + 1;
+		}
+		index	cmp=$(affn),"rot3";
+		if (cmp>0)
+		{
+			nrot=nrot + 1;
+		}
+		mlet	scod=$(scod)"|fnjp_rot_"#(nrot);
+		psub	"^|","",scod;
+
+		// assembler
+		fprint	fout,"// SPI-TFT affine ("$(affn)")"$,;
+		fprint	fout,"ldwi	r7,fnjpcod"$,;
+		fprint	fout,"ldbiu	r0,"$(scod)$,;
+		fprint	fout,"stw	[r7],r0"$,;
+		asm_ld_var_adr	"r7","_stft_prn_2x2";
+		index	cmp=$(affn),"dbl";
+		if (cmp>0)
+		{
+			fprint	fout,"ldbiu	r0,true"$,;
+		}
+		else
+		{
+			fprint	fout,"ldbiu	r0,false"$,;
+		}
+		fprint	fout,"st$(z)	[r7],r0"$,;
+	}
+	procedure	do_blk_mcoc_stft_getpix
+	{
+		var		cmp;
+		macro	px;
+		macro	py;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PX";
+					if (cmp=0)
+					{
+						mlet	px=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	py=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// r0=getpix (r1(="$(px)"),r0(="$(py)"))"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"jal$(z)r7	_stft_getpix_r1_r0"$,;
+
+		mlet	do_blk_mcoc_stft_getpix="getpix ("$(px)","$(py)")";
+	}
+	procedure	do_blk_mcoc_stft_draw_dot
+	{
+		var		cmp;
+		macro	px;
+		macro	py;
+		macro	pix;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"PX";
+					if (cmp=0)
+					{
+						mlet	px=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"PY";
+					if (cmp=0)
+					{
+						mlet	py=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"PIX";
+					if (cmp=0)
+					{
+						mlet	pix=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+		opt_mul_need=true;
+
+		// assembler
+		fprint	fout,"// SPI-TFT draw dot (r2(="$(px)"),r1(="$(py)")),"$(pix)$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"pop$(z)	r2"$,;
+		fprint	fout,"jal$(z)r7	_stft_dot_r2_r1_r0"$,;
+	}
+	procedure	do_blk_mcoc_stft_locate
+	{
+		var		cmp;
+		macro	cx;
+		macro	cy;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"CX";
+					if (cmp=0)
+					{
+						mlet	cx=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"CY";
+					if (cmp=0)
+					{
+						mlet	cy=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// SPI-TFT locate (r1(="$(cx)"),r0(="$(cy)"))"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		asm_ld_var_adr	"r7","_stft_prn_lx";
+		fprint	fout,"st$(z)	[r7],r1"$,;
+		asm_ld_var_adr	"r7","_stft_prn_ly";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+	}
+	procedure	do_blk_mcoc_stft_color
+	{
+		var		cmp;
+		macro	pfg;
+		macro	pbg;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"FG";
+					if (cmp=0)
+					{
+						mlet	pfg=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	pbg=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// SPI-TFT color (r1(="$(pfg)"),r0(="$(pbg)"))"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		asm_ld_var_adr	"r7","_stft_prn_fg";
+		fprint	fout,"st$(z)	[r7],r1"$,;
+		asm_ld_var_adr	"r7","_stft_prn_bg";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+	}
+	procedure	do_blk_mcoc_stft_print
+	{
+		var		cmp;
+		macro	cstr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cstr=$(do_$(dxml));
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// SPI-TFT print r1(="$(cstr)")"$,;
+		fprint	fout,"jal$(z)r7	_stft_print_r1"$,;
+	}
+	procedure	do_blk_mcoc_stft_transf
+	{
+		var		cmp;
+		macro	trns;
+		macro	nsiz;
+		macro	nptr;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	trns=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"SIZ";
+					if (cmp=0)
+					{
+						mlet	nsiz=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	nptr=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+		tolower		trns;
+
+		// assembler
+		fprint	fout,"// SPI-TFT "$(trns)" (r1(="
+				$(nsiz)"),r2(=r0="$(nptr)"))"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"mov	r2,r0"$,;
+		fprint	fout,"jal$(z)r7	_stft_"$(trns)"_r1_r2"$,;
 	}
 	procedure	do_blk_serial_available
 	{
@@ -3400,7 +4294,7 @@ if (false)
 		fprint	fout,"// r1=r0(="$(nval)"); r0(="$(npin)")"$,;
 		fprint	fout,"mov	r1,r0"$,;
 		fprint	fout,"pop$(z)	r0"$,;
-		fprint	fout,"// digitalWrite (r0(="$(npin)"), r1(="$(nval)"))"$,;
+		fprint	fout,"// digitalWrite (r0(="$(npin)"),r1(="$(nval)"))"$,;
 		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
 	}
 	procedure	do_blk_inout_digital_write
@@ -3478,7 +4372,7 @@ if (false)
 		fprint	fout,"// r1=r0(="$(nval)"); r0(="$(npin)")"$,;
 		fprint	fout,"mov	r1,r0"$,;
 		fprint	fout,"pop$(z)	r0"$,;
-		fprint	fout,"// digitalWrite (r0(="$(npin)"), r1(="$(nval)"))"$,;
+		fprint	fout,"// digitalWrite (r0(="$(npin)"),r1(="$(nval)"))"$,;
 		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
 	}
 	procedure	do_blk_inout_digitalpin
@@ -3644,23 +4538,13 @@ if (false)
 	}
 	procedure	do_blk_millis
 	{
-		// assembler
-		fprint	fout,"// r0=millis"$,;
-		fprint	fout,"ldwi	r7,_rtlb_sytmmil$(z)"$,;
-		fprint	fout,"ld$(z)	r0,[r7]"$,;
-
-		skip_one	"block";
-		mlet	do_blk_millis="millis";
+		do_blk_mcoc_sytm_millis
+		mlet	do_blk_millis=$(do_blk_mcoc_sytm_millis);
 	}
 	procedure	do_blk_micros
 	{
-		// assembler
-		fprint	fout,"// r0=micros"$,;
-		fprint	fout,"ldwi	r7,_rtlb_sytmmcr$(z)"$,;
-		fprint	fout,"ld$(z)	r0,[r7]"$,;
-
-		skip_one	"block";
-		mlet	do_blk_micros="micros";
+		do_blk_mcoc_sytm_micros;
+		mlet	do_blk_micros=$(do_blk_mcoc_sytm_micros);
 	}
 	procedure	do_blk_cast_number
 	{
@@ -3858,7 +4742,7 @@ if (false)
 		if (!pdone)
 		{
 			// ERROR:
-			errmsg	"math_number_property: unsupported property ("$(prop)")"$,;
+			errmsg	"math_number_property: unsupported property ("$(prop)")";
 			leave	stop_error;
 		}
 		mlet	do_blk_math_number_property=$(prop)" ("$(nval)")";
@@ -3915,7 +4799,7 @@ if (false)
 				}
 			}
 		}
-		mlet	do_blk_math_constrain="clip ("$(nval)", "$(nlow)", "$(nhgh)")";
+		mlet	do_blk_math_constrain="clip ("$(nval)","$(nlow)","$(nhgh)")";
 
 		// assembler
 		macro	fi;
@@ -3923,7 +4807,7 @@ if (false)
 		{
 			mlet	fi="f";
 		}
-		fprint	fout,"// r0=clip (r0(="$(nval)"), r1(="$(nlow)"), r2(="
+		fprint	fout,"// r0=clip (r0(="$(nval)"),r1(="$(nlow)"),r2(="
 				$(nhgh)"))"$,;
 		fprint	fout,"mov	r2,r0"$,;
 		fprint	fout,"pop$(z)	r1"$,;
@@ -4482,7 +5366,7 @@ if (false)
 		if (iblk!=0x07)
 		{
 			// ERROR:
-			errmsg "logic_ternary: inhibited empty block."$,;
+			errmsg "logic_ternary: inhibited empty block.";
 			leave	stop_error;
 		}
 		index	cmp=$(vthn)," ";
@@ -6712,9 +7596,20 @@ if (false)
 	fprint	fout,"## string macros"$,;
 	fprint	fout,"def	s,"$""@sim_mod@"$""	// simulation="
 			$"$"" / real fpga="$""##"$"$,;
-	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(ong) / w(ord)"$,;
+	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(long) / w(word)"$,;
 	fprint	fout,"##@vars_def@"$,;
-	
+	fprint	fout,""$,;
+	fprint	fout,"## include run time library"$,;
+	fprint	fout,"incl	"$"$(mynam)".incl"$"$,;
+	fprint	fout,"##@incl_lib@"$,;
+	fprint	fout,""$,;
+	fprint	fout,"// ================================"$,;
+	fprint	fout,"// _rtlb_main: start user program code"$,;
+	fprint	fout,"// ================================"$,;
+	fprint	fout,"align	4"$,;
+	fprint	fout,"_rtlb_main:"$,;
+	fprint	fout,""$,;
+
 	do_xml;
 	progress	"",-1;
 
@@ -6795,6 +7690,21 @@ if (false)
 	macro	str_uart_baud;
 	num2str		str_uart_baud=opt_uart_baud,"%d";
 
+	// run time library variables
+	register_vars	"_rtlb_rand_seed";
+	register_vars	"_rtlb_rand_lfsr";
+
+	// SPI-TFT variables
+	if (need_stft)
+	{
+		register_vars	"_stft_prn_lx";
+		register_vars	"_stft_prn_ly";
+		register_vars	"_stft_prn_fg";
+		register_vars	"_stft_prn_bg";
+		register_vars	"_stft_prn_2x2";
+		register_vars	"_stft_pix_ptr";
+	}
+
 	// embed variable definitions
 	fopen	fin,$(fnam_out),"r";
 	fopen	fout,$(fnam_tmp),"w";
@@ -6816,6 +7726,7 @@ if (false)
 			fprint	fout,"equ	_rtlb_var_sizw,2"$,;
 			fprint	fout,"equ	_rtlb_var_sizl,4"$,;
 			fprint	fout,"equ	_va,0"$,;
+			fprint	fout,"equ	_rtlb_var_top,_va"$,;
 
 			psub	"^@","",vlst_vars;
 			field	num=vlst_vars,"@";
@@ -6851,11 +7762,19 @@ if (false)
 
 			// assembler
 			fprint	fout,"## end of define string buffers"$,;
+			if (need_stft)
+			{
+				fprint	fout,""$,;
+				fprint	fout,"## define SPI-TFT buffers"$,;
+				fprint	fout,"equ	_stft_spi_max,8"$,;
+				fprint	fout,"equ	_stft_pix_max,128"$,;
+				fprint	fout,"equ	_stft_spi_buf,_va"$,;
+				fprint	fout,"equ	_va,_va+_stft_spi_max"$,;
+				fprint	fout,"equ	_stft_pix_buf,_va"$,;
+				fprint	fout,"equ	_va,_va+_stft_pix_max"$,;
+				fprint	fout,"## end of define SPI-TFT buffers"$,;
+			}
 			fprint	fout,"equ	_rtlb_var_array,_va"$,;
-			fprint	fout,""$,;
-			fprint	fout,"## include run time library"$,;
-			fprint	fout,"incl	"$"$(mynam)".incl"$"$,;
-			fprint	fout,""$,;
 
 			// continue
 			fgets	fin,lbuf;
@@ -6865,6 +7784,18 @@ if (false)
 		if (cmp>0)
 		{
 			fprint	fout,"romsiz	#"$,,opt_rom_siz;
+
+			// continue
+			fgets	fin,lbuf;
+			continue;
+		}
+		pindex	cmp=$(lbuf),"^#@incl_lib@$";
+		if (cmp>0)
+		{
+			if (need_stft)
+			{
+				fprint	fout,"incl	"$""blky2mcvm_libstft.incl"$"$,;
+			}
 
 			// continue
 			fgets	fin,lbuf;

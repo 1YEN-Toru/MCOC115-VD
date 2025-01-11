@@ -35,10 +35,12 @@
 	- Higher performance takes larger size.
 - Moscovium series CPU cores are scalable from 8 ~ 32 bit data paths.
 	- They share the same instruction code.
-	- They are upward or downward compatible instruction sets.
-- SMP and AMP dual core edition available.
+	- They are upward or downward compatible instruction sets, each other.
+- SMP and AMP dual core CPU edition available.
 	- [SMP](http://hello.world.coocan.jp/ARDUINO17/arduino17_1.html) (Symmetric Multi-Processing)
 	- [AMP](http://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
+	- Moscovium / Moscovium-SS / Nihonium / Nihonium-SS can be selected as SMP and AMP main CPU.
+	- Moscovium / Tennessine can be selected as AMP sub CPU.
 
 ## Development of software
  Moscovium series MCU can be developed using an assembler or Blockly.
@@ -104,13 +106,13 @@
 	- Original 32 bit CPU core
 	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
 
-## Coprocessor
+## Co-processor
 - [MULC16](http://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
 	- Multiply co-processor
 		- for Moscovium / Moscovium-SS
 	- 16 * 16 = 32 bit multiply, signed and unsigned
 - [DIVC32](http://hello.world.coocan.jp/ARDUINO16/arduino16_3.html#HYBDIV)
-	- Divide co-processor (flush / step hyblid divider)
+	- Divide co-processor (flush / step hybrid divider)
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned

@@ -263,21 +263,6 @@ Blockly.Blocks['mcoc_math_ascii'] = {
   }
 };
 
-Blockly.Blocks['mcoc_math_bit_operation'] = {
-  init: function() {
-    this.appendValueInput("A")
-        .setCheck(["Number", "Boolean"]);
-    this.appendValueInput("B")
-        .setCheck(["Number", "Boolean"])
-        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"]]), "OP");
-    this.setInputsInline(true);
-    this.setOutput(true, "Number");
-    this.setColour(30);
- this.setTooltip("bit wise logic operation");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
-  }
-};
-
 Blockly.Blocks['mcoc_math_number'] = {
   init: function() {
     this.appendDummyInput()
@@ -717,5 +702,270 @@ Blockly.Blocks['mcoc_controls_loop'] = {
     this.setColour(120);
  this.setTooltip("forever loop");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLOOP");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_affine'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft affine");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "INV")
+        .appendField("invert");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "FLPH")
+        .appendField("flip H");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "FLPV")
+        .appendField("flip V");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "ROT1")
+        .appendField("rot 90");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "ROT2")
+        .appendField("rot 90");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "ROT3")
+        .appendField("rot 90");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldCheckbox("FALSE"), "DBL")
+        .appendField("double");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT set print affine transformation");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_bright'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField("stft brightness");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT set brightness");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_color'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft color");
+    this.appendValueInput("FG")
+        .setCheck("Number")
+        .appendField("fore");
+    this.appendValueInput("BG")
+        .setCheck("Number")
+        .appendField("back");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT set print color (pixel)");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_draw_box'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft box")
+        .appendField(new Blockly.FieldDropdown([["fill","FILL"], ["wire","WIRE"]]), "OPT");
+    this.appendValueInput("PX1")
+        .setCheck("Number")
+        .appendField("px1");
+    this.appendValueInput("PY1")
+        .setCheck("Number")
+        .appendField("py1");
+    this.appendValueInput("PX2")
+        .setCheck("Number")
+        .appendField("px2");
+    this.appendValueInput("PY2")
+        .setCheck("Number")
+        .appendField("py2");
+    this.appendValueInput("PIX")
+        .setCheck("Number")
+        .appendField("pixel");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT draw box");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_draw_dot'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft dot");
+    this.appendValueInput("PX")
+        .setCheck("Number")
+        .appendField("px");
+    this.appendValueInput("PY")
+        .setCheck("Number")
+        .appendField("py");
+    this.appendValueInput("PIX")
+        .setCheck("Number")
+        .appendField("pixel");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT draw dot");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_getpix'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft get pixel");
+    this.appendValueInput("PX")
+        .setCheck("Number")
+        .appendField("px");
+    this.appendValueInput("PY")
+        .setCheck("Number")
+        .appendField("py");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(90);
+ this.setTooltip("SPI-TFT get pixel");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_init'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft")
+        .appendField(new Blockly.FieldDropdown([["initialize","INIT"], ["clear","CLEAR"]]), "CMND");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT initialize");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_locate'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft locate");
+    this.appendValueInput("CX")
+        .setCheck("Number")
+        .appendField("cy");
+    this.appendValueInput("CY")
+        .setCheck("Number")
+        .appendField("cy");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT set print location");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_pixel'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft pixel");
+    this.appendValueInput("R8")
+        .setCheck("Number")
+        .appendField("R8");
+    this.appendValueInput("G8")
+        .setCheck("Number")
+        .appendField("G8");
+    this.appendValueInput("B8")
+        .setCheck("Number")
+        .appendField("B8");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(90);
+ this.setTooltip("SPI-TFT RGB888 to pixel (BGR565) conversion");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_pixel_embed'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft pixel")
+        .appendField(new Blockly.FieldDropdown([["black","_stft_black"], ["blue","_stft_blue"], ["red","_stft_red"], ["magenta","_stft_magenta"], ["green","_stft_green"], ["cyan","_stft_cyan"], ["yellow","_stft_yellow"], ["white","_stft_white"], ["gray","_stft_gray"], ["purple","_stft_purple"], ["pink","_stft_pink"], ["orange","_stft_orange"], ["lawn","_stft_lawn"], ["emerald","_stft_emerald"], ["cobalt","_stft_cobalt"]]), "PIX");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(90);
+ this.setTooltip("SPI-TFT embedded pixel (BGR565)");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_print'] = {
+  init: function() {
+    this.appendValueInput("TXT")
+        .setCheck("String")
+        .appendField("stft print");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT print");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_transf'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft")
+        .appendField(new Blockly.FieldDropdown([["send","SEND"], ["receive","RECV"]]), "DIR");
+    this.appendValueInput("SIZ")
+        .setCheck("Number")
+        .appendField("size");
+    this.appendValueInput("PTR")
+        .setCheck("Number")
+        .appendField("buffer");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(90);
+ this.setTooltip("SPI-TFT transfer command / data");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT");
+  }
+};
+
+Blockly.Blocks['mcoc_math_bit_operation'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck(["Number", "Boolean"]);
+    this.appendValueInput("B")
+        .setCheck(["Number", "Boolean"])
+        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"]]), "OP");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("bit wise logic operation");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+  }
+};
+
+Blockly.Blocks['mcoc_math_func'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["rand","RAND"], ["rseed","RSEED"], ["floor","FLOOR"], ["ceil","CEIL"], ["round","ROUND"]]), "FNC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("mathematical function");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };

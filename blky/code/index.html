@@ -145,6 +145,18 @@
           </shadow>
         </value>
       </block>
+      <block type="mcoc_math_bit_operation">
+        <value name="A">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="B">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
 <!--
       <block type="math_single">
         <value name="NUM">
@@ -235,6 +247,13 @@
         </value>
       </block>
 -->
+      <block type="mcoc_math_func">
+        <value name="VAL">
+          <shadow type="math_number">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
     </category>
     <category name="%{BKY_CATTEXT}" colour="%{BKY_TEXTS_HUE}">
       <block type="text"></block>
@@ -397,7 +416,6 @@
     </category>
     <category name="Standard" colour="#c88848">
       <block type="mcoc_math_ascii"></block>
-      <block type="mcoc_math_bit_operation"></block>
       <block type="mcoc_math_number"></block>
       <block type="mcoc_math_unary"></block>
       <block type="mcoc_pack"></block>
@@ -430,6 +448,20 @@
       <block type="mcoc_uart_getline"></block>
       <block type="mcoc_uart_print"></block>
       <block type="mcoc_uart_println"></block>
+    </category>
+    <category name="Spi-tft" colour="#80c848">
+      <block type="mcoc_stft_affine"></block>
+      <block type="mcoc_stft_bright"></block>
+      <block type="mcoc_stft_color"></block>
+      <block type="mcoc_stft_draw_box"></block>
+      <block type="mcoc_stft_draw_dot"></block>
+      <block type="mcoc_stft_getpix"></block>
+      <block type="mcoc_stft_init"></block>
+      <block type="mcoc_stft_locate"></block>
+      <block type="mcoc_stft_pixel"></block>
+      <block type="mcoc_stft_pixel_embed"></block>
+      <block type="mcoc_stft_print"></block>
+      <block type="mcoc_stft_transf"></block>
     </category>
   </xml>
 
