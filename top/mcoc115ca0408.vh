@@ -36,7 +36,7 @@
 //`define		MCOC_DUAL_AMP_MC
 //`define		MCOC_FCPU_24M
 
-// Coprocessor
+// Co-processor
 //`define		MCVM_COPR_NOMUL
 //`define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU

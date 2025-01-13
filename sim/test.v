@@ -118,7 +118,7 @@ initial
 		// simulation continues until writing bdatw[15]=1 to badr=16'hf028
 		repeat (8)
 			@(posedge clk);
-		while (top.badr[15:0]!=16'hf028 || top.bdatw[15]!=1'b1)
+		while (top.badr[15:0]!==16'hf028 || top.bdatw[15]!==1'b1)
 			@(posedge clk);
 		// confirm pass code
 		if (top.bdatw[7:0]==8'h06)
@@ -176,25 +176,6 @@ always
 			begin
 				$display ("Simulation stop due to time out");
 				$finish;
-			end
-	end
-
-// rtc external clock input
-parameter	rtc_clk_half=40*80/2;
-always
-	begin
-		if (simctrl[simctrl_RTCK]===1'b1)
-			begin
-				port_iop_d[3]<=1'b1;
-				#(rtc_clk_half);
-				port_iop_d[3]<=1'b0;
-				#(rtc_clk_half);
-			end
-		else
-			begin
-				@(posedge clk);
-				if (port_dir[3]==1'b0)
-					port_iop_d[3]<=1'bz;
 			end
 	end
 
@@ -313,6 +294,25 @@ always	@(posedge clk)
 				user_iop_d[2]<=(user_dir[2])? user_ind[2]: 1'bz;
 				user_iop_d[1]<=(user_dir[1])? user_ind[1]: 1'bz;
 				user_iop_d[0]<=(user_dir[0])? user_ind[0]: 1'bz;
+			end
+	end
+
+// rtc external clock input
+parameter	rtc_clk_half=40*80/2;
+always
+	begin
+		if (simctrl[simctrl_RTCK]===1'b1)
+			begin
+				port_iop_d[3]<=1'b1;
+				#(rtc_clk_half);
+				port_iop_d[3]<=1'b0;
+				#(rtc_clk_half);
+			end
+		else
+			begin
+				@(posedge clk);
+				if (port_dir[3]==1'b0)
+					port_iop_d[3]<=1'bz;
 			end
 	end
 

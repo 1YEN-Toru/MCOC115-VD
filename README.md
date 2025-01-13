@@ -195,7 +195,7 @@
 	- OV7670 camera I/F unit
 	- VGA size (640x480[dot])
 	- RGB222 pixel format (64 colors)
-- [STFT61](http://hello.world.coocan.jp/ARDUINO3x/arduino33_1.html#STFT61)
+- [STFT61](http://hello.world.coocan.jp/ARDUINO33/arduino33_1.html#STFT61)
 	- SPI-TFT (ST7735R) controller unit
 	- I/O port for software SPI * 6
 		- SS, SCLK, MOSI, MISO

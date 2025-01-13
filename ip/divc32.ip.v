@@ -15,8 +15,8 @@ module divc32
 //
 //	2021/05/22	ver.1.00
 //		step division using 4 bits flush divider
-//		32/32=32...32: 14~17 cycles, including data transfer 6 cycles
-//		16/16=16...16: 7~10 cycles, including data transfer 3 cycles
+//		32/32=32...32: 12~17 cycles, instruction base
+//		16/16=16...16: 6~10 cycles, instruction base
 //
   input clk;
   input rst_n;
