@@ -1,12 +1,12 @@
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		compile options definition module
-//		(c) 2024	1YEN Toru
+//		(c) 2023	1YEN Toru
 //
 //
-//	2024/09/21
-//		NSOC113BY8808
-//		NS-BY=Nihonium-SS, Blockly (extended ROM area) edition
+//	2023/03/11
+//		NHOC113LB5408
+//		NH-LB=Nihonium, long word bus edition
 //
 
 
@@ -15,26 +15,26 @@
 `define		MCOC_CMPL_OPT
 
 
-`define		MCOC_TOP_NAME	nsoc113by8808
-`define		MCOC_CODE_ED	"BY"
+`define		MCOC_TOP_NAME	nhoc113lb5408
+`define		MCOC_CODE_ED	"LB"
 
 
 // Compile option
 // CPU core
 //`define		MCOC_CORE_TS
 `define		MCOC_CORE_NH
-`define		MCOC_CORE_NHSS
+//`define		MCOC_CORE_NHSS
 //`define		MCOC_CORE_MCSS
 //`define		MCOC_DUAL
 //`define		MCOC_DUAL_AMP_TS
 //`define		MCOC_DUAL_AMP_MC
 //`define		MCOC_FCPU_24M
 
-// Coprocessor
+// Co-processor
 `define		MCVM_COPR_NOMUL
 `define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU
-//`define		MCVM_COPR_NOFPUS
+`define		MCVM_COPR_NOFPUS
 
 // I/O unit
 //`define		MCOC_NO_INTC
@@ -50,7 +50,7 @@
 `define		MCOC_NO_RTC
 `define		MCOC_NO_DAC0
 `define		MCOC_NO_DAC1
-//`define		MCOC_NO_TIML
+`define		MCOC_NO_TIML
 `define		MCOC_NO_SMPH
 `define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
@@ -63,7 +63,7 @@
 //`define		MCOC_ROM_8K
 //`define		MCOC_ROM_16K
 //`define		MCOC_ROM_32K
-`define		MCOC_ROM_48K
+//`define		MCOC_ROM_48K
 `define		MCOC_IRAM_4K
 //`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
 //`define		MCOC_RAM_16K

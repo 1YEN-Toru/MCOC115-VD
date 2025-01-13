@@ -1,12 +1,12 @@
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		compile options definition module
-//		(c) 2023	1YEN Toru
+//		(c) 2024	1YEN Toru
 //
 //
-//	2023/03/11
-//		NHOC113LB4408
-//		NH-LB=Nihonium, long word bus edition
+//	2024/03/16
+//		MSOC115MM5408
+//		MS-MM=Moscovium-SS, amp (w/ Moscovium) dual core cpu edition
 //
 
 
@@ -15,25 +15,25 @@
 `define		MCOC_CMPL_OPT
 
 
-`define		MCOC_TOP_NAME	nhoc113lb4408
-`define		MCOC_CODE_ED	"LB"
+`define		MCOC_TOP_NAME	msoc115mm5408
+`define		MCOC_CODE_ED	"MM"
 
 
 // Compile option
 // CPU core
 //`define		MCOC_CORE_TS
-`define		MCOC_CORE_NH
+//`define		MCOC_CORE_NH
 //`define		MCOC_CORE_NHSS
-//`define		MCOC_CORE_MCSS
-//`define		MCOC_DUAL
+`define		MCOC_CORE_MCSS
+`define		MCOC_DUAL
 //`define		MCOC_DUAL_AMP_TS
-//`define		MCOC_DUAL_AMP_MC
+`define		MCOC_DUAL_AMP_MC
 //`define		MCOC_FCPU_24M
 
-// Coprocessor
-`define		MCVM_COPR_NOMUL
-`define		MCVM_COPR_NODIV
-`define		MCVM_COPR_NOFPU
+// Co-processor
+//`define		MCVM_COPR_NOMUL
+//`define		MCVM_COPR_NODIV
+//`define		MCVM_COPR_NOFPU
 `define		MCVM_COPR_NOFPUS
 
 // I/O unit
@@ -50,9 +50,9 @@
 `define		MCOC_NO_RTC
 `define		MCOC_NO_DAC0
 `define		MCOC_NO_DAC1
-`define		MCOC_NO_TIML
-`define		MCOC_NO_SMPH
-`define		MCOC_NO_ICFF
+//`define		MCOC_NO_TIML
+//`define		MCOC_NO_SMPH
+//`define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
 
 // I/O unit (PMOD connector)

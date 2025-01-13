@@ -4,9 +4,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
-//	2024/03/16
-//		MSOC115MM4408
-//		MS-MM=Moscovium-SS, AMP (w/ Moscovium) dual core cpu edition
+//	2024/09/21
+//		NSOC113BY9808
+//		NS-BY=Nihonium-SS, blockly (extended rom area) edition
 //
 
 
@@ -15,26 +15,26 @@
 `define		MCOC_CMPL_OPT
 
 
-`define		MCOC_TOP_NAME	msoc115mm4408
-`define		MCOC_CODE_ED	"MM"
+`define		MCOC_TOP_NAME	nsoc113by9808
+`define		MCOC_CODE_ED	"BY"
 
 
 // Compile option
 // CPU core
 //`define		MCOC_CORE_TS
-//`define		MCOC_CORE_NH
-//`define		MCOC_CORE_NHSS
-`define		MCOC_CORE_MCSS
-`define		MCOC_DUAL
+`define		MCOC_CORE_NH
+`define		MCOC_CORE_NHSS
+//`define		MCOC_CORE_MCSS
+//`define		MCOC_DUAL
 //`define		MCOC_DUAL_AMP_TS
-`define		MCOC_DUAL_AMP_MC
+//`define		MCOC_DUAL_AMP_MC
 //`define		MCOC_FCPU_24M
 
-// Coprocessor
-//`define		MCVM_COPR_NOMUL
-//`define		MCVM_COPR_NODIV
-//`define		MCVM_COPR_NOFPU
-`define		MCVM_COPR_NOFPUS
+// Co-processor
+`define		MCVM_COPR_NOMUL
+`define		MCVM_COPR_NODIV
+`define		MCVM_COPR_NOFPU
+//`define		MCVM_COPR_NOFPUS
 
 // I/O unit
 //`define		MCOC_NO_INTC
@@ -51,8 +51,8 @@
 `define		MCOC_NO_DAC0
 `define		MCOC_NO_DAC1
 //`define		MCOC_NO_TIML
-//`define		MCOC_NO_SMPH
-//`define		MCOC_NO_ICFF
+`define		MCOC_NO_SMPH
+`define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
 
 // I/O unit (PMOD connector)
@@ -63,7 +63,7 @@
 //`define		MCOC_ROM_8K
 //`define		MCOC_ROM_16K
 //`define		MCOC_ROM_32K
-//`define		MCOC_ROM_48K
+`define		MCOC_ROM_48K
 `define		MCOC_IRAM_4K
 //`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
 //`define		MCOC_RAM_16K

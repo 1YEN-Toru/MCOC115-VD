@@ -5,7 +5,7 @@
 //
 //
 //	2021/11/06
-//		MCOC115EX4808
+//		MCOC115EX5808
 //		EX=extended edition
 //
 
@@ -15,7 +15,7 @@
 `define		MCOC_CMPL_OPT
 
 
-`define		MCOC_TOP_NAME	mcoc115ex4808
+`define		MCOC_TOP_NAME	mcoc115ex5808
 `define		MCOC_CODE_ED	"EX"
 
 
@@ -30,7 +30,7 @@
 //`define		MCOC_DUAL_AMP_MC
 //`define		MCOC_FCPU_24M
 
-// Coprocessor
+// Co-processor
 //`define		MCVM_COPR_NOMUL
 //`define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU
