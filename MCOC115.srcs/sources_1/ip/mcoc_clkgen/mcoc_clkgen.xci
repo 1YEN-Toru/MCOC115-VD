@@ -3,7 +3,7 @@
   "ip_inst": {
     "xci_name": "mcoc_clkgen",
     "component_reference": "xilinx.com:ip:clk_wiz:6.0",
-    "ip_revision": "12",
+    "ip_revision": "15",
     "gen_directory": "../../../../MCOC115.gen/sources_1/ip/mcoc_clkgen",
     "parameters": {
       "component_parameters": {
@@ -584,7 +584,7 @@
       },
       "project_parameters": {
         "ARCHITECTURE": [ { "value": "artix7" } ],
-        "BASE_BOARD_PART": [ { "value": "digilentinc.com:cmod_a7-35t:part0:1.2" } ],
+        "BASE_BOARD_PART": [ { "value": "" } ],
         "BOARD_CONNECTIONS": [ { "value": "" } ],
         "DEVICE": [ { "value": "xc7a35t" } ],
         "PACKAGE": [ { "value": "cpg236" } ],
@@ -597,12 +597,12 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
-        "IPREVISION": [ { "value": "12" } ],
+        "IPREVISION": [ { "value": "15" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../MCOC115.gen/sources_1/ip/mcoc_clkgen" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
-        "SWVERSION": [ { "value": "2023.1.1" } ],
+        "SWVERSION": [ { "value": "2024.2" } ],
         "SYNTHESISFLOW": [ { "value": "OUT_OF_CONTEXT" } ]
       }
     },

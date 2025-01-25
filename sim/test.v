@@ -764,6 +764,41 @@ wire	[31:0]	r7=
 			top.cpu.core.rgf.bank13.gr27[15:0],
 			top.cpu.core.rgf.bank13.gr07[15:0] }:
 		32'hx;
+`elsif		MCOC_CORE_MCBS
+// Moscovium-BS general register value with bank selection
+wire	[1:0]	bank=top.cpu.core.rgf.sreg.sr[1:0];
+wire	[15:0]	r0=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr00[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr00[15:0]:
+		16'hx;
+wire	[15:0]	r1=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr01[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr01[15:0]:
+		16'hx;
+wire	[15:0]	r2=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr02[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr02[15:0]:
+		16'hx;
+wire	[15:0]	r3=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr03[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr03[15:0]:
+		16'hx;
+wire	[15:0]	r4=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr04[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr04[15:0]:
+		16'hx;
+wire	[15:0]	r5=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr05[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr05[15:0]:
+		16'hx;
+wire	[15:0]	r6=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr06[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr06[15:0]:
+		16'hx;
+wire	[15:0]	r7=
+		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr07[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr07[15:0]:
+		16'hx;
 `else
 // Moscovium general register value with bank selection
 wire	[1:0]	bank=top.cpu.core.rgf.sreg.sr[1:0];

@@ -41,13 +41,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0228
+`define		MCOC_VERS		16'h0230
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2025/01/25	ver.2.30
+//		add: compile option MCOC_CORE_MCBS
+//		fix: fdat2=32'h0001_0001 on bootmd=1
 //
 //	2024/12/14	ver.2.28
 //		corresponding to STFT61 unit
@@ -117,7 +121,7 @@ input	adcx_ain1n);
 //		NS-MD=Nihonium-SS, memory extended edition
 //
 //	2023/03/11	ver.1.44
-//		NHOC113LB4408
+//		NHOC113LB5408
 //		NH-LB=Nihonium, long word bus edition
 //
 //	2023/02/11	ver.1.42
@@ -173,7 +177,7 @@ input	adcx_ain1n);
 //		AD=a/d converter edition
 //
 //	2021/11/06	ver.1.16
-//		MCOC115EX4808
+//		MCOC115EX5808
 //		EX=extended edition
 //
 //	2021/10/16	ver.1.14
@@ -219,6 +223,8 @@ defparam	idrg.idcode=16'h113a;
 defparam	idrg.idcode=16'h1130;
 `elsif		MCOC_CORE_MCSS
 defparam	idrg.idcode=16'h115a;
+`elsif		MCOC_CORE_MCBS
+defparam	idrg.idcode=16'h115b;
 `else
 defparam	idrg.idcode=16'h1150;
 `endif

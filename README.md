@@ -4,7 +4,7 @@
 
 ![cmod_a7](img/a266_cmoda7.jpg)
 
-- Xilinx Vivado (v2023.1.1) project
+- Xilinx Vivado (v2024.2) project
 	- Target: Xilinx Artix-7 family XC7A35T FPGA chip on the Cmod A7 FPGA board
 - MCOC: Moscovium (Mc) On Chip
 	- 115 is the atomic number of Mc (Moscovium).
@@ -19,16 +19,19 @@
 
 1. Tennessine
 	- 8 bit data path
-2. Moscovium
+2. Moscovium-BS
 	- 16 bit data path
-3. Moscovium-SS
+	- [Blockly Slim](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html#MCBS)
+3. Moscovium
+	- 16 bit data path
+4. Moscovium-SS
 	- 16 bit data path x2
-	- Super Scalar
-4. Nihonium
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
+5. Nihonium
 	- 32 bit data path
-5. Nihonium-SS
+6. Nihonium-SS
 	- 32 bit data path x2
-	- Super Scalar
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 
 - The order listed above is roughly a trade-off between performance and size (LUTs).
 	- Lower performance takes smaller size.
@@ -50,7 +53,7 @@
 	- You need install Olive+ on your Windows PC.
 	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
-- [Blockly](https://github.com/google/blockly)
+- [Blockly for Moscovium](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
 	- Block base visual programming environment.
 	![blky](img/a316_blky_edit.png)
 	- Build up blocks to control MCU.
@@ -99,18 +102,25 @@
 	- Original 32 bit CPU core
 - [Tennessine](http://hello.world.coocan.jp/ARDUINO26/arduino26_3.html#TNSNDSGN)
 	- Original 8 bit CPU core
+- [Moscovium-BS](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html)
+	- Original 16 bit CPU core
+	- [Blockly Slim](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html#MCBS)
 - [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO21/arduino21_3.html#CPUMTRX)
 	- Original 16 bit CPU core
 	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
 - [Nihonium-SS](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 	- Original 32 bit CPU core
-	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS) edition
 
 ## Co-processor
 - [MULC16](http://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
 	- Multiply co-processor
-		- for Moscovium / Moscovium-SS
+		- for Moscovium / Moscovium-BS / Moscovium-SS
 	- 16 * 16 = 32 bit multiply, signed and unsigned
+- [DIVC16](http://hello.world.coocan.jp/ARDUINO33/arduino33_4.html#DIVC16)
+	- Divide co-processor (step divider)
+		- for Moscovium-BS
+	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 - [DIVC32](http://hello.world.coocan.jp/ARDUINO16/arduino16_3.html#HYBDIV)
 	- Divide co-processor (flush / step hybrid divider)
 		- for Moscovium / Moscovium-SS
@@ -118,7 +128,7 @@
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
 - [H-FPU](http://hello.world.coocan.jp/ARDUINO16/arduino16_5.html)
 	- 16 bit Half precision Floating Point Unit (FPU)
-		- for Moscovium / Moscovium-SS / Nihonium / Nihonium-SS
+		- for Moscovium / Moscovium-BS / Moscovium-SS / Nihonium / Nihonium-SS
 - [S-FPU](http://hello.world.coocan.jp/ARDUINO24/arduino24_5.html)
 	- 32 bit Single precision Floating Point Unit (FPU)
 		- for Nihonium / Nihonium-SS

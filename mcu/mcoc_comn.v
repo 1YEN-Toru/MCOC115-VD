@@ -273,7 +273,32 @@ moscoviumss		core (
 	.bbus_o(bbus_o[15:0])	// Output
 );
 
-`else	//	MCOC_CORE_MCSS
+`elsif		MCOC_CORE_MCBS
+
+moscoviumbs		core (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.irq(irq),	// Input
+	.cpuid(cpuid[1:0]),	// Input
+	.irq_lev(irq_lev[1:0]),	// Input
+	.irq_vec(irq_vec[5:0]),	// Input
+	.fdat(fdat[15:0]),	// Input
+	.bdatr(bdatr[15:0]),	// Input
+	.fadr(fadr[15:0]),	// Output
+	.bcmd(bcmd[2:0]),	// Output
+	.badrx(badrx[15:0]),	// Output
+	.badr(badr[15:0]),	// Output
+	.bdatw(bdatw[15:0]),	// Output
+	// Co-processor I/F
+	.crdy(crdy),	// Input
+	.cbus_i(cbus_i[15:0]),	// Input
+	.ccmd(ccmd[4:0]),	// Output
+	.abus_o(abus_o[15:0]),	// Output
+	.bbus_o(bbus_o[15:0])	// Output
+);
+
+`else
 
 moscovium	core (
 	.clk(clk),	// Input
@@ -298,7 +323,7 @@ moscovium	core (
 	.bbus_o(bbus_o[15:0])	// Output
 );
 
-`endif	//	MCOC_CORE_MCSS
+`endif
 
 `ifdef		MCVM_COPR_NOMUL
 wire	crdy_mulc=1'b1;
@@ -321,6 +346,18 @@ wire	crdy_divc=1'b1;
 wire	[15:0]	cbus_divc=16'h0;
 `else	//	MCVM_COPR_NODIV
 wire	[15:0]	cbus_divc;
+
+`ifdef		MCOC_CORE_MCBS
+divc16	divc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[4:0]),	// Input
+	.abus(abus_o[15:0]),	// Input
+	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy_divc),	// Output
+	.cbus(cbus_divc[15:0])	// Output
+);
+`else	//	MCOC_CORE_MCBS
 divc32	divc (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -330,6 +367,8 @@ divc32	divc (
 	.crdy(crdy_divc),	// Output
 	.cbus(cbus_divc[15:0])	// Output
 );
+`endif	//	MCOC_CORE_MCBS
+
 `endif	//	MCVM_COPR_NODIV
 
 `ifdef		MCVM_COPR_NOFPU
@@ -349,8 +388,8 @@ mcoc_hfpu	hfpu (
 `endif	//	MCVM_COPR_NOFPU
 
 
-// bus output
-assign	crdy=crdy_mulc&crdy_divc&crdy_hfpu;
+// co-processor bus output
+assign	crdy=crdy_mulc & crdy_divc & crdy_hfpu;
 assign	cbus_i[15:0]=cbus_mulc[15:0] | cbus_divc[15:0] | cbus_hfpu[15:0];
 
 endmodule
@@ -767,12 +806,11 @@ xpm_memory_tdpram	#(
 
 // bus output
 assign	fdat1[31:0]=(bootmd)? fdat_bt[31:0]: fdat1_rom[31:0];
-assign	fdat2[31:0]=(bootmd)? 32'h0001_0000: fdat2_rom[31:0];
+assign	fdat2[31:0]=(bootmd)? 32'h0001_0001: fdat2_rom[31:0];
 
 endmodule
 
 
-`ifdef		MCOC_IRAM_4K
 module	mcoc_iram (
 // mcoc115 iram
 input	clk,
@@ -895,7 +933,6 @@ xpm_memory_tdpram	#(
 );
 
 endmodule
-`endif	//	MCOC_IRAM_4K
 
 
 `ifdef		MCOC_RAM_LE1K

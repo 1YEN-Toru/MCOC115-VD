@@ -4,6 +4,11 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2025/01/25	ver.1.28
+//			add: mcvm_blky_slim for Moscovium-BS core
+//			change: temporary data address; ramtop to [idrgramt]
+//			add: user macro ldrto
+//
 //		2024/09/21	ver.1.26
 //			change: ramtop label to idrgramt
 //
@@ -60,13 +65,25 @@
 asm		"mcoc_irom.mem"
 #asm		"asm_mcvm.v"
 incl	"mcoc115.incl"
+# ================================
+# string macros
+def		s,""							// simulation "" / fpga "#"
+# constants
 equ		mcvm_has_mulc,1					// 0 for `define MCVM_COPR_NOMUL
 equ		mcvm_has_divc,1					// 0 for `define MCVM_COPR_NODIV
 equ		mcvm_has_divl,0					// 0 for `define MCVM_COPR_NODIV or Nh
 equ		mcvm_has_hfpu,0					// 0 for `define MCVM_COPR_NOFPU
 equ		mcvm_has_xadr,0					// 1 for `define MCOC_SDRAM_8M
+equ		mcvm_blky_slim,1				// 1 for `define MCOC_CORE_MCBS
 equ		mcvm_dual_cpu,2					// cpu id (1 or 2) for check
-def		s,""							// simulation "" / fpga "#"
+# ================================
+# user macros
+macro	ldrto	rd,ofst
+# load $(rd),ramtop+$(ofst)
+ldwi	$(rd),idrgramt
+ldw		$(rd),[$(rd)]
+addi	$(rd),$(ofst)
+endm
 # ================================
 
 
@@ -74,6 +91,8 @@ def		s,""							// simulation "" / fpga "#"
 // register check
 // ================================
 // initial value
+ifexp	mcvm_blky_slim
+elsi	#mcvm_blky_slim
 // bank 3
 ldcl	sr,sreg_bk_3
 cmpi	r0,0
@@ -126,6 +145,7 @@ mov		r4,r3
 mov		r5,r4
 mov		r6,r5
 mov		r7,r6
+endi	#mcvm_blky_slim
 // bank 1
 ldcl	sr,sreg_bk_1
 cmpi	r0,0
@@ -179,6 +199,8 @@ mov		r5,r4
 mov		r6,r5
 mov		r7,r6
 // bank
+ifexp	mcvm_blky_slim
+elsi	#mcvm_blky_slim
 ldcl	sr,sreg_bk_3
 ldwi	r0,0x3333
 cmp		r7,r0
@@ -187,6 +209,7 @@ ldcl	sr,sreg_bk_2
 ldwi	r0,0x2222
 cmp		r7,r0
 bne		reg_fail
+endi	#mcvm_blky_slim
 ldcl	sr,sreg_bk_1
 ldwi	r0,0x1111
 cmp		r7,r0
@@ -254,11 +277,7 @@ bne		opc_no_fail
 // rtnw
 ldbiu	r1,0
 ldbiu	r2,0
-#ldwi	r4,ramtop+24
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,24
-#
+ldrto	r4,24
 movtc	sp,r4
 ldwi	r0,lab_rtnw_pass1
 pushw	r0
@@ -275,12 +294,8 @@ cmpi	r2,1
 bne		opc_no_fail
 // ================================
 // rti
-#ldc		sp,ramtop+6
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-addi	r0,6
+ldrto	r0,6
 movtc	sp,r0
-#
 ldc		iv,lab_rti_vect
 // interrupt emulation
 movfc	r1,iv
@@ -629,11 +644,7 @@ bne		opc_r_fail
 // ================================
 // jalw
 ldbiu	r3,0
-#ldwi	r4,ramtop+16
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,16
-#
+ldrto	r4,16
 movtc	sp,r4
 ldwi	r7,lab_jalw_addr1
 jalw	r7								// **
@@ -685,12 +696,15 @@ cmpi	r0,sreg_fg&(~sreg_nf)
 bne		opc_r_fail
 // ================================
 // clsrh
-ldch	sr,(sreg_ml|sreg_dr)>>8
-clsrh	sreg_b_ml						// **
+ldch	sr,sreg_dr>>8
 movfc	r0,sr
 lsfti	r0,-8
-andi	r0,(~sreg_id_3)>>8
-cmpi	r0,0x0c&(~(sreg_ml>>8))
+andi	r0,sreg_dr>>8
+beq		opc_r_fail
+clsrh	sreg_b_dr						// **
+movfc	r0,sr
+lsfti	r0,-8
+andi	r0,sreg_dr>>8
 bne		opc_r_fail
 // ================================
 // neg
@@ -747,11 +761,7 @@ cmpi	r1,sreg_nf
 bne		opc_r_fail
 // ================================
 // pushw
-#ldwi	r4,ramtop+0x20
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x20
-#
+ldrto	r4,0x20
 movtc	sp,r4
 ldwi	r0,0x9abc
 pushw	r0								// **
@@ -764,11 +774,7 @@ cmp		r2,r0
 bne		opc_r_fail
 // ================================
 // popw
-#ldwi	r4,ramtop+0x30
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x30
-#
+ldrto	r4,0x30
 ldwi	r0,0x2468
 stw		[r4],r0
 movtc	sp,r4
@@ -781,11 +787,7 @@ cmp		r2,r4
 bne		opc_r_fail
 // ================================
 // pushcw
-#ldwi	r4,ramtop+0x18
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x18
-#
+ldrto	r4,0x18
 movtc	sp,r4
 ldcl	sr,sreg_fg
 pushcw	sr								// **
@@ -799,11 +801,7 @@ cmp		r2,r0
 bne		opc_r_fail
 // ================================
 // popcw
-#ldwi	r4,ramtop+0x28
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x28
-#
+ldrto	r4,0x28
 ldwi	r0,0x1248
 stw		[r4],r0
 movtc	sp,r4
@@ -875,11 +873,7 @@ cmpi	r2,sreg_nf
 bne		opc_rr_fail
 // ================================
 // movtc
-#ldwi	r7,ramtop+0x24
-ldwi	r7,idrgramt
-ldw		r7,[r7]
-addi	r7,0x24
-#
+ldrto	r7,0x24
 movtc	sp,r7							// **
 ldwi	r0,0x00
 subi	r7,2
@@ -1010,11 +1004,7 @@ bne		opc_rr_fail
 // ================================
 // ldb
 ldwi	r0,0x3a5c
-#ldwi	r1,ramtop
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,0
-#
+ldrto	r1,0
 stw		[r1],r0
 ldb		r2,[r1]							// **
 addi	r1,1
@@ -1026,11 +1016,7 @@ bne		opc_rr_fail
 // ================================
 // stb
 ldwi	r0,0x9653
-#ldwi	r1,ramtop+1
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,1
-#
+ldrto	r1,1
 mov		r2,r0
 lsfti	r2,-8
 stb		[r1],r0							// **
@@ -1042,11 +1028,7 @@ bne		opc_rr_fail
 // ================================
 // ldw
 ldwi	r0,0x7531
-#ldwi	r1,ramtop+10
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,10
-#
+ldrto	r1,10
 stw		[r1],r0
 ldw		r2,[r1]							// **
 cmp		r2,r0
@@ -1054,11 +1036,7 @@ bne		opc_rr_fail
 // ================================
 // stw
 ldwi	r0,0xfedc
-#ldwi	r1,ramtop+6
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,6
-#
+ldrto	r1,6
 stw		[r1],r0							// **
 ldw		r3,[r1]
 cmp		r0,r3
@@ -1140,11 +1118,7 @@ bne		opc_rr_fail
 // ================================
 // ldwsp
 ldbiu	r3,8							// offset
-#ldwi	r4,ramtop+14					// target address
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,14
-#
+ldrto	r4,14
 ldwi	r6,0x9753						// read data
 movtc	tr,r6							// set dummy
 stw		[r4],r6							// write data
@@ -1168,11 +1142,7 @@ bne		opc_rr_fail
 // ================================
 // stwsp
 ldbiu	r3,8							// offset
-#ldwi	r4,ramtop+14					// target address
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,14
-#
+ldrto	r4,14
 ldwi	r6,0xabcd						// write data
 movtc	tr,r6							// set dummy
 mov		r0,r6
@@ -1209,6 +1179,9 @@ ldwi	r0,0x0123
 ldwi	r1,0x0987
 ldwi	r2,(0x0123*0x0987)&0xffff
 ldwi	r3,(0x0123*0x0987)>>16
+ifexp	mcvm_blky_slim
+mov		r3,r1
+endi	#mcvm_blky_slim
 sesr	sreg_b_ml
 mulu	r0,r1							// **
 cmp		r0,r2
@@ -1221,6 +1194,9 @@ ldwi	r0,0xffed
 ldwi	r1,0x0034
 ldwi	r2,(0xffffffed*0x0034)&0xffff
 ldwi	r3,(0xffffffed*0x0034)>>16
+ifexp	mcvm_blky_slim
+mov		r3,r1
+endi	#mcvm_blky_slim
 sesr	sreg_b_ml
 muls	r0,r1							// **
 cmp		r0,r2
@@ -1236,6 +1212,9 @@ ldwi	r5,(0x0246*0x0357)>>16
 mov		r6,r2
 mov		r7,r3
 mov		r1,r7
+ifexp	mcvm_blky_slim
+mov		r1,r5
+endi	#mcvm_blky_slim
 clsr	sreg_b_ml
 mulur	r2,r3							// **
 sesr	sreg_b_ml
@@ -1257,6 +1236,9 @@ ldwi	r4,(0xffffffec*0x0045)>>16
 mov		r5,r1
 mov		r6,r2
 mov		r0,r6
+ifexp	mcvm_blky_slim
+mov		r0,r4
+endi	#mcvm_blky_slim
 clsr	sreg_b_ml
 mulsr	r1,r2							// **
 sesr	sreg_b_ml
@@ -1285,6 +1267,9 @@ ldwi	r0,0x8765
 ldwi	r1,0x0123
 ldwi	r2,0x8765/0x0123
 ldwi	r3,0x8765%0x0123
+ifexp	mcvm_blky_slim
+mov		r3,r1
+endi	#mcvm_blky_slim
 sesr	sreg_b_dr
 divu	r0,r1							// **
 cmp		r0,r2
@@ -1298,6 +1283,9 @@ ldwi	r0,0xabcd
 ldwi	r1,0x0345
 ldwi	r2,0xffffabcd/0x0345
 ldwi	r3,0xffffabcd%0x0345
+ifexp	mcvm_blky_slim
+mov		r3,r1
+endi	#mcvm_blky_slim
 sesr	sreg_b_dr
 divs	r0,r1							// **
 cmp		r0,r2
@@ -1313,6 +1301,9 @@ ldwi	r3,0x8ace%0x0135
 mov		r4,r0
 mov		r5,r1
 mov		r7,r5
+ifexp	mcvm_blky_slim
+mov		r7,r3
+endi	#mcvm_blky_slim
 clsr	sreg_b_dr
 divur	r0,r1							// **
 sesr	sreg_b_dr
@@ -1335,6 +1326,9 @@ ldwi	r3,0xfffface0%0x0357
 mov		r4,r0
 mov		r5,r1
 mov		r7,r5
+ifexp	mcvm_blky_slim
+mov		r7,r3
+endi	#mcvm_blky_slim
 clsr	sreg_b_dr
 divsr	r0,r1							// **
 sesr	sreg_b_dr
@@ -1355,11 +1349,7 @@ divc_skip:
 // ldbx
 ldc		tr,0
 ldwi	r0,0xb1e6
-#ldwi	r1,ramtop
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,0
-#
+ldrto	r1,0
 stwx	[r1],r0
 ldbx	r2,[r1]							// **
 addi	r1,1
@@ -1375,11 +1365,7 @@ bne		opc_rr_fail
 // stbx
 ldc		tr,0
 ldwi	r0,0xe941
-#ldwi	r1,ramtop+1
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,1
-#
+ldrto	r1,1
 mov		r2,r0
 lsfti	r2,-8
 stbx	[r1],r0							// **
@@ -1392,11 +1378,7 @@ bne		opc_rr_fail
 // ldwx
 ldc		tr,0
 ldwi	r0,0xf92b
-#ldwi	r1,ramtop+10
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,10
-#
+ldrto	r1,10
 stwx	[r1],r0
 ldwx	r2,[r1]							// **
 cmp		r2,r0
@@ -1405,11 +1387,7 @@ bne		opc_rr_fail
 // stwx
 ldc		tr,0
 ldwi	r0,0x018d
-#ldwi	r1,ramtop+6
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,6
-#
+ldrto	r1,6
 stwx	[r1],r0							// **
 ldwx	r3,[r1]
 cmp		r0,r3

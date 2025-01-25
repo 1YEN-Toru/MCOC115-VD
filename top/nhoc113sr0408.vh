@@ -27,6 +27,7 @@
 //`define		MCOC_CORE_TS
 `define		MCOC_CORE_NH
 //`define		MCOC_CORE_NHSS
+//`define		MCOC_CORE_MCBS
 //`define		MCOC_CORE_MCSS
 //`define		MCOC_DUAL
 //`define		MCOC_DUAL_AMP_TS
@@ -38,6 +39,20 @@
 `define		MCVM_COPR_NODIV
 `define		MCVM_COPR_NOFPU
 `define		MCVM_COPR_NOFPUS
+
+// Memory unit
+//`define		MCOC_ROM_8K
+//`define		MCOC_ROM_16K
+//`define		MCOC_ROM_32K
+//`define		MCOC_ROM_48K
+//`define		MCOC_IRAM_4K
+//`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
+//`define		MCOC_RAM_16K
+//`define		MCOC_RAM_24K
+//`define		MCOC_RAM_32K
+//`define		MCOC_RAM_40K
+//`define		MCOC_ERAM	64			// 64~512[KB], power of 2
+`define		MCOC_SRAM_512K
 
 // I/O unit
 //`define		MCOC_NO_INTC
@@ -62,20 +77,6 @@
 `define		MCOC_NO_CM76
 `define		MCOC_NO_STFT
 
-// Memory unit
-//`define		MCOC_ROM_8K
-//`define		MCOC_ROM_16K
-//`define		MCOC_ROM_32K
-//`define		MCOC_ROM_48K
-//`define		MCOC_IRAM_4K
-//`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
-//`define		MCOC_RAM_16K
-//`define		MCOC_RAM_24K
-//`define		MCOC_RAM_32K
-//`define		MCOC_RAM_40K
-//`define		MCOC_ERAM	64			// 64~512[KB], power of 2
-`define		MCOC_SRAM_512K
-
 
 // ================================
 // Consistency of choices
@@ -85,6 +86,7 @@
 `define		CPU_CORE		tennessinec
 `undef		MCOC_CORE_NH
 `undef		MCOC_CORE_NHSS
+`undef		MCOC_CORE_MCBS
 `undef		MCOC_CORE_MCSS
 `undef		MCOC_DUAL
 `define		MCVM_COPR_NOMUL
@@ -96,6 +98,7 @@
 
 `elsif		MCOC_CORE_NH
 `define		CPU_CORE		nihoniumc
+`undef		MCOC_CORE_MCBS
 `undef		MCOC_CORE_MCSS
 `define		MCVM_COPR_NOMUL
 `define		MCVM_COPR_NODIV
@@ -104,9 +107,12 @@
 `define		CPU_CORE		moscoviumc
 `undef		MCOC_CORE_NHSS
 `define		MCVM_COPR_NOFPUS
-`endif
 
-`undef		CPU_CORE2
+`ifdef		MCOC_CORE_MCSS
+`undef		MCOC_CORE_MCBS
+`endif	//	MCOC_CORE_MCSS
+
+`endif
 
 `ifdef		MCOC_DUAL
 `else	//	MCOC_DUAL
@@ -116,12 +122,16 @@
 `undef		MCOC_DUAL_AMP_MC
 `endif	//	MCOC_DUAL
 
+`undef		CPU_CORE2
+
 `ifdef		MCOC_DUAL_AMP_TS
+`undef		MCOC_CORE_MCBS
 `undef		MCOC_DUAL_AMP_MC
 `define		CPU_CORE2		tennessinea
 `endif	//	MCOC_DUAL_AMP_TS
 
 `ifdef		MCOC_DUAL_AMP_MC
+`undef		MCOC_CORE_MCBS
 `define		CPU_CORE2		moscoviuma
 `endif	//	MCOC_DUAL_AMP_MC
 
@@ -167,4 +177,3 @@
 `define		MCOC_PORT_HIZO				// default now
 
 `endif	//	MCOC_CMPL_OPT
-
