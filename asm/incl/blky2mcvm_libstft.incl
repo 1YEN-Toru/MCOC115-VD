@@ -18,7 +18,7 @@
 //
 // ================================
 # string macros
-def		stft_vers,"1.00"				// library version
+def		_stft_vers,"1.00"				// library version
 # constants
 equ		_stft_ss,stft_port_4			// spi: ss pin
 equ		_stft_sck,stft_port_3			// spi: sck pin
@@ -1285,5 +1285,5 @@ datb	0xff
 //	\x16\xff:	duty cycle 255 for back light LED
 //	\x12\xff\xff:	foreground color white
 _stft_init_msg:
-dats	"\x0c\x16\xff\x12\xff\xff\r\nSPI-TFT library\r\n  ver.$(stft_vers)\r\n"
+dats	"\x0c\x16\xff\x12\xff\xff\r\nSPI-TFT library\r\n  ver.$(_stft_vers)\r\n"
 
