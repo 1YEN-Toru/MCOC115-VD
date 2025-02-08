@@ -50,6 +50,8 @@ equ		led_builtin,0x07				// led built-in: port mask
 equ		led_builtin_g,0x04				// led built-in: green port
 equ		led_builtin_r,0x02				// led built-in: red port
 equ		led_builtin_b,0x01				// led built-in: blue port
+equ		sreg_b_id3,15					// sr: ID3 bit number
+equ		sreg_b_id2,14					// sr: ID2 bit number
 equ		sreg_b_id1,13					// sr: ID1 bit number
 equ		sreg_b_id0,12					// sr: ID0 bit number
 equ		sreg_b_ml,11					// sr register: ML bit number
@@ -71,6 +73,18 @@ equ		sreg_id_0,0x0000				// sr[IDn] field
 equ		sreg_id_1,0x1000
 equ		sreg_id_2,0x2000
 equ		sreg_id_3,0x3000
+equ		sreg_id_4,0x4000
+equ		sreg_id_5,0x5000
+equ		sreg_id_6,0x6000
+equ		sreg_id_7,0x7000
+equ		sreg_id_8,0x8000
+equ		sreg_id_9,0x9000
+equ		sreg_id_10,0xa000
+equ		sreg_id_11,0xb000
+equ		sreg_id_12,0xc000
+equ		sreg_id_13,0xd000
+equ		sreg_id_14,0xe000
+equ		sreg_id_15,0xf000
 equ		sreg_ml,0x0800					// sr[ML] bit
 equ		sreg_dr,0x0400					// sr[DR] bit
 equ		sreg_sd,0x0200					// sr[SD] bit
@@ -744,5 +758,33 @@ equ		stft_port_2,0x04				// [PORT2] bit
 equ		stft_port_1,0x02				// [PORT1] bit
 equ		stft_port_0,0x01				// [PORT0] bit
 equ		stft_port_a,0x3f				// [PORT*] mask
+# POLYC144
+equ		polyctl,0xf1a0					// poly, RW, word
+equ		polyintr,0xf1a4					// poly, RW, word
+equ		polyintm,0xf1a6					// poly, RW, word
+equ		polysmph0,0xf1a8				// poly, RW, word
+equ		polysmph1,0xf1aa				// poly, RW, word
+equ		polysmph2,0xf1ac				// poly, RW, word
+equ		polysmph3,0xf1ae				// poly, RW, word
+equ		poly_serr,0x80					// polyctl[SERR] bit
+equ		poly_pcie,0x20					// polyctl[PCIE] bit
+equ		poly_psie,0x10					// polyctl[PSIE] bit
+equ		poly_ncpu,0x0f					// polyctl[NCPU] field
+equ		poly_cmd_set,0x0010				// polyint*, polysmph*[CMD] field
+equ		poly_cmd_clr,0x00e0
+equ		poly_cpu_1,0x01					// polyint*, polysmph*[CID] field
+equ		poly_cpu_2,0x02
+equ		poly_cpu_3,0x03
+equ		poly_cpu_4,0x04
+equ		poly_cpu_5,0x05
+equ		poly_cpu_6,0x06
+equ		poly_cpu_7,0x07
+equ		poly_cpu_8,0x08
+equ		poly_cpu_9,0x09
+equ		poly_cpu_10,0x0a
+equ		poly_cpu_11,0x0b
+equ		poly_cpu_12,0x0c
+equ		poly_cpu_13,0x0d
+equ		poly_cpu_14,0x0e
 # ================================
 

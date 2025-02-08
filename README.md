@@ -104,7 +104,7 @@
 	- Original 8 bit CPU core
 - [Moscovium-BS](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html)
 	- Original 16 bit CPU core
-	- [Blockly Slim](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html#MCBS)
+	- [Blockly Slim](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html#MCBS) edition
 - [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO21/arduino21_3.html#CPUMTRX)
 	- Original 16 bit CPU core
 	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
