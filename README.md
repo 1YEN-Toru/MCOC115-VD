@@ -44,6 +44,11 @@
 	- [AMP](http://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
 	- Moscovium / Moscovium-SS / Nihonium / Nihonium-SS can be selected as SMP and AMP main CPU.
 	- Moscovium / Tennessine can be selected as AMP sub CPU.
+- SMP poly-core CPU edition available.
+	- [poly-core](http://hello.world.coocan.jp/ARDUINO33/arduino33_5.html) (The poly-core CPU is the same meaning as multi-core CPU.)
+	- Moscovium-BS / Tennessine can be selected.
+	- Even number cores from 4(tetra) cores up to 14(tetradeca) cores.
+	- The number of cores is limited by the capacity of the FPGA chip and ability of the Vivado.
 
 ## Development of software
  Moscovium series MCU can be developed using an assembler or Blockly.
@@ -146,6 +151,10 @@
 	- Vector interrupt
 	- 4 level interrupt
 	- Dual core ready
+- [POLYC144](http://hello.world.coocan.jp/ARDUINO33/arduino33_7.html#POLYC144)
+	- Poly-core controller up to 14 cores
+	- Inter CPU interrupt
+	- Semaphore 4 channels with interrupt request
 
 ## Timer units
 - [SYSTIM](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCSYTM)

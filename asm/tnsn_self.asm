@@ -4,8 +4,13 @@
 //		(c) 2023	1YEN Toru
 //
 //
+//		2025/02/22	ver.1.04
+//			corresponding to poly-core cpu edition
+//			change: temporary data address; ramtop to [idrgramt]
+//			add: user macro ldrto
+//
 //		2024/03/16	ver.1.02
-//			corresponding to AMP dual core cpu edition
+//			corresponding to amp dual core cpu edition
 //
 //		2023/07/08	ver.1.00
 //
@@ -14,8 +19,19 @@ asm		"mcoc_irom.mem"
 #asm		"asm_mcvm.v"
 incl	"mcoc115.incl"
 incl	"tnsn_mcr_word.incl"
-equ		tnsn_dual_cpu,2					// cpu id (1 or 2) for check
+# ================================
+# string macros
 def		s,""							// simulation "" / fpga "#"
+# constants
+equ		tnsn_dual_cpu,2					// cpu id (1~14) for check
+# ================================
+# user macros
+macro	ldrto	rd,ofst
+# load $(rd),ramtop+$(ofst)
+ldwi	$(rd),idrgramt
+ldw		$(rd),[$(rd)]
+addi	$(rd),$(ofst)
+endm
 # ================================
 
 
@@ -70,17 +86,18 @@ bne		reg_fail
 movfc	r0,sr
 cendw	r0
 lsri	r0,sreg_b_id0-8
-andi	r0,sreg_id_3>>sreg_b_id0
+andi	r0,sreg_id_15>>sreg_b_id0
 beq		reg_next
-cmpi	r0,sreg_id_3>>sreg_b_id0
-beq		reg_fail						// cpu3: reserved, error
+cmpi	r0,sreg_id_15>>sreg_b_id0
+bne		pcnt+2							// cpu15 is cpu1 (main cpu)
+ldbiu	r0,sreg_id_1>>sreg_b_id0
 cmpi	r0,tnsn_dual_cpu
 beq		reg_next						// cpu for dut, ok go
 ldbiu	r0,tnsn_dual_cpu
 cmpi	r0,sreg_id_1>>sreg_b_id0
-blo		reg_fail						// tnsn_dual_cpu must set 1 or 2
-cmpi	r0,sreg_id_3>>sreg_b_id0
-bhs		reg_fail						// tnsn_dual_cpu must set 1 or 2
+blo		reg_fail						// tnsn_dual_cpu must set 1~14
+cmpi	r0,sreg_id_15>>sreg_b_id0
+bhs		reg_fail						// tnsn_dual_cpu must set 1~14
 // stop cpu not to test
 pause
 bra		pcnt-4
@@ -144,13 +161,13 @@ bne		opc_no_fail
 // rtnw
 ldbiu	r1,0
 ldbiu	r2,0
-ldwi	r4,ramtop+24
+ldrto	r4,24
 movtc	sp,r4
-ldwi	r0,lab_rtn_pass1
+ldwi	r0,lab_rtnw_pass1
 pushw	r0
 rtnw									// **
 ldbiu	r1,1
-rtn_pass1:
+rtnw_pass1:
 ldbiu	r2,1
 cmpi	r1,0
 bne		opc_no_fail
@@ -161,7 +178,8 @@ cmpi	r2,1
 bne		opc_no_fail
 // ================================
 // rti
-ldc		sp,ramtop+6
+ldrto	r0,6
+movtc	sp,r0
 ldc		iv,lab_rti_vect
 // interrupt emulation
 movfc	r1,iv
@@ -175,7 +193,6 @@ jmp		r1
 // return address
 rti_retn:
 movfc	r0,sr
-#andi	r0,sreg_fg
 cmpi	r0,sreg_fg
 beq		rti_pass
 bra		opc_no_fail
@@ -387,7 +404,7 @@ bne		opc_r_fail
 // ================================
 // jalw
 ldbiu	r3,0
-ldwi	r4,ramtop+16
+ldrto	r4,16
 movtc	sp,r4
 ldwi	r7,lab_jalw_addr1
 jalw	r7								// **
@@ -426,8 +443,7 @@ ldch	sr,0x00
 sesrh	sreg_b_dr						// **
 movfc	r0,sr
 cendw	r0
-andi	r0,(~sreg_id_2)>>8
-cmpi	r0,0x00
+andi	r0,~(sreg_id_15>>8)
 bne		opc_r_fail
 // ================================
 // clsrl
@@ -443,8 +459,7 @@ ldch	sr,(sreg_ml|sreg_dr)>>8
 clsrh	sreg_b_ml						// **
 movfc	r0,sr
 cendw	r0
-andi	r0,(~sreg_id_2)>>8
-cmpi	r0,0x00
+andi	r0,~(sreg_id_15>>8)
 bne		opc_r_fail
 // ================================
 // neg
@@ -508,7 +523,7 @@ cmpi	r1,sreg_nf
 bne		opc_r_fail
 // ================================
 // pushw
-ldwi	r4,ramtop+0x20
+ldrto	r4,0x20
 movtc	sp,r4
 ldwi	r0,0x9abc
 pushw	r0								// **
@@ -521,7 +536,7 @@ cmpw	r2,r0
 bne		opc_r_fail
 // ================================
 // popw
-ldwi	r4,ramtop+0x30
+ldrto	r4,0x30
 ldwi	r0,0x2468
 stw		[r4],r0
 movtc	sp,r4
@@ -534,7 +549,7 @@ cmpw	r2,r4
 bne		opc_r_fail
 // ================================
 // pushcw
-ldwi	r4,ramtop+0x18
+ldrto	r4,0x18
 movtc	sp,r4
 ldcl	sr,sreg_fg
 pushcw	sr								// **
@@ -548,7 +563,7 @@ cmpw	r2,r0
 bne		opc_r_fail
 // ================================
 // popcw
-ldwi	r4,ramtop+0x28
+ldrto	r4,0x28
 ldwi	r0,0x1248
 stw		[r4],r0
 movtc	sp,r4
@@ -624,7 +639,7 @@ cmpi	r2,0x00
 bne		opc_rr_fail
 // ================================
 // movtc
-ldwi	r7,ramtop+0x24
+ldrto	r7,0x24
 movtc	sp,r7							// **
 ldwi	r0,0x00
 subwi	r7,2
@@ -750,7 +765,7 @@ bne		opc_rr_fail
 // ================================
 // ldb
 ldwi	r0,0x3a5c
-ldwi	r1,ramtop
+ldrto	r1,0
 ldbih	r2,0x7e
 ldbih	r3,0x90
 stw		[r1],r0
@@ -764,7 +779,7 @@ bne		opc_rr_fail
 // ================================
 // stb
 ldwi	r0,0x9653
-ldwi	r1,ramtop+1
+ldrto	r1,1
 stb		[r1],r0							// **
 subwi	r1,1
 cendw	r0
@@ -776,7 +791,7 @@ bne		opc_rr_fail
 // ================================
 // ldw
 ldwi	r0,0x7531
-ldwi	r1,ramtop+10
+ldrto	r1,10
 stw		[r1],r0
 ldw		r2,[r1]							// **
 cmpw	r2,r0
@@ -784,7 +799,7 @@ bne		opc_rr_fail
 // ================================
 // stw
 ldwi	r0,0xfedc
-ldwi	r1,ramtop+6
+ldrto	r1,6
 stw		[r1],r0							// **
 ldw		r3,[r1]
 cmpw	r0,r3
@@ -1002,7 +1017,6 @@ bne		opc_ri_fail
 // ================================
 // ldbil
 ldcl	sr,sreg_fg
-#ldwi	r0,0x3456
 ldbiu	r0,0x34
 cendw	r0
 ldbil	r0,0xc5							// **

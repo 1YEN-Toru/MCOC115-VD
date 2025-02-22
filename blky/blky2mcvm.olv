@@ -1,12 +1,20 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.12";
+	macro	prog_vers="1.14";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/02/22	ver.1.14
+//			corresponding to poly-core CPU
+//			add: translator option @stk_iram@
+//			add: mcoc_task; POLY and IRQP task
+//			add: mcoc_math_bit_operation; logical shift operator ([>>])
+//			add: mcoc_math_label
+//			add: mcvm_cpu_exsg
 //
 //		2025/01/11	ver.1.12
 //			corresponding to SPI-TFT (STFT61 unit, ST7735R)
@@ -72,6 +80,8 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	tolower		str_not;
 	macro	str_whl="WHILE";			// str: "while"
 	tolower		str_whl;
+	macro	str_bool0="false";			// str: "false"
+	macro	str_bool1="true";			// str: "true"
 
 
 	// variables
@@ -81,14 +91,17 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		n_str_cnst=0;				// number of string constants
 	var		need_stft=false;			// SPI-TFT blocks used
 	var		tsk_def_cpu2=false;			// tsk: task CPU2 defined
+	var		tsk_def_poly=false;			// tsk: task POLY defined
 	var		tsk_def_irq=false;			// tsk: task IRQ defined
 	var		tsk_def_irq2=false;			// tsk: task IRQ2 defined
+	var		tsk_def_irqp=false;			// tsk: task IRQP defined
 	var		opt_cpu_mod=0;				// opt: CPU mode Mc (0,1) / Nh (2)
 	var		opt_sim_mod=false;			// opt: simulation mode
 	var		opt_mul_need=false;			// opt: need MULC16 / or not
 	var		opt_div_need=false;			// opt: need DIVC32 / or not
 	var		opt_fpu_need=false;			// opt: need FPU / or not
 	var		opt_iram_need=false;		// opt: need I-RAM / or not
+	var		opt_iram_stack=false;		// opt: set stack area to I-RAM
 	var		opt_opr_typ=opt_int;		// opt: operation type (int / float)
 	var		opt_cstr_siz=64;			// opt: string buffer size
 	var		opt_rom_siz=4*1024;			// opt: instruction ROM size
@@ -500,6 +513,12 @@ if (false)
 			if (cmp=0)
 			{
 				opt_iram_need=true;
+			}
+			strcmp	cmp=$(copt#(idx)),"stk_iram";
+			if (cmp=0)
+			{
+				opt_iram_need=true;
+				opt_iram_stack=true;
 			}
 			index	cmp=$(copt#(idx)),"=";
 			if (cmp>0)
@@ -1146,6 +1165,51 @@ if (false)
 			fprint	fout,"movtc	"$(rnam)",r0"$,;
 		}
 	}
+	procedure	do_blk_mcvm_cpu_exsg
+	{
+		var		cmp;
+		macro	opcd;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opcd=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		tolower		opcd;
+		mlet	do_blk_mcvm_cpu_exsg=$(opcd)" ("$(nval)")";
+
+		// assembler
+		fprint	fout,"// "$(opcd)" (r0(="$(nval)"))"$,;
+		fprint	fout,$(opcd)"	r0"$,;
+	}
 	procedure	do_blk_mcvm_fpu_isinf
 	{
 		var		cmp;
@@ -1753,6 +1817,7 @@ if (false)
 				}
 			}
 		}
+		tolower		opr;
 
 		// operator
 		mlet	mne="xxx";
@@ -1881,6 +1946,64 @@ if (false)
 			mlet	nval="("$(nval)")";
 		}
 		mlet	do_blk_mcoc_math_unary=$(opr)" "$(nval);
+	}
+	procedure	do_blk_mcoc_math_label
+	{
+		var		cmp;
+		macro	lnam;
+		macro	lval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"NAME";
+					if (cmp=0)
+					{
+						mlet	lnam=$(do_$(dxml));
+					}
+					else
+					{
+						mlet	lval=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		strcmp	cmp=$(lnam),"";
+		if (cmp)
+		{
+			strcmp	cmp=$(lval),"";
+		}
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"mcoc_math_label: illegal parameter";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,"equ	"$(lnam)","$(lval)$,;
 	}
 	procedure	do_blk_mcoc_math_number
 	{
@@ -2018,6 +2141,12 @@ if (false)
 			mlet	opr=">>";
 			mlet	mne="asft";
 		}
+		strcmp	cmp=$(opr),"[>>]";
+		if (cmp=0)
+		{
+			mlet	opr="[>>]";
+			mlet	mne="lsft";
+		}
 		strcmp	cmp=$(opr),"^";
 		if (cmp=0)
 		{
@@ -2035,8 +2164,8 @@ if (false)
 
 		// assembler
 		fprint	fout,"// r0(="$(lval)") "$(opr)" r1(="$(rval)")"$,;
-		strcmp	cmp=$(opr),">>";
-		if (cmp=0)
+		index	cmp=$(opr),">>";
+		if (cmp>0)
 		{
 			fprint	fout,"neg	r1"$,;
 		}
@@ -3233,11 +3362,7 @@ if (false)
 		do_blk_text_print;
 
 		// assembler
-		fprint	fout,"// print CR+LF"$,;
-		fprint	fout,"ldbiu	r0,asc_cr"$,;
-		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
-		fprint	fout,"ldbiu	r0,asc_lf"$,;
-		fprint	fout,"jal$(z)r7	_print_chr_r0"$,;
+		fprint	fout,"jal$(z)r7	_print_crlf"$,;
 	}
 	procedure	do_blk_mcoc_uart_getline
 	{
@@ -7590,6 +7715,7 @@ if (false)
 	fprint	fout,"equ	_rtlb_div_need,@div_need@"$,;
 	fprint	fout,"equ	_rtlb_fpu_need,@fpu_need@"$,;
 	fprint	fout,"equ	_rtlb_iram_need,@iram_need@"$,;
+	fprint	fout,"equ	_rtlb_iram_stack,@iram_stack@"$,;
 	fprint	fout,"equ	_rtlb_cstr_siz,@cstr_siz@"$,;
 	fprint	fout,"equ	_rtlb_isr_bank,@isr_bank@"$,;
 	fprint	fout,"equ	_rtlb_uart_baud,@uart_baud@"$,;
@@ -7633,6 +7759,15 @@ if (false)
 	{
 		fprint	fout,"datw	_rtlb_null"$,;
 	}
+	fprint	fout,"_rtlb_poly:"$,;
+	if (tsk_def_poly)
+	{
+		fprint	fout,"datw	lab__rtlb_task_poly"$,;
+	}
+	else
+	{
+		fprint	fout,"datw	_rtlb_null"$,;
+	}
 	fprint	fout,"_rtlb_irq:"$,;
 	if (tsk_def_irq)
 	{
@@ -7646,6 +7781,15 @@ if (false)
 	if (tsk_def_irq2)
 	{
 		fprint	fout,"datw	lab__rtlb_task_irq2"$,;
+	}
+	else
+	{
+		fprint	fout,"datw	_rtlb_null"$,;
+	}
+	fprint	fout,"_rtlb_irqp:"$,;
+	if (tsk_def_irqp)
+	{
+		fprint	fout,"datw	lab__rtlb_task_irqp"$,;
 	}
 	else
 	{
@@ -7802,38 +7946,11 @@ if (false)
 			continue;
 		}
 
-		if (opt_mul_need)
-		{
-			sub		"@mul_need@","true",lbuf;
-		}
-		else
-		{
-			sub		"@mul_need@","false",lbuf;
-		}
-		if (opt_div_need)
-		{
-			sub		"@div_need@","true",lbuf;
-		}
-		else
-		{
-			sub		"@div_need@","false",lbuf;
-		}
-		if (opt_fpu_need)
-		{
-			sub		"@fpu_need@","true",lbuf;
-		}
-		else
-		{
-			sub		"@fpu_need@","false",lbuf;
-		}
-		if (opt_iram_need)
-		{
-			sub		"@iram_need@","true",lbuf;
-		}
-		else
-		{
-			sub		"@iram_need@","false",lbuf;
-		}
+		sub		"@mul_need@",$(str_bool#(opt_mul_need)),lbuf;
+		sub		"@div_need@",$(str_bool#(opt_div_need)),lbuf;
+		sub		"@fpu_need@",$(str_bool#(opt_fpu_need)),lbuf;
+		sub		"@iram_need@",$(str_bool#(opt_iram_need)),lbuf;
+		sub		"@iram_stack@",$(str_bool#(opt_iram_stack)),lbuf;
 		if (opt_cpu_mod=opt_nh)
 		{
 			sub		"@cpu_mod@","l",lbuf;

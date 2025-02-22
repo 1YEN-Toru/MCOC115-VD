@@ -3,6 +3,10 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2025/02/22	ver.1.14
+//			corresponding to poly-core CPU
+//			add: _print_crlf
+//
 //		2025/01/11	ver.1.12
 //			add: _is_sjis1_r0, _chrsjis_r1
 //			add: _rand
@@ -35,8 +39,9 @@
 //
 // ================================
 # constants
-equ		_rtlb_vers,0x0112				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0114				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer
+equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
 equ		low,0
 # CPU
@@ -167,6 +172,62 @@ bne		pcnt+2
 lsri	r2,1
 lsri	r2,1
 
+// Moscovium-BS core?
+ldch	sr,(sreg_ml|sreg_dr|sreg_sd|sreg_nh)>>8
+movfc	r0,sr
+ldch	sr,0
+lsri	r0,8
+andi	r0,(sreg_ml|sreg_dr|sreg_sd|sreg_nh)>>8
+cmpi	r0,sreg_dr>>8
+bne		_rtlb_not_mcbs
+
+// Moscovium-BS core
+// cpu id: r0=0 (single core cpu) / 1~14 (dual / poly-core cpu)
+movfc	r0,sr
+lsri	r0,sreg_b_id0
+andi	r0,sreg_id_15>>sreg_b_id0
+cmpi	r0,sreg_id_15>>sreg_b_id0
+bne		pcnt+2
+ldbiu	r0,sreg_id_1>>sreg_b_id0
+// poly-core cpu
+cmpi	r0,sreg_id_3>>sreg_b_id0
+blo		_rtlb_core_smp
+
+// cpu3 ~ cpu14 fork
+// move stk_btm(=sp) and var_top(=r6) for cpu3 ~ cpu14
+ldwi	r0,_rtlb_iramsiz
+add		r0,r3							// r3 holds i-ram top address
+movtc	sp,r0
+mov		r6,r3
+
+// interrupt vector
+ldc		iv,lab__rtlb_isrp
+
+ifexp	!(_rtlb_isr_bank<=0)
+// copy var_top (r6) to register bank for isr
+push$(z)	r6
+srbk	_rtlb_isr_bank
+pop$(z)	r6
+srbk	sreg_bk_0
+endi
+
+// initialize variables for cpu3 ~ cpu14
+jal$(z)r7	_rtlb_init_var
+
+// goto setup (user program entry point) for cpu3 ~ cpu14
+ldwi	r7,lab__rtlb_poly
+ldw		r7,[r7]
+// do not jump if NULL pointer
+cmpi	r7,_rtlb_null
+beq		pcnt+2
+jal$(z)		r7
+
+// cpu3 ~ cpu14 halt, suppress error message
+pause
+bra		pcnt-4
+
+_rtlb_not_mcbs:
+
 // dual core cpu check
 movfc	r0,sr
 lsri	r0,sreg_b_id0
@@ -199,6 +260,27 @@ cmpi	r0,false
 bne		pcnt+2
 add		r6,r2							// r2=stk_siz
 
+// @stk_iram@
+ldbiu	r4,_rtlb_iram_stack
+cmpi	r4,false
+beq		_rtlb_cpu2_no_stk_iram
+// i-ram test
+ldbiu	r4,0xaa
+st$(z)	[r3],r4							// r3 holds i-ram top address
+ld$(z)	r7,[r3]
+cmp		r4,r7
+beq		_rtlb_cpu2_has_iram
+// ERROR: no i-ram
+// halt, suppress error message
+pause
+bra		pcnt-4
+_rtlb_cpu2_has_iram:
+// set stack pointer to the bottom of i-ram
+ldwi	r4,_rtlb_iramsiz
+add		r4,r3							// r3 holds i-ram top address
+movtc	sp,r4
+_rtlb_cpu2_no_stk_iram:
+
 // interrupt vector
 ldc		iv,lab__rtlb_isr2
 
@@ -227,6 +309,22 @@ bra		pcnt-4
 
 // cpu0/cpu1 fork
 _rtlb_core_cpu2n:
+// @stk_iram@
+ldbiu	r4,_rtlb_iram_stack
+cmpi	r4,false
+beq		_rtlb_cpu1_no_stk_iram
+// i-ram test
+ldbiu	r4,0xaa
+st$(z)	[r3],r4							// r3 holds i-ram top address
+ld$(z)	r7,[r3]
+cmp		r4,r7
+bne		_rtlb_iram_fail
+// set stack pointer to the bottom of i-ram
+ldwi	r4,_rtlb_iramsiz
+add		r4,r3							// r3 holds i-ram top address
+movtc	sp,r4
+_rtlb_cpu1_no_stk_iram:
+
 // r0 holds cpu id
 push$(z)	r0
 
@@ -371,6 +469,7 @@ jmpr7	_rtlb_main
 // initialize variables
 //	disturbed: r0,r1,r7
 // ================================
+align	4
 _rtlb_init_var:
 // clear variables
 ldvar	r7,_rtlb_var_top
@@ -393,7 +492,9 @@ rtn$(z)
 // ISR (interrupt service routine)
 //	_rtlb_isr: for cpu0, 1
 //	_rtlb_isr2: for cpu2
+//	_rtlb_isrp: for cpu3 ~ cpu14 (poly-core)
 // ================================
+align	4
 _rtlb_isr2:
 ifexp	_rtlb_isr_bank<=0
 // store general registers
@@ -406,6 +507,19 @@ endi
 ldwi	r0,lab__rtlb_irq2
 bra		_rtlb_isr_comn
 
+align	4
+_rtlb_isrp:
+ifexp	_rtlb_isr_bank<=0
+// store general registers
+push$(z)m	r0,r1,r2,r3,r4,r5,r6,r7
+elsi
+// use bank
+srbk	_rtlb_isr_bank
+endi
+// user task irqp
+ldwi	r0,lab__rtlb_irqp
+bra		_rtlb_isr_comn
+
 _rtlb_isr:
 ifexp	_rtlb_isr_bank<=0
 // store general registers
@@ -416,6 +530,7 @@ srbk	_rtlb_isr_bank
 endi
 // user task irq
 ldwi	r0,lab__rtlb_irq
+align	4
 _rtlb_isr_comn:
 // subroutine jump to user task
 ldw		r0,[r0]
@@ -907,6 +1022,20 @@ bra		_prnt_loop
 _prnt_break:
 // end of subroutine
 rtn$(z)
+
+// ================================
+//	print ("\r\n");
+//	disturbed: r0~r2,r7
+//	return: none
+// ================================
+align	4
+_print_crlf:
+ldwi	r1,lab__prnl_crlf
+jmpr7	_print_r1
+// end of subroutine
+
+_prnl_crlf:
+dats	"\r\n\0"
 
 // ================================
 //	digitalWrite (r0,r1);

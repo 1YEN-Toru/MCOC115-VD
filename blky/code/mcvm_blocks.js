@@ -25,6 +25,20 @@ Blockly.Blocks['mcvm_cpu_cend'] = {
   }
 };
 
+Blockly.Blocks['mcvm_cpu_exsg'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField("exsg")
+        .appendField(new Blockly.FieldDropdown([["from B","EXSGW"], ["from W","EXSGL"]]), "OPC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(0);
+ this.setTooltip("sign extension from byte or word data");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+  }
+};
+
 Blockly.Blocks['mcvm_cpu_irqen'] = {
   init: function() {
     this.appendDummyInput()
@@ -301,7 +315,7 @@ Blockly.Blocks['mcoc_math_bit_operation'] = {
         .setCheck(["Number", "Boolean"]);
     this.appendValueInput("B")
         .setCheck(["Number", "Boolean"])
-        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"]]), "OP");
+        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"], ["[>>]","[>>]"]]), "OP");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
     this.setColour(225);
@@ -320,6 +334,22 @@ Blockly.Blocks['mcoc_math_func'] = {
     this.setColour(225);
  this.setTooltip("mathematical function");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_math_label'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("define label")
+        .appendField(new Blockly.FieldTextInput("lname"), "NAME")
+        .appendField("=")
+        .appendField(new Blockly.FieldTextInput("0x01"), "VAL");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(30);
+ this.setTooltip("define constant label");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };
 
@@ -342,9 +372,9 @@ Blockly.Blocks['mcoc_math_unary'] = {
         .appendField(new Blockly.FieldDropdown([["-","-"], ["inc","1+"], ["dec","-1+"], ["sq","sq"], ["2*","2*"], ["~","~"], ["!","!"], ["!!","!!"]]), "OP");
     this.setInputsInline(false);
     this.setOutput(true, ["Number", "Boolean"]);
-    this.setColour(30);
+    this.setColour(225);
  this.setTooltip("unary operation");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
   }
 };
 
@@ -385,7 +415,7 @@ Blockly.Blocks['mcoc_task'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("task")
-        .appendField(new Blockly.FieldDropdown([["CPU2","CPU2"], ["IRQ","IRQ"], ["IRQ2","IRQ2"]]), "TASK");
+        .appendField(new Blockly.FieldDropdown([["CPU2","CPU2"], ["POLY","POLY"], ["IRQ","IRQ"], ["IRQ2","IRQ2"], ["IRQP","IRQP"]]), "TASK");
     this.appendStatementInput("DO")
         .setCheck(null);
     this.setInputsInline(true);

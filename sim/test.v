@@ -636,6 +636,9 @@ always	@(posedge clk)
 						cnt_isu1=cnt_isu1 + 2;
 					end
 			end
+`elsif		MCOC_POLY
+		if (top.rst_n && top.cpu.punit0.core.ctl_fetch)
+			cnt_inst=cnt_inst + 1;
 `else
 		if (top.rst_n && top.cpu.core.ctl_fetch)
 			cnt_inst=cnt_inst + 1;
@@ -653,6 +656,8 @@ reg		[15:0]	inst_cod;
 wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
 `elsif		MCOC_CORE_MCSS
 wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
+`elsif		MCOC_POLY
+wire	[15:0]	inst_ir=top.cpu.punit0.core.fch.ir[15:0];
 `else
 wire	[15:0]	inst_ir=top.cpu.core.fch.ir[15:0];
 `endif
@@ -687,7 +692,56 @@ always	@(posedge clk)
 
 
 // simulation convenience
-`ifdef		MCOC_CORE_TS
+`ifdef		MCOC_POLY
+
+`ifdef		MCOC_CORE_MCBS
+// PUNIT#0 (Moscovium-BS)  general register value with bank selection
+wire	[1:0]	bank=top.cpu.punit0.core.rgf.sreg.sr[1:0];
+wire	[15:0]	r0=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr00[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr00[15:0]:
+		16'hx;
+wire	[15:0]	r1=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr01[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr01[15:0]:
+		16'hx;
+wire	[15:0]	r2=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr02[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr02[15:0]:
+		16'hx;
+wire	[15:0]	r3=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr03[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr03[15:0]:
+		16'hx;
+wire	[15:0]	r4=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr04[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr04[15:0]:
+		16'hx;
+wire	[15:0]	r5=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr05[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr05[15:0]:
+		16'hx;
+wire	[15:0]	r6=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr06[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr06[15:0]:
+		16'hx;
+wire	[15:0]	r7=
+		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr07[15:0]:
+		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr07[15:0]:
+		16'hx;
+`else	//	MCOC_CORE_MCBS
+// PUNIT#0 (Tennessine) general register value
+wire	[15:0]	r0=top.cpu.punit0.core.rgf.bank.gr00[15:0];
+wire	[15:0]	r1=top.cpu.punit0.core.rgf.bank.gr01[15:0];
+wire	[15:0]	r2=top.cpu.punit0.core.rgf.bank.gr02[15:0];
+wire	[15:0]	r3=top.cpu.punit0.core.rgf.bank.gr03[15:0];
+wire	[15:0]	r4=top.cpu.punit0.core.rgf.bank.gr04[15:0];
+wire	[15:0]	r5=top.cpu.punit0.core.rgf.bank.gr05[15:0];
+wire	[15:0]	r6=top.cpu.punit0.core.rgf.bank.gr06[15:0];
+wire	[15:0]	r7=top.cpu.punit0.core.rgf.bank.gr07[15:0];
+`endif	//	MCOC_CORE_MCBS
+
+`elsif		MCOC_CORE_TS
 // Tennessine general register value
 wire	[15:0]	r0=top.cpu.core.rgf.bank.gr00[15:0];
 wire	[15:0]	r1=top.cpu.core.rgf.bank.gr01[15:0];

@@ -41,7 +41,7 @@ tennessine	core (
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
 	.irq(irq),	// Input
-	.cpuid(cpuid[1:0]),	// Input
+	.cpuid({ 2'h0,cpuid[1:0] }),	// Input
 	.irq_lev(irq_lev[1:0]),	// Input
 	.irq_vec(irq_vec[5:0]),	// Input
 	.fdat(fdat[15:0]),	// Input
@@ -280,7 +280,7 @@ moscoviumbs		core (
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
 	.irq(irq),	// Input
-	.cpuid(cpuid[1:0]),	// Input
+	.cpuid({ 2'h0,cpuid[1:0] }),	// Input
 	.irq_lev(irq_lev[1:0]),	// Input
 	.irq_vec(irq_vec[5:0]),	// Input
 	.fdat(fdat[15:0]),	// Input
@@ -439,7 +439,7 @@ tennessine	core (
 	.rst_n(rst_n),	// Input
 	.brdy(brdy),	// Input
 	.irq(irq),	// Input
-	.cpuid(cpuid[1:0]),	// Input
+	.cpuid({ 2'h0,cpuid[1:0] }),	// Input
 	.irq_lev(irq_lev[1:0]),	// Input
 	.irq_vec(irq_vec[5:0]),	// Input
 	.fdat(fdat[15:0]),	// Input
@@ -1435,13 +1435,17 @@ output	bcs_iome_n,
 output	bcs_tled_n,
 output	bcs_adcx_n,
 output	bcs_cm76_n,
-output	bcs_stft_n);
+output	bcs_stft_n,
+output	bcs_poly_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2025/02/22	ver.1.14
+//		add: bcs_poly_n; POLYC144 unit, Poly-core controller
 //
 //	2024/12/14	ver.1.12
 //		add: bcs_stft_n; STFT61 unit, SPI-TFT controller
@@ -1550,6 +1554,7 @@ assign	bcs_tled_n=(!bcs_iou_n && badr[11:4]==8'h16)? 1'b0: 1'b1;
 assign	bcs_adcx_n=(!bcs_iou_n && badr[11:4]==8'h17)? 1'b0: 1'b1;
 assign	bcs_cm76_n=(!bcs_iou_n && badr[11:4]==8'h18)? 1'b0: 1'b1;
 assign	bcs_stft_n=(!bcs_iou_n && badr[11:4]==8'h19)? 1'b0: 1'b1;
+assign	bcs_poly_n=(!bcs_iou_n && badr[11:4]==8'h1a)? 1'b0: 1'b1;
 
 
 endmodule

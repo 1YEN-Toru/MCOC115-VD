@@ -4,6 +4,9 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2025/02/22	ver.1.30
+//			corresponding to poly-core cpu edition
+//
 //		2025/01/25	ver.1.28
 //			add: mcvm_blky_slim for Moscovium-BS core
 //			change: temporary data address; ramtop to [idrgramt]
@@ -75,7 +78,7 @@ equ		mcvm_has_divl,0					// 0 for `define MCVM_COPR_NODIV or Nh
 equ		mcvm_has_hfpu,0					// 0 for `define MCVM_COPR_NOFPU
 equ		mcvm_has_xadr,0					// 1 for `define MCOC_SDRAM_8M
 equ		mcvm_blky_slim,1				// 1 for `define MCOC_CORE_MCBS
-equ		mcvm_dual_cpu,2					// cpu id (1 or 2) for check
+equ		mcvm_dual_cpu,2					// cpu id (1~14) for check
 # ================================
 # user macros
 macro	ldrto	rd,ofst
@@ -232,17 +235,18 @@ bne		reg_fail
 // sr register, check cpu id to test
 movfc	r0,sr
 lsfti	r0,-sreg_b_id0
-andi	r0,sreg_id_3>>sreg_b_id0
+andi	r0,sreg_id_15>>sreg_b_id0
 beq		reg_pass						// cpu0: single core, ok go
-cmpi	r0,sreg_id_3>>sreg_b_id0
-beq		reg_fail						// cpu3: reserved, error
+cmpi	r0,sreg_id_15>>sreg_b_id0
+bne		pcnt+2							// cpu15 is cpu1 (main cpu)
+ldbiu	r0,sreg_id_1>>sreg_b_id0
 cmpi	r0,mcvm_dual_cpu
 beq		reg_pass						// cpu for dut, ok go
 ldbiu	r0,mcvm_dual_cpu
 cmpi	r0,sreg_id_1>>sreg_b_id0
-blo		reg_fail						// mcvm_dual_cpu must set 1 or 2
-cmpi	r0,sreg_id_3>>sreg_b_id0
-bhs		reg_fail						// mcvm_dual_cpu must set 1 or 2
+blo		reg_fail						// mcvm_dual_cpu must set 1~14
+cmpi	r0,sreg_id_15>>sreg_b_id0
+bhs		reg_fail						// mcvm_dual_cpu must set 1~14
 // stop cpu not to test
 pause
 bra		pcnt-4
@@ -683,7 +687,7 @@ ldch	sr,0x00
 sesrh	sreg_b_dr						// **
 movfc	r0,sr
 lsfti	r0,-8
-andi	r0,(~sreg_id_3)>>8
+andi	r0,(~sreg_id_15)>>8
 cmpi	r0,sreg_dr>>8
 bne		opc_r_fail
 // ================================

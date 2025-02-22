@@ -247,6 +247,13 @@
         </value>
       </block>
 -->
+      <block type="mcoc_math_unary">
+        <value name="VAL">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
       <block type="mcoc_math_func">
         <value name="VAL">
           <shadow type="math_number">
@@ -396,6 +403,7 @@
     <category name="Moscovium" colour="#c84848">
       <block type="mcvm_cpu_asm"></block>
       <block type="mcvm_cpu_cend"></block>
+      <block type="mcvm_cpu_exsg"></block>
       <block type="mcvm_cpu_irqen"></block>
       <block type="mcvm_cpu_reg"></block>
       <block type="mcvm_cpu_set"></block>
@@ -416,8 +424,8 @@
     </category>
     <category name="Standard" colour="#c8a848">
       <block type="mcoc_math_ascii"></block>
+      <block type="mcoc_math_label"></block>
       <block type="mcoc_math_number"></block>
-      <block type="mcoc_math_unary"></block>
       <block type="mcoc_pack"></block>
       <block type="mcoc_swap"></block>
       <block type="mcoc_task"></block>

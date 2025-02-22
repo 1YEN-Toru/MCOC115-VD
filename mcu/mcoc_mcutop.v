@@ -41,13 +41,18 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0230
+`define		MCOC_VERS		16'h0232
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2025/02/22	ver.2.32
+//		add: compile option MCOC_POLY / MCOC_POLY_6~14
+//		change: cpuid [3:0] for Moscovium-BS / Tennessine
+//		corresponding to POLYC144 unit
 //
 //	2025/01/25	ver.2.30
 //		add: compile option MCOC_CORE_MCBS
@@ -320,6 +325,7 @@ wire	[15:0]	bdatr_iome;
 wire	[15:0]	bdatr_tled;
 wire	[15:0]	bdatr_cm76;
 wire	[15:0]	bdatr_stft;
+wire	[15:0]	bdatr_poly;
 
 // memory bus command alias
 wire	bcmdr=bcmd[0];
@@ -348,6 +354,25 @@ wire	[1:0]	intc_lev;
 wire	[1:0]	intc_lev2;
 wire	[5:0]	intc_vec;
 wire	[5:0]	intc_vec2;
+wire	[14:1]	poly_pirq;
+wire	[6:0]	poly_pirq_ev={
+			poly_pirq[14],
+			poly_pirq[12],
+			poly_pirq[10],
+			poly_pirq[8],
+			poly_pirq[6],
+			poly_pirq[4],
+			poly_pirq[2]
+		};
+wire	[6:0]	poly_pirq_od={
+			poly_pirq[13],
+			poly_pirq[11],
+			poly_pirq[9],
+			poly_pirq[7],
+			poly_pirq[5],
+			poly_pirq[3],
+			poly_pirq[1]
+		};
 
 // user i/o port
 wire	[15:0]	user_iop;
@@ -390,7 +415,17 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 	.badrx(badrx2[15:0]),	// Output
 	.badr(badr2[15:0]),	// Output
 	.bdatwx(bdatw2[31:16]),	// Output
+`ifdef		MCOC_POLY
+	.bdatw(bdatw2[15:0]),	// Output
+	// poly-core I/F
+	.bootmd(bootmd),	// Input
+	.btm_bcmdw_rom(!bcs_rom_n && bcmdr),	// Input
+	.btm_badr(badr[15:0]),	// Input
+	.btm_bdatw(bdatw[15:0]),	// Input
+	.poly_pirq_half(poly_pirq_ev[6:0])	// Input
+`else	//	MCOC_POLY
 	.bdatw(bdatw2[15:0])	// Output
+`endif	//	MCOC_POLY
 );
 
 `ifdef		MCOC_DUAL_AMP_TS
@@ -427,7 +462,17 @@ assign	bdatw2[31:0]=32'h0;
 	.badrx(badrx1[15:0]),	// Output
 	.badr(badr1[15:0]),	// Output
 	.bdatwx(bdatw1[31:16]),	// Output
+`ifdef		MCOC_POLY
+	.bdatw(bdatw1[15:0]),	// Output
+	// poly-core I/F
+	.bootmd(bootmd),	// Input
+	.btm_bcmdw_rom(!bcs_rom_n && bcmdr),	// Input
+	.btm_badr(badr[15:0]),	// Input
+	.btm_bdatw(bdatw[15:0]),	// Input
+	.poly_pirq_half(poly_pirq_od[6:0])	// Input
+`else	//	MCOC_POLY
 	.bdatw(bdatw1[15:0])	// Output
+`endif	//	MCOC_POLY
 );
 
 `ifdef		MCOC_NO_SMPH
@@ -565,7 +610,8 @@ mcoc_adrdec		adec (
 	.bcs_tled_n(bcs_tled_n),	// Output
 	.bcs_adcx_n(bcs_adcx_n),	// Output
 	.bcs_cm76_n(bcs_cm76_n),	// Output
-	.bcs_stft_n(bcs_stft_n)	// Output
+	.bcs_stft_n(bcs_stft_n),	// Output
+	.bcs_poly_n(bcs_poly_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -595,6 +641,8 @@ wire	intc_eir0;
 wire	intc_icr2;
 wire	intc_icr1;
 wire	adc_cenr=1'b0;
+wire	intc_icr2p=intc_icr2 | poly_pirq[2];
+wire	intc_icr1p=intc_icr1 | poly_pirq[1];
 wire	[31:0]	intc_fct=
 		{
 			icff_frar2, icff_ftar2, smph_smrr2, smph_smur2,
@@ -604,7 +652,7 @@ wire	[31:0]	intc_fct=
 			tim1_ovfr, tim1_cmar, tim1_cmbr, 1'b0,
 			tim0_ovfr, tim0_cmar, tim0_cmbr, 1'b0,
 			stws_mter, stws_mrar, stws_star, stws_srar,
-			intc_eir1, intc_eir0, intc_icr2, intc_icr1
+			intc_eir1, intc_eir0, intc_icr2p, intc_icr1p
 		};
 
 `ifdef		MCOC_NO_INTC
@@ -673,6 +721,11 @@ wire	fcmdl2=fcmdl1;
 wire	[31:0]	rom_fdat1;
 wire	[31:0]	rom_fdat2;
 
+`ifdef		MCOC_POLY
+assign	rom_fdat1[31:0]=32'h0;
+assign	rom_fdat2[31:0]=32'h0;
+assign	bdatr_rom[31:0]=32'h0;
+`else	//	MCOC_POLY
 mcoc_rom	rom (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -693,6 +746,7 @@ mcoc_rom	rom (
 	.fdat2(rom_fdat2[31:0]),	// Output
 	.bdatr(bdatr_rom[31:0])	// Output
 );
+`endif	//	MCOC_POLY
 
 `ifdef		MCOC_RAM_LE1K
 
@@ -1321,6 +1375,40 @@ stft61	stft (
 );
 `endif	//	MCOC_NO_STFT
 
+`ifdef		MCOC_POLY
+
+`ifdef		MCOC_POLY_14
+wire	[3:0]	poly_n_core=4'd14;
+`elsif		MCOC_POLY_12
+wire	[3:0]	poly_n_core=4'd12;
+`elsif		MCOC_POLY_10
+wire	[3:0]	poly_n_core=4'd10;
+`elsif		MCOC_POLY_8
+wire	[3:0]	poly_n_core=4'd8;
+`elsif		MCOC_POLY_6
+wire	[3:0]	poly_n_core=4'd6;
+`else
+wire	[3:0]	poly_n_core=4'd4;
+`endif
+
+polyc144	polyc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_poly_n(bcs_poly_n),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.poly_n_core(poly_n_core[3:0]),	// Input
+	.bdatr(bdatr_poly[15:0]),	// Output
+	.poly_pirq(poly_pirq[14:1])	// Output
+);
+`else	//	MCOC_POLY
+assign	poly_pirq[14:1]=14'h0;
+assign	bdatr_poly[15:0]=16'h0;
+`endif	//	MCOC_POLY
+
 
 // bus output
 assign	bdatr[15:0]=
@@ -1351,7 +1439,8 @@ assign	bdatr[15:0]=
 	bdatr_iome[15:0] |
 	bdatr_tled[15:0] |
 	bdatr_cm76[15:0] |
-	bdatr_stft[15:0];
+	bdatr_stft[15:0] |
+	bdatr_poly[15:0];
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |
