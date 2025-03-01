@@ -309,6 +309,21 @@ Blockly.Blocks['mcoc_math_ascii'] = {
   }
 };
 
+Blockly.Blocks['mcoc_math_binary'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck(["Number", "Boolean"]);
+    this.appendValueInput("B")
+        .setCheck(["Number", "Boolean"])
+        .appendField(new Blockly.FieldDropdown([["**","**"], ["min","MIN"], ["max","MAX"]]), "OP");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("binary operation");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
 Blockly.Blocks['mcoc_math_bit_operation'] = {
   init: function() {
     this.appendValueInput("A")
@@ -333,6 +348,32 @@ Blockly.Blocks['mcoc_math_func'] = {
     this.setOutput(true, "Number");
     this.setColour(225);
  this.setTooltip("mathematical function");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_math_func2'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldDropdown([["sqrt","SQRT"], ["exp","EXP"], ["log","LOG"], ["log10","LOG10"], ["log2","LOG2"]]), "FNC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("mathematical function #2");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_math_func3'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldDropdown([["sin","SIN"], ["cos","COS"], ["tan","TAN"], ["asin","ASIN"], ["acos","ACOS"], ["atan","ATAN"]]), "FNC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("mathematical function #3");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
   }
 };

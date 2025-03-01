@@ -1,12 +1,18 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.14";
+	macro	prog_vers="1.16";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/03/01	ver.1.16
+//			add: mcoc_math_binary
+//			add: mcoc_math_func2, mcoc_math_func3
+//				mcoc_math_func2; sqrt, exp, log, log10, log2
+//				mcoc_math_func3; sin, cos, tan, asin, acos, atan
 //
 //		2025/02/22	ver.1.14
 //			corresponding to poly-core CPU
@@ -89,6 +95,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		in_var_set;					// in variables_set block
 	var		defp_1st=true;				// encounter 1st define procedure
 	var		n_str_cnst=0;				// number of string constants
+	var		need_math=false;			// mathematical function blocks used
 	var		need_stft=false;			// SPI-TFT blocks used
 	var		tsk_def_cpu2=false;			// tsk: task CPU2 defined
 	var		tsk_def_poly=false;			// tsk: task POLY defined
@@ -2303,7 +2310,152 @@ if (false)
 			fprint	fout,"fmvsg	r0,r2"$,;
 		}
 
+		// other mathematical functions
+		macro	mfnc=
+				"sqrt    "
+				"exp     "
+				"log     "
+				"log10   "
+				"log2    "
+				"sin     "
+				"cos     "
+				"tan     "
+				"asin    "
+				"acos    "
+				"atan    ";
+		index	cmp=$(mfnc),$(func)" ";
+		if (cmp>0 & (cmp - 1)%8=0)
+		{
+			need_math=true;
+			opt_fpu_need=true;
+			
+			// assembler
+			fprint	fout,"jal$(z)r7	_math_"$(func)$,;
+		}
+
 		mlet	do_blk_mcoc_math_func=$(func)" ("$(nval)")";
+	}
+	procedure	do_blk_mcoc_math_func2
+	{
+		do_blk_mcoc_math_func;
+		mlet	do_blk_mcoc_math_func2=$(do_blk_mcoc_math_func);
+	}
+	procedure	do_blk_mcoc_math_func3
+	{
+		do_blk_mcoc_math_func;
+		mlet	do_blk_mcoc_math_func3=$(do_blk_mcoc_math_func);
+	}
+	procedure	do_blk_mcoc_math_binary
+	{
+		var		cmp;
+		macro	opr;
+		macro	lval;
+		macro	rval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	opr=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"data";
+					if (cmp)
+					{
+						strcmp	cmp=$(dnam),"A";
+					}
+					if (cmp=0)
+					{
+						mlet	lval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	rval=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// r1=r0(="$(rval)"); r0(="$(lval)")"$,;
+						fprint	fout,"mov	r1,r0"$,;
+						fprint	fout,"pop$(z)	r0"$,;
+					}
+				}
+			}
+		}
+		need_math=true;
+		tolower		opr;
+
+		// assembler
+		fprint	fout,"// r0=r0(="$(lval)") "$(opr)" r1(="$(rval)")"$,;
+		strcmp	cmp=$(opr),"**";
+		if (cmp=0)
+		{
+			if (opt_opr_typ!=opt_float)
+			{
+				// ERROR:
+				errmsg	"mcoc_math_binary: "
+						"power operator (**) must be @float@.";
+				leave	stop_error;
+			}
+
+			// power operator
+			fprint	fout,"jal$(z)r7	_math_pow"$,;
+		}
+		strcmp	cmp=$(opr),"max";
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"min";
+		}
+		if (cmp=0)
+		{
+			// minimum / maximum operator
+			macro	fi;
+			if (opt_opr_typ=opt_float)
+			{
+				mlet	fi="f";
+			}
+			macro	mne="bge";
+			strcmp	cmp=$(opr),"min";
+			if (cmp=0)
+			{
+				mlet	mne="blt";
+			}
+			fprint	fout,$(fi)"cmp	r0,r1"$,;
+			fprint	fout,$(mne)"	pcnt+2"$,;
+			fprint	fout,"mov	r0,r1"$,;
+		}
+
+		index	cmp=$(lval)," ";
+		if (cmp>0)
+		{
+			mlet	lval="("$(lval)")";
+		}
+		index	cmp=$(rval)," ";
+		if (cmp>0)
+		{
+			mlet	rval="("$(rval)")";
+		}
+		mlet	do_blk_mcoc_math_binary=$(lval)" "$(opr)" "$(rval);
 	}
 	procedure	do_blk_mcoc_pack
 	{
@@ -7936,6 +8088,10 @@ if (false)
 		pindex	cmp=$(lbuf),"^#@incl_lib@$";
 		if (cmp>0)
 		{
+			if (need_math)
+			{
+				fprint	fout,"incl	"$""blky2mcvm_libmath$(z).incl"$"$,;
+			}
 			if (need_stft)
 			{
 				fprint	fout,"incl	"$""blky2mcvm_libstft.incl"$"$,;
