@@ -1,0 +1,484 @@
+// ================================
+//	blky2mcvm mathematical function library for H-FPU
+//		(c) 2021,2025	1YEN Toru
+//
+//
+//		2025/03/01	ver.1.00
+//			_math_sqrt: half r0=sqrt (half r0), disturbed r1~r4
+//			_math_atan: half r0=atan (half r0), disturbed r1~r3
+//			_math_exp: half r0=exp (half r0), disturbed r1~r5
+//			_math_log: half r0=log (half r0), disturbed r1~r4
+//			_math_sin: half r0=sin (half r0), disturbed r1~r4
+//			_math_pow: half r0=pow (half r0,half r1), disturbed r1~r5,r7
+//			_math_cos: half r0=cos (half r0), disturbed r1~r4,r7
+//			_math_tan: half r0=tan (half r0), disturbed r1~r4,r7
+//			_math_asin: half r0=asin (half r0), disturbed r1~r4,r7
+//			_math_acos: half r0=acos (half r0), disturbed r1~r4,r7
+//			_math_log10: half r0=log10 (half r0), disturbed r1~r4,r7
+//			_math_log2: half r0=log2 (half r0), disturbed r1~r4,r7
+//
+// ================================
+//	Moscovium
+//		hfpu mathematical function library
+//		(c) 2021	1YEN Toru
+//
+//		2021/07/10	ver.1.02
+//			using hcmp instruction
+//
+//		2021/07/03	ver.1.00
+//			_math_atan: half r0=atan (half r1), disturbed r1~r3
+//			_math_exp: half r0=exp (half r1), disturbed r1~r5
+//			_math_log: half r0=log (half r1), disturbed r1~r4
+//			_math_sin: half r0=sin (half r1), disturbed r1~r4
+//			_math_abs: half r0=abs (half r1), disturbed r1
+//			_math_ceil: half r0=ceil (half r1) ; disturbed r2
+//			_math_floor: half r0=floor (half r1), disturbed r1,r2
+//			_math_round: half r0=round (half r1), disturbed r1,r2
+//
+// ================================
+# string macros
+def		_mathw_vers,"1.00"				// library version
+# constants
+equ		_math_fsg_bits,1				// half precision floating point
+equ		_math_fex_bits,5
+equ		_math_ffr_bits,10
+equ		_math_fsg_mask,(1<<_math_fsg_bits-1)<<(_math_fex_bits+_math_ffr_bits)
+equ		_math_fex_mask,(1<<_math_fex_bits-1)<<_math_ffr_bits
+equ		_math_ffr_mask,1<<_math_ffr_bits-1
+equ		_math_fex_ofst,1<<(_math_fex_bits-1)-1
+# ================================
+
+
+// ================================
+// half r0=sqrt (half r0), disturbed r1~r4
+// ================================
+align	4
+_math_sqrt:
+mov		r1,r0
+// zero or non-finite value
+ldbiu	r0,0
+fcmp	r1,r0
+beq		_math_sqrt_return
+ld$(z)i		r0,_rtlb_nan$(z)
+bmi		_math_sqrt_return
+ld$(z)i		r0,_rtlb_inf$(z)
+fcmp	r1,r0
+bcs		_math_sqrt_return
+// sqrt exponent
+mov		r2,r1
+lsri	r2,_math_ffr_bits
+subi	r2,_math_fex_ofst
+ld$(z)i	r0,~_math_fex_mask				// ex=1..1 (all 1)
+and		r1,r0
+// if ex&0x01==0
+mov		r0,r2
+andi	r0,0x01
+bne		_math_sqrt_ex_odd
+asri	r2,1
+ld$(z)i	r0,(_math_fex_mask>>1)&_math_fex_mask		// ex=01..1
+or		r1,r0
+bra		_math_sqrt_ex_endif
+align	4
+_math_sqrt_ex_odd:
+// if ex&0x01==1
+subi	r2,1
+ld$(z)i	r0,(_math_fex_mask<<(_math_fex_bits-1))&_math_fex_mask		// ex=10..0
+asri	r2,1
+or		r1,r0
+_math_sqrt_ex_endif:
+asli	r2,_math_ffr_bits
+// r0=y<n>
+// r1=x
+// r2=exponent
+// Newton-Raphson method
+//	sqrt (x)=y3, y<n+1>=(y<n> + x/y<n>)/2, y0=0.3259*x + 0.7407
+ld$(z)i	r4,(_math_fex_mask>>(_math_fex_bits-1))&_math_fex_mask		// ex=0..01
+// y0
+fld$(z)i	r0,0.3259
+fmul	r0,r1
+fld$(z)i	r3,0.7407
+fadd	r0,r3
+// iteration 2 times: y1~y2
+rept	2
+// y<$(repti)+1>
+mov		r3,r1
+fdiv	r3,r0
+fadd	r0,r3
+sub		r0,r4
+endr
+// calculate exponent
+add		r0,r2
+_math_sqrt_return:
+rtn$(z)
+
+
+// ================================
+// half r0=atan (half r0), disturbed r1~r3
+// ================================
+align	4
+_math_atan:
+mov		r1,r0
+// if (abs (r1)>1) atan (1/r1)=sgn (r1)*pi/2 - atan (x)
+ldbiu	r3,false						// 1=negate, 2=inverse / 0=not
+cmpi	r1,0
+bpl		pcnt+4
+fneg	r1,r1
+ori		r3,true
+fld$(z)i	r2,1
+fcmp	r1,r2
+bmi		pcnt+6
+fdiv	r2,r1
+mov		r1,r2
+ori		r3,true<<1						// inverse
+
+// r0=atan (r1); r0=y[0]=r1/y[1], r2=y[n]=2n - 1 + (n*r1)**2/y[n + 1]
+// y[4]
+fld$(z)i	r2,8.470482158
+// y[3]~y[1]
+rept	3
+// y[$(reptn)-$(repti)]
+fld$(z)i	r0,$(reptn)-$(repti)
+fmul	r0,r1
+fmul	r0,r0
+fdiv	r0,r2
+fld$(z)i	r2,2*($(reptn)-$(repti))-1
+fadd	r2,r0
+endr
+// y[0]
+mov		r0,r1
+fdiv	r0,r2
+
+// inverse, negate
+mov		r2,r3
+andi	r2,true<<1						// inverse
+beq		_math_atan_not_inv
+fld$(z)i	r2,PI/2
+fsub	r2,r0
+mov		r0,r2
+_math_atan_not_inv:
+andi	r3,true							// negate
+beq		pcnt+2
+fneg	r0,r0
+
+rtn$(z)
+
+
+// ================================
+// half r0=exp (half r0), disturbed r1~r5
+// ================================
+align	4
+_math_exp:
+// if (r1<0) { r1=1/r1; r5=true }
+ldbiu	r5,false						// 1=inverse / 0=not
+mov		r1,r0
+bpl		pcnt+4
+fneg	r1,r1
+ori		r5,true
+
+// x=r1=int (x*2)/2 + fx ==> r1=fx; r4=int (x*2)
+fld$(z)i	r4,2
+mov		r0,r4
+fmul	r4,r1
+fdown	r4,r4
+mov		r2,r4
+fdiv	r2,r0
+fsub	r1,r2
+
+// r0=exp (r1)=sigma ((r1**n)/n!)
+mov		r2,r1
+// n=0
+fld$(z)i	r1,1
+fld$(z)i	r0,1
+// n=1
+fmul	r1,r2
+fld$(z)i	r3,1/(1)
+fmul	r3,r1
+fadd	r0,r3
+// n=2
+fmul	r1,r2
+fld$(z)i	r3,1/(2*1)
+fmul	r3,r1
+fadd	r0,r3
+// n=3
+fmul	r1,r2
+fld$(z)i	r3,1/(3*2*1)
+fmul	r3,r1
+fadd	r0,r3
+// n=4
+fmul	r1,r2
+fld$(z)i	r3,1/(4*3*2*1)
+fmul	r3,r1
+fadd	r0,r3
+
+// exp (r4/2)
+fld$(z)i	r1,(2**(_math_fex_bits-1))*ln(2)*2
+fcmp	r4,r1
+blt		_math_exp_lt_inf
+ld$(z)i		r0,_rtlb_inf$(z)
+bra		_math_exp_endif
+
+_math_exp_lt_inf:
+ldwi	r2,lab__math_exp_tab
+fuint	r4,r4
+lsli	r4,1
+add		r2,r4
+ld$(z)	r4,[r2]
+fmul	r0,r4
+_math_exp_endif:
+
+// inverse
+cmpi	r5,false
+beq		_math_exp_not_inv
+fld$(z)i	r2,1
+fdiv	r2,r0
+mov		r0,r2
+_math_exp_not_inv:
+
+rtn$(z)
+
+align	4
+_math_exp_tab:
+rept	24
+dath	exp($(repti)/2)
+endr
+
+
+// ================================
+// half r0=log (half r0), disturbed r1~r4
+// ================================
+align	4
+_math_log:
+mov		r1,r0
+// r1=fx*(2**ex) ==> r1=fx; r4=ex;
+mov		r4,r1
+lsri	r4,_math_ffr_bits
+andi	r4,_math_fex_mask>>_math_ffr_bits		// ex=1..1 (all 1)
+beq		_math_log_inf_n
+cmpi	r4,_math_fex_mask>>_math_ffr_bits		// ex=1..1 (all 1)
+beq		_math_log_inf_nan
+subi	r4,_math_fex_ofst
+ld$(z)i	r0,~_math_fex_mask				// ex=1..1 (all 1)
+and		r1,r0
+ld$(z)i	r0,(_math_fex_mask>>1)&_math_fex_mask		// ex=01..1
+or		r1,r0
+// r1=fx/2; r4=ex+1
+fld$(z)i	r0,2
+fdiv	r1,r0
+addi	r4,1
+// if (r1<0) return ( r0=NaN )
+cmpi	r1,0
+bmi		_math_log_nan
+
+// log (fx)/2
+// r0=log (r1)/2=sigma ((((r1 - 1)/(r1 + 1))**(2n + 1))/(2n + 1));
+fld$(z)i	r2,1
+mov		r3,r2
+fadd	r2,r1
+fsub	r1,r3
+fdiv	r1,r2
+mov		r2,r1
+fmul	r2,r2
+// n=0
+mov		r0,r1
+// n=1~2
+rept	2
+// n=$(repti)+1
+fmul	r1,r2
+fld$(z)i	r3,1/(2*($(repti)+1)+1)
+fmul	r3,r1
+fadd	r0,r3
+endr
+
+// log (fx)
+fld$(z)i	r2,2
+fmul	r0,r2
+
+// ex*log (2)
+cmpi	r4,0
+bpl		pcnt+8
+neg		r4
+fsngl	r4,r4
+fneg	r4,r4
+bra		pcnt+2
+fsngl	r4,r4
+fld$(z)i	r2,ln(2)
+fmul	r4,r2
+fadd	r0,r4
+
+rtn$(z)
+
+_math_log_inf_nan:
+mov		r0,r1
+bmi		_math_log_nan
+fmvsg	r0,r0							// NaN => -NaN
+rtn$(z)
+
+_math_log_inf_n:
+ld$(z)i		r0,_rtlb_inf$(z)_n
+rtn$(z)
+
+_math_log_nan:
+ld$(z)i		r0,_rtlb_nan$(z)
+rtn$(z)
+
+
+// ================================
+// half r0=sin (half r0), disturbed r1~r4
+// ================================
+align	4
+_math_sin:
+mov		r1,r0
+// if (r1<0) { r1=-r1; r4=true; }
+ldbiu	r4,false						// 1=negate / 0=not
+cmpi	r1,0
+bpl		pcnt+4
+ldbiu	r4,true
+fneg	r1,r1
+
+// r1=r1%(2*PI)
+mov		r2,r1
+fld$(z)i	r0,2*PI
+fdiv	r2,r0
+fdown	r2,r2
+fmul	r2,r0
+fsub	r1,r2
+cmpi	r1,0
+bpl		pcnt+2
+fadd	r1,r0
+
+// r1 range: PI~2PI => 0~PI (inverse)
+fld$(z)i	r0,PI
+mov		r2,r1
+fsub	r2,r0
+cmpi	r2,0
+bmi		pcnt+4
+eori	r4,true
+mov		r1,r2
+// r1 range: PI/2~PI => PI/2~0
+fld$(z)i	r2,PI/2
+fcmp	r2,r1
+bpl		pcnt+4
+fsub	r0,r1
+mov		r1,r0
+
+// r0=sin (r1)=sigma (((-1)**n)*(r1**(2n+1))/(2n+1)!)
+mov		r2,r1
+fmul	r2,r2
+// n=0
+mov		r0,r1
+// n=1
+fmul	r1,r2
+fld$(z)i	r3,-1/(3*2*1)
+fmul	r3,r1
+fadd	r0,r3
+// n=2
+fmul	r1,r2
+fld$(z)i	r3,1/(5*4*3*2*1)
+fmul	r3,r1
+fadd	r0,r3
+// n=3
+fmul	r1,r2
+fld$(z)i	r3,-1/(7*6*5*4*3*2*1)
+fmul	r3,r1
+fadd	r0,r3
+
+// negate
+cmpi	r4,false
+beq		pcnt+2
+fneg	r0,r0
+
+rtn$(z)
+
+
+// ================================
+// half r0=pow (half r0,half r1), disturbed r1~r5,r7
+// ================================
+align	4
+_math_pow:
+push$(z)	r1
+jal$(z)r7	_math_log
+pop$(z)	r1
+fmul	r0,r1
+jal$(z)r7	_math_exp
+rtn$(z)
+
+
+// ================================
+// half r0=cos (half r0), disturbed r1~r4,r7
+// ================================
+align	4
+_math_cos:
+fld$(z)i	r1,PI/2
+fadd	r0,r1
+jal$(z)r7	_math_sin
+rtn$(z)
+
+
+// ================================
+// half r0=tan (half r0), disturbed r1~r4,r7
+// ================================
+align	4
+_math_tan:
+push$(z)	r0
+fld$(z)i	r1,PI/2
+fadd	r0,r1
+jal$(z)r7	_math_sin
+pop$(z)	r1
+push$(z)	r0
+mov		r0,r1
+jal$(z)r7	_math_sin
+pop$(z)	r1
+fdiv	r0,r1
+rtn$(z)
+
+
+// ================================
+// half r0=asin (half r0), disturbed r1~r4,r7
+// ================================
+align	4
+_math_asin:
+push$(z)	r0
+fmul	r0,r0
+fld$(z)i	r1,1
+fsub	r1,r0
+mov		r0,r1
+jal$(z)r7	_math_sqrt
+pop$(z)	r1
+fdiv	r1,r0
+mov		r0,r1
+jal$(z)r7	_math_atan
+rtn$(z)
+
+
+// ================================
+// half r0=acos (half r0), disturbed r1~r4,r7
+// ================================
+align	4
+_math_acos:
+jal$(z)r7	_math_asin
+fld$(z)i	r1,PI/2
+fsub	r1,r0
+mov		r0,r1
+rtn$(z)
+
+
+// ================================
+// half r0=log10 (half r0), disturbed r1~r4,r7
+// ================================
+align	4
+_math_log10:
+jal$(z)r7	_math_log
+fld$(z)i	r1,ln(10)
+fdiv	r0,r1
+rtn$(z)
+
+
+// ================================
+// half r0=log2 (half r0), disturbed r1~r4,r7
+// ================================
+_math_log2:
+jal$(z)r7	_math_log
+fld$(z)i	r1,ln(2)
+fdiv	r0,r1
+rtn$(z)
+
