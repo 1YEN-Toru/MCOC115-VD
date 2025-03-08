@@ -54,7 +54,7 @@
  Moscovium series MCU can be developed using an assembler or Blockly.
 
 - Macro assembler: [asm_mcvm.olv](asm/asm_mcvm.olv)
-	- A script of [Olive+](http://hp.vector.co.jp/authors/VA008835/OLIVE+/Olive+.html).
+	- A script of [Olive+](http://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
 	- You need install Olive+ on your Windows PC.
 	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
@@ -65,7 +65,7 @@
 	- Download program code in XML format, and translate it to Moscovium assembler source list.
 
 - Blockly.XML to Moscovium.ASM translator: [blky2mcvm.olv](blky/blky2mcvm.olv)
-	- A script of [Olive+](http://hp.vector.co.jp/authors/VA008835/OLIVE+/Olive+.html).
+	- A script of [Olive+](http://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
 	- You need install Olive+ on your Windows PC.
 	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
