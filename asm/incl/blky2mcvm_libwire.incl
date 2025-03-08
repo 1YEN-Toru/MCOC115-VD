@@ -1,0 +1,445 @@
+// ================================
+//	blky2mcvm Wire library
+//		(c) 2021,2025	1YEN Toru
+//
+//
+//		2025/03/08	ver.1.00
+//			_wire_frame_r1: transfer wire frame
+//			_wire_init_r0: initialize wire library
+//			_wire_write_byte_r1_r2: write byte
+//			_wire_write_word_r1_r2: write word
+//			_wire_read_byte_r1: read byte
+//			_wire_read_word_r1: read word
+//
+// ================================
+//	Moscovium i2c communication library
+//		(c) 2021	1YEN Toru
+//		master driver module
+//
+//
+//		2021/08/21	ver.1.00
+//
+// ================================
+
+
+# ================================
+#	Moscovium i2c communication library
+#		(c) 2021	1YEN Toru
+#		definition module
+# ================================
+# string macros
+def		_wire_var,"1.00"				// library version
+# constants
+equ		_wire_send,0x4000				// i2cf: send command
+equ		_wire_recv,0x8000				// i2cf: receive command
+equ		_wire_stop,0x0000				// i2cf: STOP condition, end mark
+equ		_wire_star,0x0100				// i2cf: START condition
+equ		_wire_ack,0x0000				// i2cf: ACK response
+equ		_wire_nack,0x0200				// i2cf: NACK response
+equ		_wire_sidm,0x00fe				// i2cf: slave id mask
+equ		_wire_dmsk,0x00ff				// i2cf: data mask
+equ		_wire_adrr,0x0001				// i2cf: address byte R
+equ		_wire_adrw,0x0000				// i2cf: address byte ~W
+# error code
+equ		_wire_err_no,0					// i2cf: err: no error
+equ		_wire_err_bad_fram,1			// i2cf: err: bad frame
+equ		_wire_err_nack,2				// i2cf: err: detect NACK
+equ		_wire_err_bus_lost,3			// i2cf: err: lost bus arbitration
+# ================================
+
+
+// ================================
+// wire frame ; disturbed r1,r7
+//	parameter: r1=i2c frame address
+//	return: r0=0(ErrNo) / !=0(ERROR)
+//			r1=the error location
+# ================================
+#	i2c frame notations
+#
+#	i2c frame: 16 bit data sequence ended by 0x0000
+#	i2c write: 0x4sdd
+#		write data to slave
+#		s=1: issue START condition before sending
+#		dd: data byte to send
+#	i2c read: 0x8nrr
+#		read data from slave
+#		n=2: return NACK status after receiving
+#		rr: replaced with the received data
+#	i2c stop: 0x0000
+#		function returns after issuing STOP condition
+// ================================
+align	4
+_wire_frame_r1:
+// empty frame
+ldw		r0,[r1]
+cmpi	r0,_wire_stop
+bne		_wire_frm_loop
+// ERROR: bad frame
+ldbiu	r0,_wire_err_bad_fram
+beq		_wire_frm_stop
+
+_wire_frm_loop:
+// end mark?
+ldw		r0,[r1]
+cmpi	r0,_wire_stop
+beq		_wire_frm_break
+
+// command
+lsri	r0,12
+cmpi	r0,_wire_send>>12
+beq		_wire_frm_write
+cmpi	r0,_wire_recv>>12
+beq		_wire_frm_read
+// ERROR: bad frame
+ldbiu	r0,_wire_err_bad_fram
+beq		_wire_frm_stop
+
+// ================================
+// wire write
+_wire_frm_write:
+// master send data
+ldw		r0,[r1]
+ldwi	r7,_wire_star|_wire_dmsk
+and		r0,r7
+ldwi	r7,stwmdats
+stw		[r7],r0
+// wait MTEF=1 or BERR=1
+ldwi	r7,stwmctl
+ldw		r0,[r7]
+andi	r0,stws_berr|stws_mtef
+beq		pcnt-6
+// clear MTEF
+ldw		r0,[r7]
+andi	r0,~stws_berr					// do not clear BERR flag
+stw		[r7],r0
+
+// check BERR flag
+ldw		r0,[r7]
+andi	r0,stws_berr
+beq		_wire_frm_no_berr
+_wire_frm_berr:
+// ERROR: lost bus arbitration
+ldbiu	r0,_wire_err_bus_lost
+bra		_wire_frm_return
+_wire_frm_no_berr:
+
+// check MACK status
+ldw		r0,[r7]
+andi	r0,stws_mack
+bne		_wire_frm_ok_ack
+// ERROR: slave returns NACK
+ldbiu	r0,_wire_err_nack
+bra		_wire_frm_stop
+_wire_frm_ok_ack:
+
+// end of loop
+addi	r1,2
+bra		_wire_frm_loop
+
+// ================================
+// wire read
+_wire_frm_read:
+// master request data
+ldw		r0,[r1]
+lsri	r0,8
+andi	r0,stws_nack
+ori		r0,stws_recv
+ldwi	r7,stwmreqr
+stw		[r7],r0
+// wait MRAF=1 or BERR=1
+ldwi	r7,stwmctl
+ldw		r0,[r7]
+andi	r0,stws_berr|stws_mraf
+beq		pcnt-6
+
+// check BERR flag
+ldw		r0,[r7]
+andi	r0,stws_berr
+bne		_wire_frm_berr
+
+// received data
+ldwi	r7,stwmdatr
+ldw		r0,[r7]
+// store data
+addi	r1,1
+stb		[r1],r0
+// end of loop
+addi	r1,1
+bra		_wire_frm_loop
+
+_wire_frm_break:
+ldbiu	r0,_wire_err_no
+
+// ================================
+// issue STOP condition
+_wire_frm_stop:
+push$(z)	r0
+// master issue: P
+ldbiu	r0,stws_stpr
+ldwi	r7,stwmreqr
+stw		[r7],r0
+// wait MTEF=1
+ldwi	r7,stwmctl
+ldw		r0,[r7]
+andi	r0,stws_mtef
+beq		pcnt-6
+// clear MTEF
+ldw		r0,[r7]
+stw		[r7],r0
+pop$(z)	r0
+
+// return
+_wire_frm_return:
+rtn$(z)
+
+
+// ================================
+// wire initialize ; disturbed r0,r7
+//	parameter: r0=frequency [kHz]
+// ================================
+align	4
+_wire_init_r0:
+// check STWMST unit
+ldwi	r7,stwmbaud
+stw		[r7],r7
+ldw		r7,[r7]
+cmpi	r7,0
+bne		_wire_init_has_stwm
+// ERROR:
+ldwi	r1,lab__wire_init_err
+jalwr7	_errmsg_r1
+// halt
+jmpr7	_rtlb_prog_halt
+_wire_init_err:
+dats	"ERR: no STWMST unit found, halted.\r\n\0"
+_wire_init_has_stwm:
+// set communication speed
+ldwi	r7,fcpu/1_000
+divu	r7,r0
+subi	r7,1
+ldwi	r0,stwmbaud
+stw		[r0],r7
+// end of subroutine
+rtn$(z)
+
+
+// ================================
+// wire write byte ; disturbed r2,r7
+//	parameter:	r1=command byte
+//				r2=data byte
+//	return: r0=0(ErrNo) / !=0(ERROR)
+//			r1=the error location
+// ================================
+align	4
+_wire_write_byte_r1_r2:
+// make i2c frame: S [ADR,W] [reg_addr] [reg_data] P
+movfc	r7,sp
+subi	r7,2*4
+movtc	sp,r7
+// S [ADR,W]
+ldvar	r0,_wire_slv_id
+ld$(z)	r0,[r0]
+andi	r0,_wire_sidm
+ldbih	r0,(_wire_star|_wire_send|_wire_adrw)>>8
+stw		[r7],r0
+// [reg_addr]
+addi	r7,2
+andi	r1,_wire_dmsk
+ldbih	r1,_wire_send>>8
+stw		[r7],r1
+// [reg_data]
+addi	r7,2
+andi	r2,_wire_dmsk
+ldbih	r2,_wire_send>>8
+stw		[r7],r2
+// P
+addi	r7,2
+ldbiu	r0,_wire_stop
+stw		[r7],r0
+// call _wire_frame_r1
+movfc	r1,sp
+jal$(z)r7	_wire_frame_r1
+// destroy i2c frame
+movfc	r7,sp
+sub		r1,r7							// r1: offset from sp
+addi	r7,2*4
+movtc	sp,r7
+// end of subroutine
+rtn$(z)
+
+
+// ================================
+// wire write word ; disturbed r1,r7
+//	parameter:	r1=command byte
+//				r2=data word
+//	return: r0=0(ErrNo) / !=0(ERROR)
+//			r1=the error location
+// ================================
+align	4
+_wire_write_word_r1_r2:
+// endian
+ldvar	r7,_wire_big_end
+ld$(z)	r0,[r7]
+cmpi	r0,false
+bne		pcnt+2
+cendw	r2
+// make i2c frame: S [ADR,W] [reg_addr] [reg_data_h] [reg_data_l] P
+movfc	r7,sp
+subi	r7,2*6							// 2*5 is enough, align for long word
+movtc	sp,r7
+// S [ADR,W]
+ldvar	r0,_wire_slv_id
+ld$(z)	r0,[r0]
+andi	r0,_wire_sidm
+ldbih	r0,(_wire_star|_wire_send|_wire_adrw)>>8
+stw		[r7],r0
+// [reg_addr]
+addi	r7,2
+andi	r1,_wire_dmsk
+ldbih	r1,_wire_send>>8
+stw		[r7],r1
+// [reg_data_h]
+addi	r7,2
+mov		r0,r2
+lsri	r0,8
+andi	r0,_wire_dmsk
+ldbih	r0,_wire_send>>8
+stw		[r7],r0
+// [reg_data_l]
+addi	r7,2
+andi	r2,_wire_dmsk
+ldbih	r2,_wire_send>>8
+stw		[r7],r2
+// P
+addi	r7,2
+ldbiu	r0,_wire_stop
+stw		[r7],r0
+// call _wire_frame_r1
+movfc	r1,sp
+jal$(z)r7	_wire_frame_r1
+// destroy i2c frame
+movfc	r7,sp
+sub		r1,r7							// r1: offset from sp
+addi	r7,2*6
+movtc	sp,r7
+// end of subroutine
+rtn$(z)
+
+
+// ================================
+// wire read byte ; disturbed r7
+//	parameter:	r1=command byte
+//	return:	r0=0(ErrNo) / !=0(ERROR)
+//			r1=the error location
+//			r2=received data byte
+// ================================
+align	4
+_wire_read_byte_r1:
+// make i2c frame: S [ADR,W] [reg_addr] R [ADR,R] [[RCV]](N) P
+movfc	r7,sp
+subi	r7,2*6							// 2*5 is enough, align for long word
+movtc	sp,r7
+// S [ADR,W]
+ldvar	r0,_wire_slv_id
+ld$(z)	r0,[r0]
+andi	r0,_wire_sidm
+ldbih	r0,(_wire_star|_wire_send|_wire_adrw)>>8
+stw		[r7],r0
+// [reg_addr]
+addi	r7,2
+andi	r1,_wire_dmsk
+ldbih	r1,_wire_send>>8
+stw		[r7],r1
+// R [ADR,R]
+addi	r7,2
+ori		r0,_wire_adrr
+stw		[r7],r0
+// [[RCV]](N)
+addi	r7,2
+ldwi	r0,_wire_recv|_wire_nack
+stw		[r7],r0
+// P
+addi	r7,2
+ldbiu	r0,_wire_stop
+stw		[r7],r0
+// call _wire_frame_r1
+movfc	r1,sp
+jal$(z)r7	_wire_frame_r1
+// data received
+movfc	r7,sp
+addi	r7,2*3+1						// pointer to RCV data
+ldb		r2,[r7]
+// destroy i2c frame
+movfc	r7,sp
+sub		r1,r7							// r1: offset from sp
+addi	r7,2*6
+movtc	sp,r7
+// end of subroutine
+rtn$(z)
+
+
+// ================================
+// wire read word ; disturbed r7
+//	parameter:	r1=command byte
+//	return: r0=0(ErrNo) / !=0(ERROR)
+//			r1=the error location
+//			r2=received data word
+// ================================
+align	4
+_wire_read_word_r1:
+// make i2c frame: S [ADR,W] [reg_addr] R [ADR,R] [[RCV_h]](A) [[RCV_l]](N) P
+movfc	r7,sp
+subi	r7,2*6
+movtc	sp,r7
+// S [ADR,W]
+ldvar	r0,_wire_slv_id
+ld$(z)	r0,[r0]
+andi	r0,_wire_sidm
+ldbih	r0,(_wire_star|_wire_send|_wire_adrw)>>8
+stw		[r7],r0
+// [reg_addr]
+addi	r7,2
+andi	r1,_wire_dmsk
+ldbih	r1,_wire_send>>8
+stw		[r7],r1
+// R [ADR,R]
+addi	r7,2
+ori		r0,_wire_adrr
+stw		[r7],r0
+// [[RCV_h]](A)
+addi	r7,2
+ldwi	r0,_wire_recv|_wire_ack
+stw		[r7],r0
+// [[RCV_l]](N)
+addi	r7,2
+ldwi	r0,_wire_recv|_wire_nack
+stw		[r7],r0
+// P
+addi	r7,2
+ldbiu	r0,_wire_stop
+stw		[r7],r0
+// call _wire_frame_r1
+movfc	r1,sp
+jal$(z)r7	_wire_frame_r1
+// data received
+movfc	r7,sp
+addi	r7,2*3+1						// pointer to RCV_h data
+ldb		r2,[r7]
+lsli	r2,8
+addi	r7,2							// pointer to RCV_l data
+ldb		r7,[r7]
+or		r2,r7
+// endian
+ldvar	r7,_wire_big_end
+ld$(z)	r7,[r7]
+cmpi	r7,false
+bne		pcnt+2
+cendw	r2
+// destroy i2c frame
+movfc	r7,sp
+sub		r1,r7							// r1: offset from sp
+addi	r7,2*6
+movtc	sp,r7
+// end of subroutine
+rtn$(z)
+
