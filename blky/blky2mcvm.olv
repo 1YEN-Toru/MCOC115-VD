@@ -1,12 +1,17 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.16";
+	macro	prog_vers="1.18";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/03/08	ver.1.18
+//			corresponding to Wire (STWMST unit)
+//			add: mcoc_wire_*
+//			add: mcoc_math_post; variable reference and post process
 //
 //		2025/03/01	ver.1.16
 //			add: mcoc_math_binary
@@ -96,6 +101,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		defp_1st=true;				// encounter 1st define procedure
 	var		n_str_cnst=0;				// number of string constants
 	var		need_math=false;			// mathematical function blocks used
+	var		need_wire=false;			// Wire blocks used
 	var		need_stft=false;			// SPI-TFT blocks used
 	var		tsk_def_cpu2=false;			// tsk: task CPU2 defined
 	var		tsk_def_poly=false;			// tsk: task POLY defined
@@ -1784,6 +1790,115 @@ if (false)
 		}
 
 		val_done=true;
+	}
+	procedure	do_blk_mcoc_math_post
+	{
+		var		cmp;
+		var		val;
+		macro	mne;
+		macro	opr;
+		macro	vnam;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"VAR";
+					if (cmp=0)
+					{
+						mlet	vnam=$(do_$(dxml));
+					}
+					else
+					{
+						mlet	opr=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		is_cstr		$(vnam);
+		if (is_cstr)
+		{
+			// ERROR:
+			errmsg	"mcoc_math_post: string variable ("$(vnam)") not suit.";
+			leave	stop_error;
+		}
+
+		// operator
+		gsub	"&lt;","<",opr;
+		gsub	"&gt;",">",opr;
+		val=1;
+		mlet	mne="xxx";
+		strcmp	cmp=$(opr),"++", left;
+		if (cmp)
+		{
+			strcmp	cmp=$(opr),"--", left;
+		}
+		if (cmp=0)
+		{
+			strcmp	cmp=$(opr),"++", left;
+			if (cmp=0)
+			{
+				mlet	mne="add";
+			}
+			else
+			{
+				mlet	mne="sub";
+			}
+			strcmp	cmp=$(opr),"2", right;
+			if (cmp=0)
+			{
+				val=2;
+			}
+			strcmp	cmp=$(opr),"4", right;
+			if (cmp=0)
+			{
+				val=4;
+			}
+		}
+		else
+		{
+			// ERROR:
+			errmsg	"mcoc_math_post: unsupported operator ("$(opr)")";
+			leave	stop_error;
+		}
+
+		// assembler
+		asm_ld_var	"r0",$(vnam);
+		fprint	fout,"// "$(vnam)"=r1=r0(="$(vnam)") "$(opr)$,;
+		fprint	fout,"mov	r1,r0"$,;
+		if (opt_opr_typ!=opt_float)
+		{
+			fprint	fout,$(mne)"i	r1,#"$,,val;
+		}
+		else
+		{
+			fprint	fout,"fld$(z)i	r2,#"$,,val;
+			fprint	fout,"f"$(mne)"	r1,r2"$,;
+		}
+		fprint	fout,"st$(z)	[r7],r1"$,;
+
+		mlet	do_blk_mcoc_math_post=$(vnam)" "$(opr);
 	}
 	procedure	do_blk_mcoc_math_unary
 	{
@@ -3689,6 +3804,265 @@ if (false)
 		// assembler
 		fprint	fout,"// digitalWrite (r0(="$(npin)"),r1(="$(nval)"))"$,;
 		fprint	fout,"jal$(z)r7	_digital_write_r0_r1"$,;
+	}
+	procedure	do_blk_mcoc_wire_init
+	{
+		var		cmp;
+		macro	freq;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	freq=$(do_$(dxml));
+				}
+			}
+		}
+		need_wire=true;
+
+		// assembler
+		fprint	fout,"// Wire initialize: r0(="$(freq)")[kHz]"$,;
+		fprint	fout,"jal$(z)r7	_wire_init_r0"$,;
+	}
+	procedure	do_blk_mcoc_wire_idend
+	{
+		var		cmp;
+		macro	endn;
+		macro	svid;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	endn=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	svid=$(do_$(dxml));
+				}
+			}
+		}
+		need_wire=true;
+		tolower		endn;
+
+		// assembler
+		fprint	fout,"// Wire slave r0(="$(svid)") as "$(endn)" endian"$,;
+		fprint	fout,"lsli	r0,1"$,;
+		fprint	fout,"andi	r0,_wire_sidm"$,;
+		asm_ld_var_adr	"r7","_wire_slv_id";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+		strcmp	cmp=$(endn),"big";
+		fprint	fout,"ldbiu	r0,"$(str_bool#(cmp=0))$,;
+		asm_ld_var_adr	"r7","_wire_big_end";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+	}
+	procedure	do_blk_mcoc_wire_write
+	{
+		var		cmp;
+		macro	siz;
+		macro	cmnd;
+		macro	wdat;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	siz=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"CMD";
+					if (cmp=0)
+					{
+						mlet	cmnd=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					else
+					{
+						mlet	wdat=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_wire=true;
+		tolower		siz;
+
+		// assembler
+		fprint	fout,"// Wire write "$(siz)" [r1(="
+				$(cmnd)")]=r2(=r0="$(wdat)")"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"mov	r2,r0"$,;
+		fprint	fout,"jal$(z)r7	_wire_write_"$(siz)"_r1_r2"$,;
+		asm_ld_var_adr	"r7","_wire_err_cod";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+		asm_ld_var_adr	"r7","_wire_err_ptr";
+		fprint	fout,"st$(z)	[r7],r1"$,;
+	}
+	procedure	do_blk_mcoc_wire_read
+	{
+		var		cmp;
+		macro	siz;
+		macro	cmnd;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	siz=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	cmnd=$(do_$(dxml));
+				}
+			}
+		}
+		need_wire=true;
+		tolower		siz;
+		mlet	do_blk_mcoc_wire_read="wire_read_"$(siz)" ("$(cmnd)")";
+
+		// assembler
+		fprint	fout,"// Wire read "$(siz)" [r1(=r0="$(cmnd)")]"$,;
+		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"jal$(z)r7	_wire_read_"$(siz)"_r1"$,;
+		asm_ld_var_adr	"r7","_wire_err_cod";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+		asm_ld_var_adr	"r7","_wire_err_ptr";
+		fprint	fout,"st$(z)	[r7],r1"$,;
+		fprint	fout,"// r0=r2(="$(do_blk_mcoc_wire_read)")"$,;
+		fprint	fout,"mov	r0,r2"$,;
+	}
+	procedure	do_blk_mcoc_wire_frame
+	{
+		var		cmp;
+		macro	i2cf;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	i2cf=$(do_$(dxml));
+				}
+			}
+		}
+		need_wire=true;
+
+		// assembler
+		is_cstr		$(i2cf);
+		if (!is_cstr)
+		{
+			fprint	fout,"// r1=r0(="$(i2cf)")"$,;
+			fprint	fout,"mov	r1,r0"$,;
+		}
+		fprint	fout,"// Wire frame r1(="$(i2cf)")"$,;
+		fprint	fout,"jal$(z)r7	_wire_frame_r1"$,;
+		asm_ld_var_adr	"r7","_wire_err_cod";
+		fprint	fout,"st$(z)	[r7],r0"$,;
+		asm_ld_var_adr	"r7","_wire_err_ptr";
+		fprint	fout,"st$(z)	[r7],r1"$,;
 	}
 	procedure	do_blk_mcoc_stft_init
 	{
@@ -7990,6 +8364,15 @@ if (false)
 	register_vars	"_rtlb_rand_seed";
 	register_vars	"_rtlb_rand_lfsr";
 
+	// Wire variables
+	if (need_wire)
+	{
+		register_vars	"_wire_slv_id";
+		register_vars	"_wire_big_end";
+		register_vars	"_wire_err_cod";
+		register_vars	"_wire_err_ptr";
+	}
+
 	// SPI-TFT variables
 	if (need_stft)
 	{
@@ -8091,6 +8474,10 @@ if (false)
 			if (need_math)
 			{
 				fprint	fout,"incl	"$""blky2mcvm_libmath$(z).incl"$"$,;
+			}
+			if (need_wire)
+			{
+				fprint	fout,"incl	"$""blky2mcvm_libwire.incl"$"$,;
 			}
 			if (need_stft)
 			{

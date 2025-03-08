@@ -1,11 +1,14 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.50";
+	macro	prog_vers="1.52";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2025/03/08	ver.1.52
+//			pseudo: rept; add integrated macro repti1 and reptr1
 //
 //		2024/12/14	ver.1.50
 //			fix: branch too far check
@@ -1164,6 +1167,7 @@ model	"Moscovium series macro assembler"
 				idx=idx + 1;
 				dbl2half	$(get_word);
 				// datw
+				fprint	fout,"// dath # (="$(get_word)")"$,,$(get_word);
 				fprint	fout,"datw	"$(dbl2half)$,;
 			}
 			return;
@@ -1191,6 +1195,7 @@ model	"Moscovium series macro assembler"
 				dbl2sngl	$(get_word);
 				// datw
 				psub	"^0x(....)","0x\1"$,"datw	0x",dbl2sngl;
+				fprint	fout,"// datf # (="$(get_word)")"$,,$(get_word);
 				fprint	fout,"datw	"$(dbl2sngl)$,;
 			}
 			return;
@@ -1252,7 +1257,9 @@ model	"Moscovium series macro assembler"
 				mlet	tbuf=$(tbdy);
 				gsub	"$(reptn)",#(num),tbuf;
 				gsub	"$(repti)",#(idx2),tbuf;
-				gsub	"$(reptr)",#(num - 1 - idx2),tbuf;
+				gsub	"$(reptr)",#(num - idx2 - 1),tbuf;
+				gsub	"$(repti1)",#(idx2 + 1),tbuf;
+				gsub	"$(reptr1)",#(num - idx2),tbuf;
 				fprint	fout,$(tbuf);
 				// continue
 				idx2=idx2 + 1;
@@ -1527,6 +1534,7 @@ model	"Moscovium series macro assembler"
 			get_word;
 			mlet	opr2=$(get_word);
 			dbl2half	$(opr2);
+			fprint	fout,"// hldi "$(opr1)",# (="$(opr2)")"$,,$(opr2);
 			fprint	fout,"ldih	"$(opr1)",(("$(dbl2half)")>>8)&0xff"$,;
 			fprint	fout,"ldil	"$(opr1)",("$(dbl2half)")&0xff"$,;
 			return;
@@ -1543,6 +1551,7 @@ model	"Moscovium series macro assembler"
 			mlet	opr2=$(get_word);
 			dbl2sngl	$(opr2);
 			// ldli
+			fprint	fout,"// fldi "$(opr1)",# (="$(opr2)")"$,,$(opr2);
 			fprint	fout,"ldli	"$(opr1)$,;
 			// datw
 			fprint	fout,"datw	0+@(("$(dbl2sngl)")>>16)"$,;

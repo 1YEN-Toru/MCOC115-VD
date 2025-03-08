@@ -3,6 +3,10 @@
 //		(c) 2025	1YEN Toru
 //
 //
+//		2025/03/08	ver.1.02
+//			change: _math_exp, _math_sin; use fact() function
+//				need Olive+ ver.4.54(R31) or later
+//
 //		2025/03/01	ver.1.00
 //			_math_sqrt: float r0=sqrt (float r0), disturbed r1~r4
 //			_math_atan: float r0=atan (float r0), disturbed r1~r3
@@ -19,7 +23,7 @@
 //
 // ================================
 # string macros
-def		_mathl_vers,"1.00"				// library version
+def		_mathl_vers,"1.02"				// library version
 # constants
 equ		_math_fsg_bits,1				// single precision floating point
 equ		_math_fex_bits,8
@@ -82,7 +86,7 @@ fld$(z)i	r3,0.7407
 fadd	r0,r3
 // iteration 3 times: y1~y3
 rept	3
-// y<$(repti)+1>
+// y<$(repti1)>
 mov		r3,r1
 fdiv	r3,r0
 fadd	r0,r3
@@ -118,12 +122,12 @@ ori		r3,true<<1						// inverse
 fld$(z)i	r2,20.53038602
 // y[8]~y[1]
 rept	8
-// y[$(reptn)-$(repti)]
-fld$(z)i	r0,$(reptn)-$(repti)
+// y[$(reptr1)]
+fld$(z)i	r0,$(reptr1)
 fmul	r0,r1
 fmul	r0,r0
 fdiv	r0,r2
-fld$(z)i	r2,2*($(reptn)-$(repti))-1
+fld$(z)i	r2,2*$(reptr1)-1
 fadd	r2,r0
 endr
 // y[0]
@@ -159,53 +163,25 @@ ori		r5,true
 
 // x=r1=int (x*2)/2 + fx ==> r1=fx; r4=int (x*2)
 fld$(z)i	r4,2
-mov		r0,r4
 fmul	r4,r1
+fld$(z)i	r0,1/2
 fdown	r4,r4
 mov		r2,r4
-fdiv	r2,r0
+fmul	r2,r0
 fsub	r1,r2
 
 // r0=exp (r1)=sigma ((r1**n)/n!)
-mov		r2,r1
 // n=0
-fld$(z)i	r1,1
-fld$(z)i	r0,1
-// n=1
-fmul	r1,r2
-fld$(z)i	r3,1/(1)
-fmul	r3,r1
+fld$(z)i	r2,1
+mov		r0,r2
+// n=1~7
+rept	7
+// n=$(repti1)
+fmul	r2,r1
+fld$(z)i	r3,1/fact($(repti1))
+fmul	r3,r2
 fadd	r0,r3
-// n=2
-fmul	r1,r2
-fld$(z)i	r3,1/(2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=3
-fmul	r1,r2
-fld$(z)i	r3,1/(3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=4
-fmul	r1,r2
-fld$(z)i	r3,1/(4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=5
-fmul	r1,r2
-fld$(z)i	r3,1/(5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=6
-fmul	r1,r2
-fld$(z)i	r3,1/(6*5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=7
-fmul	r1,r2
-fld$(z)i	r3,1/(7*6*5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
+endr
 
 // exp (r4/2)
 fld$(z)i	r1,(2**(_math_fex_bits-1))*ln(2)*2
@@ -288,9 +264,9 @@ fmul	r2,r2
 mov		r0,r1
 // n=1~6
 rept	6
-// n=$(repti)+1
+// n=$(repti1)
 fmul	r1,r2
-fld$(z)i	r3,1/(2*($(repti)+1)+1)
+fld$(z)i	r3,1/(2*$(repti1)+1)
 fmul	r3,r1
 fadd	r0,r3
 endr
@@ -368,35 +344,18 @@ fsub	r0,r1
 mov		r1,r0
 
 // r0=sin (r1)=sigma (((-1)**n)*(r1**(2n+1))/(2n+1)!)
+// n=0
 mov		r2,r1
 fmul	r2,r2
-// n=0
 mov		r0,r1
-// n=1
+// n=1~5
+rept	5
+// n=$(repti1)
 fmul	r1,r2
-fld$(z)i	r3,-1/(3*2*1)
+fld$(z)i	r3,((-1)**$(repti1))/fact(2*$(repti1)+1)
 fmul	r3,r1
 fadd	r0,r3
-// n=2
-fmul	r1,r2
-fld$(z)i	r3,1/(5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=3
-fmul	r1,r2
-fld$(z)i	r3,-1/(7*6*5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=4
-fmul	r1,r2
-fld$(z)i	r3,1/(9*8*7*6*5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
-// n=5
-fmul	r1,r2
-fld$(z)i	r3,-1/(11*10*9*8*7*6*5*4*3*2*1)
-fmul	r3,r1
-fadd	r0,r3
+endr
 
 // negate
 cmpi	r4,false

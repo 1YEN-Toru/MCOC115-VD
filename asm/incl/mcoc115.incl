@@ -262,8 +262,8 @@ equ		intc_fran1,28					// intnum: FRAR1 number
 equ		intc_ftan1,27					// intnum: FTAR1 number
 equ		intc_smrn1,26					// intnum: SMRR1 number
 equ		intc_smun1,25					// intnum: SMUR1 number
-equ		intc_cenn,24					// intbum: CENR number
-equ		intc_rtcn,23					// intbum: RTCR number
+equ		intc_cenn,24					// intnum: CENR number
+equ		intc_rtcn,23					// intnum: RTCR number
 equ		intc_ovfn1,16					// intnum: OVFR1 number
 equ		intc_cman1,15					// intnum: CMAR1 number
 equ		intc_cmbn1,14					// intnum: CMBR1 number

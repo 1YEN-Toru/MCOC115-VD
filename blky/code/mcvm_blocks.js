@@ -406,6 +406,19 @@ Blockly.Blocks['mcoc_math_number'] = {
   }
 };
 
+Blockly.Blocks['mcoc_math_post'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField(new Blockly.FieldDropdown([["++","++"], ["--","--"], ["++2","++2"], ["--2","--2"], ["++4","++4"], ["--4","--4"]]), "OP");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(30);
+ this.setTooltip("variable reference and post process");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+  }
+};
+
 Blockly.Blocks['mcoc_math_unary'] = {
   init: function() {
     this.appendValueInput("VAL")
@@ -801,6 +814,87 @@ Blockly.Blocks['mcoc_uart_println'] = {
     this.setColour(60);
  this.setTooltip("print text+CRLF; UART transfer");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
+  }
+};
+
+Blockly.Blocks['mcoc_wire_frame'] = {
+  init: function() {
+    this.appendValueInput("CMD")
+        .setCheck("Number")
+        .appendField("wire frame");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(75);
+ this.setTooltip("wire frame");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKWIRE");
+  }
+};
+
+Blockly.Blocks['mcoc_wire_idend'] = {
+  init: function() {
+    this.appendValueInput("ID")
+        .setCheck("Number")
+        .appendField("wire slave");
+    this.appendDummyInput()
+        .appendField("as")
+        .appendField(new Blockly.FieldDropdown([["big endian","BIG"], ["little endian","LITTLE"]]), "END");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(75);
+ this.setTooltip("wire slave and endian selection");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKWIRE");
+  }
+};
+
+Blockly.Blocks['mcoc_wire_init'] = {
+  init: function() {
+    this.appendValueInput("FREQ")
+        .setCheck("Number")
+        .appendField("wire initialize [kHz]");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(75);
+ this.setTooltip("wire initialize");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKWIRE");
+  }
+};
+
+Blockly.Blocks['mcoc_wire_read'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("wire read")
+        .appendField(new Blockly.FieldDropdown([["B","BYTE"], ["W","WORD"]]), "SIZ");
+    this.appendValueInput("CMD")
+        .setCheck("Number")
+        .appendField("command");
+    this.setInputsInline(true);
+    this.setOutput(true, null);
+    this.setColour(75);
+ this.setTooltip("wire read data");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKWIRE");
+  }
+};
+
+Blockly.Blocks['mcoc_wire_write'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("wire write")
+        .appendField(new Blockly.FieldDropdown([["B","BYTE"], ["W","WORD"]]), "SIZ");
+    this.appendValueInput("CMD")
+        .setCheck("Number")
+        .appendField("command");
+    this.appendValueInput("DAT")
+        .setCheck("Number")
+        .appendField("data");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(75);
+ this.setTooltip("wire write data");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKWIRE");
   }
 };
 
