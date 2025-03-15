@@ -1,12 +1,15 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.18";
+	macro	prog_vers="1.20";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/03/15	ver.1.20
+//			fix: mcoc_math_post
 //
 //		2025/03/08	ver.1.18
 //			corresponding to Wire (STWMST unit)
@@ -1884,7 +1887,7 @@ if (false)
 		}
 
 		// assembler
-		asm_ld_var	"r0",$(vnam);
+		asm_ld_var	"r0",$(vnam),"r7";
 		fprint	fout,"// "$(vnam)"=r1=r0(="$(vnam)") "$(opr)$,;
 		fprint	fout,"mov	r1,r0"$,;
 		if (opt_opr_typ!=opt_float)
@@ -8445,12 +8448,12 @@ if (false)
 			{
 				fprint	fout,""$,;
 				fprint	fout,"## define SPI-TFT buffers"$,;
-				fprint	fout,"equ	_stft_spi_max,8"$,;
-				fprint	fout,"equ	_stft_pix_max,128"$,;
+				fprint	fout,"equ	_stft_spi_max,8	// byte"$,;
+				fprint	fout,"equ	_stft_pix_max,64	// pixel"$,;
 				fprint	fout,"equ	_stft_spi_buf,_va"$,;
 				fprint	fout,"equ	_va,_va+_stft_spi_max"$,;
 				fprint	fout,"equ	_stft_pix_buf,_va"$,;
-				fprint	fout,"equ	_va,_va+_stft_pix_max"$,;
+				fprint	fout,"equ	_va,_va+2*_stft_pix_max"$,;
 				fprint	fout,"## end of define SPI-TFT buffers"$,;
 			}
 			fprint	fout,"equ	_rtlb_var_array,_va"$,;

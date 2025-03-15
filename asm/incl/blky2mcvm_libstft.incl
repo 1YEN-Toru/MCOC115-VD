@@ -3,6 +3,10 @@
 //		(c) 2025	1YEN Toru
 //
 //
+//		2025/03/15	ver.1.02
+//			fix: _stft_pix_max, _stft_pix_buf, _stft_ram_write, _stft_putpix
+//				It didn't work in Nihonium 32 bit mode (NH=1).
+//
 //		2025/01/11	ver.1.00
 //			_stft_init: initialize SPI-TFT module
 //			_stft_clear: clear screen
@@ -18,7 +22,7 @@
 //
 // ================================
 # string macros
-def		_stft_vers,"1.00"				// library version
+def		_stft_vers,"1.02"				// library version
 # constants
 equ		_stft_ss,stft_port_4			// spi: ss pin
 equ		_stft_sck,stft_port_3			// spi: sck pin
@@ -35,16 +39,24 @@ equ		_stft_opt_init,1
 equ		_stft_opt_flush,2
 equ		_stft_spi_shiftl,16				// spi: additional amount of data shift
 equ		_stft_spi_shiftw,0
+# ST7735R command
+equ		_stft_st7r_caset,0x2a			// st7r: CASET
+equ		_stft_st7r_raset,0x2b			// st7r: RASET
+equ		_stft_st7r_ramwr,0x2c			// st7r: RAMWR
+equ		_stft_st7r_ramrd,0x2e			// st7r: RAMRD
+equ		_stft_st7r_colmod,0x3a			// st7r: COLMOD
 # pixel BGR565
 equ		_stft_black,((0x00>>3)<<11)|((0x00>>2)<<5)|(0x00>>3)		// HUE/360
 equ		_stft_blue,((0xff>>3)<<11)|((0x00>>2)<<5)|(0x00>>3)			// 240
 equ		_stft_red,((0x00>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)			// 0
-equ		_stft_magenta,((0xff>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)
+equ		_stft_magenta,((0xff>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)		// 300
 equ		_stft_green,((0x00>>3)<<11)|((0xff>>2)<<5)|(0x00>>3)		// 120
-equ		_stft_cyan,((0xff>>3)<<11)|((0xff>>2)<<5)|(0x00>>3)
-equ		_stft_yellow,((0x00>>3)<<11)|((0xff>>2)<<5)|(0xff>>3)
+equ		_stft_cyan,((0xff>>3)<<11)|((0xff>>2)<<5)|(0x00>>3)			// 180
+equ		_stft_yellow,((0x00>>3)<<11)|((0xff>>2)<<5)|(0xff>>3)		// 60
 equ		_stft_white,((0xff>>3)<<11)|((0xff>>2)<<5)|(0xff>>3)
+equ		_stft_light,((0xc0>>3)<<11)|((0xc0>>2)<<5)|(0xc0>>3)
 equ		_stft_gray,((0x80>>3)<<11)|((0x80>>2)<<5)|(0x80>>3)
+equ		_stft_dark,((0x40>>3)<<11)|((0x40>>2)<<5)|(0x40>>3)
 equ		_stft_purple,((0xff>>3)<<11)|((0x00>>2)<<5)|(0x80>>3)		// 270
 equ		_stft_pink,((0x80>>3)<<11)|((0x00>>2)<<5)|(0xff>>3)			// 330
 equ		_stft_orange,((0x00>>3)<<11)|((0x80>>2)<<5)|(0xff>>3)		// 30
@@ -547,7 +559,7 @@ _stft_getpix_r1_r0:
 push$(z)	r0
 // CASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2a
+ldbiu	r0,_stft_st7r_caset
 stb		[r7],r0
 addi	r7,1
 // px
@@ -567,7 +579,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2b
+ldbiu	r0,_stft_st7r_raset
 stb		[r7],r0
 addi	r7,1
 // py
@@ -588,7 +600,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // COLMOD ; set 18 bit color mode
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x3a
+ldbiu	r0,_stft_st7r_colmod
 stb		[r7],r0
 addi	r7,1
 ldbiu	r0,0x06
@@ -599,7 +611,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RAMRD
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2e
+ldbiu	r0,_stft_st7r_ramrd
 stb		[r7],r0
 // spi
 ldbiu	r1,5							// RAMRD, dummy read, B,G,R
@@ -607,7 +619,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_recv_r1_r2
 // COLMOD ; set 16 bit color mode
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x3a
+ldbiu	r0,_stft_st7r_colmod
 stb		[r7],r0
 addi	r7,1
 ldbiu	r0,0x05
@@ -652,9 +664,10 @@ ldwi	r5,stftpclr
 // send pixel data
 ldvar	r3,_stft_pix_buf
 _stft_trw_loop:
-ld$(z)	r1,[r3]
+ldw		r1,[r3]
 addi	r3,2
 // spi 16 bits transfer
+lsli	r1,_stft_spi_shift$(z)
 rept	16
 // spi bit $(reptr)
 _stft_mosi_o
@@ -685,7 +698,7 @@ ldwi	r7,stftpset
 ldwi	r5,stftpclr
 _stft_ss_0
 _stft_dcx_0
-ldbiu	r1,0x2c
+ldbiu	r1,_stft_st7r_ramwr
 lsli	r1,8+_stft_spi_shift$(z)
 // spi 8 bits transfer
 rept	8
@@ -717,7 +730,7 @@ ldvar	r0,_stft_pix_ptr
 ld$(z)	r0,[r0]
 add		r7,r0
 add		r7,r0
-st$(z)	[r7],r1
+stw		[r7],r1
 addi	r0,1
 ldvar	r7,_stft_pix_ptr
 st$(z)	[r7],r0
@@ -771,7 +784,7 @@ st$(z)sp	[r7],r1
 st$(z)sp	[r7],r0
 // CASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2a
+ldbiu	r0,_stft_st7r_caset
 stb		[r7],r0
 addi	r7,1
 // px1
@@ -798,7 +811,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2b
+ldbiu	r0,_stft_st7r_raset
 stb		[r7],r0
 addi	r7,1
 // py1
@@ -950,7 +963,7 @@ ld$(z)	r4,[r4]
 jal$(z)r7	_stft_upd_curs
 // CASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2a
+ldbiu	r0,_stft_st7r_caset
 stb		[r7],r0
 addi	r7,1
 // px1
@@ -984,7 +997,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,0x2b
+ldbiu	r0,_stft_st7r_raset
 stb		[r7],r0
 addi	r7,1
 // py1
@@ -1221,7 +1234,7 @@ mov		r2,r4
 cmpi	r1,0xff
 beq		_stft_tin_break
 add		r4,r1
-cmpi	r1,0
+cmpi	r1,0							// skip trailing 0, if exist
 beq		_stft_tin_loop
 jal$(z)r7	_stft_send_r1_r2
 // delay
@@ -1237,7 +1250,8 @@ jal$(z)r7	_stft_print_r1
 rtn$(z)
 
 // tft (st7735r) initialization data
-//		<ndat>, <data1>~<data<ndat>>, <delay_ms>
+//		<ndat>, <data1>~<data<ndat>>, <delay_ms>[, <trailing_0>]
+//		<trailing_0> will be exist when datb has odd byte.
 _stft_init_reg:
 // SWRESET
 datb	1,0x01,120
@@ -1266,12 +1280,12 @@ datb	2,0xc5,0x0e,0
 // MADCTL
 datb	2,0x36,0xc8,0
 // COLMOD
-datb	2,0x3a,0x05,0
+datb	2,_stft_st7r_colmod,0x05,0
 
 // CASET
-datb	5,0x2a,0x00,0x00,0x00,0x7f,0
+datb	5,_stft_st7r_caset,0x00,0x00,0x00,0x7f,0
 // RASET
-datb	5,0x2b,0x00,0x00,0x00,0x9f,0
+datb	5,_stft_st7r_raset,0x00,0x00,0x00,0x9f,0
 
 // NORON
 datb	1,0x13,0

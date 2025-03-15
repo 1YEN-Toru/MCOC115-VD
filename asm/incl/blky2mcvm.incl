@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2025/03/15	ver.1.16
+//			fix: _is_sjis1_r0; rtnw --> rtn$(z)
+//
 //		2025/02/22	ver.1.14
 //			corresponding to poly-core CPU
 //			add: _print_crlf
@@ -39,7 +42,7 @@
 //
 // ================================
 # constants
-equ		_rtlb_vers,0x0114				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0116				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer
 equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
@@ -575,7 +578,7 @@ bra		pcnt+2
 _isj1_yes_sj11:
 _isj1_yes_sj12:
 ldbiu	r0,true
-rtnw
+rtn$(z)
 
 #%// ================================
 #%//	r0=is_sjis2 (r0);
@@ -599,7 +602,7 @@ rtnw
 #%bra		pcnt+2
 #%_isj2_not_sj2:
 #%ldbiu	r0,false
-#%rtnw
+#%rtn$(z)
 
 // ================================
 //	r0=strcpy (r0,r1);
@@ -1447,7 +1450,7 @@ stw		[r7],r0
 bra		_errm_loop
 _errm_break:
 // end of subroutine
-rtnw
+rtnw									// must be a rtnw, to 16 bit tolerant
 
 // ================================
 //	halt;
