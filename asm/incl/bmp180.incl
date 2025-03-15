@@ -1,0 +1,46 @@
+# ================================
+#	BMP180 (air pressure sensor) I/O register
+#		(c) 2025	1YEN Toru
+#		definition module
+# ================================
+
+# bmp180 i/o registers
+equ		i2c_bmp180,0x77					// i2c: BMP180 slave address
+#
+equ		bmp_reg_out_xlsb,0xf8			// bmp: reg: out_xlsb
+equ		bmp_reg_out_lsb,0xf7			// bmp: reg: out_lsb
+equ		bmp_reg_out_msb,0xf6			// bmp: reg: out_msb
+equ		bmp_reg_ctrl_meas,0xf4			// bmp: reg: ctrl_meas
+equ		bmp_reg_soft,0xe0				// bmp: reg: soft
+equ		bmp_reg_id,0xd0					// bmp: reg: id
+equ		bmp_reg_calib21,0xbf			// bmp: reg: calib
+equ		bmp_reg_calib20,0xbe
+equ		bmp_reg_calib19,0xbd
+equ		bmp_reg_calib18,0xbc
+equ		bmp_reg_calib17,0xbb
+equ		bmp_reg_calib16,0xba
+equ		bmp_reg_calib15,0xb9
+equ		bmp_reg_calib14,0xb8
+equ		bmp_reg_calib13,0xb7
+equ		bmp_reg_calib12,0xb6
+equ		bmp_reg_calib11,0xb5
+equ		bmp_reg_calib10,0xb4
+equ		bmp_reg_calib9,0xb3
+equ		bmp_reg_calib8,0xb2
+equ		bmp_reg_calib7,0xb1
+equ		bmp_reg_calib6,0xb0
+equ		bmp_reg_calib5,0xaf
+equ		bmp_reg_calib4,0xae
+equ		bmp_reg_calib3,0xad
+equ		bmp_reg_calib2,0xac
+equ		bmp_reg_calib1,0xab
+equ		bmp_reg_calib0,0xaa
+#
+equ		bmp_ctrl_temperature,0x2e		// bmp: read temperature UT
+equ		bmp_ctrl_pressure_0,0x34		// bmp: read pressure UP with oss=0
+equ		bmp_ctrl_pressure_1,0x74		// bmp: read pressure UP with oss=1
+equ		bmp_ctrl_pressure_2,0xb4		// bmp: read pressure UP with oss=2
+equ		bmp_ctrl_pressure_3,0xf4		// bmp: read pressure UP with oss=3
+equ		bmp_ctrl_sco,0x20				// bmp: start of conversion
+equ		bmp_soft_reset,0xb6				// bmp: software reset command
+equ		bmp_id_num,0x55					// bmp: id of bmp180

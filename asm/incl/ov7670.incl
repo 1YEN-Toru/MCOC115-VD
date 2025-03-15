@@ -1,0 +1,148 @@
+# ================================
+#	OV7670 (VGA camera sensor) I/O register
+#		(c) 2024	1YEN Toru
+#		definition module
+# ================================
+
+# VGA camera OV7670 i/o registers
+equ		i2c_ov7670,0x21					// i2c: OV7670 slave address
+#
+equ		o76_reg_gain,0x00				// o76: reg: gain control gain setting
+equ		o76_reg_blue,0x01				// o76: reg: blue channel gain setting
+equ		o76_reg_red,0x02				// o76: reg: red channel gain setting
+equ		o76_reg_vref,0x03				// o76: reg: vertical frame control
+equ		o76_reg_com1,0x04				// o76: reg: common control 1
+equ		o76_reg_bave,0x05				// o76: reg: u/b average level
+equ		o76_reg_gbave,0x06				// o76: reg: y/gb average level
+equ		o76_reg_aechh,0x07				// o76: reg: exposure value
+equ		o76_reg_rave,0x08				// o76: reg: v/r average level
+equ		o76_reg_com2,0x09				// o76: reg: common control 2
+equ		o76_reg_pid,0x0a				// o76: reg: product id number msb
+equ		o76_reg_ver,0x0b				// o76: reg: product id number lsb
+equ		o76_reg_com3,0x0c				// o76: reg: common control 3
+equ		o76_reg_com4,0x0d				// o76: reg: common control 4
+equ		o76_reg_com5,0x0e				// o76: reg: common control 5
+equ		o76_reg_com6,0x0f				// o76: reg: common control 6
+equ		o76_reg_aech,0x10				// o76: reg: exposure value
+equ		o76_reg_clkrc,0x11				// o76: reg: internal clock
+equ		o76_reg_com7,0x12				// o76: reg: common control 7
+equ		o76_reg_com8,0x13				// o76: reg: common control 8
+equ		o76_reg_com9,0x14				// o76: reg: common control 9
+equ		o76_reg_com10,0x15				// o76: reg: common control 10
+equ		o76_reg_hstart,0x17				// o76: reg: horizontal frame start high
+equ		o76_reg_hstop,0x18				// o76: reg: horizontal frame end high
+equ		o76_reg_vstart,0x19				// o76: reg: vertical frame start high
+equ		o76_reg_vstop,0x1a				// o76: reg: vertical frame end high
+equ		o76_reg_pshift,0x1b				// o76: reg: pixel delay select
+equ		o76_reg_midh,0x1c				// o76: reg: manufacturer id byte high
+equ		o76_reg_midl,0x1d				// o76: reg: manufacturer id byte low
+equ		o76_reg_mvfp,0x1e				// o76: reg: mirror/v flip enable
+equ		o76_reg_adcctr0,0x20			// o76: reg: adc control
+equ		o76_reg_aew,0x24				// o76: reg: stable operating upper
+equ		o76_reg_aeb,0x25				// o76: reg: stable operating lower
+equ		o76_reg_vpt,0x26				// o76: reg: fast mode operating region
+equ		o76_reg_bbias,0x27				// o76: reg: b channel signal bias
+equ		o76_reg_gbbias,0x28				// o76: reg: gb channel signal bias
+equ		o76_reg_exhch,0x2a				// o76: reg: dummy pixel insert msb
+equ		o76_reg_exhcl,0x2b				// o76: reg: dummy pixel insert lsb
+equ		o76_reg_rbias,0x2c				// o76: reg: r channel signal bias
+equ		o76_reg_advfl,0x2d				// o76: reg: lsb of insert dummy lines
+equ		o76_reg_advfh,0x2e				// o76: reg: msb of insert dummy lines
+equ		o76_reg_yave,0x2f				// o76: reg: y/g average level
+equ		o76_reg_hsyst,0x30				// o76: reg: hsync rising edge delay
+equ		o76_reg_hsyen,0x31				// o76: reg: hsync falling edge delay
+equ		o76_reg_href,0x32				// o76: reg: href control
+equ		o76_reg_chlf,0x33				// o76: reg: array current control
+equ		o76_reg_arblm,0x34				// o76: reg: array reference control
+equ		o76_reg_adc,0x37				// o76: reg: adc control
+equ		o76_reg_acom,0x38				// o76: reg: adc and analog common mode
+equ		o76_reg_ofon,0x39				// o76: reg: adc offset control
+equ		o76_reg_tslb,0x3a				// o76: reg: line buffer test option
+equ		o76_reg_com11,0x3b				// o76: reg: common control 11
+equ		o76_reg_com12,0x3c				// o76: reg: common control 12
+equ		o76_reg_com13,0x3d				// o76: reg: common control 13
+equ		o76_reg_com14,0x3e				// o76: reg: common control 14
+equ		o76_reg_edge,0x3f				// o76: reg: edge enhancement adjustment
+equ		o76_reg_com15,0x40				// o76: reg: common control 15
+equ		o76_reg_com16,0x41				// o76: reg: common control 16
+equ		o76_reg_com17,0x42				// o76: reg: common control 17
+equ		o76_reg_reg4b,0x4b				// o76: reg: register 4b
+equ		o76_reg_dnsth,0x4c				// o76: reg: de-noise strength
+equ		o76_reg_mtx1,0x4f				// o76: reg: matrix coefficient 1
+equ		o76_reg_mtx2,0x50				// o76: reg: matrix coefficient 2
+equ		o76_reg_mtx3,0x51				// o76: reg: matrix coefficient 3
+equ		o76_reg_mtx4,0x52				// o76: reg: matrix coefficient 4
+equ		o76_reg_mtx5,0x53				// o76: reg: matrix coefficient 5
+equ		o76_reg_mtx6,0x54				// o76: reg: matrix coefficient 6
+equ		o76_reg_bright,0x55				// o76: reg: brightness control
+equ		o76_reg_contras,0x56			// o76: reg: contrast control
+equ		o76_reg_contrasc,0x57			// o76: reg: contrast center
+equ		o76_reg_mtxs,0x58				// o76: reg: matrix coefficient sign
+equ		o76_reg_lcc1,0x62				// o76: reg: lens correction option 1
+equ		o76_reg_lcc2,0x63				// o76: reg: lens correction option 2
+equ		o76_reg_lcc3,0x64				// o76: reg: lens correction option 3
+equ		o76_reg_lcc4,0x65				// o76: reg: lens correction option 4
+equ		o76_reg_lcc5,0x66				// o76: reg: lens correction option 5
+equ		o76_reg_manu,0x67				// o76: reg: manual u value
+equ		o76_reg_manv,0x68				// o76: reg: manual v value
+equ		o76_reg_gfix,0x69				// o76: reg: fix gain control
+equ		o76_reg_ggain,0x6a				// o76: reg: g channel awb gain
+equ		o76_reg_dblv,0x6b				// o76: reg: pll and regulator control
+equ		o76_reg_awbctr3,0x6c			// o76: reg: awb control 3
+equ		o76_reg_awbctr2,0x6d			// o76: reg: awb control 2
+equ		o76_reg_awbctr1,0x6e			// o76: reg: awb control 1
+equ		o76_reg_awbctr0,0x6f			// o76: reg: awb control 0
+equ		o76_reg_xsc,0x70				// o76: reg: horizontal scale factor
+equ		o76_reg_ysc,0x71				// o76: reg: vertical scale factor
+equ		o76_reg_dcwctr,0x72				// o76: reg: dcw control
+equ		o76_reg_pclkdiv,0x73			// o76: reg: clock divider control
+equ		o76_reg_reg74,0x74				// o76: reg: register 74
+equ		o76_reg_reg75,0x75				// o76: reg: register 75
+equ		o76_reg_reg76,0x76				// o76: reg: register 76
+equ		o76_reg_reg77,0x77				// o76: reg: register 77
+equ		o76_reg_slop,0x7a				// o76: reg: gamma curve highest slope
+equ		o76_reg_gam1,0x7b				// o76: reg: gamma curve 1st segment
+equ		o76_reg_gam2,0x7c				// o76: reg: gamma curve 2nd segment
+equ		o76_reg_gam3,0x7d				// o76: reg: gamma curve 3rd segment
+equ		o76_reg_gam4,0x7e				// o76: reg: gamma curve 4th segment
+equ		o76_reg_gam5,0x7f				// o76: reg: gamma curve 5th segment
+equ		o76_reg_gam6,0x80				// o76: reg: gamma curve 6th segment
+equ		o76_reg_gam7,0x81				// o76: reg: gamma curve 7th segment
+equ		o76_reg_gam8,0x82				// o76: reg: gamma curve 8th segment
+equ		o76_reg_gam9,0x83				// o76: reg: gamma curve 9th segment
+equ		o76_reg_gam10,0x84				// o76: reg: gamma curve 10th segment
+equ		o76_reg_gam11,0x85				// o76: reg: gamma curve 11th segment
+equ		o76_reg_gam12,0x86				// o76: reg: gamma curve 12th segment
+equ		o76_reg_gam13,0x87				// o76: reg: gamma curve 13th segment
+equ		o76_reg_gam14,0x88				// o76: reg: gamma curve 14th segment
+equ		o76_reg_gam15,0x89				// o76: reg: gamma curve 15th segment
+equ		o76_reg_rgb444,0x8c				// o76: reg: rgb444 format
+equ		o76_reg_dmlnl,0x92				// o76: reg: dummy line low
+equ		o76_reg_dmlnh,0x93				// o76: reg: dummy line high
+equ		o76_reg_lcc6,0x94				// o76: reg: lens correction option 6
+equ		o76_reg_lcc7,0x95				// o76: reg: lens correction option 7
+equ		o76_reg_bd50st,0x9d				// o76: reg: 50Hz banding filter value
+equ		o76_reg_bd60st,0x9e				// o76: reg: 60Hz banding filter value
+equ		o76_reg_haecc1,0x9f				// o76: reg: histogram-based control 1
+equ		o76_reg_haecc2,0xa0				// o76: reg: histogram-based control 2
+equ		o76_reg_pclkdelay,0xa2			// o76: reg: pixel clock delay
+equ		o76_reg_ntctrl,0xa4				// o76: reg: auto frame rate control
+equ		o76_reg_bd50max,0xa5			// o76: reg: 50Hz banding step limit
+equ		o76_reg_haecc3,0xa6				// o76: reg: histogram-based control 3
+equ		o76_reg_haecc4,0xa7				// o76: reg: histogram-based control 4
+equ		o76_reg_haecc5,0xa8				// o76: reg: histogram-based control 5
+equ		o76_reg_haecc6,0xa9				// o76: reg: histogram-based control 6
+equ		o76_reg_haecc7,0xaa				// o76: reg: histogram-based control 7
+equ		o76_reg_bd60max,0xab			// o76: reg: 60Hz banding step limit
+equ		o76_reg_stropt,0xac				// o76: reg: register ac
+equ		o76_reg_strr,0xad				// o76: reg: r gain for led output frame
+equ		o76_reg_strg,0xae				// o76: reg: g gain for led output frame
+equ		o76_reg_strb,0xaf				// o76: reg: b gain for led output frame
+equ		o76_reg_ablc1,0xb1				// o76: reg: ablc control
+equ		o76_reg_thlst,0xb3				// o76: reg: ablc target
+equ		o76_reg_thldlt,0xb5				// o76: reg: ablc stable range
+equ		o76_reg_adchb,0xbe				// o76: reg: blue channel black level
+equ		o76_reg_adchr,0xbf				// o76: reg: red channel black level
+equ		o76_reg_adchgb,0xc0				// o76: reg: gb channel black level
+equ		o76_reg_adchgr,0xc1				// o76: reg: gr channel black level
+equ		o76_reg_satctr,0xc9				// o76: reg: saturation control
