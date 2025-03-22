@@ -1,12 +1,17 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.20";
+	macro	prog_vers="1.22";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/03/22	ver.1.22
+//			corresponding to define allocation buffer
+//			add: mcvm_mem_alloc
+//			add: mcoc_math_unary; "r6+"=R6 relative address operator
 //
 //		2025/03/15	ver.1.20
 //			fix: mcoc_math_post
@@ -103,6 +108,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		in_var_set;					// in variables_set block
 	var		defp_1st=true;				// encounter 1st define procedure
 	var		n_str_cnst=0;				// number of string constants
+	var		alst_cnt=0;					// number of allocation list
 	var		need_math=false;			// mathematical function blocks used
 	var		need_wire=false;			// Wire blocks used
 	var		need_stft=false;			// SPI-TFT blocks used
@@ -604,6 +610,7 @@ if (false)
 		gsub	"\n",$,"// ",cmnt;
 		gsub	"// 	","//	",cmnt;
 		gsub	"// "$,,"//"$,,cmnt;
+		psub	"// #.*","//",cmnt;
 		psub	"// $","//",cmnt;
 		gsub	"#","##",cmnt;
 
@@ -1262,8 +1269,8 @@ if (false)
 
 		// assembler
 		fprint	fout,"// r0=abs (r0)"$,;
-		fprint	fout,"lsli	r0,1"$,;
-		fprint	fout,"lsri	r0,1"$,;
+		fprint	fout,"lsfti	r0,1"$,;
+		fprint	fout,"lsfti	r0,-1"$,;
 		fprint	fout,"// r1=INF"$,;
 		fprint	fout,"ld$(z)i	r1,_rtlb_inf$(z)"$,;
 		fprint	fout,"// r0=isinf (r0(="$(nval)"))"$,;
@@ -1485,6 +1492,55 @@ if (false)
 			asm_ld_var_adr	"r0",$(vnam);
 			mlet	do_blk_mcvm_mem_addr="&"$(vnam);
 		}
+	}
+	procedure	do_blk_mcvm_mem_alloc
+	{
+		var		cmp;
+		macro	lnam;
+		macro	asiz;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"NAME";
+					if (cmp=0)
+					{
+						mlet	lnam=$(do_$(dxml));
+					}
+					else
+					{
+						mlet	asiz=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		// allocation list
+		static : macro	alst_lnam_#(alst_cnt)=$(lnam);
+		static : macro	alst_asiz_#(alst_cnt)=$(asiz);
+		alst_cnt=alst_cnt + 1;
 	}
 	procedure	do_blk_mcvm_mem_read
 	{
@@ -1850,6 +1906,7 @@ if (false)
 		// operator
 		gsub	"&lt;","<",opr;
 		gsub	"&gt;",">",opr;
+		mlet	do_blk_mcoc_math_post=$(vnam)" "$(opr);
 		val=1;
 		mlet	mne="xxx";
 		strcmp	cmp=$(opr),"++", left;
@@ -1859,15 +1916,6 @@ if (false)
 		}
 		if (cmp=0)
 		{
-			strcmp	cmp=$(opr),"++", left;
-			if (cmp=0)
-			{
-				mlet	mne="add";
-			}
-			else
-			{
-				mlet	mne="sub";
-			}
 			strcmp	cmp=$(opr),"2", right;
 			if (cmp=0)
 			{
@@ -1877,6 +1925,17 @@ if (false)
 			if (cmp=0)
 			{
 				val=4;
+			}
+			strcmp	cmp=$(opr),"++", left;
+			if (cmp=0)
+			{
+				mlet	mne="add";
+				mlet	opr="+ "#(val);
+			}
+			else
+			{
+				mlet	mne="sub";
+				mlet	opr="- "#(val);
 			}
 		}
 		else
@@ -1900,8 +1959,6 @@ if (false)
 			fprint	fout,"f"$(mne)"	r1,r2"$,;
 		}
 		fprint	fout,"st$(z)	[r7],r1"$,;
-
-		mlet	do_blk_mcoc_math_post=$(vnam)" "$(opr);
 	}
 	procedure	do_blk_mcoc_math_unary
 	{
@@ -1985,6 +2042,11 @@ if (false)
 		{
 			mlet	mne="add";
 		}
+		strcmp	cmp=$(opr),"r6+";
+		if (cmp=0)
+		{
+			mlet	mne="add";
+		}
 		strcmp	cmp=$(mne),"xxx";
 		if (cmp=0)
 		{
@@ -2063,6 +2125,11 @@ if (false)
 				fprint	fout,"fld$(z)i	r1,1"$,;
 				fprint	fout,"f"$(mne)"	r0,r1"$,;
 			}
+		}
+		strcmp	cmp=$(opr),"r6+";
+		if (cmp=0)
+		{
+			fprint	fout,$(mne)"	r0,r6"$,;
 		}
 
 		index	cmp=$(nval)," ";
@@ -3181,7 +3248,7 @@ if (false)
 		fprint	fout,"// ctoa [r0++]=r1(="$(cchr)") ++ '\0'"$,;
 		fprint	fout,"// 2 bytes code?"$,;
 		fprint	fout,"mov	r2,r1"$,;
-		fprint	fout,"lsri	r2,8"$,;
+		fprint	fout,"lsfti	r2,-8"$,;
 		fprint	fout,"beq	pcnt+4"$,;
 		fprint	fout,"stb	[r0],r2"$,;
 		fprint	fout,"addi	r0,1"$,;
@@ -3889,7 +3956,7 @@ if (false)
 
 		// assembler
 		fprint	fout,"// Wire slave r0(="$(svid)") as "$(endn)" endian"$,;
-		fprint	fout,"lsli	r0,1"$,;
+		fprint	fout,"lsfti	r0,1"$,;
 		fprint	fout,"andi	r0,_wire_sidm"$,;
 		asm_ld_var_adr	"r7","_wire_slv_id";
 		fprint	fout,"st$(z)	[r7],r0"$,;
@@ -8444,6 +8511,24 @@ if (false)
 
 			// assembler
 			fprint	fout,"## end of define string buffers"$,;
+			if (alst_cnt>0)
+			{
+				var		idx;
+
+				fprint	fout,$,;
+				fprint	fout,"## define allocation buffers"$,;
+				while (idx<alst_cnt)
+				{
+					fprint	fout,"equ	_va,(_va+_rtlb_var_siz$(z)-1)/"
+							"_rtlb_var_siz$(z)*_rtlb_var_siz$(z)"$,;
+					fprint	fout,"equ	"$(alst_lnam_#(idx))",_va"$,;
+					fprint	fout,"equ	_va,_va+("$(alst_asiz_#(idx))")"$,;
+
+					// continue
+					idx=idx + 1;
+				}
+				fprint	fout,"## end of define allocation buffers"$,;
+			}
 			if (need_stft)
 			{
 				fprint	fout,""$,;

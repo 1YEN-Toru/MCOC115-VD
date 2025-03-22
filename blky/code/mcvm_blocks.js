@@ -186,6 +186,22 @@ Blockly.Blocks['mcvm_mem_addr'] = {
   }
 };
 
+Blockly.Blocks['mcvm_mem_alloc'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("mem allocate")
+        .appendField(new Blockly.FieldTextInput("lname"), "NAME")
+        .appendField("byte")
+        .appendField(new Blockly.FieldTextInput("12"), "SIZE");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(15);
+ this.setTooltip("allocate memory space");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
+  }
+};
+
 Blockly.Blocks['mcvm_mem_read'] = {
   init: function() {
     this.appendDummyInput()
@@ -423,7 +439,7 @@ Blockly.Blocks['mcoc_math_unary'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck(["Number", "Boolean"])
-        .appendField(new Blockly.FieldDropdown([["-","-"], ["inc","1+"], ["dec","-1+"], ["sq","sq"], ["2*","2*"], ["~","~"], ["!","!"], ["!!","!!"]]), "OP");
+        .appendField(new Blockly.FieldDropdown([["-","-"], ["inc","1+"], ["dec","-1+"], ["sq","sq"], ["2*","2*"], ["~","~"], ["!","!"], ["!!","!!"], ["r6+","R6+"]]), "OP");
     this.setInputsInline(false);
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(225);
