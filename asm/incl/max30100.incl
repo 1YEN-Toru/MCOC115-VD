@@ -1,0 +1,64 @@
+# ================================
+#	MAX30100 (heart rate sensor) I/O register
+#		(c) 2025	1YEN Toru
+#		definition module
+# ================================
+
+# max30100 i/o registers
+equ		i2c_max30100,0x57				// i2c: MAX30100 slave address
+#
+equ		hrt_reg_int_stat,0x00			// hrt: reg: interrupt status
+equ		hrt_reg_int_enbl,0x01			// hrt: reg: interrupt enable
+equ		hrt_reg_fifo_wr_ptr,0x02		// hrt: reg: FIFO write pointer
+equ		hrt_reg_fifo_ovf_cntr,0x03		// hrt: reg: FIFO overflow counter
+equ		hrt_reg_fifo_rd_ptr,0x04		// hrt: reg: FIFO read pointer
+equ		hrt_reg_fifo_data,0x05			// hrt: reg: FIFO data
+equ		hrt_reg_mod_cnfg,0x06			// hrt: reg: mode configuration
+equ		hrt_reg_spo2_cnfg,0x07			// hrt: reg: SpO2 configuration
+equ		hrt_reg_led_cnfg,0x09			// hrt: reg: LED configuration
+equ		hrt_reg_temp_int,0x16			// hrt: reg: temperature integer
+equ		hrt_reg_temp_frac,0x17			// hrt: reg: temperature fraction
+equ		hrt_reg_rev_id,0xfe				// hrt: reg: revision ID
+equ		hrt_reg_part_id,0xff			// hrt: reg: part ID
+#
+equ		hrt_int_sten_afull,0x80			// hrt: int_stat/enbl: A_FULL bit
+equ		hrt_int_sten_temp,0x40			// hrt: int_stat/enbl: TEMP_RDY bit
+equ		hrt_int_sten_hr,0x20			// hrt: int_stat/enbl: HR_RDY bit
+equ		hrt_int_sten_spo2,0x10			// hrt: int_stat/enbl: SPO2_RDY bit
+equ		hrt_int_sten_pwr,0x01			// hrt: int_stat: PWR_RDY bit
+equ		hrt_mod_cnfg_shdn,0x80			// hrt: mod_cnfg: SHDN bit
+equ		hrt_mod_cnfg_reset,0x40			// hrt: mod_cnfg: RESET bit
+equ		hrt_mod_cnfg_tempe,0x08			// hrt: mod_cnfg: TEMP_EN bit
+equ		hrt_mod_cnfg_unuse,0x00			// hrt: mod_cnfg: Unused mode
+equ		hrt_mod_cnfg_hren,0x02			// hrt: mod_cnfg: HR only mode
+equ		hrt_mod_cnfg_spo2,0x03			// hrt: mod_cnfg: SpO2 mode
+equ		hrt_spo2_cnfg_hires,0x40		// hrt: spo2_cnfg: SPO2_HI_RES_EN bit
+equ		hrt_spo2_cnfg_sr0,0x00			// hrt: spo2_cnfg: SR field (50Hz)
+equ		hrt_spo2_cnfg_sr1,0x04			//		100Hz
+equ		hrt_spo2_cnfg_sr2,0x08			//		167Hz
+equ		hrt_spo2_cnfg_sr3,0x0c			//		200Hz
+equ		hrt_spo2_cnfg_sr4,0x10			//		400Hz
+equ		hrt_spo2_cnfg_sr5,0x14			//		600Hz
+equ		hrt_spo2_cnfg_sr6,0x18			//		800Hz
+equ		hrt_spo2_cnfg_sr7,0x1c			//		1000Hz
+equ		hrt_spo2_cnfg_pw0,0x00			// hrt: spo2_cnfg: PW field (200us)
+equ		hrt_spo2_cnfg_pw1,0x01			//		400us
+equ		hrt_spo2_cnfg_pw2,0x02			//		800us
+equ		hrt_spo2_cnfg_pw3,0x03			//		1600us
+equ		hrt_led_cnfg_pa0,0x00			// hrt: led_cnfg: PA field (0mA)
+equ		hrt_led_cnfg_pa1,0x01			//		4.4mA
+equ		hrt_led_cnfg_pa2,0x02			//		7.6mA
+equ		hrt_led_cnfg_pa3,0x03			//		11.0mA
+equ		hrt_led_cnfg_pa4,0x04			//		14.2mA
+equ		hrt_led_cnfg_pa5,0x05			//		17.4mA
+equ		hrt_led_cnfg_pa6,0x06			//		20.8mA
+equ		hrt_led_cnfg_pa7,0x07			//		24.0mA
+equ		hrt_led_cnfg_pa8,0x08			//		27.1mA
+equ		hrt_led_cnfg_pa9,0x09			//		30.6mA
+equ		hrt_led_cnfg_paa,0x0a			//		33.8mA
+equ		hrt_led_cnfg_pab,0x0b			//		37.0mA
+equ		hrt_led_cnfg_pac,0x0c			//		40.2mA
+equ		hrt_led_cnfg_pad,0x0d			//		43.6mA
+equ		hrt_led_cnfg_pae,0x0e			//		46.8mA
+equ		hrt_led_cnfg_paf,0x0f			//		50.0mA
+equ		hrt_part_id_num,0x11			// hrt: part id of max30100
