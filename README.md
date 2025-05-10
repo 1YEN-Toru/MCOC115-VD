@@ -25,12 +25,12 @@
 3. Moscovium
 	- 16 bit data path
 4. Moscovium-SS
-	- 16 bit data path x2
+	- 16 bit data path * 2
 	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
 5. Nihonium
 	- 32 bit data path
 6. Nihonium-SS
-	- 32 bit data path x2
+	- 32 bit data path * 2
 	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 
 - The order listed above is roughly a trade-off between performance and size (LUTs).
@@ -72,15 +72,19 @@
 --------
 # Directories and Files
 
-- README.md
-	- This article.
-- Xilinx Vivado's project directory
+- Documents
+	- README.md
+		- This article.
+	- img/
+		- Images
+- Software development tools
 	- asm/
+		- Moscovium assembler
 		- Macro assembler and sample sources
 	- blky/
+		- Blockly for Moscovium
 		- Blockly.XML to Moscovium.ASM translator and sample sources
-	- img/
-		- images
+- Xilinx Vivado's project
 	- ip/
 		- IP units
 	- mcu/
@@ -123,11 +127,13 @@
 		- for Moscovium / Moscovium-BS / Moscovium-SS
 	- 16 * 16 = 32 bit multiply, signed and unsigned
 - [DIVC16](http://hello.world.coocan.jp/ARDUINO33/arduino33_4.html#DIVC16)
-	- Divide co-processor (step divider)
+	- Divide co-processor
+		- Step divider
 		- for Moscovium-BS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 - [DIVC32](http://hello.world.coocan.jp/ARDUINO16/arduino16_3.html#HYBDIV)
-	- Divide co-processor (flush / step hybrid divider)
+	- Divide co-processor 
+		- High speed hybrid (flush * step) divider
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
@@ -182,7 +188,7 @@
 	- Receive data buffer: 64 byte [FIFO](http://hello.world.coocan.jp/ARDUINO27/arduino27_6.html)
 - [STWSER](http://hello.world.coocan.jp/ARDUINO17/arduino17_5.html#STWSER)
 	- Synchronous two wire serial unit (I2C)
-	- Communication speed: up to 400kHz (Fast mode)
+	- Communication speed: up to 400 kHz (Fast mode)
 	- Master and slave communication
 
 ## I/O units
@@ -212,7 +218,7 @@
 	- 12 bit delta-sigma D/A converter unit
 - [CAM7670](http://hello.world.coocan.jp/ARDUINO30/arduino30_7.html#CAM7670)
 	- OV7670 camera I/F unit
-	- VGA size (640x480[dot])
+	- VGA size (640 * 480 [dot])
 	- RGB222 pixel format (64 colors)
 - [STFT61](http://hello.world.coocan.jp/ARDUINO33/arduino33_1.html#STFT61)
 	- SPI-TFT (ST7735R) controller unit
@@ -220,7 +226,12 @@
 		- SS, SCLK, MOSI, MISO
 		- Reset, Strobe, etc.
 	- PWM output for back light LED * 1
-		- Tpwm=192*255/fcpu
+		- Tpwm=192 * 255 / fcpu
+- [TRNG32](http://hello.world.coocan.jp/ARDUINO34/arduino34_7.html#TRNG32)
+	- 32 bit true random number generator
+		- trngrand = LFSR (x<sup>32</sup> + x<sup>22</sup> + x<sup>2</sup> + x<sup>1</sup> + 1) ^ <physical_noise>
+	- SSCG (Spread Spectrum Clock Generator) method
+	- Approximately 160 cycles for 32 bit true random number (5 [cycle/bit])
 <!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit
@@ -236,10 +247,10 @@
 	- Main memory (RAM) unit
 - [E-RAM](http://hello.world.coocan.jp/ARDUINO28/arduino28_2.html#CA7MMAP)
 	- Extended memory (RAM) unit
-	- Over 64KB RAM in 24 bit extended address area
+	- Over 64 KB RAM in 24 bit extended address area
 - [SRAM512K](http://hello.world.coocan.jp/ARDUINO28/arduino28_6.html#SRAMC512K)
 	- External SRAM chip I/F unit
-	- 512KB, 8 bit SRAM on the Cmod A7 board
+	- 512 KB, 8 bit SRAM on the Cmod A7 board
 
 --------
 # Configure MCU
@@ -275,7 +286,8 @@
 
 1. [Moscovium series MCU](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP)
 	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html)
-	- [Blockly.XML to Moscovium.ASM translator manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
+	- [Blockly for Moscovium manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
+		- [Blockly.XML to Moscovium.ASM translator](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#TRANS)
 	- [Macro assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
 		- [Moscovium instruction set manual](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](http://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)

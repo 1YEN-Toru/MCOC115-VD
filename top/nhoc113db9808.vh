@@ -4,6 +4,9 @@
 //		(c) 2025	1YEN Toru
 //
 //
+//	2025/05/10
+//		add: TRNG32 unit
+//
 //	2025/03/15
 //		NHOC113DB9808
 //		NH-DB=Nihonium, blockly dual core cpu edition
@@ -75,6 +78,7 @@
 //`define		MCOC_NO_SMPH
 //`define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
+//`define		MCOC_NO_TRNG
 
 // I/O unit (PMOD connector)
 `define		MCOC_NO_CM76

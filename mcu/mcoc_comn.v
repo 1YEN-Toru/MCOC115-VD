@@ -1436,13 +1436,17 @@ output	bcs_tled_n,
 output	bcs_adcx_n,
 output	bcs_cm76_n,
 output	bcs_stft_n,
-output	bcs_poly_n);
+output	bcs_poly_n,
+output	bcs_trng_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2025/05/10	ver.1.16
+//		add: bcs_trng_n; TRNG32 unit, True Random Number Generator unit
 //
 //	2025/02/22	ver.1.14
 //		add: bcs_poly_n; POLYC144 unit, Poly-core controller
@@ -1555,6 +1559,7 @@ assign	bcs_adcx_n=(!bcs_iou_n && badr[11:4]==8'h17)? 1'b0: 1'b1;
 assign	bcs_cm76_n=(!bcs_iou_n && badr[11:4]==8'h18)? 1'b0: 1'b1;
 assign	bcs_stft_n=(!bcs_iou_n && badr[11:4]==8'h19)? 1'b0: 1'b1;
 assign	bcs_poly_n=(!bcs_iou_n && badr[11:4]==8'h1a)? 1'b0: 1'b1;
+assign	bcs_trng_n=(!bcs_iou_n && badr[11:4]==8'h1b)? 1'b0: 1'b1;
 
 
 endmodule
@@ -2397,4 +2402,51 @@ xpm_fifo_async	#(
 
 endmodule
 `endif	//	MCOC_NO_CM76
+
+
+`ifdef		MCOC_NO_TRNG
+`else	//	MCOC_NO_TRNG
+module	mcoc_trng (
+// true random number generator unit
+input	clk,
+input	rst_n,
+input	brdy,
+input	bcmdr,
+input	bcmdw,
+input	bcs_trng_n,
+input	[3:0]	badr,
+input	[15:0]	bdatw,
+output	[15:0]	bdatr);
+
+
+// true random number generator
+trng32	trng (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_trng_n(bcs_trng_n),	// Input
+	.trng_clk1(trng_clk1),	// Input
+	.trng_clk2(trng_clk2),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.bdatr(bdatr[15:0])	// Output
+);
+
+// trng_clk1 = clk * 2
+trng_pll1	pll1 (
+	.clk_in1(clk),	// Input
+	.clk_out1(trng_clk1)	// Output
+);
+
+// trng_clk2 = trng_clk1 / 2
+//		with SSCG (CENTER_HIGH) and output clock duty adjustment
+trng_pll2	pll2 (
+	.clk_in1(trng_clk1),	// Input
+	.clk_out1(trng_clk2)	// Output
+);
+
+endmodule
+`endif	//	MCOC_NO_TRNG
 

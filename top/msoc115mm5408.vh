@@ -75,6 +75,7 @@
 //`define		MCOC_NO_SMPH
 //`define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
+`define		MCOC_NO_TRNG
 
 // I/O unit (PMOD connector)
 `define		MCOC_NO_CM76

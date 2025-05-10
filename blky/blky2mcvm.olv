@@ -8317,7 +8317,7 @@ if (false)
 	fprint	fout,"equ	_rtlb_uart_baud,@uart_baud@"$,;
 	fprint	fout,"## string macros"$,;
 	fprint	fout,"def	s,"$""@sim_mod@"$""	// simulation="
-			$"$"" / real fpga="$""##"$"$,;
+			$"$"" / fpga="$""##"$"$,;
 	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(long) / w(word)"$,;
 	fprint	fout,"##@vars_def@"$,;
 	fprint	fout,""$,;

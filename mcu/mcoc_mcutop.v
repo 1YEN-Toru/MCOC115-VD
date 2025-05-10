@@ -41,13 +41,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0232
+`define		MCOC_VERS		16'h0234
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2025/05/10	ver.2.34
+//		corresponding to TRNG32 unit
+//		add: compile option MCOC_NO_TRNG
 //
 //	2025/02/22	ver.2.32
 //		add: compile option MCOC_POLY / MCOC_POLY_6~14
@@ -326,6 +330,7 @@ wire	[15:0]	bdatr_tled;
 wire	[15:0]	bdatr_cm76;
 wire	[15:0]	bdatr_stft;
 wire	[15:0]	bdatr_poly;
+wire	[15:0]	bdatr_trng;
 
 // memory bus command alias
 wire	bcmdr=bcmd[0];
@@ -611,7 +616,8 @@ mcoc_adrdec		adec (
 	.bcs_adcx_n(bcs_adcx_n),	// Output
 	.bcs_cm76_n(bcs_cm76_n),	// Output
 	.bcs_stft_n(bcs_stft_n),	// Output
-	.bcs_poly_n(bcs_poly_n)	// Output
+	.bcs_poly_n(bcs_poly_n),	// Output
+	.bcs_trng_n(bcs_trng_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -1409,6 +1415,22 @@ assign	poly_pirq[14:1]=14'h0;
 assign	bdatr_poly[15:0]=16'h0;
 `endif	//	MCOC_POLY
 
+`ifdef		MCOC_NO_TRNG
+assign	bdatr_trng[15:0]=16'h0;
+`else	//	MCOC_NO_TRNG
+mcoc_trng	trng (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_trng_n(bcs_trng_n),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.bdatr(bdatr_trng[15:0])	// Output
+);
+`endif	//	MCOC_NO_TRNG
+
 
 // bus output
 assign	bdatr[15:0]=
@@ -1440,7 +1462,8 @@ assign	bdatr[15:0]=
 	bdatr_tled[15:0] |
 	bdatr_cm76[15:0] |
 	bdatr_stft[15:0] |
-	bdatr_poly[15:0];
+	bdatr_poly[15:0] |
+	bdatr_trng[15:0];
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |

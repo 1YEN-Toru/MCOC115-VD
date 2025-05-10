@@ -141,26 +141,32 @@ set_property CONFIG_MODE SPIx4 [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
 
-set_property PULLDOWN true [get_ports sys_mdsim]
-set_property PULLUP true [get_ports intc_int0]
-set_property PULLUP true [get_ports intc_int1]
-set_property PULLUP true [get_ports uar1_rxd]
-set_property PULLUP true [get_ports uar1_cts]
-set_property PULLUP true [get_ports stws_scl]
-set_property PULLUP true [get_ports stws_sda]
+## input ports
+set_property PULLTYPE PULLDOWN [get_ports sys_mdsim]
+set_property PULLTYPE PULLUP [get_ports intc_int0]
+set_property PULLTYPE PULLUP [get_ports intc_int1]
+set_property PULLTYPE PULLUP [get_ports uar1_rxd]
+set_property PULLTYPE PULLUP [get_ports uar1_cts]
+set_property PULLTYPE PULLUP [get_ports stws_scl]
+set_property PULLTYPE PULLUP [get_ports stws_sda]
 
+## output ports
 set_property DRIVE 4 [get_ports tled_led1]
 set_property DRIVE 4 [get_ports tled_led2]
 set_property DRIVE 4 [get_ports tled_ledb_n]
 set_property DRIVE 4 [get_ports tled_ledg_n]
 set_property DRIVE 4 [get_ports tled_ledr_n]
 
+## on board SRAM I/F
 set_output_delay -clock [get_clocks clk] -min -add_delay -4.000 [get_ports sram_oen]
 set_output_delay -clock [get_clocks clk] -min -add_delay -5.000 [get_ports sram_wen]
 set_output_delay -clock [get_clocks clk] -max -add_delay 0.000 [get_ports sram_adr*]
 
-# OV7670 camera unit with PMOD connector
+## OV7670 camera unit for PMOD connector
 create_clock -period 32.000 -name pclk -waveform {0.000 16.000} [get_ports {pmod_iop[2]}]
 set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets {pmod_iop_IBUF[2]}]
 set_false_path -from [get_clocks clk] -to [get_clocks pclk]
 set_false_path -from [get_clocks pclk] -to [get_clocks clk]
+
+## TRNG32 unit
+set_false_path -from [get_clocks clk_out1_trng_pll2]
