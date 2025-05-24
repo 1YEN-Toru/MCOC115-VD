@@ -41,13 +41,16 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0234
+`define		MCOC_VERS		16'h0236
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2025/05/24	ver.2.36
+//		add: TRNG32; LCG I/F
 //
 //	2025/05/10	ver.2.34
 //		corresponding to TRNG32 unit

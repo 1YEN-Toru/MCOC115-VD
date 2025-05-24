@@ -789,6 +789,8 @@ equ		poly_cpu_14,0x0e
 # TRNG32
 equ		trngrandh,0xf1b0				// trng, RW, word
 equ		trngrandl,0xf1b2				// trng, RW, word
+equ		trngtlcgh,0xf1b4				// trng, RW, word
+equ		trngtlcgl,0xf1b6				// trng, RW, word
 equ		trng0cnth,0xf1b8				// trng, R, word
 equ		trng0cntl,0xf1ba				// trng, R, word
 equ		trng1cnth,0xf1bc				// trng, R, word

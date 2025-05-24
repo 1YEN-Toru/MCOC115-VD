@@ -2419,6 +2419,10 @@ input	[15:0]	bdatw,
 output	[15:0]	bdatr);
 
 
+wire	[31:0]	trng_lcgo;
+wire	[31:0]	trng_lcgi;
+
+
 // true random number generator
 trng32	trng (
 	.clk(clk),	// Input
@@ -2431,7 +2435,9 @@ trng32	trng (
 	.trng_clk2(trng_clk2),	// Input
 	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
-	.bdatr(bdatr[15:0])	// Output
+	.trng_lcgi(trng_lcgi[31:0]),	// Input
+	.bdatr(bdatr[15:0]),	// Output
+	.trng_lcgo(trng_lcgo[31:0])	// Output
 );
 
 // trng_clk1 = clk * 2
@@ -2446,6 +2452,9 @@ trng_pll2	pll2 (
 	.clk_in1(trng_clk1),	// Input
 	.clk_out1(trng_clk2)	// Output
 );
+
+// LCG (Linear Congruential Generators)
+assign	trng_lcgi[31:0]=trng_lcgo[31:0]*32'd1_103_515_245 + 32'd12_345;
 
 endmodule
 `endif	//	MCOC_NO_TRNG

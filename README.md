@@ -26,7 +26,7 @@
 	- 16 bit data path
 4. Moscovium-SS
 	- 16 bit data path * 2
-	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL)
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/rindex.html#RI_SPRSCL)
 5. Nihonium
 	- 32 bit data path
 6. Nihonium-SS
@@ -42,7 +42,7 @@
 - SMP and AMP dual core CPU edition available.
 	- [SMP](http://hello.world.coocan.jp/ARDUINO17/arduino17_1.html) (Symmetric Multi-Processing)
 	- [AMP](http://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
-	- Moscovium / Moscovium-SS / Nihonium / Nihonium-SS can be selected as SMP and AMP main CPU.
+	- Moscovium / Moscovium-SS / Nihonium / Nihonium-SS can be selected as SMP, and AMP main CPU.
 	- Moscovium / Tennessine can be selected as AMP sub CPU.
 - SMP poly-core CPU edition available.
 	- [Poly-core](http://hello.world.coocan.jp/ARDUINO33/arduino33_5.html) (The poly-core CPU is the same meaning as multi-core CPU.)
@@ -105,7 +105,7 @@
  All links point to Japanese pages.
 
 ## CPU core
-- [Moscovium](http://hello.world.coocan.jp/ARDUINO/index.html#RI_MCVM)
+- [Moscovium](http://hello.world.coocan.jp/ARDUINO/rindex.html#RI_MCVM)
 	- Original 16 bit CPU core
 - [Nihonium](http://hello.world.coocan.jp/ARDUINO20/arduino20_4.html)
 	- Original 32 bit CPU core
@@ -116,7 +116,7 @@
 	- [Blockly Slim](http://hello.world.coocan.jp/ARDUINO33/arduino33_3.html#MCBS) edition
 - [Moscovium-SS](http://hello.world.coocan.jp/ARDUINO21/arduino21_3.html#CPUMTRX)
 	- Original 16 bit CPU core
-	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/index.html#RI_SPRSCL) edition
+	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO/rindex.html#RI_SPRSCL) edition
 - [Nihonium-SS](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 	- Original 32 bit CPU core
 	- [Super Scalar](http://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS) edition
@@ -229,9 +229,12 @@
 		- Tpwm=192 * 255 / fcpu
 - [TRNG32](http://hello.world.coocan.jp/ARDUINO34/arduino34_7.html#TRNG32)
 	- 32 bit true random number generator
-		- trngrand = LFSR (x<sup>32</sup> + x<sup>22</sup> + x<sup>2</sup> + x<sup>1</sup> + 1) ^ <physical_noise>
+		- trngrand = <physical_noise> ^ LFSR (x<sup>32</sup> + x<sup>22</sup> + x<sup>2</sup> + x<sup>1</sup> + 1)
 	- SSCG (Spread Spectrum Clock Generator) method
 	- Approximately 160 cycles for 32 bit true random number (5 [cycle/bit])
+	- True random LCG (Linear Congruential Generators) register available
+		- trngtlcg = trngtrand ^ LCG
+		- LCG = LCG * 1_103_515_245 + 12_345
 <!--
 - [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
 	- Logic analyzer accelerator unit
