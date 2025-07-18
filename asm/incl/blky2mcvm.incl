@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2025/07/19	ver.1.18
+//			add: fequw, fequl user macro
+//
 //		2025/03/15	ver.1.16
 //			fix: _is_sjis1_r0; rtnw --> rtn$(z)
 //
@@ -42,7 +45,7 @@
 //
 // ================================
 # constants
-equ		_rtlb_vers,0x0116				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0118				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer
 equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
@@ -91,6 +94,14 @@ endm
 
 macro	fldwi	rd,val					// fpu: half: load constant to rn
 hldi	$(rd),$(val)
+endm
+
+macro	fequl	lname,val				// fpu: float: define constant label
+equf	$(lname),$(val)
+endm
+
+macro	fequw	lname,val				// fpu: half: define constant label
+equh	$(lname),$(val)
 endm
 
 macro	_delay_cyc_r0

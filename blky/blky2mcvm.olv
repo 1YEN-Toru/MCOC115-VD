@@ -1,12 +1,15 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.22";
+	macro	prog_vers="1.24";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/07/19	ver.1.24
+//			update: mcoc_math_label; corresponding to float constant label
 //
 //		2025/03/22	ver.1.22
 //			corresponding to define allocation buffer
@@ -2195,7 +2198,14 @@ if (false)
 		}
 
 		// assembler
-		fprint	fout,"equ	"$(lnam)","$(lval)$,;
+		if (opt_opr_typ=opt_int)
+		{
+			fprint	fout,"equ	"$(lnam)","$(lval)$,;
+		}
+		else
+		{
+			fprint	fout,"fequ$(z)	"$(lnam)","$(lval)$,;
+		}
 	}
 	procedure	do_blk_mcoc_math_number
 	{
@@ -8400,6 +8410,7 @@ if (false)
 		// assembler
 		fprint	fout,""$,;
 		fprint	fout,"// string constants"$,;
+		fprint	fout,"_rtlb_strc_top:"$,;
 
 		idx=0;
 		while (idx<n_str_cnst)
@@ -8413,6 +8424,9 @@ if (false)
 			// continue
 			idx=idx + 1;
 		}
+
+		// assembler
+		fprint	fout,"_rtlb_strc_bottom:"$,;
 	}
 
 	// close files
@@ -8511,6 +8525,7 @@ if (false)
 
 			// assembler
 			fprint	fout,"## end of define string buffers"$,;
+			fprint	fout,"equ	_rtlb_var_string,_va"$,;
 			if (alst_cnt>0)
 			{
 				var		idx;
@@ -8528,6 +8543,7 @@ if (false)
 					idx=idx + 1;
 				}
 				fprint	fout,"## end of define allocation buffers"$,;
+				fprint	fout,"equ	_rtlb_var_alloc,_va"$,;
 			}
 			if (need_stft)
 			{
@@ -8540,6 +8556,7 @@ if (false)
 				fprint	fout,"equ	_stft_pix_buf,_va"$,;
 				fprint	fout,"equ	_va,_va+2*_stft_pix_max"$,;
 				fprint	fout,"## end of define SPI-TFT buffers"$,;
+				fprint	fout,"equ	_rtlb_var_spitft,_va"$,;
 			}
 			fprint	fout,"equ	_rtlb_var_array,_va"$,;
 
@@ -8609,6 +8626,9 @@ if (false)
 		// continue
 		fgets	fin,lbuf;
 	}
+
+	// assembler
+	fprint	fout,"_rtlb_prog_bottom:"$,;
 
 	// close files
 	fclose	fin;

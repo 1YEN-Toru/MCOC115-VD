@@ -210,21 +210,21 @@ datw	lab__stft_ctrl_04
 datw	lab__stft_ctrl_05
 datw	lab__stft_ctrl_06
 datw	lab__stft_ctrl_07
-datw	lab__stft_ctrl_08
-datw	lab__stft_ctrl_09
-datw	lab__stft_ctrl_0a
-datw	lab__stft_ctrl_0b
-datw	lab__stft_ctrl_0c
-datw	lab__stft_ctrl_0d
-datw	lab__stft_ctrl_0e
-datw	lab__stft_ctrl_0f
-datw	lab__stft_ctrl_10
-datw	lab__stft_ctrl_11
-datw	lab__stft_ctrl_12
-datw	lab__stft_ctrl_13
-datw	lab__stft_ctrl_14
-datw	lab__stft_ctrl_15
-datw	lab__stft_ctrl_16
+datw	lab__stft_ctrl_08				// BS: cursor left
+datw	lab__stft_ctrl_09				// HT: cursor right
+datw	lab__stft_ctrl_0a				// LF: line feed
+datw	lab__stft_ctrl_0b				// VT: cursor up
+datw	lab__stft_ctrl_0c				// FF: clear screen
+datw	lab__stft_ctrl_0d				// CR: return
+datw	lab__stft_ctrl_0e				// SO: 1x1 font
+datw	lab__stft_ctrl_0f				// SI: 2x2 font
+datw	lab__stft_ctrl_10				// set cursor x
+datw	lab__stft_ctrl_11				// set cursor y
+datw	lab__stft_ctrl_12				// set foreground color
+datw	lab__stft_ctrl_13				// set background color
+datw	lab__stft_ctrl_14				// set affine transformation
+datw	lab__stft_ctrl_15				// wait *10[ms]
+datw	lab__stft_ctrl_16				// set PWM duty
 datw	lab__stft_ctrl_17
 datw	lab__stft_ctrl_18
 datw	lab__stft_ctrl_19
@@ -407,7 +407,7 @@ jal$(z)r7	_delay_ms_r0
 pop$(z)	r1
 rtn$(z)
 
-// \x16 code; set pwm duty (backlight led intensity)
+// \x16 code; set PWM duty (backlight led intensity)
 align	4
 _stft_ctrl_16:
 ldb		r0,[r1]

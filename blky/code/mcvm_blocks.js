@@ -197,7 +197,7 @@ Blockly.Blocks['mcvm_mem_alloc'] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(15);
- this.setTooltip("allocate memory space");
+ this.setTooltip("allocate memory space in byte");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO");
   }
 };
@@ -917,26 +917,20 @@ Blockly.Blocks['mcoc_wire_write'] = {
 Blockly.Blocks['mcoc_stft_affine'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("stft affine");
-    this.appendDummyInput()
+        .appendField("stft affine")
         .appendField(new Blockly.FieldCheckbox("FALSE"), "INV")
-        .appendField("invert");
-    this.appendDummyInput()
+        .appendField("invert")
         .appendField(new Blockly.FieldCheckbox("FALSE"), "FLPH")
-        .appendField("flip H");
-    this.appendDummyInput()
+        .appendField("flip H")
         .appendField(new Blockly.FieldCheckbox("FALSE"), "FLPV")
         .appendField("flip V");
     this.appendDummyInput()
         .appendField(new Blockly.FieldCheckbox("FALSE"), "ROT1")
-        .appendField("rot 90");
-    this.appendDummyInput()
+        .appendField("rot 90")
         .appendField(new Blockly.FieldCheckbox("FALSE"), "ROT2")
-        .appendField("rot 90");
-    this.appendDummyInput()
+        .appendField("rot 90")
         .appendField(new Blockly.FieldCheckbox("FALSE"), "ROT3")
-        .appendField("rot 90");
-    this.appendDummyInput()
+        .appendField("rot 90")
         .appendField(new Blockly.FieldCheckbox("FALSE"), "DBL")
         .appendField("double");
     this.setInputsInline(false);
@@ -1070,7 +1064,7 @@ Blockly.Blocks['mcoc_stft_locate'] = {
         .appendField("stft locate");
     this.appendValueInput("CX")
         .setCheck("Number")
-        .appendField("cy");
+        .appendField("cx");
     this.appendValueInput("CY")
         .setCheck("Number")
         .appendField("cy");
@@ -1108,7 +1102,7 @@ Blockly.Blocks['mcoc_stft_pixel_embed'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("stft pixel")
-        .appendField(new Blockly.FieldDropdown([["black","_stft_black"], ["blue","_stft_blue"], ["red","_stft_red"], ["magenta","_stft_magenta"], ["green","_stft_green"], ["cyan","_stft_cyan"], ["yellow","_stft_yellow"], ["white","_stft_white"], ["gray","_stft_gray"], ["purple","_stft_purple"], ["pink","_stft_pink"], ["orange","_stft_orange"], ["lawn","_stft_lawn"], ["emerald","_stft_emerald"], ["cobalt","_stft_cobalt"]]), "PIX");
+        .appendField(new Blockly.FieldDropdown([["black","_stft_black"], ["blue","_stft_blue"], ["red","_stft_red"], ["magenta","_stft_magenta"], ["green","_stft_green"], ["cyan","_stft_cyan"], ["yellow","_stft_yellow"], ["white","_stft_white"], ["light","_stft_light"], ["gray","_stft_gray"], ["dark","_stft_dark"], ["purple","_stft_purple"], ["pink","_stft_pink"], ["orange","_stft_orange"], ["lawn","_stft_lawn"], ["emerald","_stft_emerald"], ["cobalt","_stft_cobalt"]]), "PIX");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
     this.setColour(90);

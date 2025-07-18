@@ -4,6 +4,9 @@
 //		(c) 2025	1YEN Toru
 //
 //
+//	2025/07/19
+//		add: PORT8I8O#2 unit
+//
 //	2025/05/10
 //		add: TRNG32 unit
 //
@@ -68,7 +71,7 @@
 //`define		MCOC_NO_STWS
 //`define		MCOC_NO_FNJP
 `define		MCOC_NO_UAR1
-`define		MCOC_NO_POR1
+//`define		MCOC_NO_POR1
 `define		MCOC_NO_UNSJ
 `define		MCOC_NO_DIST
 `define		MCOC_NO_RTC
