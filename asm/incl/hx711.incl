@@ -1,0 +1,29 @@
+# ================================
+#	HX711 (24 bit A/D convertor) I/O access
+#		(c) 2025	1YEN Toru
+#		definition module
+# ================================
+# HX711
+#	PD_SCK: normally low level. high level > 60us goes to power down mode
+#	DOUT: it will be high level in conversion period.
+#			it goes to low level when conversion finished. 
+#	clocks: need at least 24 clocks to read A/D conversion data (MSB first)
+#			then additional clock
+#			+1 means hx7_mode_chax128,
+#			+2 means hx7_mode_chbx32,
+#			+3 means hx7_mode_chax64
+#	mode change: transition to power down mode is required.
+
+# hx711 i/o access
+equ		hx7_bits,24						// hx7: A/D conversion bits
+equ		hx7_mode_powdown,0				// hx7: power down mode
+equ		hx7_mode_chax128,1				// hx7: channel A, gain x128
+equ		hx7_mode_chbx32,2				// hx7: channel B, gain x32
+equ		hx7_mode_chax64,3				// hx7: channel A, gain x64
+
+# timing specifications
+equ		hx7_nsec_t1_min,100				// hx7: t1; DOUT.fe to PD_SCK.re [ns]
+equ		hx7_nsec_t2_max,100				// hx7: t2; PD_SCK.re to DOUT ready [ns]
+equ		hx7_nsec_t3_typ,1_000			// hx7: t3; PD_SCK high time [ns]
+equ		hx7_nsec_t4_typ,1_000			// hx7: t4; PD_SCK low time [ns]
+equ		hx7_usec_pd_min,60				// hx7: time to enter power down [us]
