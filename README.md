@@ -228,7 +228,7 @@
 	- PWM output for back light LED * 1
 		- Tpwm=192 * 255 / fcpu
 - [TRNG32](http://hello.world.coocan.jp/ARDUINO34/arduino34_7.html#TRNG32)
-	- 32 bit true random number generator
+	- 32 bit true random number generator unit
 		- trngrand = <physical_noise> ^ LFSR (x<sup>32</sup> + x<sup>22</sup> + x<sup>2</sup> + x<sup>1</sup> + 1)
 	- SSCG (Spread Spectrum Clock Generator) method
 	- Approximately 160 cycles for 32 bit true random number (5 [cycle/bit])

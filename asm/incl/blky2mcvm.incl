@@ -1187,6 +1187,7 @@ rtn$(z)
 //		r4: negative(false) / positive(true)
 //	return: ascii to integer
 //		r0: atoi (r1)
+//		r1: pointer to the next character of decimal string
 // ================================
 align	4
 _atoi_r1:
@@ -1238,6 +1239,7 @@ rtn$(z)
 //		r2: temporary data
 //	return: hexadecimal to integer
 //		r0: xtoi (r1)
+//		r1: pointer to the next character of hexadecimal string
 // ================================
 align	4
 _xtoi_r1:

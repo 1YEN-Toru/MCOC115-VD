@@ -304,6 +304,7 @@ equ		intc_smrr1,0x0200				// intfcth[SMRR1] bit
 equ		intc_smur1,0x0100				// intfcth[SMUR1] bit
 equ		intc_cenr,0x0080				// intfcth[CENR] bit
 equ		intc_rtcr,0x0040				// intfcth[RTCR] bit
+equ		intc_lofr,0x0020				// intfcth[LOFR] bit
 equ		intc_ovfr1,0x8000				// intfct[OVFR1] bit
 equ		intc_cmar1,0x4000				// intfct[CMAR1] bit
 equ		intc_cmbr1,0x2000				// intfct[CMBR1] bit
@@ -328,6 +329,7 @@ equ		intc_smrm1,0x0200				// intmskh[SMRM1] bit
 equ		intc_smum1,0x0100				// intmskh[SMUM1] bit
 equ		intc_cenm,0x0080				// intmskh[CENM] bit
 equ		intc_rtcm,0x0040				// intmskh[RTCM] bit
+equ		intc_lofm,0x0020				// intmskh[LOFM] bit
 equ		intc_ovfm1,0x8000				// intmsk[OVFM1] bit
 equ		intc_cmam1,0x4000				// intmsk[CMAM1] bit
 equ		intc_cmbm1,0x2000				// intmsk[CMBM1] bit
@@ -346,102 +348,106 @@ equ		intc_mskh_2,0xf000				// intmskh cpu2 mask
 equ		intc_mskh_1,0x0f00				// intmskh cpu1 mask
 equ		intc_msk_2,0x0002				// intmsk cpu2 mask
 equ		intc_msk_1,0x0001				// intmsk cpu1 mask
-equ		intc_icl1_0,0x0000				// intlev0[ICL1] field
-equ		intc_icl1_1,0x0001
-equ		intc_icl1_2,0x0002
-equ		intc_icl1_3,0x0003
-equ		intc_icl2_0,0x0004				// intlev0[ICL2] field
-equ		intc_icl2_1,0x0005
-equ		intc_icl2_2,0x0006
-equ		intc_icl2_3,0x0007
-equ		intc_eil0_0,0x0000				// intlev0[EIL0] field
-equ		intc_eil0_1,0x0010
-equ		intc_eil0_2,0x0020
-equ		intc_eil0_3,0x0030
-equ		intc_eil1_0,0x0000				// intlev0[EIL1] field
-equ		intc_eil1_1,0x0040
-equ		intc_eil1_2,0x0080
-equ		intc_eil1_3,0x00c0
-equ		intc_sral_0,0x0000				// intlev0[SRAL] field
-equ		intc_sral_1,0x0100
-equ		intc_sral_2,0x0200
-equ		intc_sral_3,0x0300
-equ		intc_stal_0,0x0000				// intlev0[STAL] field
-equ		intc_stal_1,0x0400
-equ		intc_stal_2,0x0800
-equ		intc_stal_3,0x0c00
-equ		intc_mral_0,0x0000				// intlev0[MRAL] field
-equ		intc_mral_1,0x1000
-equ		intc_mral_2,0x2000
-equ		intc_mral_3,0x3000
 equ		intc_mtel_0,0x0000				// intlev0[MTEL] field
 equ		intc_mtel_1,0x4000
 equ		intc_mtel_2,0x8000
 equ		intc_mtel_3,0xc000
-equ		intc_cmbl0_0,0x0000				// intlev1[CMBL0] field
-equ		intc_cmbl0_1,0x0004
-equ		intc_cmbl0_2,0x0008
-equ		intc_cmbl0_3,0x000c
-equ		intc_cmal0_0,0x0000				// intlev1[CMAL0] field
-equ		intc_cmal0_1,0x0010
-equ		intc_cmal0_2,0x0020
-equ		intc_cmal0_3,0x0030
-equ		intc_ovfl0_0,0x0000				// intlev1[OVFL0] field
-equ		intc_ovfl0_1,0x0040
-equ		intc_ovfl0_2,0x0080
-equ		intc_ovfl0_3,0x00c0
-equ		intc_cmbl1_0,0x0000				// intlev1[CMBL1] field
-equ		intc_cmbl1_1,0x0400
-equ		intc_cmbl1_2,0x0800
-equ		intc_cmbl1_3,0x0c00
-equ		intc_cmal1_0,0x0000				// intlev1[CMAL1] field
-equ		intc_cmal1_1,0x1000
-equ		intc_cmal1_2,0x2000
-equ		intc_cmal1_3,0x3000
+equ		intc_mral_0,0x0000				// intlev0[MRAL] field
+equ		intc_mral_1,0x1000
+equ		intc_mral_2,0x2000
+equ		intc_mral_3,0x3000
+equ		intc_stal_0,0x0000				// intlev0[STAL] field
+equ		intc_stal_1,0x0400
+equ		intc_stal_2,0x0800
+equ		intc_stal_3,0x0c00
+equ		intc_sral_0,0x0000				// intlev0[SRAL] field
+equ		intc_sral_1,0x0100
+equ		intc_sral_2,0x0200
+equ		intc_sral_3,0x0300
+equ		intc_eil1_0,0x0000				// intlev0[EIL1] field
+equ		intc_eil1_1,0x0040
+equ		intc_eil1_2,0x0080
+equ		intc_eil1_3,0x00c0
+equ		intc_eil0_0,0x0000				// intlev0[EIL0] field
+equ		intc_eil0_1,0x0010
+equ		intc_eil0_2,0x0020
+equ		intc_eil0_3,0x0030
+equ		intc_icl2_0,0x0000				// intlev0[ICL2] field
+equ		intc_icl2_1,0x0004
+equ		intc_icl2_2,0x0008
+equ		intc_icl2_3,0x000c
+equ		intc_icl1_0,0x0000				// intlev0[ICL1] field
+equ		intc_icl1_1,0x0001
+equ		intc_icl1_2,0x0002
+equ		intc_icl1_3,0x0003
 equ		intc_ovfl1_0,0x0000				// intlev1[OVFL1] field
 equ		intc_ovfl1_1,0x4000
 equ		intc_ovfl1_2,0x8000
 equ		intc_ovfl1_3,0xc000
+equ		intc_cmal1_0,0x0000				// intlev1[CMAL1] field
+equ		intc_cmal1_1,0x1000
+equ		intc_cmal1_2,0x2000
+equ		intc_cmal1_3,0x3000
+equ		intc_cmbl1_0,0x0000				// intlev1[CMBL1] field
+equ		intc_cmbl1_1,0x0400
+equ		intc_cmbl1_2,0x0800
+equ		intc_cmbl1_3,0x0c00
+equ		intc_ovfl0_0,0x0000				// intlev1[OVFL0] field
+equ		intc_ovfl0_1,0x0040
+equ		intc_ovfl0_2,0x0080
+equ		intc_ovfl0_3,0x00c0
+equ		intc_cmal0_0,0x0000				// intlev1[CMAL0] field
+equ		intc_cmal0_1,0x0010
+equ		intc_cmal0_2,0x0020
+equ		intc_cmal0_3,0x0030
+equ		intc_cmbl0_0,0x0000				// intlev1[CMBL0] field
+equ		intc_cmbl0_1,0x0004
+equ		intc_cmbl0_2,0x0008
+equ		intc_cmbl0_3,0x000c
 equ		intc_cenl_0,0x0000				// intlev2[CENL] field
-equ		intc_cenl_1,0x1000
-equ		intc_cenl_2,0x2000
-equ		intc_cenl_3,0x3000
+equ		intc_cenl_1,0x4000
+equ		intc_cenl_2,0x8000
+equ		intc_cenl_3,0xc000
 equ		intc_rtcl_0,0x0000				// intlev2[RTCL] field
-equ		intc_rtcl_1,0x4000
-equ		intc_rtcl_2,0x8000
-equ		intc_rtcl_3,0xc000
-equ		intc_smul1_0,0x0000				// intlev3[SMUL1] field
-equ		intc_smul1_1,0x0001
-equ		intc_smul1_2,0x0002
-equ		intc_smul1_3,0x0003
-equ		intc_smrl1_0,0x0000				// intlev3[SMRL1] field
-equ		intc_smrl1_1,0x0004
-equ		intc_smrl1_2,0x0008
-equ		intc_smrl1_3,0x000c
-equ		intc_ftal1_0,0x0000				// intlev3[FTAL1] field
-equ		intc_ftal1_1,0x0010
-equ		intc_ftal1_2,0x0020
-equ		intc_ftal1_3,0x0030
-equ		intc_fral1_0,0x0000				// intlev3[FRAL1] field
-equ		intc_fral1_1,0x0040
-equ		intc_fral1_2,0x0080
-equ		intc_fral1_3,0x00c0
-equ		intc_smul2_0,0x0000				// intlev3[SMUL2] field
-equ		intc_smul2_1,0x0100
-equ		intc_smul2_2,0x0200
-equ		intc_smul2_3,0x0300
-equ		intc_smrl2_0,0x0000				// intlev3[SMRL2] field
-equ		intc_smrl2_1,0x0400
-equ		intc_smrl2_2,0x0800
-equ		intc_smrl2_3,0x0c00
-equ		intc_ftal2_0,0x0000				// intlev3[FTAL2] field
-equ		intc_ftal2_1,0x1000
-equ		intc_ftal2_2,0x2000
-equ		intc_ftal2_3,0x3000
+equ		intc_rtcl_1,0x1000
+equ		intc_rtcl_2,0x2000
+equ		intc_rtcl_3,0x3000
+equ		intc_lofl_0,0x0000				// intlev2[LOFL] field
+equ		intc_lofl_1,0x0400
+equ		intc_lofl_2,0x0800
+equ		intc_lofl_3,0x0c00
 equ		intc_fral2_0,0x0000				// intlev3[FRAL2] field
 equ		intc_fral2_1,0x4000
 equ		intc_fral2_2,0x8000
 equ		intc_fral2_3,0xc000
+equ		intc_ftal2_0,0x0000				// intlev3[FTAL2] field
+equ		intc_ftal2_1,0x1000
+equ		intc_ftal2_2,0x2000
+equ		intc_ftal2_3,0x3000
+equ		intc_smrl2_0,0x0000				// intlev3[SMRL2] field
+equ		intc_smrl2_1,0x0400
+equ		intc_smrl2_2,0x0800
+equ		intc_smrl2_3,0x0c00
+equ		intc_smul2_0,0x0000				// intlev3[SMUL2] field
+equ		intc_smul2_1,0x0100
+equ		intc_smul2_2,0x0200
+equ		intc_smul2_3,0x0300
+equ		intc_fral1_0,0x0000				// intlev3[FRAL1] field
+equ		intc_fral1_1,0x0040
+equ		intc_fral1_2,0x0080
+equ		intc_fral1_3,0x00c0
+equ		intc_ftal1_0,0x0000				// intlev3[FTAL1] field
+equ		intc_ftal1_1,0x0010
+equ		intc_ftal1_2,0x0020
+equ		intc_ftal1_3,0x0030
+equ		intc_smrl1_0,0x0000				// intlev3[SMRL1] field
+equ		intc_smrl1_1,0x0004
+equ		intc_smrl1_2,0x0008
+equ		intc_smrl1_3,0x000c
+equ		intc_smul1_0,0x0000				// intlev3[SMUL1] field
+equ		intc_smul1_1,0x0001
+equ		intc_smul1_2,0x0002
+equ		intc_smul1_3,0x0003
 # LOGA8CH
 equ		logactl,0xf070					// loga, RW, word
 equ		logacmsk,0xf072					// loga, RW, word
