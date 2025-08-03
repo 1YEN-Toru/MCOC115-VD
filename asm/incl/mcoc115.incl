@@ -159,10 +159,11 @@ equ		asc_sqo,0x5d					// asc: ']' code
 equ		asc_cir,0x5e					// asc: '^' code
 equ		asc_und,0x5f					// asc: '_' code
 equ		asc_bqt,0x60					// asc: '`' code
-equ		asc_cbi,0x7a					// asc: '[' code
-equ		asc_vrt,0x7b					// asc: '|' code
-equ		asc_cbo,0x7c					// asc: ']' code
-equ		asc_tld,0x7d					// asc: '~' code
+equ		asc_cbi,0x7b					// asc: '[' code
+equ		asc_vrt,0x7c					// asc: '|' code
+equ		asc_cbo,0x7d					// asc: ']' code
+equ		asc_tld,0x7e					// asc: '~' code
+equ		asc_del,0x7f					// asc: DEL code
 equ		asc_c2s,0x20					// capital to small character offset
 # ================================
 # IDREG
