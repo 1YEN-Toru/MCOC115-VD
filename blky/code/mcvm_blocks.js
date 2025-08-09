@@ -91,7 +91,7 @@ Blockly.Blocks['mcvm_fpu_fdown'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("round down to zero");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -104,7 +104,7 @@ Blockly.Blocks['mcvm_fpu_ftoi'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("cast float to integer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -117,7 +117,7 @@ Blockly.Blocks['mcvm_fpu_isinf'] = {
     this.setOutput(true, "Boolean");
     this.setColour(0);
  this.setTooltip("is INF or -INF");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -130,7 +130,7 @@ Blockly.Blocks['mcvm_fpu_isnan'] = {
     this.setOutput(true, "Boolean");
     this.setColour(0);
  this.setTooltip("is NaN");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -143,7 +143,7 @@ Blockly.Blocks['mcvm_fpu_itof'] = {
     this.setOutput(true, "Number");
     this.setColour(0);
  this.setTooltip("cast integer to float");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -156,7 +156,7 @@ Blockly.Blocks['mcvm_sim_fail'] = {
     this.setNextStatement(true, null);
     this.setColour(0);
  this.setTooltip("simulation fail");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -169,7 +169,7 @@ Blockly.Blocks['mcvm_sim_pass'] = {
     this.setNextStatement(true, null);
     this.setColour(0);
  this.setTooltip("simulation pass");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };
 
@@ -491,7 +491,7 @@ Blockly.Blocks['mcoc_task'] = {
     this.setInputsInline(true);
     this.setColour(30);
  this.setTooltip("define task");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND_T");
   }
 };
 
@@ -504,7 +504,7 @@ Blockly.Blocks['mcoc_text_atoi'] = {
     this.setOutput(true, "Number");
     this.setColour(30);
  this.setTooltip("convert ASCII text to integer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND_X");
   }
 };
 
@@ -517,7 +517,7 @@ Blockly.Blocks['mcoc_text_itoa'] = {
     this.setOutput(true, "String");
     this.setColour(30);
  this.setTooltip("convert integer to ASCII text");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND_X");
   }
 };
 
@@ -533,7 +533,7 @@ Blockly.Blocks['mcoc_text_itox'] = {
     this.setOutput(true, "String");
     this.setColour(30);
  this.setTooltip("convert integer to hexadecimal ASCII text");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND_X");
   }
 };
 
@@ -546,7 +546,7 @@ Blockly.Blocks['mcoc_text_xtoi'] = {
     this.setOutput(true, "Number");
     this.setColour(30);
  this.setTooltip("convert hexadecimal ASCII text to integer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND_X");
   }
 };
 
@@ -629,7 +629,7 @@ Blockly.Blocks['mcoc_string_label'] = {
     this.setOutput(true, "String");
     this.setColour(45);
  this.setTooltip("pointer to string label");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG_P");
   }
 };
 
@@ -645,7 +645,7 @@ Blockly.Blocks['mcoc_string_pointer'] = {
     this.setOutput(true, "String");
     this.setColour(45);
  this.setTooltip("pointer to string variable");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG_P");
   }
 };
 
@@ -665,7 +665,7 @@ Blockly.Blocks['mcoc_string_set'] = {
     this.setNextStatement(true, null);
     this.setColour(45);
  this.setTooltip("set string variable");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTRG_P");
   }
 };
 
@@ -789,7 +789,7 @@ Blockly.Blocks['mcoc_uart_avail'] = {
     this.setOutput(true, ["Boolean", "Number"]);
     this.setColour(60);
  this.setTooltip("is UART receive data available");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR_U");
   }
 };
 
@@ -801,7 +801,7 @@ Blockly.Blocks['mcoc_uart_getline'] = {
     this.setOutput(true, "String");
     this.setColour(60);
  this.setTooltip("get a line from UART receive data");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR_U");
   }
 };
 
@@ -815,7 +815,7 @@ Blockly.Blocks['mcoc_uart_print'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("print text; UART transfer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR_U");
   }
 };
 
@@ -829,7 +829,7 @@ Blockly.Blocks['mcoc_uart_println'] = {
     this.setNextStatement(true, null);
     this.setColour(60);
  this.setTooltip("print text+CRLF; UART transfer");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLIBR_U");
   }
 };
 
