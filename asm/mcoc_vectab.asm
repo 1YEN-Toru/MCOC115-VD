@@ -32,7 +32,7 @@ datw	lab_tstfail						// 17: (reserved)
 datw	lab_tstfail						// 18: (reserved)
 datw	lab_tstfail						// 19: (reserved)
 datw	lab_tstfail						// 20: (reserved)
-datw	lab_tstfail						// 21: (reserved)
+datw	lab_tstfail						// 21: SGER
 datw	lab_tstfail						// 22: LOFR
 datw	lab_tstfail						// 23: RTCR
 datw	lab_tstfail						// 24: CENR

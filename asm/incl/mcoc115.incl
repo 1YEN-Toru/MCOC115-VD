@@ -276,6 +276,7 @@ equ		intc_smun1,25					// intnum: SMUR1 number
 equ		intc_cenn,24					// intnum: CENR number
 equ		intc_rtcn,23					// intnum: RTCR number
 equ		intc_lofn,22					// intnum: LOFR number
+equ		intc_sgen,21					// intnum: SGER number
 equ		intc_ovfn1,16					// intnum: OVFR1 number
 equ		intc_cman1,15					// intnum: CMAR1 number
 equ		intc_cmbn1,14					// intnum: CMBR1 number
@@ -317,6 +318,7 @@ equ		intc_smur1,0x0100				// intfcth[SMUR1] flag
 equ		intc_cenr,0x0080				// intfcth[CENR] flag
 equ		intc_rtcr,0x0040				// intfcth[RTCR] flag
 equ		intc_lofr,0x0020				// intfcth[LOFR] flag
+equ		intc_sger,0x0010				// intfcth[SGER] flag
 equ		intc_ovfr1,0x8000				// intfct[OVFR1] flag
 equ		intc_cmar1,0x4000				// intfct[CMAR1] flag
 equ		intc_cmbr1,0x2000				// intfct[CMBR1] flag
@@ -342,6 +344,7 @@ equ		intc_smum1,0x0100				// intmskh[SMUM1] bit
 equ		intc_cenm,0x0080				// intmskh[CENM] bit
 equ		intc_rtcm,0x0040				// intmskh[RTCM] bit
 equ		intc_lofm,0x0020				// intmskh[LOFM] bit
+equ		intc_sgem,0x0010				// intmskh[SGEM] bit
 equ		intc_ovfm1,0x8000				// intmsk[OVFM1] bit
 equ		intc_cmam1,0x4000				// intmsk[CMAM1] bit
 equ		intc_cmbm1,0x2000				// intmsk[CMBM1] bit
@@ -428,6 +431,10 @@ equ		intc_lofl_0,0x0000				// intlev2[LOFL] field
 equ		intc_lofl_1,0x0400
 equ		intc_lofl_2,0x0800
 equ		intc_lofl_3,0x0c00
+equ		intc_sgel_0,0x0000				// intlev2[SGEL] field
+equ		intc_sgel_1,0x0100
+equ		intc_sgel_2,0x0200
+equ		intc_sgel_3,0x0300
 equ		intc_fral2_0,0x0000				// intlev3[FRAL2] field
 equ		intc_fral2_1,0x4000
 equ		intc_fral2_2,0x8000
@@ -821,5 +828,61 @@ equ		trng0cnth,0xf1b8				// trng, R, word
 equ		trng0cntl,0xf1ba				// trng, R, word
 equ		trng1cnth,0xf1bc				// trng, R, word
 equ		trng1cntl,0xf1be				// trng, R, word
+# SNDG1PB#0
+equ		sndgctl0,0xf1c0					// sndg0, RW, word
+equ		sndgt1280,0xf1c4				// sndg0, RW, word
+equ		sndgfifo0,0xf1c6				// sndg0, RW, word
+equ		sndg_frst,0x80					// sndgctl[FRST] bit
+equ		sndg_fful,0x20					// sndgctl[FFUL] flag
+equ		sndg_femp,0x10					// sndgctl[FEMP] flag
+equ		sndg_sgef,0x08					// sndgctl[SGEF] flag
+equ		sndg_sgee,0x04					// sndgctl[SGEE] bit
+equ		sndg_busy,0x02					// sndgctl[BUSY] flag
+equ		sndg_enbl,0x01					// sndgctl[ENBL] bit
+equ		sndg_mscl_cn,0x1000				// sndgfifo[MSCL] field
+equ		sndg_mscl_cs,0x2000
+equ		sndg_mscl_db,0x2000
+equ		sndg_mscl_dn,0x3000
+equ		sndg_mscl_ds,0x4000
+equ		sndg_mscl_eb,0x4000
+equ		sndg_mscl_en,0x5000
+equ		sndg_mscl_fn,0x6000
+equ		sndg_mscl_fs,0x7000
+equ		sndg_mscl_gb,0x7000
+equ		sndg_mscl_gn,0x8000
+equ		sndg_mscl_gs,0x9000
+equ		sndg_mscl_ab,0x9000
+equ		sndg_mscl_an,0xa000
+equ		sndg_mscl_as,0xb000
+equ		sndg_mscl_bb,0xb000
+equ		sndg_mscl_bn,0xc000
+equ		sndg_mscl_r,0xf000
+equ		sndg_mscl_a,0xf000
+equ		sndg_mscl_s,12
+equ		sndg_octv_0,0x0000				// sndgfifo[OCTV] field
+equ		sndg_octv_1,0x0100
+equ		sndg_octv_2,0x0200
+equ		sndg_octv_3,0x0300
+equ		sndg_octv_4,0x0400
+equ		sndg_octv_5,0x0500
+equ		sndg_octv_6,0x0600
+equ		sndg_octv_7,0x0700
+equ		sndg_octv_8,0x0800
+equ		sndg_octv_a,0x0f00
+equ		sndg_octv_s,8
+equ		sndg_nocl,0x0080				// sndgfifo[NOCL] bit
+equ		sndg_leng_1,0x007f				// sndgfifo[LENG] field
+equ		sndg_leng_2,0x003f
+equ		sndg_leng_4,0x001f
+equ		sndg_leng_8,0x000f
+equ		sndg_leng_16,0x0007
+equ		sndg_leng_32,0x0003
+equ		sndg_leng_64,0x0001
+equ		sndg_leng_128,0x0000
+equ		sndg_leng_a,0x007f
+# SNDG1PB#1
+equ		sndgctl1,0xf1c8					// sndg1, RW, word
+equ		sndgt1281,0xf1cc				// sndg1, RW, word
+equ		sndgfifo1,0xf1ce				// sndg1, RW, word
 # ================================
 

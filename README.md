@@ -11,11 +11,11 @@
 	- 117 for Ts (Tennessine), 113 for Nh (Nihonium).
 
 ## Moscovium series
- Moscovium is an original 16 bit CPU core.
+ Moscovium is an [original 16 bit CPU core](http://hello.world.coocan.jp/ARDUINO15/arduino15_3.html).
 
 ![Moscovium](img/a153_cpublk.png)
 
- More options for the Moscovium series here:
+ More options for the [Moscovium series](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP) here:
 
 1. Tennessine
 	- 8 bit data path
@@ -235,10 +235,6 @@
 	- True random LCG (Linear Congruential Generators) register available
 		- trngtlcg = trngtrand ^ LCG
 		- LCG = LCG * 1_103_515_245 + 12_345
-<!--
-- [LOGA8CH](http://hello.world.coocan.jp/ARDUINO16/arduino16_4.html#LOGA8CH)
-	- Logic analyzer accelerator unit
--->
 
 ## Memory units
 - [ROM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#ROM)
@@ -288,7 +284,7 @@
  You can see documentation in Japanese from links below.
 
 1. [Moscovium series MCU](http://hello.world.coocan.jp/ARDUINO15/a153_instset.html#LINEUP)
-	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html)
+	- [FPGA board pin assignment](http://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html#PINTOP)
 	- [Blockly for Moscovium manual](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
 		- [Blockly.XML to Moscovium.ASM translator](http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#TRANS)
 	- [Macro assembler manual](http://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)

@@ -150,10 +150,10 @@
 `undef		MCOC_RAM_4K
 `endif	//	MCOC_ERAM
 
-`ifdef		MCOC_NO_STFT61
-`else	//	MCOC_NO_STFT61
+`ifdef		MCOC_NO_STFT
+`else	//	MCOC_NO_STFT
 `define		MCOC_NO_CM76
-`endif	//	MCOC_NO_STFT61
+`endif	//	MCOC_NO_STFT
 
 `define		MCOC_PORT_HIZO				// default now
 
