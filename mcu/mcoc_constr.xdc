@@ -73,10 +73,10 @@ set_property -dict {PACKAGE_PIN P1 IOSTANDARD LVCMOS33} [get_ports uar1_rts]
 #set_property -dict { PACKAGE_PIN W3    IOSTANDARD LVCMOS33 } [get_ports { pio34 }]; #IO_L6N_T0_VREF_34 Sch=pio[34]
 #set_property -dict { PACKAGE_PIN V3    IOSTANDARD LVCMOS33 } [get_ports { pio35 }]; #IO_L6P_T0_34 Sch=pio[35]
 #set_property -dict { PACKAGE_PIN W5    IOSTANDARD LVCMOS33 } [get_ports { pio36 }]; #IO_L12P_T1_MRCC_34 Sch=pio[36]
-#set_property -dict { PACKAGE_PIN V4    IOSTANDARD LVCMOS33 } [get_ports { pio37 }]; #IO_L11N_T1_SRCC_34 Sch=pio[37]
-#set_property -dict { PACKAGE_PIN U4    IOSTANDARD LVCMOS33 } [get_ports { pio38 }]; #IO_L11P_T1_SRCC_34 Sch=pio[38]
-#set_property -dict { PACKAGE_PIN V5    IOSTANDARD LVCMOS33 } [get_ports { pio39 }]; #IO_L16N_T2_34 Sch=pio[39]
-#set_property -dict { PACKAGE_PIN W4    IOSTANDARD LVCMOS33 } [get_ports { pio40 }]; #IO_L12N_T1_MRCC_34 Sch=pio[40]
+set_property -dict {PACKAGE_PIN V4 IOSTANDARD LVCMOS33} [get_ports sndg1_pwm]
+set_property -dict {PACKAGE_PIN U4 IOSTANDARD LVCMOS33} [get_ports sndg0_pwm]
+set_property -dict {PACKAGE_PIN V5 IOSTANDARD LVCMOS33} [get_ports dac1_pdm]
+set_property -dict {PACKAGE_PIN W4 IOSTANDARD LVCMOS33} [get_ports dac0_pdm]
 set_property -dict {PACKAGE_PIN U5 IOSTANDARD LVCMOS33} [get_ports {port_iop[15]}]
 set_property -dict {PACKAGE_PIN U2 IOSTANDARD LVCMOS33} [get_ports {port_iop[14]}]
 set_property -dict {PACKAGE_PIN W6 IOSTANDARD LVCMOS33} [get_ports {port_iop[13]}]
@@ -164,7 +164,6 @@ set_output_delay -clock [get_clocks clk] -max -add_delay 0.000 [get_ports sram_a
 
 ## OV7670 camera unit for PMOD connector
 create_clock -period 32.000 -name pclk -waveform {0.000 16.000} [get_ports {pmod_iop[2]}]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets {pmod_iop_IBUF[2]}]
 set_false_path -from [get_clocks clk] -to [get_clocks pclk]
 set_false_path -from [get_clocks pclk] -to [get_clocks clk]
 

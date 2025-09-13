@@ -61,7 +61,6 @@
 //`define		MCOC_NO_INTC
 //`define		MCOC_NO_TIM0
 `define		MCOC_NO_TIM1
-`define		MCOC_NO_LOGA
 //`define		MCOC_NO_STWS
 `define		MCOC_NO_FNJP
 `define		MCOC_NO_UAR1
@@ -69,13 +68,13 @@
 `define		MCOC_NO_UNSJ
 `define		MCOC_NO_DIST
 `define		MCOC_NO_RTC
-`define		MCOC_NO_DAC0
-`define		MCOC_NO_DAC1
+`define		MCOC_NO_DAC
 `define		MCOC_NO_TIML
 `define		MCOC_NO_SMPH
 `define		MCOC_NO_ICFF
 `define		MCOC_NO_ADCX
 `define		MCOC_NO_TRNG
+`define		MCOC_NO_SNDG
 
 // I/O unit (PMOD connector)
 `define		MCOC_NO_CM76

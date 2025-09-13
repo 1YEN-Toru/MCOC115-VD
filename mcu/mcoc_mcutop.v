@@ -26,6 +26,10 @@ output	tled_ledg_n,
 output	tled_ledb_n,
 output	tled_led1,
 output	tled_led2,
+output	dac0_pdm,
+output	dac1_pdm,
+output	sndg0_pwm,
+output	sndg1_pwm,
 // SRAM I/F
 inout	[7:0]	sram_dq,
 output	sram_cen,
@@ -41,13 +45,20 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0236
+`define		MCOC_VERS		16'h0238
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2025/09/13	ver.2.38
+//		corresponding to SNDG1PB unit
+//		add: compile option MCOC_NO_SNDG
+//		add: output dac[01]_pdm
+//		add: compile option MCOC_NO_DAC
+//		del: compile option MCOC_NO_DAC[01]
 //
 //	2025/05/24	ver.2.36
 //		add: TRNG32; LCG I/F
@@ -315,7 +326,6 @@ wire	[15:0]	bdatr_uart;
 wire	[15:0]	bdatr_port;
 wire	[15:0]	bdatr_tim0;
 wire	[15:0]	bdatr_tim1;
-wire	[15:0]	bdatr_loga;
 wire	[15:0]	bdatr_smph;
 wire	[15:0]	bdatr_icff;
 wire	[15:0]	bdatr_stws;
@@ -326,14 +336,14 @@ wire	[15:0]	bdatr_adcx;
 wire	[15:0]	bdatr_unsj;
 wire	[15:0]	bdatr_dist;
 wire	[15:0]	bdatr_rtcu;
-wire	[15:0]	bdatr_dac0;
-wire	[15:0]	bdatr_dac1;
+wire	[15:0]	bdatr_dacu;
 wire	[15:0]	bdatr_iome;
 wire	[15:0]	bdatr_tled;
 wire	[15:0]	bdatr_cm76;
 wire	[15:0]	bdatr_stft;
 wire	[15:0]	bdatr_poly;
 wire	[15:0]	bdatr_trng;
+wire	[15:0]	bdatr_sndg;
 
 // memory bus command alias
 wire	bcmdr=bcmd[0];
@@ -600,7 +610,7 @@ mcoc_adrdec		adec (
 	.bcs_tim0_n(bcs_tim0_n),	// Output
 	.bcs_tim1_n(bcs_tim1_n),	// Output
 	.bcs_intc_n(bcs_intc_n),	// Output
-	.bcs_loga_n(bcs_loga_n),	// Output
+	.bcs_loga_n(bcs_loga_n_open),	// Output
 	.bcs_smph_n(bcs_smph_n),	// Output
 	.bcs_icff_n(bcs_icff_n),	// Output
 	.bcs_stws_n(bcs_stws_n),	// Output
@@ -608,7 +618,7 @@ mcoc_adrdec		adec (
 	.bcs_uar1_n(bcs_uar1_n),	// Output
 	.bcs_por1_n(bcs_por1_n),	// Output
 	.bcs_adcu_n(bcs_adcu_n_open),	// Output
-	.bcs_sdrc_n(bcs_sdrc_n),	// Output
+	.bcs_sdrc_n(bcs_sdrc_n_open),	// Output
 	.bcs_unsj_n(bcs_unsj_n),	// Output
 	.bcs_dist_n(bcs_dist_n),	// Output
 	.bcs_rtcu_n(bcs_rtcu_n),	// Output
@@ -620,7 +630,8 @@ mcoc_adrdec		adec (
 	.bcs_cm76_n(bcs_cm76_n),	// Output
 	.bcs_stft_n(bcs_stft_n),	// Output
 	.bcs_poly_n(bcs_poly_n),	// Output
-	.bcs_trng_n(bcs_trng_n)	// Output
+	.bcs_trng_n(bcs_trng_n),	// Output
+	.bcs_sndg_n(bcs_sndg_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -656,7 +667,7 @@ wire	[31:0]	intc_fct=
 		{
 			icff_frar2, icff_ftar2, smph_smrr2, smph_smur2,
 			icff_frar1, icff_ftar1, smph_smrr1, smph_smur1,
-			adc_cenr, rtc_rtcr, tled_lofr, 1'b0,
+			adc_cenr, rtc_rtcr, tled_lofr, sndg_sger,
 			4'h0,
 			tim1_ovfr, tim1_cmar, tim1_cmbr, 1'b0,
 			tim0_ovfr, tim0_cmar, tim0_cmbr, 1'b0,
@@ -871,8 +882,8 @@ systim	sytm (
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcs_sytm_n(bcs_sytm_n),	// Input
-	.badr(badr[3:0]),	// Input
 	.clk_mhz(`MCOC_FCPU_MHZ),	// Input
+	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
 	.bdatr(bdatr_sytm[15:0])	// Output
 );
@@ -915,14 +926,8 @@ assign	port_iop[9]=(por1_enb[1])? por1_out_o[1]: 1'bz;
 assign	port_iop[8]=(por1_enb[0])? por1_out_o[0]: 1'bz;
 assign	port_iop[7]=(port_enb[7])? port_out_o[7]: 1'bz;
 assign	port_iop[6]=(port_enb[6])? port_out_o[6]: 1'bz;
-assign	port_iop[5]=
-		(dac1_pdmo_enb)? dac1_pdmo:
-		(port_enb[5])? port_out_o[5]:
-		1'bz;
-assign	port_iop[4]=
-		(dac0_pdmo_enb)? dac0_pdmo:
-		(port_enb[4])? port_out_o[4]:
-		1'bz;
+assign	port_iop[5]=(port_enb[5])? port_out_o[5]: 1'bz;
+assign	port_iop[4]=(port_enb[4])? port_out_o[4]: 1'bz;
 assign	port_iop[3]=(port_enb[3])? port_out_o[3]: 1'bz;
 assign	port_iop[2]=(port_enb[2])? port_out_o[2]: 1'bz;
 assign	port_iop[1]=(port_enb[1])? port_out_o[1]: 1'bz;
@@ -1066,23 +1071,6 @@ tim162	tim1 (
 	.bdatr(bdatr_tim1[15:0])	// Output
 );
 `endif	//	MCOC_NO_TIM1
-
-`ifdef		MCOC_NO_LOGA
-assign	bdatr_loga[15:0]=16'h0;
-`else	//	MCOC_NO_LOGA
-mcoc_loga	loga (
-	.clk(clk),	// Input
-	.rst_n(rst_n),	// Input
-	.bcs_loga_n(bcs_loga_n),	// Input
-	.brdy(brdy),	// Input
-	.bcmdr(bcmdr),	// Input
-	.bcmdw(bcmdw),	// Input
-	.badr(badr[15:0]),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.loga_dch(port_iop[15:8]),	// Input
-	.bdatr(bdatr_loga[15:0])	// Output
-);
-`endif	//	MCOC_NO_LOGA
 
 `ifdef		MCOC_NO_STWS
 wire	stws_scl_d=1'b1;
@@ -1242,11 +1230,17 @@ mcoc_rtc		rtc (
 );
 `endif	//	MCOC_NO_RTC
 
-`ifdef		MCOC_NO_DAC0
-assign	dac0_pdmo=1'b0;
-assign	dac0_pdmo_enb=1'b0;
-assign	bdatr_dac0[15:0]=16'h0;
-`else	//	MCOC_NO_DAC0
+`ifdef		MCOC_NO_DAC
+assign	dac0_pdm=1'b0;
+assign	dac1_pdm=1'b0;
+assign	bdatr_dacu[15:0]=16'h0;
+`else	//	MCOC_NO_DAC
+wire	[15:0]	bdatr_dac0;
+wire	[15:0]	bdatr_dac1;
+assign	dac0_pdm=dac0_pdm_out&dac0_pdm_enb;
+assign	dac1_pdm=dac1_pdm_out&dac1_pdm_enb;
+assign	bdatr_dacu[15:0]=bdatr_dac0[15:0] | bdatr_dac1[15:0];
+
 dac121		dac0 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1256,17 +1250,11 @@ dac121		dac0 (
 	.bcs_dacu_n(bcs_dacu_n),	// Input
 	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
-	.dac_pdmo(dac0_pdmo),	// Output
-	.dac_pdmo_enb(dac0_pdmo_enb),	// Output
+	.dac_pdm_out(dac0_pdm_out),	// Output
+	.dac_pdm_enb(dac0_pdm_enb),	// Output
 	.bdatr(bdatr_dac0[15:0])	// Output
 );
-`endif	//	MCOC_NO_DAC0
 
-`ifdef		MCOC_NO_DAC1
-assign	dac1_pdmo=1'b0;
-assign	dac1_pdmo_enb=1'b0;
-assign	bdatr_dac1[15:0]=16'h0;
-`else	//	MCOC_NO_DAC1
 dac121		dac1 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1276,11 +1264,11 @@ dac121		dac1 (
 	.bcs_dacu_n(bcs_dacu_n),	// Input
 	.badr(badr[3:0] ^ 4'h8),	// Input
 	.bdatw(bdatw[15:0]),	// Input
-	.dac_pdmo(dac1_pdmo),	// Output
-	.dac_pdmo_enb(dac1_pdmo_enb),	// Output
+	.dac_pdm_out(dac1_pdm_out),	// Output
+	.dac_pdm_enb(dac1_pdm_enb),	// Output
 	.bdatr(bdatr_dac1[15:0])	// Output
 );
-`endif	//	MCOC_NO_DAC1
+`endif	//	MCOC_NO_DAC
 
 `ifdef		MCOC_NO_TIML
 assign	tled_ledr_n=~(port_enb[1] & (~port_out_o[1]));
@@ -1434,6 +1422,50 @@ mcoc_trng	trng (
 );
 `endif	//	MCOC_NO_TRNG
 
+`ifdef		MCOC_NO_SNDG
+assign	sndg0_pwm=1'b0;
+assign	sndg1_pwm=1'b0;
+assign	sndg_sger=1'b0;
+assign	bdatr_sndg[15:0]=16'h0;
+`else	//	MCOC_NO_SNDG
+assign	sndg_sger=sndg0_sger | sndg1_sger;
+wire	[15:0]	bdatr_sndg0;
+wire	[15:0]	bdatr_sndg1;
+assign	bdatr_sndg[15:0]=bdatr_sndg0[15:0] | bdatr_sndg1[15:0];
+
+sndg1pb		sndg0 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_sndg_n(bcs_sndg_n),	// Input
+	.clk_mhz(`MCOC_FCPU_MHZ),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.sndg_pwm(sndg0_pwm),	// Output
+	.sndg_sger(sndg0_sger),	// Output
+	.bdatr(bdatr_sndg0[15:0])	// Output
+);
+
+sndg1pb		sndg1 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcs_sndg_n(bcs_sndg_n),	// Input
+	.clk_mhz(`MCOC_FCPU_MHZ),	// Input
+	.badr(badr[3:0] ^ 4'h8),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.sndg_pwm(sndg1_pwm),	// Output
+	.sndg_sger(sndg1_sger),	// Output
+	.bdatr(bdatr_sndg1[15:0])	// Output
+);
+`endif	//	MCOC_NO_SNDG
+
 
 // bus output
 assign	bdatr[15:0]=
@@ -1448,7 +1480,6 @@ assign	bdatr[15:0]=
 	bdatr_port[15:0] |
 	bdatr_tim0[15:0] |
 	bdatr_tim1[15:0] |
-	bdatr_loga[15:0] |
 	bdatr_smph[15:0] |
 	bdatr_icff[15:0] |
 	bdatr_stws[15:0] |
@@ -1459,14 +1490,14 @@ assign	bdatr[15:0]=
 	bdatr_unsj[15:0] |
 	bdatr_dist[15:0] |
 	bdatr_rtcu[15:0] |
-	bdatr_dac0[15:0] |
-	bdatr_dac1[15:0] |
+	bdatr_dacu[15:0] |
 	bdatr_iome[15:0] |
 	bdatr_tled[15:0] |
 	bdatr_cm76[15:0] |
 	bdatr_stft[15:0] |
 	bdatr_poly[15:0] |
-	bdatr_trng[15:0];
+	bdatr_trng[15:0] |
+	bdatr_sndg[15:0];
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |

@@ -628,7 +628,7 @@ rtn$(z)
 align	4
 _strcpy_r0_r1:
 // return if r1=NULL
-cmpi	r1,0
+cmpi	r1,asc_nil
 beq		_scpy_return
 // loop
 _scpy_loop:
@@ -637,7 +637,7 @@ addi	r1,1
 stb		[r0],r7
 addi	r0,1
 // end of loop
-cmpi	r7,0
+cmpi	r7,asc_nil
 bne		_scpy_loop
 subi	r0,1
 subi	r1,1
@@ -791,7 +791,7 @@ addi	r1,1
 // count
 addi	r0,1
 // check nil code
-cmpi	r7,0
+cmpi	r7,asc_nil
 bne		_scpy_loop
 subi	r0,1
 subi	r1,1
@@ -820,9 +820,9 @@ mov		r0,r3
 sub		r0,r4
 bne		_scmp_break
 // check nil code
-cmpi	r3,0
+cmpi	r3,asc_nil
 beq		_scmp_break
-cmpi	r4,0
+cmpi	r4,asc_nil
 bne		_scmp_loop
 _scmp_break:
 subi	r1,1
@@ -851,7 +851,7 @@ addi	r1,1
 ldb		r4,[r2]
 addi	r2,1
 // check nil code
-cmpi	r4,0
+cmpi	r4,asc_nil
 beq		_scmf_break
 // compare
 mov		r0,r3
@@ -888,7 +888,7 @@ _stch_loop:
 ldb		r3,[r0]
 addi	r0,1
 // check nil code
-cmpi	r3,0
+cmpi	r3,asc_nil
 beq		_stch_notf
 // compare
 cmp		r3,r1
@@ -903,7 +903,7 @@ _stch_loop_2:
 ldb		r3,[r0]
 addi	r0,1
 // check nil code
-cmpi	r3,0
+cmpi	r3,asc_nil
 beq		_stch_notf
 // S-JIS 1st byte code?
 push$(z)	r0
@@ -948,7 +948,7 @@ _sofs_loop:
 // get character
 ldb		r2,[r1]
 // check nil code
-cmpi	r2,0
+cmpi	r2,asc_nil
 beq		_sofs_break
 // check offset
 cmpi	r0,1

@@ -349,7 +349,10 @@ Code.renderContent = function() {
     var xmlDom = Blockly.Xml.workspaceToDom(Code.workspace);
     var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
 // 250315,1YEN,remove indentation
-xmlText = xmlText.replace (/\n +</g, '\n<') + '\n';
+xmlText = xmlText.replace (/\n +</g, '\n<');
+// 250913,1YEN,remove last new line code
+xmlText = xmlText.replace (/\n<\/comment>/g, '</comment>');
+xmlText += '\n';
     xmlTextarea.value = xmlText;
     xmlTextarea.focus();
   } else if (content.id === 'content_json') {

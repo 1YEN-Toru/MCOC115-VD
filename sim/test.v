@@ -10,6 +10,7 @@
 //`define		SIM_DAC		top.dac0
 //`define		SIM_UNSJ
 //`define		SIM_CAM76
+//`define		SIM_INFO
 
 
 //// include the VH file of the type name to be simulated,
@@ -135,7 +136,7 @@ initial
 		// finish simulation
 		repeat (8)
 			@(posedge clk);
-		$display ("finish: %t ns",$stime);
+		$display ("finish: %t [ns]",$stime);
 		$finish;
 	end
 
@@ -177,6 +178,12 @@ always
 				$display ("Simulation stop due to time out");
 				$finish;
 			end
+`ifdef		SIM_INFO
+		else
+			begin
+				$display ("info: %t [us]",$stime/1_000);
+			end
+`endif	//	SIM_INFO
 	end
 
 `ifdef		SIM_BOOTMD

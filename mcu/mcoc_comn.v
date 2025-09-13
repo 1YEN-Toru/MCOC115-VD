@@ -1437,13 +1437,17 @@ output	bcs_adcx_n,
 output	bcs_cm76_n,
 output	bcs_stft_n,
 output	bcs_poly_n,
-output	bcs_trng_n);
+output	bcs_trng_n,
+output	bcs_sndg_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2025/09/13	ver.1.18
+//		add: bcs_sndg_n; SNDG1PB unit, Sound Generator unit
 //
 //	2025/05/10	ver.1.16
 //		add: bcs_trng_n; TRNG32 unit, True Random Number Generator unit
@@ -1560,6 +1564,7 @@ assign	bcs_cm76_n=(!bcs_iou_n && badr[11:4]==8'h18)? 1'b0: 1'b1;
 assign	bcs_stft_n=(!bcs_iou_n && badr[11:4]==8'h19)? 1'b0: 1'b1;
 assign	bcs_poly_n=(!bcs_iou_n && badr[11:4]==8'h1a)? 1'b0: 1'b1;
 assign	bcs_trng_n=(!bcs_iou_n && badr[11:4]==8'h1b)? 1'b0: 1'b1;
+assign	bcs_sndg_n=(!bcs_iou_n && badr[11:4]==8'h1c)? 1'b0: 1'b1;
 
 
 endmodule
@@ -1762,83 +1767,6 @@ fifo8s64	fifo (
 `endif	//	MCOC_UART_FIFO_SIZE
 
 endmodule
-
-
-`ifdef		MCOC_NO_LOGA
-`else	//	MCOC_NO_LOGA
-module	mcoc_loga (
-// Logic analyzer unit top module
-input	clk,
-input	rst_n,
-input	bcs_loga_n,
-input	brdy,
-input	bcmdr,
-input	bcmdw,
-input	[15:0]	badr,
-input	[15:0]	bdatw,
-input	[7:0]	loga_dch,
-output	[15:0]	bdatr);
-
-
-wire	[7:0]	ffdt_di;
-wire	[7:0]	ffdt_do;
-wire	[15:0]	fftk_di;
-wire	[15:0]	fftk_do;
-
-
-loga8ch		loga (
-	.clk(clk),	// Input
-	.rst_n(rst_n),	// Input
-	.bcs_loga_n(bcs_loga_n),	// Input
-	.brdy(brdy),	// Input
-	.bcmdr(bcmdr),	// Input
-	.bcmdw(bcmdw),	// Input
-	.badr(badr[3:0]),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.loga_dch(loga_dch[7:0]),	// Input
-	.lctl_laer(lctl_laer),	// Output
-	.bdatr(bdatr[15:0]),	// Output
-	// FIFO macro I/F
-	.ffdt_empty(ffdt_empty),	// Input
-	.ffdt_full(ffdt_full),	// Input
-	.fftk_empty(fftk_empty),	// Input
-	.fftk_full(fftk_full),	// Input
-	.ffdt_do(ffdt_do[7:0]),	// Input
-	.fftk_do(fftk_do[15:0]),	// Input
-	.ffdt_rst(ffdt_rst),	// Output
-	.ffdt_re(ffdt_re),	// Output
-	.ffdt_we(ffdt_we),	// Output
-	.fftk_rst(fftk_rst),	// Output
-	.fftk_re(fftk_re),	// Output
-	.fftk_we(fftk_we),	// Output
-	.ffdt_di(ffdt_di[7:0]),	// Output
-	.fftk_di(fftk_di[15:0])	// Output
-);
-
-loga_fifo_tck	tfifo (
-	.clk(clk),	// Input
-	.di(fftk_di[15:0]),	// Input
-	.re(fftk_re),	// Input
-	.rst(fftk_rst),	// Input
-	.we(fftk_we),	// Input
-	.do(fftk_do[15:0]),	// Output
-	.empty_flag(fftk_empty),	// Output
-	.full_flag(fftk_full)	// Output
-);
-
-loga_fifo_dat	dfifo (
-	.clk(clk),	// Input
-	.di(ffdt_di[7:0]),	// Input
-	.re(ffdt_re),	// Input
-	.rst(ffdt_rst),	// Input
-	.we(ffdt_we),	// Input
-	.do(ffdt_do[7:0]),	// Output
-	.empty_flag(ffdt_empty),	// Output
-	.full_flag(ffdt_full)	// Output
-);
-
-endmodule
-`endif	//	MCOC_NO_LOGA
 
 
 `ifdef		MCOC_NO_ICFF

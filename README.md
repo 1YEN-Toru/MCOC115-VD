@@ -235,6 +235,13 @@
 	- True random LCG (Linear Congruential Generators) register available
 		- trngtlcg = trngtrand ^ LCG
 		- LCG = LCG * 1_103_515_245 + 12_345
+- [SNDG1PB](http://hello.world.coocan.jp/ARDUINO36/arduino36_1.html#SNDG1PB)
+	- Passive buzzer sound generator unit
+	- 50 % duty PWM output for passive buzzer driving
+	- Musical scale corresponding to "A,A#,B,C,C#,D,D#,E,F,F#,G,G#"
+	- Octave range 0~8, "A" sound of octave 4 is frequency of 440 Hz
+	- Resolution of note's length is 128th note
+	- Whole note's length can be set up to 8 seconds
 
 ## Memory units
 - [ROM](http://hello.world.coocan.jp/ARDUINO27/arduino27_8.html#ROM)
