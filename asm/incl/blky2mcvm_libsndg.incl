@@ -1,0 +1,528 @@
+// ================================
+//	blky2mcvm play mml (sndg1pb) library
+//		(c) 2025	1YEN Toru
+//
+//
+//		2025/09/20	ver.1.00
+//			_sndg_init0_r0: initialize sndg1pb unit (#0, r0)
+//			_sndg_play_mml0_r1: play mml (#0, r1)
+//			_sndg_play_ptr0_r1: play 1 mml (#0, r1)
+//			_sndg_init1_r0: initialize sndg1pb unit (#1, r0)
+//			_sndg_play_mml1_r1: play mml (#1, r1)
+//			_sndg_play_ptr1_r1: play 1 mml (#1, r1)
+//			_sndg_calc_t128_r0: calculate 128th note's length
+//			_sndg_conv_mml_r1: convert 1 mml (r1) to sndg1pb code (r0)
+//
+//			error code:
+//				_sndg_err_empty_mml:
+//					mml pointer is null or
+//					mml pointer reaches end of string ('\0')
+//				_sndg_err_fifo_full:
+//					sndgctl[FFUL]=1, could not write to the fifo
+//					mml pointer was not updated
+//				_sndg_err_bad_mml:
+//					bad mml, ignored, mml pointer was updated
+//				_sndg_err_ille_param:
+//					subroutine parameter is illegal
+//
+// ================================
+# string macros
+def		_sndg_vers,"1.00"				// library version
+# error code
+equ		_sndg_err_no,0					// sndg: err: no error
+equ		_sndg_err_bad_tempo,0			// sndg: err: bad tempo (returns 0)
+equ		_sndg_err_empty_mml,1			// sndg: err: empty mml
+equ		_sndg_err_fifo_full,2			// sndg: err: fifo full
+equ		_sndg_err_bad_mml,3				// sndg: err: bad mml
+equ		_sndg_err_ille_param,4			// sndg: err: illegal parameter
+equ		_sndg_err_max,0x00ff			// sndg: err: maximum error code
+# ================================
+
+
+// ================================
+// calculate 128th note's length ; disturbed none
+//	parameter:	r0=whole note's length [ms] (0~65_535*128/1_000)
+//	resource:	mulu and divu instruction
+//	return:		r0=r0*1_000/128
+// ================================
+align	4
+_sndg_calc_t128_r0:
+push$(z)m	r1,r2
+
+// r0*1_000/128=(Q + R/128)*1_000=Q*1_000 + R*1_000/128=Q*1_000 + R*125/16
+//		Q=r0/128, R=r0%128
+ldbiu	r1,128
+ldbiu	r2,125
+divur	r0,r1							// r0=Q=r0/128, r1=R=r0%128
+mulu	r1,r2
+ldwi	r2,1_000
+lsri	r1,4
+mulu	r0,r2
+add		r0,r1
+
+// end of subroutine
+_sndg_t128_return:
+pop$(z)m	r2,r1
+rtn$(z)
+
+// ================================
+// convert mml (r1) ; disturbed r2~r4,r7
+//	parameter:	r1=pointer to mml string
+//	mml:		[A-G][#b]?[0-8][0-9]+\.?_? / R[0-8][0-9]+\.? / T[0-9]+
+//	resource:	mulu and divu instruction
+//	return:
+//		r0=code for sndg1pb / _sndg_err_empty_mml / _sndg_err_bad_mml /
+//			_sndg_err_bad_tempo
+//		r1=pointer to the next mml or nil(\0)
+// ================================
+align	4
+_sndg_conv_mml_r1:
+// initialize
+ldbiu	r0,_sndg_err_empty_mml
+cmpi	r1,_rtlb_null
+beq		_sndg_cmml_return
+
+// convert 1 mml from r1
+ldb		r2,[r1]
+cmpi	r2,asc_nil
+beq		_sndg_cmml_err_empmml
+cmpi	r2,asc_cma
+beq		_sndg_cmml_err_badmml
+addi	r1,1
+// r0=strchr ("TRC D EF G A B",*r1);
+cmpi	r2,asc_spc
+beq		_sndg_cmml_err_badmml
+push$(z)	r1
+mov		r1,r2
+ldwi	r0,lab__sndg_cmml_mscl
+jal$(z)r7	_strchr_r0_r1
+pop$(z)	r1
+cmpi	r0,0
+bmi		_sndg_cmml_err_badmml
+
+// branch: tempo, rest or scale
+cmpi	r0,1							// R=1
+beq		_sndg_cmml_rest
+cmpi	r0,0							// T=0
+bne		_sndg_cmml_scale
+
+_sndg_cmml_tempo:
+// tempo: T[0-9]+
+jal$(z)r7	_atoi_r1
+// uint16 size check
+ldwi	r2,65_535*128/1_000+1
+cmp		r0,r2
+bhs		_sndg_cmml_err_badtmpo
+jal$(z)r7	_sndg_calc_t128_r0
+cmpi	r0,0
+beq		_sndg_cmml_err_badtmpo
+bra		_sndg_cmml_next
+
+_sndg_cmml_rest:
+// rest: R[0-8][0-9]+\.?
+ldb		r2,[r1]
+cmpi	r2,0a0
+blo		_sndg_cmml_err_badmml
+cmpi	r2,0a9
+bhs		_sndg_cmml_err_badmml
+addi	r1,1
+ldwi	r0,sndg_mscl_r
+bra		_sndg_cmml_length
+
+// musical scale: [A-G][#b]?[0-8][0-9]+\.?_?
+_sndg_cmml_scale:
+subi	r0,1							// C=1 ... B=12
+ldb		r2,[r1]
+// "#"?
+cmpi	r2,asc_num
+bne		pcnt+4
+// sharp(#)
+addi	r0,1
+addi	r1,1
+// "b"?
+cmpi	r2,0ab
+bne		pcnt+4
+// flat(b)
+subi	r0,1
+addi	r1,1
+// "Cb" or "B#"?
+cmpi	r0,sndg_mscl_cn>>sndg_mscl_s
+blo		_sndg_cmml_err_badmml
+cmpi	r0,(sndg_mscl_bn>>sndg_mscl_s)+1
+bhs		_sndg_cmml_err_badmml
+lsli	r0,sndg_mscl_s
+
+// octave
+_sndg_cmml_octave:
+ldb		r2,[r1]
+subi	r2,0a0
+cmpi	r2,(sndg_octv_8>>sndg_octv_s)+1
+bhs		_sndg_cmml_err_badmml
+addi	r1,1
+lsli	r2,sndg_octv_s
+or		r0,r2
+
+// length
+_sndg_cmml_length:
+push$(z)	r0
+jal$(z)r7	_atoi_r1
+mov		r2,r0
+pop$(z)	r0
+cmpi	r2,1
+blo		_sndg_cmml_err_badmml
+cmpi	r2,128+1
+bhs		_sndg_cmml_err_badmml
+// 1/n note
+ldbiu	r3,128
+divu	r3,r2
+// "."?
+ldb		r2,[r1]
+cmpi	r2,asc_dot
+bne		_sndg_cmml_not_dot
+// dotted(.)
+addi	r1,1
+mov		r2,r3
+lsri	r2,1
+beq		_sndg_cmml_err_badmml
+add		r3,r2
+_sndg_cmml_not_dot:
+
+// coding
+subi	r3,1
+cmpi	r3,sndg_leng_a+1
+bhs		_sndg_cmml_err_badmml
+// "_"?
+ldb		r2,[r1]
+cmpi	r2,asc_und
+bne		_sndg_cmml_not_und
+// no clearance(_)
+addi	r1,1
+ori		r3,sndg_nocl
+_sndg_cmml_not_und:
+or		r0,r3
+
+// jump to post process
+bra		_sndg_cmml_next
+
+// ERROR: empty mml
+_sndg_cmml_err_empmml:
+ldbiu	r0,_sndg_err_empty_mml
+bra		_sndg_cmml_next
+
+// ERROR: bad mml
+_sndg_cmml_err_badmml:
+ldbiu	r0,_sndg_err_bad_mml
+bra		_sndg_cmml_next
+
+// ERROR: bad tempo
+_sndg_cmml_err_badtmpo:
+ldbiu	r0,_sndg_err_bad_tempo
+bra		_sndg_cmml_next
+
+// search next mml, skip to comma(,) or nil(\0)
+_sndg_cmml_next:
+ldb		r2,[r1]
+cmpi	r2,asc_nil
+beq		_sndg_cmml_break
+addi	r1,1
+cmpi	r2,asc_cma
+beq		_sndg_cmml_break
+// end of loop
+bra		_sndg_cmml_next
+_sndg_cmml_break:
+
+// end of subroutine
+_sndg_cmml_return:
+rtn$(z)
+
+_sndg_cmml_mscl:
+dats	"TRC D EF G A B\0"
+
+
+// ================================
+// sndg1pb initialize (#0, r0) ; disturbed r1~r3,r7
+//	parameter:	r0=whole note length [ms]
+//	return:		r0=_sndg_err_no / _sndg_err_ille_param
+// ================================
+align	4
+_sndg_init0_r0:
+// sndg1pb unit setting
+ldbiu	r1,sndg_frst|sndg_enbl
+ldwi	r7,sndgctl0
+stw		[r7],r1
+ldw		r1,[r7]
+andi	r1,sndg_enbl
+bne		_sndg_ini0_found
+// ERROR: no SNDG1PB
+ldwi	r1,lab__sndg_ini0_errmsg
+jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
+// halt
+jmpr7	_rtlb_prog_halt
+_sndg_ini0_errmsg:
+dats	"ERR: SNDG1PB#0 unit not found, halted.\r\n\0"
+
+_sndg_ini0_found:
+// set 1/128 note length
+ldwi	r2,65_535*128/1_000+1
+cmp		r0,r2
+blo		pcnt+4
+// ERROR: illegal parameter
+ldbiu	r0,_sndg_err_ille_param
+bra		_sndg_ini0_return
+
+jal$(z)r7	_sndg_calc_t128_r0
+cmpi	r0,_sndg_err_bad_tempo
+bne		pcnt+4
+// ERROR: illegal parameter
+ldbiu	r0,_sndg_err_ille_param
+bra		_sndg_ini0_return
+
+// set sndgt128 registers
+ldwi	r7,sndgt1280
+stw		[r7],r0
+
+// end of subroutine
+ldbiu	r0,_sndg_err_no
+_sndg_ini0_return:
+rtn$(z)
+
+// ================================
+// play mml (#0, r1) ; disturbed r1~r4,r7
+//	parameter:	r1=pointer to mml string
+//	return:		r0=_sndg_pp0_conv_fifo() / _sndg_err_no / _sndg_err_empty_mml
+// ================================
+align	4
+_sndg_play_mml0_r1:
+ldwi	r0,_sndg_err_empty_mml
+cmpi	r1,_rtlb_null
+beq		_sndg_pm0_return
+ldbiu	r0,_sndg_err_no
+_sndg_pm0_loop:
+// polling until FFUL=0
+ldwi	r7,sndgctl0
+ldw		r2,[r7]
+andi	r2,sndg_fful
+bne		pcnt-6
+
+// convert 1 mml and write to fifo
+push$(z)	r0
+jal$(z)r7	_sndg_pp0_conv_fifo
+mov		r2,r0
+pop$(z)	r0
+// error code
+cmpi	r2,_sndg_err_max				// ATTN! +1 exceed 8 bit immediate
+bhs		pcnt+6
+// ERROR: _sndg_pp0_conv_fifo()
+cmp		r2,r0
+blo		pcnt+2
+mov		r0,r2
+
+// end of loop
+cmpi	r2,_sndg_err_empty_mml
+bne		_sndg_pm0_loop
+
+// end of subroutine
+_sndg_pm0_return:
+rtn$(z)
+
+// ================================
+// play 1 mml (#0, r1) ; disturbed r2~r4,r7
+//	parameter:	r1=pointer to mml string
+//	return:
+//		r0=_sndg_conv_mml_r1() / _sndg_err_empty_mml /
+//			_sndg_err_fifo_full / _sndg_err_bad_mml
+//		r1=pointer to the next mml or nil(\0)
+// ================================
+align	4
+_sndg_play_ptr0_r1:
+ldwi	r0,_sndg_err_empty_mml
+cmpi	r1,_rtlb_null
+beq		_sndg_pp0_return
+// return if FFUL=1
+ldwi	r7,sndgctl0
+ldw		r0,[r7]
+andi	r0,sndg_fful
+beq		pcnt+4
+// ERROR: fifo full
+ldbiu	r0,_sndg_err_fifo_full
+bra		_sndg_pp0_return
+
+// ATTN! _sndg_play_mml0_r1 jumps here
+_sndg_pp0_conv_fifo:
+
+// save command character
+ldb		r0,[r1]
+push$(z)	r0
+// convert 1 mml to sndg1pb code
+jal$(z)r7	_sndg_conv_mml_r1
+// "T"?
+pop$(z)	r2
+cmpi	r2,0at-asc_c2s
+bne		_sndg_pp0_not_t
+// "T" command
+cmpi	r0,_sndg_err_bad_tempo
+bne		pcnt+4
+// ERROR: bad mml
+ldbiu	r0,_sndg_err_bad_mml
+bra		_sndg_pp0_return
+
+// set sndgt128 register
+ldwi	r7,sndgt1280
+stw		[r7],r0
+bra		_sndg_pp0_return
+
+_sndg_pp0_not_t:
+// write to fifo
+cmpi	r0,_sndg_err_max				// ATTN! +1 exceed 8 bit immediate
+blo		_sndg_pp0_return
+ldwi	r7,sndgfifo0
+stw		[r7],r0
+
+// end of subroutine
+_sndg_pp0_return:
+rtn$(z)
+
+
+// ================================
+// sndg1pb initialize (#1, r0) ; disturbed r1~r3,r7
+//	parameter:	r0=whole note length [ms]
+//	return:		r0=_sndg_err_no / _sndg_err_ille_param
+// ================================
+align	4
+_sndg_init1_r0:
+// sndg1pb unit setting
+ldbiu	r1,sndg_frst|sndg_enbl
+ldwi	r7,sndgctl1
+stw		[r7],r1
+ldw		r1,[r7]
+andi	r1,sndg_enbl
+bne		_sndg_ini1_found
+// ERROR: no SNDG1PB
+ldwi	r1,lab__sndg_ini1_errmsg
+jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
+// halt
+jmpr7	_rtlb_prog_halt
+_sndg_ini1_errmsg:
+dats	"ERR: SNDG1PB#1 unit not found, halted.\r\n\0"
+
+_sndg_ini1_found:
+// set 1/128 note length
+ldwi	r2,65_535*128/1_000+1
+cmp		r0,r2
+blo		pcnt+4
+// ERROR: illegal parameter
+ldbiu	r0,_sndg_err_ille_param
+bra		_sndg_ini1_return
+
+jal$(z)r7	_sndg_calc_t128_r0
+cmpi	r0,_sndg_err_bad_tempo
+bne		pcnt+4
+// ERROR: illegal parameter
+ldbiu	r0,_sndg_err_ille_param
+bra		_sndg_ini1_return
+
+// set sndgt128 registers
+ldwi	r7,sndgt1281
+stw		[r7],r0
+
+// end of subroutine
+ldbiu	r0,_sndg_err_no
+_sndg_ini1_return:
+rtn$(z)
+
+// ================================
+// play mml (#1, r1) ; disturbed r1~r4,r7
+//	parameter:	r1=pointer to mml string
+//	return:		r0=_sndg_pp1_conv_fifo() / _sndg_err_no / _sndg_err_empty_mml
+// ================================
+align	4
+_sndg_play_mml1_r1:
+ldwi	r0,_sndg_err_empty_mml
+cmpi	r1,_rtlb_null
+beq		_sndg_pm1_return
+ldbiu	r0,_sndg_err_no
+_sndg_pm1_loop:
+// polling until FFUL=0
+ldwi	r7,sndgctl1
+ldw		r2,[r7]
+andi	r2,sndg_fful
+bne		pcnt-6
+
+// convert 1 mml and write to fifo
+push$(z)	r0
+jal$(z)r7	_sndg_pp1_conv_fifo
+mov		r2,r0
+pop$(z)	r0
+// error code
+cmpi	r2,_sndg_err_max				// ATTN! +1 exceed 8 bit immediate
+bhs		pcnt+6
+// ERROR: _sndg_pp1_conv_fifo()
+cmp		r2,r0
+blo		pcnt+2
+mov		r0,r2
+
+// end of loop
+cmpi	r2,_sndg_err_empty_mml
+bne		_sndg_pm1_loop
+
+// end of subroutine
+_sndg_pm1_return:
+rtn$(z)
+
+// ================================
+// play 1 mml (#1, r1) ; disturbed r2~r4,r7
+//	parameter:	r1=pointer to mml string
+//	return:
+//		r0=_sndg_conv_mml_r1() / _sndg_err_empty_mml /
+//			_sndg_err_fifo_full / _sndg_err_bad_mml
+//		r1=pointer to the next mml or nil(\0)
+// ================================
+align	4
+_sndg_play_ptr1_r1:
+ldwi	r0,_sndg_err_empty_mml
+cmpi	r1,_rtlb_null
+beq		_sndg_pp1_return
+// return if FFUL=1
+ldwi	r7,sndgctl1
+ldw		r0,[r7]
+andi	r0,sndg_fful
+beq		pcnt+4
+// ERROR: fifo full
+ldbiu	r0,_sndg_err_fifo_full
+bra		_sndg_pp1_return
+
+// ATTN! _sndg_play_mml1_r1 jumps here
+_sndg_pp1_conv_fifo:
+
+// save command character
+ldb		r0,[r1]
+push$(z)	r0
+// convert 1 mml to sndg1pb code
+jal$(z)r7	_sndg_conv_mml_r1
+// "T"?
+pop$(z)	r2
+cmpi	r2,0at-asc_c2s
+bne		_sndg_pp1_not_t
+// "T" command
+cmpi	r0,_sndg_err_bad_tempo
+bne		pcnt+4
+// ERROR: bad mml
+ldbiu	r0,_sndg_err_bad_mml
+bra		_sndg_pp1_return
+
+// set sndgt128 register
+ldwi	r7,sndgt1281
+stw		[r7],r0
+bra		_sndg_pp1_return
+
+_sndg_pp1_not_t:
+// write to fifo
+cmpi	r0,_sndg_err_max				// ATTN! +1 exceed 8 bit immediate
+blo		_sndg_pp1_return
+ldwi	r7,sndgfifo1
+stw		[r7],r0
+
+// end of subroutine
+_sndg_pp1_return:
+rtn$(z)
+
