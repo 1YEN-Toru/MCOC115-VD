@@ -15,7 +15,13 @@
 </variables>
 <block type="variables_set" id="21" x="13" y="13">
 <field name="VAR" id="JZs=K*HM+X.OQ35/W=O]">matx_a</field>
-<comment pinned="false" h="104" w="303">@Nh,float@\n&#9;calculate PI\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.00\n</comment>
+<comment pinned="false" h="156" w="266">@Nh,float@
+&#9;calculate PI
+&#9;&#9;(c) 2024&#9;1YEN Toru
+
+
+&#9;&#9;2024/08/31&#9;ver.1.00
+</comment>
 <value name="VALUE">
 <block type="math_number" id="31">
 <field name="NUM">0</field>
@@ -76,7 +82,9 @@
 <arg name="matx_x" varid="9e*8]J?GOr(r0d[-Xa}W"></arg>
 </mutation>
 <field name="NAME">m_atan_1_x</field>
-<comment pinned="false" h="129" w="476">@float@A += m*atan(1/x)\n&#9;m*atan(1/x)=m/x - m/(3*x^3) + m/(5*x^5) ...\n&#9;&#9;+ ((-1)^k)*m/((2*k + 1)*x^(2*k + 1))</comment>
+<comment pinned="false" h="106" w="365">@float@A += m*atan(1/x)
+&#9;m*atan(1/x)=m/x - m/(3*x^3) + m/(5*x^5) ...
+&#9;&#9;+ ((-1)^k)*m/((2*k + 1)*x^(2*k + 1))</comment>
 <statement name="STACK">
 <block type="variables_set" id="2">
 <field name="VAR" id="m54R,OzhGN*1)dJiC=KM">matx_b</field>
@@ -100,9 +108,6 @@
 <block type="math_change" id="x(#)P3[ixN}T4l`gjVb#">
 <field name="VAR" id="JZs=K*HM+X.OQ35/W=O]">matx_a</field>
 <value name="DELTA">
-<shadow type="math_number" id="@HY8Z*NQz?}/c:o4^1+J">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="73">
 <field name="VAR" id="m54R,OzhGN*1)dJiC=KM">matx_b</field>
 </block>
@@ -167,9 +172,9 @@
 <block type="math_change" id="x,P-^n9Y;%Oq.2%T(xLs">
 <field name="VAR" id="oxxOL)$fe?#Uiq+.13$0">matx_kk</field>
 <value name="DELTA">
-<shadow type="math_number" id="$FH/`O[uX8$rZb!b6sjf">
+<block type="math_number" id="_prj2NtW!fE!8^e$5VA-">
 <field name="NUM">2</field>
-</shadow>
+</block>
 </value>
 <next>
 <block type="variables_set" id="Az5`+fOlC7/Iyjj-TClr">
@@ -191,17 +196,11 @@
 <block type="math_arithmetic" id="sn0-tZWvq1|YSJH46%%v">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow type="math_number" id="4I*s=#r[0Gh/IMgG.|$B">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="2GHrMR7Hd|m4k6!aS*Uj">
 <field name="VAR" id="m54R,OzhGN*1)dJiC=KM">matx_b</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="zvh.}X`R_ONbqF/i1~B1">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="bK/OiJid^[z:-3bDsM-4">
 <field name="VAR" id="N;kMROLf}?n(8,~F@xw`">matx_xx</field>
 </block>
@@ -220,29 +219,17 @@
 <block type="math_change" id="HiOR(7LcF(Ki5N~`L.=N">
 <field name="VAR" id="JZs=K*HM+X.OQ35/W=O]">matx_a</field>
 <value name="DELTA">
-<shadow type="math_number" id="@HY8Z*NQz?}/c:o4^1+J">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_arithmetic" id="wsOLMzr|aD5KQvO6zmtm" inline="false">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow type="math_number" id="df4|urpf_uRi8k50[ZaN">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_arithmetic" id="*+PSF/9Gc.DQn=42cTzk" inline="false">
 <field name="OP">MULTIPLY</field>
 <value name="A">
-<shadow type="math_number" id="df4|urpf_uRi8k50[ZaN">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="3YG`?/M7eF)Sr|N7/Gd6">
 <field name="VAR" id="Lb|{Mp*TecU^9W#hYq/h">matx_ss</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="SNLA%(ZZ+}~^LaOOa|CE">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="ssYWn^{v$l9D`6};}b*1">
 <field name="VAR" id="m54R,OzhGN*1)dJiC=KM">matx_b</field>
 </block>
@@ -250,9 +237,6 @@
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="SNLA%(ZZ+}~^LaOOa|CE">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="DTF$|uM/X4c.%.eE|s{-">
 <field name="VAR" id="oxxOL)$fe?#Uiq+.13$0">matx_kk</field>
 </block>
@@ -318,9 +302,9 @@
 <block type="controls_repeat_ext" id="0xM%hUDY4te~k;ZK;4Ua">
 <comment pinned="false" h="80" w="160">@int@print 8 digits</comment>
 <value name="TIMES">
-<shadow type="math_number" id="nmsIP/iDu.n,Fh[=W1].">
+<block type="math_number" id="[M`XV#afQX)1:$X#!Y,c">
 <field name="NUM">8</field>
-</shadow>
+</block>
 </value>
 <statement name="DO">
 <block type="variables_set" id="vz91o1PJf)LIk]0C!f5g">
@@ -380,23 +364,14 @@
 <block type="math_arithmetic" id=":|bfp40Jen9zvBfF.`Fe" inline="false">
 <field name="OP">MULTIPLY</field>
 <value name="A">
-<shadow type="math_number" id="df4|urpf_uRi8k50[ZaN">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_arithmetic" id="r|rnnxQILw#a8%%Ztyt2" inline="false">
 <field name="OP">MINUS</field>
 <value name="A">
-<shadow type="math_number" id="df4|urpf_uRi8k50[ZaN">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="RsxlWZ0]89yY49(AiP?3">
 <field name="VAR" id="]Nxrcy?HoN0Ti7E]sUfY">prpi_f</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="SNLA%(ZZ+}~^LaOOa|CE">
-<field name="NUM">1</field>
-</shadow>
 <block type="mcvm_fpu_itof" id="A(5EBG/$b$YN^OF}6x8,">
 <value name="VAL">
 <block type="variables_get" id="ASf1qTW#%mrow8dg$bQ:">
@@ -408,9 +383,6 @@
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="SNLA%(ZZ+}~^LaOOa|CE">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_number" id="PH)K#R|/,rso@9G_P-=B">
 <field name="NUM">10</field>
 </block>

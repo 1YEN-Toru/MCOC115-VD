@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google" value="notranslate">
-  <title>Blockly Demo:</title>
+  <title>Blockly for Moscovium:</title>
   <link rel="stylesheet" href="style.css">
   <script src="/storage.js"></script>
   <script src="../../dist/blockly_compressed.js"></script>
@@ -23,7 +23,7 @@
     <tr>
       <td>
         <h1><a href="https://developers.google.com/blockly/">Blockly</a>&rlm; &gt;
-          <a href="../index.html">Demos</a>&rlm; &gt;
+          <a href="../index.html">Moscovium</a>&rlm; &gt;
           <span id="title">...</span>
         </h1>
       </td>
@@ -98,14 +98,18 @@
     </category>
     <category name="%{BKY_CATLOOPS}" colour="%{BKY_LOOPS_HUE}">
       <block type="controls_repeat_ext">
+<!--
         <value name="TIMES">
           <shadow type="math_number">
             <field name="NUM">10</field>
           </shadow>
         </value>
+-->
       </block>
       <block type="controls_whileUntil"></block>
-      <block type="controls_for">
+      <block type="controls_for" inline="false">
+        <field name="VAR">item</field>
+<!--
         <value name="FROM">
           <shadow type="math_number">
             <field name="NUM">1</field>
@@ -121,6 +125,7 @@
             <field name="NUM">1</field>
           </shadow>
         </value>
+-->
       </block>
       <block type="mcoc_controls_dorept"></block>
       <block type="mcoc_controls_loop"></block>
@@ -134,6 +139,7 @@
         <field name="NUM">123</field>
       </block>
       <block type="math_arithmetic">
+<!--
         <value name="A">
           <shadow type="math_number">
             <field name="NUM">1</field>
@@ -144,31 +150,10 @@
             <field name="NUM">1</field>
           </shadow>
         </value>
+-->
       </block>
-      <block type="mcoc_math_binary">
-        <value name="A">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-        <value name="B">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="mcoc_math_bit_operation">
-        <value name="A">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-        <value name="B">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-      </block>
+      <block type="mcoc_math_binary"></block>
+      <block type="mcoc_math_bit_operation"></block>
 <!--
       <block type="math_single">
         <value name="NUM">
@@ -187,11 +172,13 @@
       <block type="math_constant"></block>
 -->
       <block type="math_number_property">
+<!--
         <value name="NUMBER_TO_CHECK">
           <shadow type="math_number">
             <field name="NUM">0</field>
           </shadow>
         </value>
+-->
       </block>
 <!--
       <block type="math_round">
@@ -202,7 +189,6 @@
         </value>
       </block>
       <block type="math_on_list"></block>
--->
       <block type="math_modulo">
         <value name="DIVIDEND">
           <shadow type="math_number">
@@ -215,7 +201,9 @@
           </shadow>
         </value>
       </block>
-      <block type="math_constrain">
+-->
+      <block type="math_constrain" inline="false">
+<!--
         <value name="VALUE">
           <shadow type="math_number">
             <field name="NUM">50</field>
@@ -231,6 +219,7 @@
             <field name="NUM">100</field>
           </shadow>
         </value>
+-->
       </block>
 <!--
       <block type="math_random_int">
@@ -259,56 +248,38 @@
         </value>
       </block>
 -->
-      <block type="mcoc_math_unary">
-        <value name="VAL">
-          <shadow type="math_number">
-            <field name="NUM">1</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="mcoc_math_func">
-        <value name="VAL">
-          <shadow type="math_number">
-            <field name="NUM">0</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="mcoc_math_func2">
-        <value name="VAL">
-          <shadow type="math_number">
-            <field name="NUM">0</field>
-          </shadow>
-        </value>
-      </block>
-      <block type="mcoc_math_func3">
-        <value name="VAL">
-          <shadow type="math_number">
-            <field name="NUM">0</field>
-          </shadow>
-        </value>
-      </block>
+      <block type="mcoc_math_unary"></block>
+      <block type="mcoc_math_func"></block>
+      <block type="mcoc_math_func2"></block>
+      <block type="mcoc_math_func3"></block>
     </category>
     <category name="%{BKY_CATTEXT}" colour="%{BKY_TEXTS_HUE}">
       <block type="text"></block>
       <block type="text_join"></block>
       <block type="text_append">
+<!--
         <value name="TEXT">
           <shadow type="text"></shadow>
         </value>
+-->
       </block>
       <block type="text_length">
+<!--
         <value name="VALUE">
           <shadow type="text">
             <field name="TEXT">abc</field>
           </shadow>
         </value>
+-->
       </block>
       <block type="text_isEmpty">
+<!--
         <value name="VALUE">
           <shadow type="text">
             <field name="TEXT"></field>
           </shadow>
         </value>
+-->
       </block>
 <!--
       <block type="text_indexOf">
@@ -353,11 +324,13 @@
       </block>
 -->
       <block type="text_print">
+<!--
         <value name="TEXT">
           <shadow type="text">
             <field name="TEXT">abc</field>
           </shadow>
         </value>
+-->
       </block>
 <!--
       <block type="text_prompt_ext">
@@ -438,16 +411,15 @@
       <block type="mcvm_fpu_isinf"></block>
       <block type="mcvm_fpu_isnan"></block>
       <block type="mcvm_fpu_itof"></block>
-      <block type="mcvm_sim_fail"></block>
-      <block type="mcvm_sim_pass"></block>
+      <block type="mcvm_sim_stat"></block>
     </category>
     <category name="Memory" colour="#c86848">
       <block type="mcvm_mem_addr"></block>
       <block type="mcvm_mem_alloc"></block>
       <block type="mcvm_mem_read"></block>
       <block type="mcvm_mem_write"></block>
-      <block type="mcvm_memx_read"></block>
-      <block type="mcvm_memx_write"></block>
+      <block type="mcvm_memx_read" inline="false"></block>
+      <block type="mcvm_memx_write" inline="false"></block>
     </category>
     <category name="Standard" colour="#c88848">
       <block type="mcoc_math_ascii"></block>
@@ -457,6 +429,7 @@
       <block type="mcoc_pack"></block>
       <block type="mcoc_swap"></block>
       <block type="mcoc_task"></block>
+      <block type="mcoc_text_label"></block>
       <block type="mcoc_text_atoi"></block>
       <block type="mcoc_text_itoa"></block>
       <block type="mcoc_text_itox"></block>
@@ -505,6 +478,11 @@
       <block type="mcoc_stft_pixel_embed"></block>
       <block type="mcoc_stft_print"></block>
       <block type="mcoc_stft_transf"></block>
+    </category>
+    <category name="Play MML" colour="#68c848">
+      <block type="mcoc_sndg_init"></block>
+      <block type="mcoc_sndg_play_mml"></block>
+      <block type="mcoc_sndg_play_ptr"></block>
     </category>
   </xml>
 

@@ -1029,7 +1029,7 @@ _prnt_loop:
 // get 1 byte
 ldb		r0,[r1]
 addi	r1,1
-cmpi	r0,0
+cmpi	r0,asc_nil
 beq		_prnt_break
 jal$(z)r7	_print_chr_r0
 bra		_prnt_loop
@@ -1361,7 +1361,7 @@ addi	r0,1
 // got line
 _getl_got:
 // string terminate
-ldbiu	r2,0
+ldbiu	r2,asc_nil
 subi	r0,1
 stb		[r0],r2
 // CR code check
@@ -1370,7 +1370,7 @@ ldb		r2,[r0]
 addi	r0,1
 cmpi	r2,asc_cr
 bne		_getl_notcr
-ldbiu	r2,0
+ldbiu	r2,asc_nil
 subi	r0,1
 stb		[r0],r2
 _getl_notcr:
@@ -1442,7 +1442,7 @@ _errm_loop:
 // get 1 byte
 ldb		r0,[r1]
 addi	r1,1
-cmpi	r0,0
+cmpi	r0,asc_nil
 beq		_errm_break
 // print character
 $(s)// ********************************

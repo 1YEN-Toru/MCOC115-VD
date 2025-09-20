@@ -7,7 +7,13 @@
 </variables>
 <block type="variables_set" id="M;o]_f^@JnB:_syZI!J$" x="13" y="13">
 <field name="VAR" id="9dl)?c:Bet7]}gG/kobx">SA</field>
-<comment pinned="false" h="208" w="304">\n&#9;calculate GCD and LCM\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.00\n</comment>
+<comment pinned="false" h="208" w="304">
+&#9;calculate GCD and LCM
+&#9;&#9;(c) 2024&#9;1YEN Toru
+
+
+&#9;&#9;2024/08/31&#9;ver.1.00
+</comment>
 <value name="VALUE">
 <block type="math_number" id="8Z,8G^B]#H_uOe|c?=Ac">
 <field name="NUM">119</field>
@@ -89,17 +95,11 @@
 <block type="math_arithmetic" id="%GG{g3Lx@z$=omvbMVlU">
 <field name="OP">MINUS</field>
 <value name="A">
-<shadow type="math_number" id="#R#6a5dQy^AZ0r3kb$So">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="u]ADqxP1fU:,,@vx.~t%">
 <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="+vLmsV-ODRb#~yJ^sl-H">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="7WXqZQLeSq`HC}#^H-e5">
 <field name="VAR" id="@ZZf{~Ag_{8W/2^,5k.4">BB</field>
 </block>
@@ -118,23 +118,14 @@
 <block type="math_arithmetic" id="4U]!kwa+M!$Nx9pyh*5t">
 <field name="OP">MULTIPLY</field>
 <value name="A">
-<shadow type="math_number" id="#R#6a5dQy^AZ0r3kb$So">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_arithmetic" id="w%(31=X.5-][0fJ|kMPZ">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow type="math_number" id="#R#6a5dQy^AZ0r3kb$So">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="%D]F9|`|7q}J(P~PsPP^">
 <field name="VAR" id="9dl)?c:Bet7]}gG/kobx">SA</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="+vLmsV-ODRb#~yJ^sl-H">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="^Z{`onHmY4#]*^Jv8kth">
 <field name="VAR" id="`2G0tSKuZrQX]TVRPea{">AA</field>
 </block>
@@ -142,9 +133,6 @@
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="+vLmsV-ODRb#~yJ^sl-H">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="R*A#)YPBt(F,K{uab6?)">
 <field name="VAR" id="|VQ.k14!@_W76|ejtzS,">SB</field>
 </block>

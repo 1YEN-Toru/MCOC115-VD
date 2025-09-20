@@ -1115,7 +1115,7 @@ $(s)// ********************************
 $(s)ldwi	r7,princhr
 $(s)_stft_sim_kpr_loop:
 $(s)ldb		r0,[r1]
-$(s)cmpi	r0,0
+$(s)cmpi	r0,asc_nil
 $(s)beq		_stft_sim_kpr_break
 $(s)addi	r1,1
 $(s)stw		[r7],r0
@@ -1126,7 +1126,7 @@ $(s)// ********************************
 _stft_tkp_loop:
 ldb		r0,[r1]
 addi	r1,1
-cmpi	r0,0
+cmpi	r0,asc_nil
 beq		_stft_tkp_return
 // check control code?
 cmpi	r0,asc_spc

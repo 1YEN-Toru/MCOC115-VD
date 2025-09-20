@@ -44,7 +44,7 @@ model	"Blockly.XML merger"
 		leave	stop_error;
 	}
 	pathsplit	$(fnam_in0), dir,fnam,ext;
-	mlet	fnam_out=$(dir)$/$(fnam)"_mrg.xml";
+	mlet	fnam_out=$(dir)$/$(fnam)"_mrg.bxml";
 
 
 	// procedures

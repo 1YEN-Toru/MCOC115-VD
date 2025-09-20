@@ -7,7 +7,13 @@
 </variables>
 <block type="variables_set" id="P8.x)J=R9|$%_=15!FQ}" x="13" y="13">
 <field name="VAR" id="::htdbtFYwN{~qRSble1">nn</field>
-<comment pinned="false" h="71" w="322">\n&#9;prime factor\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.00\n</comment>
+<comment pinned="false" h="161" w="321">
+&#9;prime factor
+&#9;&#9;(c) 2024&#9;1YEN Toru
+
+
+&#9;&#9;2024/08/31&#9;ver.1.00
+</comment>
 <value name="VALUE">
 <block type="math_number" id=":5uiDbKDx+;atIU3;tbG">
 <field name="NUM">1134</field>
@@ -31,17 +37,11 @@
 <block type="math_arithmetic" id="Rmm}1M9on[vD!{Q%vj$j">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow type="math_number" id="71`q1ZH7SN,A)%Te#bft">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id=",9gaS}tDtEwRG0z39#r;">
 <field name="VAR" id="::htdbtFYwN{~qRSble1">nn</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="73|kp}Xvi*qq7Kf-9g.i">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_number" id=";jss-mD,8nA`)f@r0.T.">
 <field name="NUM">2</field>
 </block>
@@ -87,19 +87,14 @@
 <block type="variables_set" id="v%;c19q0SM@8szu$7%;s">
 <field name="VAR" id="f7LR2=G/W$^4i`oVB$JO">rm</field>
 <value name="VALUE">
-<block type="math_modulo" id="Ec}qh0zI@;x7tRwe_LHF">
-<value name="DIVIDEND">
-<shadow type="math_number" id="uA(:)!esV%/#U{wT;s]+">
-<field name="NUM">64</field>
-</shadow>
+<block type="mcoc_math_binary" id="=J|OB#zGv8TcZ2r3r!0+">
+<field name="OP">%</field>
+<value name="A">
 <block type="variables_get" id="c=uL;@ZyCLMc1?sXRfKh">
 <field name="VAR" id="::htdbtFYwN{~qRSble1">nn</field>
 </block>
 </value>
-<value name="DIVISOR">
-<shadow type="math_number" id="(h]T`DL4fU}4D+D!ublj">
-<field name="NUM">10</field>
-</shadow>
+<value name="B">
 <block type="variables_get" id="X!m#[ttuKn2f.GU;z%}c">
 <field name="VAR" id="pS}g#}iYaL[ninBYcF9S">kk</field>
 </block>
@@ -113,17 +108,11 @@
 <block type="math_arithmetic" id="D!_ZIt]/|Ze:E~HTRql6">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow type="math_number" id="71`q1ZH7SN,A)%Te#bft">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="zZ30b$h_A{^^p|a=_gSJ">
 <field name="VAR" id="::htdbtFYwN{~qRSble1">nn</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="73|kp}Xvi*qq7Kf-9g.i">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="q/hanLI@.pr~DPgFJPS!">
 <field name="VAR" id="pS}g#}iYaL[ninBYcF9S">kk</field>
 </block>
@@ -163,17 +152,11 @@
 <block type="math_arithmetic" id="?x2Gu~3)$nB+6SO9@c]#">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow type="math_number" id="71`q1ZH7SN,A)%Te#bft">
-<field name="NUM">1</field>
-</shadow>
 <block type="variables_get" id="Z=,TNEj@V?E,*%K^f$Xg">
 <field name="VAR" id="::htdbtFYwN{~qRSble1">nn</field>
 </block>
 </value>
 <value name="B">
-<shadow type="math_number" id="73|kp}Xvi*qq7Kf-9g.i">
-<field name="NUM">1</field>
-</shadow>
 <block type="math_number" id="8:W8?_G,piIWhv5qiat(">
 <field name="NUM">2</field>
 </block>
@@ -207,9 +190,9 @@
 <block type="math_change" id="TIXZjvjw)I;kr[e}:PKz">
 <field name="VAR" id="pS}g#}iYaL[ninBYcF9S">kk</field>
 <value name="DELTA">
-<shadow type="math_number" id="nbi;8^o=-;HWM{}i-rw3">
+<block type="math_number" id="bltnbyM!;*+:X3UI6,gS">
 <field name="NUM">1</field>
-</shadow>
+</block>
 </value>
 </block>
 </statement>

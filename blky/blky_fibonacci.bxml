@@ -1,117 +1,116 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
 <variables>
-<variable id="j5~G`~]R:}wBi]*Q$xt=">numa</variable>
-<variable id="o[atnT^|9kE!#O5+,sQn">numb</variable>
-<variable id=":)WNPvK8c__S#k`y$?J#">numc</variable>
+<variable id="-u#[5Rvbm!QX.@|_?1.b">stra</variable>
+<variable id="$0/+~L%X2u$c|YB5(IGL">numa</variable>
+<variable id="%RzG+!{g$^|0:MchQV;r">numb</variable>
+<variable id="S4TS(iCtum-RK]2G2ioD">numc</variable>
 </variables>
-<block type="variables_set" id="XRMLk(_vYrn`,Pi4%J+," x="13" y="13">
-<field name="VAR" id="j5~G`~]R:}wBi]*Q$xt=">numa</field>
-<comment pinned="false" h="97" w="424">\n&#9;calculate Fibonacci sequence\n&#9;&#9;(c) 2024&#9;1YEN Toru\n\n\n&#9;&#9;2024/08/31&#9;ver.1.02\n&#9;&#9;&#9;Blockly demo edition\n\n&#9;&#9;2024/07/27&#9;ver.1.00\n</comment>
+<block type="variables_set" id="L)9aE|whaz3[-cE(kho." x="13" y="13">
+<field name="VAR" id="-u#[5Rvbm!QX.@|_?1.b">stra</field>
+<comment pinned="false" h="245" w="302">@sim@
+&#9;calculate Fibonacci sequence
+&#9;&#9;(c) 2024 1YEN Toru
+
+
+&#9;2025/09/20&#9;ver.1.04
+&#9;&#9;JavaScript executable edition
+
+&#9;2024/08/31&#9;ver.1.02
+&#9;&#9;Blockly demo edition
+
+&#9;2024/07/27&#9;ver.1.00
+</comment>
 <value name="VALUE">
-<block type="math_number" id="u/vHg]wi6.o=C4(xsJDP">
+<block type="text" id="0[}%B8t/r7RN]HnP[vV4">
+<field name="TEXT">FIBO: </field>
+</block>
+</value>
+<next>
+<block type="variables_set" id="lfBqFSW]z{}i%6Erlg,m">
+<field name="VAR" id="$0/+~L%X2u$c|YB5(IGL">numa</field>
+<value name="VALUE">
+<block type="math_number" id="Aj7fo$8Hn_ARA,h!v99+">
 <field name="NUM">0</field>
 </block>
 </value>
 <next>
-<block type="variables_set" id="4x)Lm}g?gUc:Yi-%zjEO">
-<field name="VAR" id="o[atnT^|9kE!#O5+,sQn">numb</field>
+<block type="variables_set" id="0_y$/}Qk`^6#H%b5oAqO">
+<field name="VAR" id="%RzG+!{g$^|0:MchQV;r">numb</field>
 <value name="VALUE">
-<block type="math_number" id=":{,3:@1^LTb)1}#lSH}8">
+<block type="math_number" id="xv[h{D$J8FX$v)02{g0G">
 <field name="NUM">1</field>
 </block>
 </value>
 <next>
-<block type="mcoc_uart_print" id="ZhuwM/HNn90q3!m~e)-i">
-<value name="TXT">
-<block type="text_join" id="PNuqj6|Wf`@FtE%*GlO2" inline="true">
-<mutation items="2"></mutation>
-<value name="ADD0">
-<block type="text" id="pLHkwZ~~E%#pK-GaH[J-">
-<field name="TEXT">FIBO: </field>
-</block>
-</value>
-<value name="ADD1">
-<block type="variables_get" id="E]ZRWMI3.[Vvq$kcC#iZ">
-<field name="VAR" id="j5~G`~]R:}wBi]*Q$xt=">numa</field>
-</block>
-</value>
-</block>
-</value>
-<next>
-<block type="controls_whileUntil" id="WVhFizwOn$8s_fKGl%dO">
+<block type="controls_whileUntil" id="yeujhuXb!gG8P4PQ]i[L">
 <field name="MODE">WHILE</field>
 <value name="BOOL">
-<block type="logic_compare" id="Oe;iBQ5ov?HDO2^K`uLV">
+<block type="logic_compare" id="W#L[/k]v9+R-iat1$!:r">
 <field name="OP">LTE</field>
 <value name="A">
-<block type="variables_get" id="D2ck,8W[^Qa(Xid{/WD8">
-<field name="VAR" id="o[atnT^|9kE!#O5+,sQn">numb</field>
+<block type="variables_get" id="i*iLhD.S0KJD,wV:l{,Q">
+<field name="VAR" id="$0/+~L%X2u$c|YB5(IGL">numa</field>
 </block>
 </value>
 <value name="B">
-<block type="math_number" id="o2:I]K3eB%952lO^N%xa">
+<block type="math_number" id="04`jre`Mmkeharti+cu}">
 <field name="NUM">1000</field>
 </block>
 </value>
 </block>
 </value>
 <statement name="DO">
-<block type="variables_set" id="WGDNmdZJU]EQ$xc+[=|Q">
-<field name="VAR" id=":)WNPvK8c__S#k`y$?J#">numc</field>
-<value name="VALUE">
-<block type="math_arithmetic" id="dR*rIkQJFRB:L?hom9j-">
-<field name="OP">ADD</field>
-<value name="A">
-<shadow type="math_number" id="2cIcST#r6;9-R~Mru8/e">
-<field name="NUM">1</field>
-</shadow>
-<block type="variables_get" id="4*;@.At`qI6LU:G%IPyG">
-<field name="VAR" id="j5~G`~]R:}wBi]*Q$xt=">numa</field>
-</block>
-</value>
-<value name="B">
-<shadow type="math_number" id="n1X*sKXJdPJ(Q_Z,`%4`">
-<field name="NUM">1</field>
-</shadow>
-<block type="variables_get" id="cQ_=Wq$!}z0LR#@.#rXB">
-<field name="VAR" id="o[atnT^|9kE!#O5+,sQn">numb</field>
-</block>
-</value>
+<block type="text_append" id="x7q{JhOdXSN8g$gHD}/%">
+<field name="VAR" id="-u#[5Rvbm!QX.@|_?1.b">stra</field>
+<value name="TEXT">
+<block type="variables_get" id="SEA7p.T@%UflK]HS?R$=">
+<field name="VAR" id="$0/+~L%X2u$c|YB5(IGL">numa</field>
 </block>
 </value>
 <next>
-<block type="variables_set" id="hl+XJ]}kXSP.@N!}D`71">
-<field name="VAR" id="j5~G`~]R:}wBi]*Q$xt=">numa</field>
-<value name="VALUE">
-<block type="variables_get" id="Lr3Kf?(Dco@-F5(m-sZ+">
-<field name="VAR" id="o[atnT^|9kE!#O5+,sQn">numb</field>
-</block>
-</value>
-<next>
-<block type="variables_set" id="I7;yZKSrZLF`P_D]k*#C">
-<field name="VAR" id="o[atnT^|9kE!#O5+,sQn">numb</field>
-<value name="VALUE">
-<block type="variables_get" id="%fc:6]UDe?+GfrS)C*}#">
-<field name="VAR" id=":)WNPvK8c__S#k`y$?J#">numc</field>
-</block>
-</value>
-<next>
-<block type="mcoc_uart_print" id="32?NbUb[IrFxt#PkR+yO">
-<value name="TXT">
-<block type="text_join" id="hSJp^fmXysDM8bvEXW`a" inline="true">
-<mutation items="2"></mutation>
-<value name="ADD0">
-<block type="text" id="CocW%-2{giJ^{?gyu8Wx">
+<block type="text_append" id="bOl|y~3=/hO_XbH_mZh]">
+<field name="VAR" id="-u#[5Rvbm!QX.@|_?1.b">stra</field>
+<value name="TEXT">
+<block type="text" id="+uIDBPqPd;9_)o;[XeI-">
 <field name="TEXT">, </field>
 </block>
 </value>
-<value name="ADD1">
-<block type="variables_get" id="Jh-|g0L03I~Y#7Bh{BhU">
-<field name="VAR" id="j5~G`~]R:}wBi]*Q$xt=">numa</field>
+<next>
+<block type="variables_set" id="f==UKuv5Xp4pm+vc[000">
+<field name="VAR" id="S4TS(iCtum-RK]2G2ioD">numc</field>
+<value name="VALUE">
+<block type="math_arithmetic" id="VDoD9,3sXAH4oD3g52w.">
+<field name="OP">ADD</field>
+<value name="A">
+<block type="variables_get" id="O`Y%N`oT$JaTsCED;uv`">
+<field name="VAR" id="$0/+~L%X2u$c|YB5(IGL">numa</field>
+</block>
+</value>
+<value name="B">
+<block type="variables_get" id="udw07?y|IT]X-79?C5@l">
+<field name="VAR" id="%RzG+!{g$^|0:MchQV;r">numb</field>
 </block>
 </value>
 </block>
 </value>
+<next>
+<block type="variables_set" id="O^$tp+h$d}p=OY}?(mmo">
+<field name="VAR" id="$0/+~L%X2u$c|YB5(IGL">numa</field>
+<value name="VALUE">
+<block type="variables_get" id="Kj|,$9m[%h5,5wDS6MfA">
+<field name="VAR" id="%RzG+!{g$^|0:MchQV;r">numb</field>
+</block>
+</value>
+<next>
+<block type="variables_set" id="}D#!3^6t52{KP..el0V*">
+<field name="VAR" id="%RzG+!{g$^|0:MchQV;r">numb</field>
+<value name="VALUE">
+<block type="variables_get" id="H[(V4!zD*Ffx*aKN4T|C">
+<field name="VAR" id="S4TS(iCtum-RK]2G2ioD">numc</field>
+</block>
+</value>
+</block>
+</next>
 </block>
 </next>
 </block>
@@ -121,10 +120,10 @@
 </block>
 </statement>
 <next>
-<block type="mcoc_uart_println" id="bDT5*j=^M~CbxOMMp:qE">
-<value name="TXT">
-<block type="text" id="bv=s.R1Hgbj!.V+).GPi">
-<field name="TEXT"></field>
+<block type="text_print" id="Hna5[(G5NIhnXJ+HBQ(+">
+<value name="TEXT">
+<block type="variables_get" id="wt4ivR5#~_Nz9;XQd-!G">
+<field name="VAR" id="-u#[5Rvbm!QX.@|_?1.b">stra</field>
 </block>
 </value>
 </block>
