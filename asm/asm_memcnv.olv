@@ -1,0 +1,107 @@
+modela	"Moscovium.ASM: MEM file convertor"
+{
+// ================================
+//
+//	Moscovium.ASM: MEM file convertor
+//		(c) 2025	1YEN Toru
+//
+//
+//		2025/09/27	ver.1.00
+//			convert 32 bit MEM(.mem) file to 16 bit MEM(.dat2) file utility
+//
+// ================================
+
+
+	// query input file
+	var		rtn;
+	macro	fnam_in="."$/"mcoc_irom.mem";
+	macro	fnam_out="mcoc_irom.dat2";
+
+	gui		openfile, rtn, "Input File","",fnam_in;
+	if (rtn=guiCancel)
+	{
+		// cancelled; select default source
+		ifnacc	$(fnam_in)
+		{
+			// cancelled; default source not found
+			leave	stop_error;
+		}
+	}
+	macro	dir,fnam,ext;
+	pathsplit	$(fnam_in), dir,fnam,ext;
+	mlet	fnam_out=$(dir)$/$(fnam)".dat2";
+	ifacc	$(fnam_out)
+	{
+		// otput file already exist
+		gui		okcancel, rtn, "Over write?","OK to over write",
+				"Output file already exist."
+				$,"	"$(fnam_out)$,"Over write OK?";
+		if (rtn=guiCancel)
+		{
+			leave	stop_error;
+		}
+	}
+
+
+	// conversion
+	var		cmp;
+	var		fin;
+	var		fout;
+
+	fopen	fin,$(fnam_in),"r";
+	fopen	fout,$(fnam_out),"w";
+
+	fgets	fin,lbuf;
+	while (status=0)
+	{
+		// skip comments
+		psub	"//.*","",lbuf;
+		psub	"#.*","",lbuf;
+		psub	"^[ 	]+","",lbuf;
+		strcmp	cmp=$(lbuf),"";
+		if (cmp=0)
+		{
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// output
+		strcmp	cmp=$(lbuf),"@",left;
+		if (cmp=0)
+		{
+			// address line (@)
+			fprint	fout,$(lbuf)$,;
+		}
+		else
+		{
+			// data line
+			strlen	cmp=$(lbuf);
+			if (cmp>4)
+			{
+				// 32 bit data
+				macro	tmp;
+
+				substr	tmp=$(lbuf),5;
+				substr	lbuf=$(lbuf),1,4;
+				fprint	fout,$(lbuf)$,;
+				fprint	fout,$(tmp)$,;
+			}
+			else
+			{
+				// 16 bit data
+				fprint	fout,$(lbuf)$,;
+			}
+		}
+
+		// continue
+		fgetl	fin,lbuf;
+	}
+
+	fclose	fin;
+	fclose	fout;
+
+
+	leave	stop_error;
+}
+
