@@ -655,7 +655,7 @@ equ		distcntl,0xf11a					// dist, R, word
 equ		dist_dist,0x0080				// distctl[DIST] flag
 equ		dist_err,0x0002					// distctl[ERR] flag
 equ		dist_bsy,0x0001					// distctl[BSY] flag
-# RTC400
+# RTC400S
 equ		rtcctl,0xf120					// rtc, RW, word
 equ		rtcintc,0xf122					// rtc, RW, word
 equ		rtcyear,0xf124					// rtc, RW, word
@@ -674,6 +674,25 @@ equ		rtc_sece,0x0010					// rtcintc[SECE] bit
 equ		rtc_houf,0x0004					// rtcintc[HOUF] flag
 equ		rtc_minf,0x0002					// rtcintc[MINF] flag
 equ		rtc_secf,0x0001					// rtcintc[SECF] flag
+equ		rtc_year_a,0x03ff				// rtcyear[YEAR] field
+equ		rtc_month_a,0x1f00				// rtcmody[MONTH] field
+equ		rtc_month_s,8
+equ		rtc_day_a,0x003f				// rtcmody[DAY] field
+equ		rtc_hour_a,0x3f00				// rtchrmi[HOUR] field
+equ		rtc_hour_s,8
+equ		rtc_minute_a,0x007f				// rtchrmi[MINUTE] field
+equ		rtc_sec_a,0x7f00				// rtcscps[SEC] field
+equ		rtc_sec_s,8
+equ		rtc_psc_a,0x00ff				// rtcscps[PSC] field
+equ		rtc_psc_max,1_000/4
+equ		rtc_week_0,0x0000				// rtcweek[WEEK] field
+equ		rtc_week_1,0x0001
+equ		rtc_week_2,0x0002
+equ		rtc_week_3,0x0003
+equ		rtc_week_4,0x0004
+equ		rtc_week_5,0x0005
+equ		rtc_week_6,0x0006
+equ		rtc_week_a,0x0007
 # DAC121#0
 equ		dacctl0,0xf140					// dac0, RW, word
 equ		dacdat0,0xf142					// dac0, RW, word

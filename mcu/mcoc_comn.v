@@ -2173,58 +2173,6 @@ endmodule
 `endif	//	MCOC_NO_UNSJ
 
 
-`ifdef		MCOC_NO_RTC
-`else	//	MCOC_NO_RTC
-module	mcoc_rtc (
-// Real Time Clock Unit
-input	clk,
-input	rst_n,
-input	brdy,
-input	bcmdw,
-input	bcmdr,
-input	bcs_rtcu_n,
-input	rtc_clkin,
-input	[3:0]	badr,
-input	[15:0]	bdatw,
-output	rtc_rtcr,
-output	[15:0]	bdatr);
-
-
-wire	[79:0]	rsys_reg;
-wire	[79:0]	rsub_reg;
-
-
-rtc400_sys		rsys (
-	.clk(clk),	// Input
-	.rst_n(rst_n),	// Input
-	.brdy(brdy),	// Input
-	.bcmdw(bcmdw),	// Input
-	.bcmdr(bcmdr),	// Input
-	.bcs_rtcu_n(bcs_rtcu_n),	// Input
-	.rtc_clkin(rtc_clkin),	// Input
-	.rsub_wrt_ack(rsub_wrt_ack),	// Input
-	.badr(badr[3:0]),	// Input
-	.bdatw(bdatw[15:0]),	// Input
-	.rsub_reg(rsub_reg[79:0]),	// Input
-	.clk32k(clk32k),	// Output
-	.rtc_rtcr(rtc_rtcr),	// Output
-	.rctl_wrt_req(rctl_wrt_req),	// Output
-	.bdatr(bdatr[15:0]),	// Output
-	.rsys_reg(rsys_reg[79:0])	// Output
-);
-
-rtc400_sub		rsub (
-	.clk32k(clk32k),	// Input
-	.rctl_wrt_req(rctl_wrt_req),	// Input
-	.rsys_reg(rsys_reg[79:0]),	// Input
-	.rsub_wrt_ack(rsub_wrt_ack),	// Output
-	.rsub_reg(rsub_reg[79:0])	// Output
-);
-
-endmodule
-`endif	//	MCOC_NO_RTC
-
-
 `ifdef		MCOC_NO_CM76
 `else	//	MCOC_NO_CM76
 module	mcoc_cam76 (

@@ -174,11 +174,10 @@
 - [TIMLED5](http://hello.world.coocan.jp/ARDUINO27/arduino27_3.html#TIMLED5)
 	- LED PWM timer unit
 	- 5 PWM output, duty resolution 0 ~ 255
-<!--
-- [RTC400](http://hello.world.coocan.jp/ARDUINO22/arduino22_a.html#RTC400)
+- [RTC400S](http://hello.world.coocan.jp/ARDUINO36/arduino36_4.html#RTC400S)
 	- Real time clock unit
 	- Full 400 years of leap year support
--->
+	- Synchronized clock edition
 
 ## Communication units
 - [UART8N1](http://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCUART)

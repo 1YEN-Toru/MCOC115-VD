@@ -381,7 +381,7 @@ Blockly.Blocks['mcoc_math_func'] = {
     this.setOutput(true, "Number");
     this.setColour(225);
  this.setTooltip("mathematical function");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
   }
 };
 
@@ -394,7 +394,7 @@ Blockly.Blocks['mcoc_math_func2'] = {
     this.setOutput(true, "Number");
     this.setColour(225);
  this.setTooltip("mathematical function #2");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
   }
 };
 
@@ -407,7 +407,7 @@ Blockly.Blocks['mcoc_math_func3'] = {
     this.setOutput(true, "Number");
     this.setColour(225);
  this.setTooltip("mathematical function #3");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
   }
 };
 
@@ -462,22 +462,22 @@ Blockly.Blocks['mcoc_math_unary'] = {
     this.setOutput(true, ["Number", "Boolean"]);
     this.setColour(225);
  this.setTooltip("unary operation");
- this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+ this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
   }
 };
 
 Blockly.Blocks['mcoc_pack'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("pack")
-        .appendField(new Blockly.FieldCheckbox("TRUE"), "ENB");
+        .appendField("pack");
     this.appendStatementInput("PAC")
-        .setCheck(null);
+        .setCheck(null)
+        .appendField(new Blockly.FieldCheckbox("TRUE"), "ENB");
     this.setInputsInline(false);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(30);
- this.setTooltip("packing block");
+ this.setTooltip("packing block with checkbox");
  this.setHelpUrl("http://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
   }
 };

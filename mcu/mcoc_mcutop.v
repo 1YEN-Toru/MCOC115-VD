@@ -45,13 +45,16 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0238
+`define		MCOC_VERS		16'h0240
 
 
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2025/09/27	ver.2.40
+//		corresponding to RTC400S unit
 //
 //	2025/09/13	ver.2.38
 //		corresponding to SNDG1PB unit
@@ -1215,14 +1218,15 @@ distus	dist (
 assign	rtc_rtcr=1'b0;
 assign	bdatr_rtcu[15:0]=16'h0;
 `else	//	MCOC_NO_RTC
-mcoc_rtc		rtc (
+rtc400s		rtc (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.simumd(simumd),	// Input
 	.brdy(brdy),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcs_rtcu_n(bcs_rtcu_n),	// Input
-	.rtc_clkin(port_iop[3]),	// Input
+	.clk_mhz(`MCOC_FCPU_MHZ),	// Input
 	.badr(badr[3:0]),	// Input
 	.bdatw(bdatw[15:0]),	// Input
 	.rtc_rtcr(rtc_rtcr),	// Output

@@ -2835,7 +2835,6 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 	{
 		var		cmp;
 		var		stat;
-		var		cnts;
 		macro	enbl;
 
 		while (true)
@@ -2886,11 +2885,6 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 				if (cmp>0)
 				{
 					// end of statement
-					if (cnts>0)
-					{
-						cnts=cnts - 1;
-						continue;
-					}
 
 					// end of pack
 					stat=2;
@@ -2899,12 +2893,6 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 				if (stat=3)
 				{
 					// disabled pack
-					pindex	cmp=$(cxml),"^<statement[ >]";
-					if (cmp>0)
-					{
-						cnts=cnts + 1;
-						continue;
-					}
 					continue;
 				}
 			}
@@ -4031,10 +4019,10 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 				do_$(dxml);
 			}
 		}
-		mlet	do_blk_mcoc_uart_getline="'getline'";
+		mlet	do_blk_mcoc_uart_getline="'uart_getline ()'";
 
 		// assembler
-		fprint	fout,"// r0,r1=getline (r0)"$,;
+		fprint	fout,"// r0,r1=uart_getline (r0)"$,;
 		fprint	fout,"jal$(z)r7	_getline_r0"$,;
 	}
 	procedure	do_blk_mcoc_uart_avail
@@ -4063,10 +4051,10 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 				do_$(dxml);
 			}
 		}
-		mlet	do_blk_mcoc_uart_avail="uart_avail";
+		mlet	do_blk_mcoc_uart_avail="uart_avail ()";
 
 		// assembler
-		fprint	fout,"// r0=uart_avail"$,;
+		fprint	fout,"// r0=uart_avail ()"$,;
 		fprint	fout,"ldwi	r7,uartctl"$,;
 		fprint	fout,"ldw	r0,[r7]"$,;
 		fprint	fout,"andi	r0,uart_ravl"$,;
@@ -8300,7 +8288,6 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 
 	// assembler
 	fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
-	fprint	fout,"//	Blockly.XML file: "$(fnam)"."$(ext)$,;
 	fprint	fout,"## assembler"$,;
 	fprint	fout,"asm	"$""mcoc_irom.mem"$"$,;
 	fprint	fout,"##asm	"$""mcoc_irom.dat2"$"",bit16,list"$,;

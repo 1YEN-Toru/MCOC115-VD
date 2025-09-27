@@ -350,7 +350,7 @@ Code.renderContent = function() {
     var xmlText = Blockly.Xml.domToPrettyText(xmlDom);
 // 250315,1YEN,remove indentation
 xmlText = xmlText.replace (/\n +</g, '\n<');
-// 250913,1YEN,remove last new line code
+// 250913,1YEN,remove last new line code of comment
 xmlText = xmlText.replace (/\n<\/comment>/g, '</comment>');
 xmlText += '\n';
     xmlTextarea.value = xmlText;
