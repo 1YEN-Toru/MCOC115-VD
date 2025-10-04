@@ -17,7 +17,7 @@
 //			add: _is_sjis1_r0, _chrsjis_r1
 //			add: _rand
 //			del: _rtlb_main label
-//			update: _strchr_r0_r1; corresponding to S-JIS code
+//			change: _strchr_r0_r1; corresponding to S-JIS code
 //			change: suppress error; task CPU2 x single core
 //
 //		2024/10/26	ver.1.10
@@ -992,7 +992,7 @@ rtn$(z)
 //	disturbed: r2,r7
 //		r2: flag data for polling
 //		r7: i/o register address
-//	return: print character r0 to the UART
+//	return: print character r0 to the UART8N1
 // ================================
 align	4
 _print_chr_r0:
@@ -1020,7 +1020,7 @@ rtn$(z)
 //		r0: temporary data
 //		r2: used in _print_chr_r0 subroutine
 //		r7: temporary pointer
-//	return: print text r1 to the UART
+//	return: print text r1 to the UART8N1
 //		r1: point to the next address of nil ('\0')
 // ================================
 align	4
@@ -1321,7 +1321,7 @@ rtn$(z)
 //		r2: temporary data
 //		r5: i/o register uartctl
 //		r7: i/o register uartdat
-//	return: get a line data from UART with BS code handling
+//	return: get a line data from UART8N1 with BS code handling
 //		r0: pointer to last nil ('\0') code
 //		r1: pointer to line buffer (size of _rtlb_cstr_siz [byte])
 // ================================
@@ -1432,7 +1432,7 @@ dats	"OK: new baud rate detected.\r\n\0"
 //		r0: temporary data
 //		r2: used in _print_chr_r0 subroutine
 //		r7: temporary pointer
-//	return: print error message r1 to the UART (Mc 16 bit mode tolerant)
+//	return: print error message r1 to the UART8N1 (Mc 16 bit mode tolerant)
 //		r1: point to the next address of nil ('\0')
 // ================================
 align	4
