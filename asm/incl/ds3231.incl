@@ -1,0 +1,54 @@
+# ================================
+#	DS3231 (real time clock) I/O register
+#		(c) 2025	1YEN Toru
+#		definition module
+# ================================
+
+# ds3231 i/o registers
+equ		i2c_ds3231,0x68					// i2c: DS3231 slave address
+#
+equ		rtc_reg_seconds,0x00			// rtc: reg: Seconds
+equ		rtc_reg_minutes,0x01			// rtc: reg: Minutes
+equ		rtc_reg_hours,0x02				// rtc: reg: Hours
+equ		rtc_reg_dayw,0x03				// rtc: reg: Day (of week)
+equ		rtc_reg_date,0x04				// rtc: reg: Date
+equ		rtc_reg_month_century,0x05		// rtc: reg: Month / Century
+equ		rtc_reg_year,0x06				// rtc: reg: Year
+equ		rtc_reg_alm1_sec,0x07			// rtc: reg: Alarm #1 Seconds
+equ		rtc_reg_alm1_min,0x08			// rtc: reg: Alarm #1 Minutes
+equ		rtc_reg_alm1_hou,0x09			// rtc: reg: Alarm #1 Hours
+equ		rtc_reg_alm1_day,0x0a			// rtc: reg: Alarm #1 Day / Date
+equ		rtc_reg_alm2_min,0x0b			// rtc: reg: Alarm #2 Minutes
+equ		rtc_reg_alm2_hou,0x0c			// rtc: reg: Alarm #2 Hours
+equ		rtc_reg_alm2_day,0x0d			// rtc: reg: Alarm #2 Day / Date
+equ		rtc_reg_control,0x0e			// rtc: reg: Control
+equ		rtc_reg_status,0x0f				// rtc: reg: Control / Status
+equ		rtc_reg_aging,0x10				// rtc: reg: Aging Offset
+equ		rtc_reg_temp_h,0x11				// rtc: reg: MSB of temp
+equ		rtc_reg_temp_l,0x12				// rtc: reg: LSB of temp
+#
+equ		rtc_hour_12_24n,0x40			// rtc: 12 / ~24 Select
+equ		rtc_hour_amn_pm,0x20			// rtc: ~AM / PM bit
+equ		rtc_dayw_1,0x01					// rtc: Day of Week
+equ		rtc_dayw_2,0x02
+equ		rtc_dayw_3,0x03
+equ		rtc_dayw_4,0x04
+equ		rtc_dayw_5,0x05
+equ		rtc_dayw_6,0x06
+equ		rtc_dayw_7,0x07
+equ		rtc_cmon_century,0x80			// rtc: Century
+equ		rtc_ctrl_eosc_n,0x80			// rtc: Enable Oscillator
+equ		rtc_ctrl_bbsqw,0x40				// rtc: Battery-Backed Sqr. Wave Enable
+equ		rtc_ctrl_conv,0x20				// rtc: Convert Temperature
+equ		rtc_ctrl_rs_0,0x00				// rtc: Rate Select
+equ		rtc_ctrl_rs_1,0x08
+equ		rtc_ctrl_rs_2,0x10
+equ		rtc_ctrl_rs_3,0x18
+equ		rtc_ctrl_intcn,0x04				// rtc: Interrupt Control
+equ		rtc_ctrl_a2ie,0x02				// rtc: Alarm #2 Interrupt Enable
+equ		rtc_ctrl_a1ie,0x01				// rtc: Alarm #1 Interrupt Enable
+equ		rtc_stat_osf,0x80				// rtc: Oscillator Stop Flag
+equ		rtc_stat_en32khz,0x08			// rtc: Enable 32kHz Output
+equ		rtc_stat_bsy,0x04				// rtc: Busy
+equ		rtc_stat_a2f,0x02				// rtc: Alarm #2 Flag
+equ		rtc_stat_a1f,0x01				// rtc: Alarm #1 Flag
