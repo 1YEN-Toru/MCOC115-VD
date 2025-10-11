@@ -1,11 +1,14 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.52";
+	macro	prog_vers="1.54";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2025/10/11	ver.1.54
+//			change: all words are case sensitive
 //
 //		2025/03/08	ver.1.52
 //			pseudo: rept; add integrated macro repti1 and reptr1
@@ -155,7 +158,7 @@ model	"Moscovium series macro assembler"
 	var		MAX_R=114;					// maximum index of R instructions
 	var		MAX_RI=128;					// maximum index of RI instructions
 	var		MSIZ=6;						// maximum mnemonic size
-	macro	mnem=
+	macro	mnem_list=
 			"nop   "
 			"pause "
 			"rtnw  "
@@ -289,7 +292,7 @@ model	"Moscovium series macro assembler"
 			"align "
 			"srbk  "
 			"srie  ";
-	macro	opcd=
+	macro	opcd_list=
 			"0000 "
 			"0001 "
 			"0002 "
@@ -758,7 +761,6 @@ model	"Moscovium series macro assembler"
 			return;
 		}
 		get_word;
-		tolower		get_word;
 		mlet	mnem=$(get_word);
 
 		// pseudo instructions
@@ -901,7 +903,6 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			mlet	opr2=$(get_word);
-			tolower		opr1;
 			pindex	cmp=$(opr2),"^[+-]?[0-9][0-9_]*$";
 			if (cmp=0)
 			{
@@ -935,7 +936,6 @@ model	"Moscovium series macro assembler"
 			get_word;
 			mlet	opr2=$(get_word);
 			dbl2half	$(opr2);
-			tolower		opr1;
 			fprint	fout,"@static : nvar	"$(opr1)"; "
 					$(opr1)"="$(dbl2half)";"$,;
 			fprint	flab,$(opr1)$,;
@@ -952,7 +952,6 @@ model	"Moscovium series macro assembler"
 			get_word;
 			mlet	opr2=$(get_word);
 			dbl2sngl	$(opr2);
-			tolower		opr1;
 			fprint	fout,"@static : nvar	"$(opr1)"; "
 					$(opr1)"="$(dbl2sngl)";"$,;
 			fprint	flab,$(opr1)$,;
@@ -968,7 +967,6 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			mlet	opr2=$(get_word);
-			tolower		opr1;
 			strcmp	cmp=$(opr1),"";
 			if (cmp=0)
 			{
@@ -1213,14 +1211,12 @@ model	"Moscovium series macro assembler"
 			// repeat count
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			num=@($(get_word));
 			maxv	num=0;
 			// repeat body
 			get_newline;
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			mlet	mnem=$(get_word);
 			strcmp	ptr=$(get_word),"endr";
 			while (ptr)
@@ -1244,11 +1240,9 @@ model	"Moscovium series macro assembler"
 				}
 				get_word;
 				idx=idx + 1;
-				tolower		get_word;
 				mlet	mnem=$(get_word);
 				strcmp	ptr=$(get_word),"endr";
 			}
-			tolower		tbdy;
 			// expansion
 			macro	tbuf;
 			var		idx2;
@@ -1283,7 +1277,6 @@ model	"Moscovium series macro assembler"
 			// condition
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			// invert condition
 			mlet	bcnd=$(get_word)"   ";
 			substr	bcnd=$(bcnd),1,3;
@@ -1306,7 +1299,6 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			var		blk_has_elsb=false;
 			var		blk_loop=false;
 			strcmp	ptr=$(get_word),"loop";
@@ -1321,7 +1313,6 @@ model	"Moscovium series macro assembler"
 			get_newline;
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			mlet	mnem=$(get_word);
 			strcmp	ptr=$(get_word),"endb";
 			while (ptr)
@@ -1345,11 +1336,9 @@ model	"Moscovium series macro assembler"
 				}
 				get_word;
 				idx=idx + 1;
-				tolower		get_word;
 				mlet	mnem=$(get_word);
 				strcmp	ptr=$(get_word),"endb";
 			}
-			tolower		tbdy;
 			// expansion
 			macro	tbuf;
 			mlet	tbuf=$(tbdy);
@@ -1389,7 +1378,6 @@ model	"Moscovium series macro assembler"
 			// condition
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			var		ife_oute;
 			ife_oute=false;
 			if ($(get_word))
@@ -1401,7 +1389,6 @@ model	"Moscovium series macro assembler"
 			skip_space;
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			var		ife_prnt;
 			strcmp	ptr=$(get_word),"print";
 			ife_prnt=false;
@@ -1418,7 +1405,6 @@ model	"Moscovium series macro assembler"
 			get_newline;
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			mlet	mnem=$(get_word);
 			strcmp	ptr=$(get_word),"endi";
 			while (ptr)
@@ -1436,7 +1422,6 @@ model	"Moscovium series macro assembler"
 					// elsi
 					get_word;
 					idx=idx + 1;
-					tolower		get_word;
 					strcmp	ptr=$(get_word),"";
 					if (ptr)
 					{
@@ -1484,7 +1469,6 @@ model	"Moscovium series macro assembler"
 				}
 				get_word;
 				idx=idx + 1;
-				tolower		get_word;
 				mlet	mnem=$(get_word);
 				strcmp	ptr=$(get_word),"endi";
 			}
@@ -1615,7 +1599,6 @@ model	"Moscovium series macro assembler"
 				}
 				idx=idx + 1;
 				// push
-				tolower		get_word;
 				pindex	ptr=$(get_word),"^r[0-7]$";
 				if (ptr>0)
 				{
@@ -1679,7 +1662,6 @@ model	"Moscovium series macro assembler"
 				}
 				idx=idx + 1;
 				// push
-				tolower		get_word;
 				pindex	ptr=$(get_word),"^r[0-7]$";
 				if (ptr>0)
 				{
@@ -1807,7 +1789,6 @@ model	"Moscovium series macro assembler"
 			// macro name
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			strcmp	ptr=$(get_word),"";
 			if (ptr=0)
 			{
@@ -1843,12 +1824,10 @@ model	"Moscovium series macro assembler"
 				idx=idx + 1;
 				strcmp	ptr=$(get_word),"";
 			}
-			tolower		tmcr;
 			// macro body
 			get_newline;
 			get_word;
 			idx=idx + 1;
-			tolower		get_word;
 			mlet	mnem=$(get_word);
 			strcmp	ptr=$(get_word),"endm";
 			while (ptr)
@@ -1872,11 +1851,9 @@ model	"Moscovium series macro assembler"
 				}
 				get_word;
 				idx=idx + 1;
-				tolower		get_word;
 				mlet	mnem=$(get_word);
 				strcmp	ptr=$(get_word),"endm";
 			}
-			tolower		tbdy;
 			// define
 			static : macro	mcr_lst#(idx2)=$(tmcr);
 			static : macro	mcr_bdy#(idx2)=$(tbdy);
@@ -1965,7 +1942,6 @@ model	"Moscovium series macro assembler"
 		}
 
 		// preprocess
-		tolower		lbuf;
 		pgsub	"#.*","",lbuf;			// comment
 		pgsub	"//.*","",lbuf;			// comment
 		pgsub	"^[ 	]*","",lbuf;	// left side space
@@ -2028,16 +2004,16 @@ model	"Moscovium series macro assembler"
 		// mnemonic
 		psub	"^\\","",lbuf1;
 		substr	swd=$(lbuf1)"      ",1,MSIZ;
-		index	idx=$(mnem),$(swd);
+		index	idx=$(mnem_list),$(swd);
 		if (idx<=0 | (idx - 1)%MSIZ)
 		{
 			errmsg	"bad mnemonic: # "$(lbuf),idx;
 			leave	stop_error;
 		}
 		idx=int ((idx - 1)/MSIZ);
-		substr	scod=$(opcd),5*idx + 1,4;
+		substr	scod=$(opcd_list),5*idx + 1,4;
 		cod="0x"$(scod);
-		substr	buf=$(opcd),5*idx + 5,1;
+		substr	buf=$(opcd_list),5*idx + 5,1;
 		chr2num		tgt_core=$(buf);
 		if (TGTCORE=TGTNIHO & tgt_core=0am)
 		{
@@ -2492,7 +2468,6 @@ vtime	asm_start;
 	while (fNF>0)
 	{
 		macro	tbuf;
-		tolower		lbuf;
 		static : ifnvar	$(lbuf)
 		{
 			// ERROR: robustness, to prevent error termination

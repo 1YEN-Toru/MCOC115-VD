@@ -3,6 +3,10 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2025/10/11	ver.1.20
+//			fix: set Sr[NH] more earlier
+//			add: _uart_get_r1, _uart_put_r0_r1
+//
 //		2025/07/19	ver.1.18
 //			add: fequw, fequl user macro
 //
@@ -45,7 +49,7 @@
 //
 // ================================
 # constants
-equ		_rtlb_vers,0x0118				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0120				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer
 equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
@@ -260,7 +264,31 @@ pause
 bra		pcnt-4
 
 _rtlb_core_smp:
-// fork cpu2 or cpu0/cpu1
+// fork cpu0/cpu1 or cpu2 
+
+// ================================
+// CPU mod (access size) set and check
+bra		_rtlb_mcnh_$(z)
+_rtlb_mcnh_l:
+// Nihonium (32 bit) mode; Sr[NH]=1
+sesr	sreg_b_nh
+movfc	r1,sr
+lsri	r1,sreg_b_nh
+andi	r1,true
+bne		_rtlb_mcnh_w
+// ERROR: not Nh
+cmpi	r0,sreg_id_2>>sreg_b_id0
+beq		_rtlb_mcnh_id2
+ldwi	r1,lab__rtlb_mcnh_err
+jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
+_rtlb_mcnh_id2:
+// halt
+jmpr7	_rtlb_prog_halt
+_rtlb_mcnh_err:
+dats	"ERR: not a Nihonium core, halted.\r\n\0"
+_rtlb_mcnh_w:
+
+// branch cpu0/cpu1 or cpu2 
 cmpi	r0,sreg_id_2>>sreg_b_id0
 bne		_rtlb_core_cpu2n
 
@@ -393,24 +421,6 @@ jmpr7	_rtlb_prog_halt
 _rtlb_iram_err:
 dats	"ERR: no I-RAM found, halted.\r\n\0"
 _rtlb_iram_ok:
-
-// CPU mod (access size) check
-bra		_rtlb_mcnh_$(z)
-_rtlb_mcnh_l:
-// Nihonium (32 bit) mode
-sesr	sreg_b_nh
-movfc	r0,sr
-lsri	r0,sreg_b_nh
-andi	r0,true
-bne		_rtlb_mcnh_w
-// ERROR: not Nh
-ldwi	r1,lab__rtlb_mcnh_err
-jalwr7	_errmsg_r1						// Mc 16 bit mode tolerant
-// halt
-jmpr7	_rtlb_prog_halt
-_rtlb_mcnh_err:
-dats	"ERR: not a Nihonium core, halted.\r\n\0"
-_rtlb_mcnh_w:
 
 // MUL check
 ldbiu	r0,_rtlb_mul_need
@@ -1312,6 +1322,91 @@ mov		r2,r1							// LFSR16 to (LFSR16<<16)|LFSR16
 lsli	r2,16							//	for Sr[NH]=1 mode
 or		r1,r2							//	not effected for Sr[NH]=0 mode
 eor		r0,r1
+rtn$(z)
+
+// ================================
+// uart_put (r0,r1)
+//		r0: data to put
+//		r1: size of data (1~_rtlb_var_siz$(z))
+//	disturbed: r1,r2,r7
+//		r2: temporary data
+//		r7: temporary pointer
+//	return: send data to UART8N1
+// ================================
+align	4
+_uart_put_r0_r1:
+// parameter
+cmpi	r1,_rtlb_var_siz$(z)+1
+blo		pcnt+2
+ldbiu	r1,_rtlb_var_siz$(z)
+// prepare data, shift 1st byte to MSB
+ldbiu	r2,_rtlb_var_siz$(z)
+sub		r2,r1
+asli	r2,3
+lsft	r0,r2
+// loop
+_putb_loop:
+cmpi	r1,0
+beq		_putb_break
+// put byte
+push$(z)	r0
+lsri	r0,(_rtlb_var_siz$(z)-1)*8
+$(s)// ********************************
+$(s)ldwi	r7,princhr
+$(s)ldbiu	r2,asc_yen
+$(s)stw	[r7],r2
+$(s)ldbiu	r2,0ax
+$(s)stw	[r7],r2
+$(s)ldwi	r7,prinhex
+$(s)stb	[r7],r0
+$(s)bra	pcnt+6
+$(s)// ********************************
+jal$(z)r7	_print_chr_r0
+pop$(z)	r0
+lsli	r0,8
+// end of loop
+subi	r1,1
+bra		_putb_loop
+_putb_break:
+// end of sub routine
+rtn$(z)
+
+// ================================
+// r0=uart_get (r1)
+//		r1: size of data (1~_rtlb_var_siz$(z))
+//	disturbed: r1,r2,r7
+//		r2: temporary data
+//		r7: temporary pointer
+//	return: receive data from UART8N1, block until receiving specified size
+//		r0: data received, big endian
+// ================================
+align	4
+_uart_get_r1:
+// parameter
+cmpi	r1,_rtlb_var_siz$(z)+1
+blo		pcnt+2
+ldbiu	r1,_rtlb_var_siz$(z)
+// loop
+ldbiu	r0,0
+_getb_loop:
+cmpi	r1,0
+beq		_getb_break
+// polling until RAVL=1
+ldwi	r7,uartctl
+ldw		r2,[r7]
+andi	r2,uart_ravl
+beq		pcnt-6
+// get byte
+ldwi	r7,uartrdat
+ldw		r2,[r7]
+// big endian
+lsli	r0,8
+or		r0,r2
+// end of loop
+subi	r1,1
+bra		_getb_loop
+_getb_break:
+// end of sub routine
 rtn$(z)
 
 // ================================
