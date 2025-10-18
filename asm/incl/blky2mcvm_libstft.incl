@@ -3,6 +3,12 @@
 //		(c) 2025	1YEN Toru
 //
 //
+//		2025/10/18	ver.1.04
+//			add: _stft_pixel_hsv_r2_r1_r0
+//			fix: _stft_box_fill; parameter exchange
+//			change: _stft_box_fill; parameter clipping 
+//			change: _stft_pixel_r2_r1_r0; uint to int (parameters)
+//
 //		2025/03/15	ver.1.02
 //			fix: _stft_pix_max, _stft_pix_buf, _stft_ram_write, _stft_putpix
 //				It didn't work in Nihonium 32 bit mode (NH=1).
@@ -22,7 +28,7 @@
 //
 // ================================
 # string macros
-def		_stft_vers,"1.02"				// library version
+def		_stft_vers,"1.04"				// library version
 # constants
 equ		_stft_ss,stft_port_4			// spi: ss pin
 equ		_stft_sck,stft_port_3			// spi: sck pin
@@ -535,10 +541,25 @@ rtn$(z)
 // ================================
 align	4
 _stft_pixel_r2_r1_r0:
-// only the lower 8 bits are valid
-andi	r0,0xff
-andi	r1,0xff
-andi	r2,0xff
+// parameter
+cmpi	r2,0
+bge		pcnt+2
+ldbiu	r2,0
+cmpi	r1,0
+bge		pcnt+2
+ldbiu	r1,0
+cmpi	r0,0
+bge		pcnt+2
+ldbiu	r0,0
+cmpi	r2,255
+blt		pcnt+2
+ldbiu	r2,255
+cmpi	r1,255
+blt		pcnt+2
+ldbiu	r1,255
+cmpi	r0,255
+blt		pcnt+2
+ldbiu	r0,255
 // RGB888 to BGR565 conversion
 lsri	r0,3
 lsri	r1,2
@@ -548,6 +569,192 @@ lsli	r1,5
 or		r0,r2
 or		r0,r1
 rtn$(z)
+
+// ================================
+// tft pixel hsv ; disturbed r1~r4,r7
+//	parameter:	r2=Hue (0~359), r1=Saturation, r0=Value (0~255)
+//	return: r0=pixel (BGR565)
+// ================================
+equ		_stft_phsv_tma,0*_rtlb_var_siz$(z)
+equ		_stft_phsv_tmb,1*_rtlb_var_siz$(z)
+equ		_stft_phsv_tml,2*_rtlb_var_siz$(z)
+equ		_stft_phsv_tmm,3*_rtlb_var_siz$(z)
+equ		_stft_phsv_tmn,4*_rtlb_var_siz$(z)
+align	4
+_stft_pixel_hsv_r2_r1_r0:
+// parameter
+cmpi	r2,0
+bge		pcnt+2
+ldbiu	r2,0
+cmpi	r1,0
+bge		pcnt+2
+ldbiu	r1,0
+cmpi	r0,0
+bge		pcnt+2
+ldbiu	r0,0
+ldwi	r7,359
+cmp		r2,r7
+blt		pcnt+4
+ldwi	r2,359
+cmpi	r1,255
+blt		pcnt+2
+ldbiu	r1,255
+cmpi	r0,255
+blt		pcnt+2
+ldbiu	r0,255
+// allocate local variables
+movfc	r7,sp
+subi	r7,_rtlb_var_siz$(z)*5
+movtc	sp,r7
+// hsv to rgb conversion
+// tma=hue/60
+// tmb=hue%60
+mov		r3,r2
+ldbiu	r4,60
+divur	r3,r4
+ldbiu	r7,_stft_phsv_tma
+st$(z)sp	[r7],r3
+ldbiu	r7,_stft_phsv_tmb
+st$(z)sp	[r7],r4
+// tml=@@16(val*(255 - sat)/255);
+# r3=255 - sat(r1)
+ldbiu	r3,255
+sub		r3,r1
+# r3=val(r0)*r3
+mulu	r3,r0
+# r3=r3/255
+ldbiu	r4,255
+divu	r3,r4
+ldbiu	r7,_stft_phsv_tml
+st$(z)sp	[r7],r3
+// tmm=@@16(val*(255 - sat*tmb/60)/255);
+# r3=sat(r1)*tmb
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r3,[r7]
+mulu	r3,r1
+# r3=r3/60
+ldbiu	r4,60
+divu	r3,r4
+# r4=255 - r3
+ldbiu	r4,255
+sub		r4,r3
+# r4=val(r0)*r4
+mulu	r4,r0
+# r4=r4/255
+ldbiu	r3,255
+divu	r4,r3
+ldbiu	r7,_stft_phsv_tmm
+st$(z)sp	[r7],r4
+// tmn=@@16(val*(255 - sat*(60 - tmb)/60)/255);
+# r3=60 - tmb
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r4,[r7]
+ldbiu	r3,60
+sub		r3,r4
+# r3=sat(r1)*r3
+mulu	r3,r1
+# r3=r3/60
+ldbiu	r4,60
+divu	r3,r4
+# r4=255 - r3
+ldbiu	r4,255
+sub		r4,r3
+# r4=val(r0)*r4
+mulu	r4,r0
+# r4=r4/255
+ldbiu	r3,255
+divu	r4,r3
+ldbiu	r7,_stft_phsv_tmn
+st$(z)sp	[r7],r4
+// tmb=val(r0)
+ldbiu	r7,_stft_phsv_tmb
+st$(z)sp	[r7],r0
+
+// case (tma)
+ldbiu	r7,_stft_phsv_tma
+ld$(z)sp	r7,[r7]
+lsli	r7,1
+ldwi	r3,lab__stft_phsv_jtab
+add		r7,r3
+ldw		r7,[r7]
+jmp		r7
+
+// RGB888; Red(r2), Green(r1), Blue(r0)
+_stft_phsv_cas0:
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r2,[r7]
+ldbiu	r7,_stft_phsv_tmn
+ld$(z)sp	r1,[r7]
+ldbiu	r7,_stft_phsv_tml
+ld$(z)sp	r0,[r7]
+bra		_stft_phsv_endc
+
+_stft_phsv_cas1:
+ldbiu	r7,_stft_phsv_tmm
+ld$(z)sp	r2,[r7]
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r1,[r7]
+ldbiu	r7,_stft_phsv_tml
+ld$(z)sp	r0,[r7]
+bra		_stft_phsv_endc
+
+_stft_phsv_cas2:
+ldbiu	r7,_stft_phsv_tml
+ld$(z)sp	r2,[r7]
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r1,[r7]
+ldbiu	r7,_stft_phsv_tmn
+ld$(z)sp	r0,[r7]
+bra		_stft_phsv_endc
+
+_stft_phsv_cas3:
+ldbiu	r7,_stft_phsv_tml
+ld$(z)sp	r2,[r7]
+ldbiu	r7,_stft_phsv_tmm
+ld$(z)sp	r1,[r7]
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r0,[r7]
+bra		_stft_phsv_endc
+
+_stft_phsv_cas4:
+ldbiu	r7,_stft_phsv_tmn
+ld$(z)sp	r2,[r7]
+ldbiu	r7,_stft_phsv_tml
+ld$(z)sp	r1,[r7]
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r0,[r7]
+bra		_stft_phsv_endc
+
+_stft_phsv_cas5:
+ldbiu	r7,_stft_phsv_tmb
+ld$(z)sp	r2,[r7]
+ldbiu	r7,_stft_phsv_tml
+ld$(z)sp	r1,[r7]
+ldbiu	r7,_stft_phsv_tmm
+ld$(z)sp	r0,[r7]
+
+_stft_phsv_endc:
+// destroy local variables
+movfc	r7,sp
+addi	r7,_rtlb_var_siz$(z)*5
+movtc	sp,r7
+// RGB888 to BGR565 conversion
+lsri	r0,3
+lsri	r1,2
+lsri	r2,3
+lsli	r0,5+6
+lsli	r1,5
+or		r0,r2
+or		r0,r1
+rtn$(z)
+
+_stft_phsv_jtab:
+datw	lab__stft_phsv_cas0
+datw	lab__stft_phsv_cas1
+datw	lab__stft_phsv_cas2
+datw	lab__stft_phsv_cas3
+datw	lab__stft_phsv_cas4
+datw	lab__stft_phsv_cas5
 
 // ================================
 // tft get pixel ; disturbed r0~r3,r5,r7
@@ -745,7 +952,7 @@ _stft_tpx_not_full:
 rtn$(z)
 
 // ================================
-// tft draw box fill ; disturbed r0~r4,r5,r7
+// tft draw box fill ; disturbed r0~r5,r7
 //	parameter:
 //		sp+5:	px1
 //		sp+4:	py1
@@ -764,23 +971,51 @@ _stft_box_fill:
 $(s)// ********************************
 $(s)rtn$(z)
 $(s)// ********************************
-// px1<px2; swap if need
+// px1<px2
 ldbiu	r5,_stft_box_fill_px1
 ld$(z)sp	r0,[r5]
 ldbiu	r7,_stft_box_fill_px2
 ld$(z)sp	r1,[r7]
+// clip
+cmpi	r0,0
+bhs		pcnt+2
+ldbiu	r0,0
+cmpi	r0,_stft_siz_dh
+blt		pcnt+2
+ldbiu	r0,_stft_siz_dh-1
+cmpi	r1,0
+bhs		pcnt+2
+ldbiu	r1,0
+cmpi	r1,_stft_siz_dh
+blt		pcnt+2
+ldbiu	r1,_stft_siz_dh-1
+// swap if need
 cmp		r0,r1
 blt		pcnt+4
-st$(z)sp	[r7],r1
+st$(z)sp	[r5],r1
 st$(z)sp	[r7],r0
-// py1<py2; swap if need
+// py1<py2
 ldbiu	r5,_stft_box_fill_py1
 ld$(z)sp	r0,[r5]
 ldbiu	r7,_stft_box_fill_py2
 ld$(z)sp	r1,[r7]
+// clip
+cmpi	r0,0
+bhs		pcnt+2
+ldbiu	r0,0
+cmpi	r0,_stft_siz_dv
+blt		pcnt+2
+ldbiu	r0,_stft_siz_dv-1
+cmpi	r1,0
+bhs		pcnt+2
+ldbiu	r1,0
+cmpi	r1,_stft_siz_dv
+blt		pcnt+2
+ldbiu	r1,_stft_siz_dv-1
+// swap if need
 cmp		r0,r1
 blt		pcnt+4
-st$(z)sp	[r7],r1
+st$(z)sp	[r5],r1
 st$(z)sp	[r7],r0
 // CASET
 ldvar	r7,_stft_spi_buf
@@ -869,7 +1104,7 @@ jal$(z)r7	_stft_putpix
 rtn$(z)
 
 // ================================
-// tft draw box wire ; disturbed r0~r4,r5,r7
+// tft draw box wire ; disturbed r0~r5,r7
 //	parameter:
 //		sp+5:	px1
 //		sp+4:	py1
@@ -936,7 +1171,7 @@ movtc	sp,r0
 rtn$(z)
 
 // ================================
-// tft draw dot ; disturbed r0~r4,r5,r7
+// tft draw dot ; disturbed r0~r5,r7
 //	parameter: r2=px, r1=py, r0=pixel (BGR565)
 // ================================
 align	4
@@ -1166,7 +1401,7 @@ _stft_tkp_return:
 rtn$(z)
 
 // ================================
-// tft clear ; disturbed r0~r4,r5,r7
+// tft clear ; disturbed r0~r5,r7
 // ================================
 align	4
 _stft_clear:

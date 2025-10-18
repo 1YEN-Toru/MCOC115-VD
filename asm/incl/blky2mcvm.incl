@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2025/10/18	ver.1.22
+//			change: _atoi_r1, _xtoi_r1; skip the first whitespace
+//
 //		2025/10/11	ver.1.20
 //			fix: set Sr[NH] more earlier
 //			add: _uart_get_r1, _uart_put_r0_r1
@@ -49,7 +52,7 @@
 //
 // ================================
 # constants
-equ		_rtlb_vers,0x0120				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0122				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer
 equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
@@ -1201,6 +1204,13 @@ rtn$(z)
 // ================================
 align	4
 _atoi_r1:
+// skip the first whitespace (<=0x20)
+ldb		r0,[r1]
+addi	r1,1
+cmpi	r0,asc_spc+1
+blo		pcnt-8
+subi	r1,1
+// initialize
 ldbiu	r0,0
 ldbiu	r4,true							// positive
 // sign [+-]
@@ -1253,6 +1263,13 @@ rtn$(z)
 // ================================
 align	4
 _xtoi_r1:
+// skip the first whitespace (<=0x20)
+ldb		r0,[r1]
+addi	r1,1
+cmpi	r0,asc_spc+1
+blo		pcnt-8
+subi	r1,1
+// initialize
 ldbiu	r0,0
 // loop
 _xtoi_loop:

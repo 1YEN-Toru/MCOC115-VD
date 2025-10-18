@@ -1,12 +1,21 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.26";
+	macro	prog_vers="1.28";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/10/18	ver.1.28
+//			add: mcoc_controls_forc
+//			add: mcoc_stft_pixel_hsv
+//			add: mcoc_uart_put, mcoc_uart_get
+//			add: mcvm_mem_array_def, mcvm_mem_array_ref, mcvm_mem_array_set
+//			change: procedures_defreturn, mcoc_task; start in @int@ mode
+//			fix: mcoc_text_itox; number of digits load timing
+//			fix: mcoc_pack; correct <statement> tag in disabled pack
 //
 //		2025/09/20	ver.1.26
 //			add: mcoc_sndg_init, mcoc_sndg_play_mml, mcoc_sndg_play_ptr
@@ -16,7 +25,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //			add: mcvm_sim_stat (mcvm_sim_pass and mcvm_sim_fail are obsolete)
 //			change: mcvm_cpu_cend; data size selection
 //			change: mcoc_math_bit_operation; >>> logical shift right operator
-//			update: allow except string variable also
+//			change: allow except string variable also
 //				mcoc_string_compare_left, mcoc_string_find,
 //				mcoc_string_get_char, mcoc_string_pointer,
 //				mcoc_string_set,
@@ -28,7 +37,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //				serial_available, serial_print, serial_println, serial_read
 //
 //		2025/07/19	ver.1.24
-//			update: mcoc_math_label; corresponding to float constant label
+//			change: mcoc_math_label; corresponding to float constant label
 //
 //		2025/03/22	ver.1.22
 //			corresponding to define allocation buffer
@@ -61,7 +70,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //			corresponding to SPI-TFT (STFT61 unit, ST7735R)
 //			add: mcoc_stft_*
 //			add: mcoc_math_func; abs, rand, rseed, floor, ceil, round
-//			update: corresponding to S-JIS encode string;
+//			change: corresponding to S-JIS encode string;
 //				mcoc_math_ascii, mcoc_string_ctoa, mcoc_string_get_char
 //			fix: atoi, xtoi; in_var_set=false for text_join control
 //			fix: itox; need "push r0" for !in_var_set
@@ -899,9 +908,6 @@ if (false)
 		{
 			// string variable = <string>
 
-			// assembler
-			fprint	fout,"// r0=strcpy (r0(="$(vnam)"),r1(="$(nval)"))"$,;
-
 			strcmp	cmp=$(nval),"'", left;
 			if (cmp=0)
 			{
@@ -945,6 +951,8 @@ if (false)
 						// string constant or string variable
 
 						// assembler
+						fprint	fout,"// r0=strcpy (r0(="$(vnam)"),r1(="
+								$(nval)"))"$,;
 						fprint	fout,"pop$(z)	r0"$,;
 						fprint	fout,"jal$(z)r7	_strcpy_r0_r1"$,;
 					}
@@ -1445,11 +1453,11 @@ if (false)
 				}
 			}
 		}
-		mlet	do_blk_mcvm_fpu_ftoi="int("$(nval)")";
+		mlet	do_blk_mcvm_fpu_ftoi="int ("$(nval)")";
 		opt_fpu_need=true;
 
 		// assembler
-		fprint	fout,"// r0=int(float r0(="$(nval)"))"$,;
+		fprint	fout,"// r0=int (float r0(="$(nval)"))"$,;
 		fprint	fout,"cmpi	r0,0"$,;
 		fprint	fout,"ldbiu	r1,false	// 0 or positive"$,;
 		fprint	fout,"bpl	pcnt+4"$,;
@@ -1488,11 +1496,11 @@ if (false)
 				}
 			}
 		}
-		mlet	do_blk_mcvm_fpu_itof="float("$(nval)")";
+		mlet	do_blk_mcvm_fpu_itof="float ("$(nval)")";
 		opt_fpu_need=true;
 
 		// assembler
-		fprint	fout,"// r0=float(int r0(="$(nval)"))"$,;
+		fprint	fout,"// r0=float (int r0(="$(nval)"))"$,;
 		fprint	fout,"cmpi	r0,0"$,;
 		fprint	fout,"ldbiu	r1,false	// 0 or positive"$,;
 		fprint	fout,"bpl	pcnt+4"$,;
@@ -1662,6 +1670,178 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 		static : macro	alst_lnam_#(alst_cnt)=$(lnam);
 		static : macro	alst_asiz_#(alst_cnt)=$(asiz);
 		alst_cnt=alst_cnt + 1;
+	}
+	procedure	do_blk_mcvm_mem_array_def
+	{
+		var		cmp;
+		macro	vnam;
+		macro	asiz;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"VAR";
+					if (cmp=0)
+					{
+						mlet	vnam=$(do_$(dxml));
+					}
+					strcmp	cmp=$(dnam),"SIZ";
+					if (cmp=0)
+					{
+						mlet	asiz=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		// assembler
+		macro	dsiz="word";
+		if (opt_cpu_mod=opt_nh)
+		{
+			mlet	dsiz="long";
+		}
+		fprint	fout,"// array "$(vnam)" = "$(dsiz)"["$(asiz)"]"$,;
+		asm_ld_var_adr	"r7",$(vnam);
+		fprint	fout,"ldwi	r0,_aryv_"$(vnam)$,;
+		fprint	fout,"add	r0,r6"$,;
+		fprint	fout,"st$(z)	[r7],r0"$,;
+
+		// allocation list
+		static : macro	alst_lnam_#(alst_cnt)="_aryv_"$(vnam);
+		static : macro	alst_asiz_#(alst_cnt)="_rtlb_var_siz$(z)*("$(asiz)")";
+		alst_cnt=alst_cnt + 1;
+	}
+	procedure	do_blk_mcvm_mem_array_ref
+	{
+		var		cmp;
+		macro	vnam;
+		macro	nidx;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vnam=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nidx=$(do_$(dxml));
+				}
+			}
+		}
+		mlet	do_blk_mcvm_mem_array_ref=$(vnam)"["$(nidx)"]";
+
+		// assembler
+		asm_ld_var	r7,$(vnam);
+		fprint	fout,"// r0="$(vnam)"[r0(="$(nidx)")]"$,;
+		fprint	fout,"asli	r0,_rtlb_var_sft$(z)"$,;
+		fprint	fout,"add	r7,r0"$,;
+		fprint	fout,"ld$(z)	r0,[r7]"$,;
+	}
+	procedure	do_blk_mcvm_mem_array_set
+	{
+		var		cmp;
+		macro	vnam;
+		macro	nidx;
+		macro	nval;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	vnam=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"IDX";
+					if (cmp=0)
+					{
+						mlet	nidx=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"VAL";
+					if (cmp=0)
+					{
+						mlet	nval=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		// assembler
+		asm_ld_var	"r7",$(vnam);
+		fprint	fout,"// r1="$(nidx)$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"// "$(vnam)"[r1(="$(nidx)")]=r0(="$(nval)")"$,;
+		fprint	fout,"asli	r1,_rtlb_var_sft$(z)"$,;
+		fprint	fout,"add	r7,r1"$,;
+		fprint	fout,"st$(z)	[r7],r0"$,;
 	}
 	procedure	do_blk_mcvm_mem_read
 	{
@@ -2835,6 +3015,7 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 	{
 		var		cmp;
 		var		stat;
+		var		cnts;
 		macro	enbl;
 
 		while (true)
@@ -2881,10 +3062,20 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 			if (stat=1 | stat=3)
 			{
 				// pack block
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp>0)
+				{
+					cnts=cnts + 1;
+				}
 				pindex	cmp=$(cxml),"^</statement[ >]";
 				if (cmp>0)
 				{
 					// end of statement
+					if (cnts>0)
+					{
+						cnts=cnts - 1;
+						continue;
+					}
 
 					// end of pack
 					stat=2;
@@ -3009,6 +3200,7 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 			fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 		}
 
+		opt_opr_typ=opt_int;
 		while (true)
 		{
 			fget_xml;
@@ -3264,10 +3456,6 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 				if (cmp=0)
 				{
 					mlet	ndig=$(do_$(dxml));
-
-					// assembler
-					fprint	fout,"// r2="$(ndig)$,;
-					fprint	fout,"ld$(z)i	r2,"$(ndig)$,;
 				}
 				strcmp	cmp=$(dxml),"value";
 				if (cmp=0)
@@ -3281,6 +3469,8 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 		// assembler
 		fprint	fout,"// r1=r0(="$(nval)")"$,;
 		fprint	fout,"mov	r1,r0"$,;
+		fprint	fout,"// r2="$(ndig)$,;
+		fprint	fout,"ld$(z)i	r2,"$(ndig)$,;
 		fprint	fout,"// r0=strhex (r0,r1(="$(nval)"),r2(="$(ndig)"))"$,;
 		fprint	fout,"pop$(z)	r0"$,;
 		fprint	fout,"jal$(z)r7	_strhex_r0_r1_r2"$,;
@@ -3944,32 +4134,32 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 	procedure	do_blk_mcoc_sytm_ticks
 	{
 		// assembler
-		fprint	fout,"// r0=ticks()"$,;
+		fprint	fout,"// r0=ticks ()"$,;
 		fprint	fout,"ldwi	r7,_rtlb_sytmtck$(z)"$,;
 		fprint	fout,"ld$(z)	r0,[r7]"$,;
 
 		skip_one	"block";
-		mlet	do_blk_mcoc_sytm_ticks="ticks()";
+		mlet	do_blk_mcoc_sytm_ticks="ticks ()";
 	}
 	procedure	do_blk_mcoc_sytm_micros
 	{
 		// assembler
-		fprint	fout,"// r0=micros()"$,;
+		fprint	fout,"// r0=micros ()"$,;
 		fprint	fout,"ldwi	r7,_rtlb_sytmmcr$(z)"$,;
 		fprint	fout,"ld$(z)	r0,[r7]"$,;
 
 		skip_one	"block";
-		mlet	do_blk_mcoc_sytm_micros="micros()";
+		mlet	do_blk_mcoc_sytm_micros="micros ()";
 	}
 	procedure	do_blk_mcoc_sytm_millis
 	{
 		// assembler
-		fprint	fout,"// r0=millis()"$,;
+		fprint	fout,"// r0=millis ()"$,;
 		fprint	fout,"ldwi	r7,_rtlb_sytmmil$(z)"$,;
 		fprint	fout,"ld$(z)	r0,[r7]"$,;
 
 		skip_one	"block";
-		mlet	do_blk_mcoc_sytm_millis="millis()";
+		mlet	do_blk_mcoc_sytm_millis="millis ()";
 	}
 	procedure	do_blk_mcoc_uart_print
 	{
@@ -3981,6 +4171,115 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 
 		// assembler
 		fprint	fout,"jal$(z)r7	_print_crlf"$,;
+	}
+	procedure	do_blk_mcoc_uart_put
+	{
+		var		cmp;
+		macro	siz;
+		macro	nval;
+
+		while (true)
+		{
+			var		in_var_set=true;
+
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	siz=$(do_$(dxml));
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					mlet	nval=$(do_$(dxml));
+				}
+			}
+		}
+		tolower		siz;
+		strcmp	cmp=$(siz),"long";
+		if (opt_cpu_mod!=opt_nh & cmp=0)
+		{
+			// ERROR:
+			errmsg	"mcoc_uart_put: need @Nh@ translator option for long";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,"// uart_put_"$(siz)" (r0(="$(nval)"),r1="$(siz)")"$,;
+		sub		"byte","1",siz;
+		sub		"word","2",siz;
+		sub		"long","4",siz;
+		fprint	fout,"ldbiu	r1,"$(siz)$,;
+		fprint	fout,"jal$(z)r7	_uart_put_r0_r1"$,;
+	}
+	procedure	do_blk_mcoc_uart_get
+	{
+		var		cmp;
+		macro	siz;
+
+		while (true)
+		{
+			var		in_var_set=true;
+
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					mlet	siz=$(do_$(dxml));
+				}
+			}
+		}
+		tolower		siz;
+		strcmp	cmp=$(siz),"long";
+		if (opt_cpu_mod!=opt_nh & cmp=0)
+		{
+			// ERROR:
+			errmsg	"mcoc_uart_get: need @Nh@ translator option for long";
+			leave	stop_error;
+		}
+		mlet	do_blk_mcoc_uart_get="uart_get_"$(siz)" ()";
+
+		// assembler
+		fprint	fout,"// r0=uart_get_"$(siz)" (r1="$(siz)")"$,;
+		sub		"byte","1",siz;
+		sub		"word","2",siz;
+		sub		"long","4",siz;
+		fprint	fout,"ldbiu	r1,"$(siz)$,;
+		fprint	fout,"jal$(z)r7	_uart_get_r1"$,;
 	}
 	procedure	do_blk_mcoc_uart_getline
 	{
@@ -4019,10 +4318,10 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 				do_$(dxml);
 			}
 		}
-		mlet	do_blk_mcoc_uart_getline="'uart_getline ()'";
+		mlet	do_blk_mcoc_uart_getline="'uart_get_line ()'";
 
 		// assembler
-		fprint	fout,"// r0,r1=uart_getline (r0)"$,;
+		fprint	fout,"// r0,r1=uart_get_line (r0)"$,;
 		fprint	fout,"jal$(z)r7	_getline_r0"$,;
 	}
 	procedure	do_blk_mcoc_uart_avail
@@ -4563,6 +4862,70 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 
 		mlet	do_blk_mcoc_stft_pixel=
 				"pixel ("$(nvalr)","$(nvalg)","$(nvalb)")";
+	}
+	procedure	do_blk_mcoc_stft_pixel_hsv
+	{
+		var		cmp;
+		macro	nvalh;
+		macro	nvals;
+		macro	nvalv;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"H9";
+					if (cmp=0)
+					{
+						mlet	nvalh=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"S8";
+					if (cmp=0)
+					{
+						mlet	nvals=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"push$(z)	r0"$,;
+					}
+					strcmp	cmp=$(dnam),"V8";
+					if (cmp=0)
+					{
+						mlet	nvalv=$(do_$(dxml));
+					}
+				}
+			}
+		}
+		need_stft=true;
+
+		// assembler
+		fprint	fout,"// r0=pixel_hsv (r2(="$(nvalh)"),r1(="$(nvals)"),r0(="
+					$(nvalv)"))"$,;
+		fprint	fout,"pop$(z)	r1"$,;
+		fprint	fout,"pop$(z)	r2"$,;
+		fprint	fout,"jal$(z)r7	_stft_pixel_hsv_r2_r1_r0"$,;
+
+		mlet	do_blk_mcoc_stft_pixel_hsv=
+				"pixel_hsv ("$(nvalh)","$(nvals)","$(nvalv)")";
 	}
 	procedure	do_blk_mcoc_stft_pixel_embed
 	{
@@ -6753,6 +7116,10 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	vnam;
 		macro	cstr;
 
+		// assembler
+		fprint	fout,""$,;
+		fprint	fout,"// text append"$,;
+
 		in_var_set=true;
 		while (true)
 		{
@@ -6969,6 +7336,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	muta;
 		macro	vrtn;
 
+		opt_opr_typ=opt_int;
 		while (true)
 		{
 			fget_xml;
@@ -7182,10 +7550,10 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 				}
 			}
 		}
-		mlet	do_blk_procedures_callreturn=$(fnam)"()";
+		mlet	do_blk_procedures_callreturn=$(fnam)" ()";
 
 		// assembler
-		fprint	fout,"// function call: "$(fnam)"()"$,;
+		fprint	fout,"// function call: "$(fnam)" ()"$,;
 		fprint	fout,"jal$(z)r7	"$(fnam)$,;
 	}
 	procedure	do_blk_procedures_callnoreturn
@@ -7400,6 +7768,8 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					fprint	fout,"bra	pcnt+2"$,;
 					fprint	fout,$(fi)"cmp	r0,r1	// down count"$,;
 					fprint	fout,"blt	_auto_"$(slabid)"_break"$,;
+					fprint	fout,$,;
+					fprint	fout,"// for block"$,;
 
 					// continue
 					pindex	cmp=$(cxml),"^<statement[ >]";
@@ -7962,6 +8332,165 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		fprint	fout,"// endif"$,;
 		fprint	fout,"_auto_"$(slabid)"_endif:"$,;
 	}
+	procedure	do_blk_mcoc_controls_forc
+	{
+		var		cmp;
+		var		stat;
+		macro	vnam;
+		macro	nfrm;
+		macro	wexp;
+		macro	nwth;
+
+		// assembler
+		labid=labid + 1;
+		macro	slabid;
+		num2str		slabid=labid,"%04x";
+		macro	slabid_loop=$(slabid);
+		fprint	fout,""$,;
+		fprint	fout,"// for-c loop"$,;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						stat=1;
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+					}
+				}
+			}
+			if (stat=1)
+			{
+				// loop block
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of loop block
+					stat=2;
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of loop
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	vnam=$(do_$(dxml));
+					}
+				}
+				strcmp	cmp=$(dxml),"value";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"FROM";
+					if (cmp=0)
+					{
+						mlet	nfrm=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// "$(vnam)"=r0(="$(nfrm)")"$,;
+						asm_ld_var_adr	"r7",$(vnam);
+						fprint	fout,"st$(z)	[r7],r0"$,;
+						fprint	fout,$,;
+						fprint	fout,"// for-c while "$,;
+						fprint	fout,"_auto_"$(slabid)"_forc:"$,;
+					}
+					strcmp	cmp=$(dnam),"BOOL";
+					if (cmp=0)
+					{
+						// loop condition
+						mlet	wexp=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// while ("$(wexp)")"$,;
+						fprint	fout,"cmpi	r0,false"$,;
+						fprint	fout,"bne	_auto_"$(slabid)"_block"$,;
+						fprint	fout,"bra	_auto_"$(slabid)"_break"$,;
+						fprint	fout,$,;
+						fprint	fout,"// for-c with"$,;
+						fprint	fout,"_auto_"$(slabid)"_continue:"$,;
+					}
+					strcmp	cmp=$(dnam),"WITH";
+					if (cmp=0)
+					{
+						mlet	nwth=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"// "$(vnam)"=r0(="$(nwth)")"$,;
+						asm_ld_var_adr	"r7",$(vnam);
+						fprint	fout,"st$(z)	[r7],r0"$,;
+						fprint	fout,"bra	_auto_"$(slabid)"_forc"$,;
+						fprint	fout,$,;
+						fprint	fout,"// for-c block"$,;
+						fprint	fout,"_auto_"$(slabid)"_block:"$,;
+					}
+				}
+			}
+		}
+		strcmp	cmp=$(nfrm),"";
+		if (cmp)
+		{
+			strcmp	cmp=$(wexp),"";
+		}
+		if (cmp)
+		{
+			strcmp	cmp=$(nwth),"";
+		}
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	"mcoc_controls_forc: empty parameter";
+			leave	stop_error;
+		}
+
+		// assembler
+		fprint	fout,""$,;
+		fprint	fout,"// end of for-c loop"$,;
+		fprint	fout,"bra	_auto_"$(slabid)"_continue"$,;
+		fprint	fout,"_auto_"$(slabid)"_break:"$,;
+	}
 	procedure	do_blk_mcoc_controls_dorept
 	{
 		var		cmp;
@@ -8469,6 +8998,8 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 			fprint	fout,"## define variables"$,;
 			fprint	fout,"equ	_rtlb_var_sizw,2"$,;
 			fprint	fout,"equ	_rtlb_var_sizl,4"$,;
+			fprint	fout,"equ	_rtlb_var_sftw,1"$,;
+			fprint	fout,"equ	_rtlb_var_sftl,2"$,;
 			fprint	fout,"equ	_va,0"$,;
 			fprint	fout,"equ	_rtlb_var_top,_va"$,;
 
@@ -8516,7 +9047,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 				while (idx<alst_cnt)
 				{
 					fprint	fout,"equ	_va,(_va+_rtlb_var_siz$(z)-1)/"
-							"_rtlb_var_siz$(z)*_rtlb_var_siz$(z)"$,;
+							"_rtlb_var_siz$(z)*_rtlb_var_siz$(z)	// align"$,;
 					fprint	fout,"equ	"$(alst_lnam_#(idx))",_va"$,;
 					fprint	fout,"equ	_va,_va+("$(alst_asiz_#(idx))")"$,;
 

@@ -298,6 +298,81 @@ Blockly.Blocks['mcvm_memx_write'] = {
   }
 };
 
+Blockly.Blocks['mcvm_mem_array_def'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("array")
+        .appendField(new Blockly.FieldVariable("item"), "VAR");
+    this.appendDummyInput()
+        .appendField("*")
+        .appendField(new Blockly.FieldTextInput("12"), "SIZ");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(15);
+ this.setTooltip("define array variable");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcvm_mem_array_ref'] = {
+  init: function() {
+    this.appendValueInput("IDX")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("@");
+    this.setInputsInline(false);
+    this.setOutput(true, null);
+    this.setColour(15);
+ this.setTooltip("refer to element of array variable ");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcvm_mem_array_set'] = {
+  init: function() {
+    this.appendValueInput("IDX")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("@");
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField("=");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(15);
+ this.setTooltip("set element of array variable to input value");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcoc_controls_forc'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("for");
+    this.appendValueInput("FROM")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("=");
+    this.appendValueInput("BOOL")
+        .setCheck("Boolean")
+        .appendField("while");
+    this.appendValueInput("WITH")
+        .setCheck("Number")
+        .appendField("with");
+    this.appendStatementInput("DO")
+        .setCheck(null)
+        .appendField("do");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(120);
+ this.setTooltip("for loop (C language like)");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKLOOP");
+  }
+};
+
 Blockly.Blocks['mcoc_controls_dorept'] = {
   init: function() {
     this.appendStatementInput("DO")
@@ -1160,6 +1235,27 @@ Blockly.Blocks['mcoc_stft_pixel'] = {
     this.setOutput(true, "Number");
     this.setColour(90);
  this.setTooltip("SPI-TFT RGB888 to pixel (BGR565) conversion");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT_I");
+  }
+};
+
+Blockly.Blocks['mcoc_stft_pixel_hsv'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("stft pixel");
+    this.appendValueInput("H9")
+        .setCheck("Number")
+        .appendField("H9");
+    this.appendValueInput("S8")
+        .setCheck("Number")
+        .appendField("S8");
+    this.appendValueInput("V8")
+        .setCheck("Number")
+        .appendField("V8");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(90);
+ this.setTooltip("SPI-TFT HSV988 to pixel (BGR565) conversion");
  this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTFT_I");
   }
 };

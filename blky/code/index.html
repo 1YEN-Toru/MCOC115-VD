@@ -15,7 +15,7 @@
   <script src="../../dist/lua_compressed.js"></script>
   <script src="../../dist/dart_compressed.js"></script>
   <script src="mcvm_blocks.js"></script>
-  <script src="mcvm_custom.js"></script>
+  <script src="mcvm_genjs.js"></script>
   <script src="code.js"></script>
 </head>
 <body>
@@ -127,6 +127,7 @@
         </value>
 -->
       </block>
+      <block type="mcoc_controls_forc"></block>
       <block type="mcoc_controls_dorept"></block>
       <block type="mcoc_controls_loop"></block>
 <!--
@@ -420,6 +421,9 @@
       <block type="mcvm_mem_write"></block>
       <block type="mcvm_memx_read" inline="false"></block>
       <block type="mcvm_memx_write" inline="false"></block>
+      <block type="mcvm_mem_array_def"></block>
+      <block type="mcvm_mem_array_ref"></block>
+      <block type="mcvm_mem_array_set"></block>
     </category>
     <category name="Standard" colour="30">
       <block type="mcoc_math_ascii"></block>
@@ -454,6 +458,8 @@
       <block type="mcoc_sytm_millis"></block>
       <block type="mcoc_sytm_ticks"></block>
       <block type="mcoc_uart_avail"></block>
+      <block type="mcoc_uart_get"></block>
+      <block type="mcoc_uart_put"></block>
       <block type="mcoc_uart_getline"></block>
       <block type="mcoc_uart_print"></block>
       <block type="mcoc_uart_println"></block>
@@ -475,6 +481,7 @@
       <block type="mcoc_stft_init"></block>
       <block type="mcoc_stft_locate"></block>
       <block type="mcoc_stft_pixel"></block>
+      <block type="mcoc_stft_pixel_hsv"></block>
       <block type="mcoc_stft_pixel_embed"></block>
       <block type="mcoc_stft_print"></block>
       <block type="mcoc_stft_transf"></block>

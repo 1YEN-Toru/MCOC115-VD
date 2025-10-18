@@ -466,12 +466,18 @@ Code.init = function() {
       function(m, p1, p2) {return p1 + MSG[p2];});
   var toolboxXml = Blockly.utils.xml.textToDom(toolboxText);
 
+// 251018,1YEN,set default saturation and value
+Blockly.utils.colour.setHsvSaturation(0.50);	// 0.45(default))
+Blockly.utils.colour.setHsvValue(0.80);			// 0.65(default)
+// 251018,1YEN,change parameters
   Code.workspace = Blockly.inject('content_blocks',
       {grid:
           {spacing: 25,
-           length: 3,
-           colour: '#ccc',
+length: 25,
+colour: '#eee',
            snap: true},
+renderer: 'geras',						// geras / thrasos / zelos
+move: {wheel: true},
        media: '../../media/',
        rtl: rtl,
        toolbox: toolboxXml,
@@ -629,3 +635,12 @@ document.write('<script src="msg/' + Code.LANG + '.js"></script>\n');
 document.write('<script src="../../build/msg/' + Code.LANG + '.js"></script>\n');
 
 window.addEventListener('load', Code.init);
+
+// 251018,1YEN
+// customizing loop blocks
+Blockly.libraryBlocks.loops.loopTypes.add('mcoc_controls_forc');
+Blockly.libraryBlocks.loops.loopTypes.add('mcoc_controls_dorept');
+Blockly.libraryBlocks.loops.loopTypes.add('mcoc_controls_loop');
+
+// customizing procedure blocks
+Blockly.Blocks['procedures_ifreturn'].FUNCTION_TYPES.push('mcoc_task');
