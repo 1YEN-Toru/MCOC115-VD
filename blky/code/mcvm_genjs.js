@@ -214,7 +214,7 @@ javascript.javascriptGenerator.forBlock['mcvm_mem_array_set'] = function(block, 
   var value_idx = generator.valueToCode(block, 'IDX', javascript.Order.NONE);
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = generator.getVariableName(block.getFieldValue('VAR')) + '[' + value_idx + '] = ' + value_val + '\n';
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + '[' + value_idx + '] = ' + value_val + ';\n';
   return code;
 };
 

@@ -77,7 +77,7 @@ equ		mcvm_has_divc,1					// 0 for `define MCVM_COPR_NODIV
 equ		mcvm_has_divl,0					// 0 for `define MCVM_COPR_NODIV or Nh
 equ		mcvm_has_hfpu,0					// 0 for `define MCVM_COPR_NOFPU
 equ		mcvm_has_xadr,0					// 1 for `define MCOC_SDRAM_8M
-equ		mcvm_blky_slim,1				// 1 for `define MCOC_CORE_MCBS
+equ		mcvm_blky_slim,0				// 1 for `define MCOC_CORE_MCBS
 equ		mcvm_dual_cpu,2					// cpu id (1~14) for check
 # ================================
 # user macros

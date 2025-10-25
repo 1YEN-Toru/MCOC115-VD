@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2025/10/25	ver.1.24
+//			corresponding to array variables
+//
 //		2025/10/18	ver.1.22
 //			change: _atoi_r1, _xtoi_r1; skip the first whitespace
 //
@@ -52,7 +55,7 @@
 //
 // ================================
 # constants
-equ		_rtlb_vers,0x0122				// beta(1),major(1),minor(2)
+equ		_rtlb_vers,0x0124				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer
 equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
@@ -510,6 +513,9 @@ blo		_rtlb_clrv
 
 // string variables
 jal$(z)r7	_rtlb_vlst_cstr
+
+// array variables
+jal$(z)r7	_rtlb_alst_aryv
 
 // end of subroutine
 rtn$(z)

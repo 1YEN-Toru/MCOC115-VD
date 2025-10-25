@@ -1,12 +1,15 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.28";
+	macro	prog_vers="1.30";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/10/25	ver.1.30
+//			add: register_alst, define_aryv; initialize array variables
 //
 //		2025/10/18	ver.1.28
 //			add: mcoc_controls_forc
@@ -419,6 +422,37 @@ if (false)
 			gsub	"@@","@",vlst_vars;
 		}
 	}
+	procedure	register_alst	$$vnam,$$asiz
+	{
+		// search list
+		var		idx;
+		var		cmp;
+
+		idx=0;
+		while (idx<alst_cnt)
+		{
+			strcmp	cmp=$(alst_lnam_#(idx)),$(vnam);
+			if (cmp=0)
+			{
+				break;
+			}
+
+			// continue
+			idx=idx + 1;
+		}
+		if (idx<alst_cnt)
+		{
+			// ERROR:
+			errmsg	"register_alst: allocation buffer "
+					$(vnam)" already defined.";
+			leave	stop_error;
+		}
+
+		// register allocation list vnam, asiz
+		static : macro	alst_lnam_#(alst_cnt)=$(vnam);
+		static : macro	alst_asiz_#(alst_cnt)=$(asiz);
+		alst_cnt=alst_cnt + 1;
+	}
 	procedure	asm_ld_var_adr	$$reg,$$vnam
 	{
 		// load address of variable vnam to general register reg
@@ -483,6 +517,48 @@ if (false)
 
 		// assembler
 		fprint	fout,"// end of initialize string variables"$,;
+		fprint	fout,"rtn$(z)"$,;
+	}
+	procedure	define_aryv
+	{
+		// outputs assembler source list to allocate array variable
+		var		idx;
+		var		cmp;
+		macro	vnam;
+		macro	asiz;
+
+		// assembler
+		fprint	fout,""$,;
+		fprint	fout,"// initialize array variables"$,;
+		fprint	fout,"align	4"$,;
+		fprint	fout,"_rtlb_alst_aryv:"$,;
+
+		idx=0;
+		while (idx<alst_cnt)
+		{
+			strcmp	cmp=$(alst_lnam_#(idx)),"_aryv_",left;
+			if (cmp=0)
+			{
+				mlet	vnam=$(alst_lnam_#(idx));
+				sub		"_aryv_","",vnam;
+				mlet	asiz=$(alst_asiz_#(idx));
+				sub		")*_rtlb_var_siz$(z)","",asiz;
+				sub		"(","",asiz;
+
+				// assembler
+				fprint	fout,"// array "$(vnam)" = "$(alst_lnam_#(idx))"["
+						$(asiz)"]"$,;
+				asm_ld_var_adr	"r7",$(vnam);
+				asm_ld_var_adr	"r0","_aryv_"$(vnam);
+				fprint	fout,"st$(z)	[r7],r0"$,;
+			}
+
+			// continue
+			idx=idx + 1;
+		}
+
+		// assembler
+		fprint	fout,"// end of initialize array variables"$,;
 		fprint	fout,"rtn$(z)"$,;
 	}
 	procedure	translator_options
@@ -1667,9 +1743,7 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 		}
 
 		// allocation list
-		static : macro	alst_lnam_#(alst_cnt)=$(lnam);
-		static : macro	alst_asiz_#(alst_cnt)=$(asiz);
-		alst_cnt=alst_cnt + 1;
+		register_alst	$(lnam),$(asiz);
 	}
 	procedure	do_blk_mcvm_mem_array_def
 	{
@@ -1716,22 +1790,8 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 			}
 		}
 
-		// assembler
-		macro	dsiz="word";
-		if (opt_cpu_mod=opt_nh)
-		{
-			mlet	dsiz="long";
-		}
-		fprint	fout,"// array "$(vnam)" = "$(dsiz)"["$(asiz)"]"$,;
-		asm_ld_var_adr	"r7",$(vnam);
-		fprint	fout,"ldwi	r0,_aryv_"$(vnam)$,;
-		fprint	fout,"add	r0,r6"$,;
-		fprint	fout,"st$(z)	[r7],r0"$,;
-
 		// allocation list
-		static : macro	alst_lnam_#(alst_cnt)="_aryv_"$(vnam);
-		static : macro	alst_asiz_#(alst_cnt)="_rtlb_var_siz$(z)*("$(asiz)")";
-		alst_cnt=alst_cnt + 1;
+		register_alst	"_aryv_"$(vnam),"("$(asiz)")*_rtlb_var_siz$(z)";
 	}
 	procedure	do_blk_mcvm_mem_array_ref
 	{
@@ -1846,8 +1906,8 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 	procedure	do_blk_mcvm_mem_read
 	{
 		var		cmp;
-		nvar	asiz=2;
 		macro	siz;
+		macro	asiz;
 		macro	adrx;
 		macro	adr;
 
@@ -1880,17 +1940,17 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 					strcmp	cmp=$(siz),"B",ics_left;
 					if (cmp=0)
 					{
-						asiz=1;
+						mlet	asiz="byte";
 					}
 					strcmp	cmp=$(siz),"W",ics_left;
 					if (cmp=0)
 					{
-						asiz=2;
+						mlet	asiz="word";
 					}
 					strcmp	cmp=$(siz),"L",ics_left;
 					if (cmp=0)
 					{
-						asiz=4;
+						mlet	asiz="long";
 					}
 				}
 				strcmp	cmp=$(dxml),"value";
@@ -1912,10 +1972,12 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 				}
 			}
 		}
-		mlet	do_blk_mcvm_mem_read="["$(adr)"]";
+		tolower		siz;
+		mlet	do_blk_mcvm_mem_read=$(asiz)"["$(adr)"]";
 
 		// check
-		if (asiz=4 & opt_cpu_mod!=opt_nh)
+		strcmp	cmp=$(siz),"l";
+		if (cmp=0 & opt_cpu_mod!=opt_nh)
 		{
 			// ERROR:
 			errmsg	"mcvm_mem_read: need @Nh@ translator option"
@@ -1924,37 +1986,19 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 		}
 
 		// assembler
-		fprint	fout,"// memory read "$(siz)$,;
+		fprint	fout,"// memory read "$(asiz)$,;
 		strcmp	cmp=$(adrx),"";
 		if (cmp=0)
 		{
-			fprint	fout,"// r0=[r0(="$(adr)")]"$,;
-			if (asiz=4)
-			{
-				fprint	fout,"ldl	r0,[r0]"$,;
-			}
-			elif (asiz=2)
-			{
-				fprint	fout,"ldw	r0,[r0]"$,;
-			}
-			else
-			{
-				fprint	fout,"ldb	r0,[r0]"$,;
-			}
+			fprint	fout,"// r0="$(asiz)"[r0(="$(adr)")]"$,;
+			fprint	fout,"ld"$(siz)"	r0,[r0]"$,;
 		}
 		else
 		{
-			fprint	fout,"// r0=[tr(="$(adrx)"):r0(="$(adr)")]"$,;
-			if (asiz=2)
-			{
-				fprint	fout,"ldwx	r0,[tr:r0]"$,;
-			}
-			else
-			{
-				fprint	fout,"ldbx	r0,[tr:r0]"$,;
-			}
+			fprint	fout,"// r0="$(asiz)"[tr(="$(adrx)"):r0(="$(adr)")]"$,;
+			fprint	fout,"ld"$(siz)"x	r0,[tr:r0]"$,;
 
-			mlet	do_blk_mcvm_mem_read="["$(adrx)":"$(adr)"]";
+			mlet	do_blk_mcvm_mem_read=$(asiz)"["$(adrx)":"$(adr)"]";
 		}
 	}
 	procedure	do_blk_mcvm_memx_read
@@ -1965,8 +2009,8 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 	procedure	do_blk_mcvm_mem_write
 	{
 		var		cmp;
-		nvar	asiz=2;
 		macro	siz;
+		macro	asiz;
 		macro	adrx;
 		macro	adr;
 		macro	dat;
@@ -2000,17 +2044,17 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 					strcmp	cmp=$(siz),"B",ics_left;
 					if (cmp=0)
 					{
-						asiz=1;
+						mlet	asiz="byte";
 					}
 					strcmp	cmp=$(siz),"W",ics_left;
 					if (cmp=0)
 					{
-						asiz=2;
+						mlet	asiz="word";
 					}
 					strcmp	cmp=$(siz),"L",ics_left;
 					if (cmp=0)
 					{
-						asiz=4;
+						mlet	asiz="long";
 					}
 				}
 				strcmp	cmp=$(dxml),"value";
@@ -2045,9 +2089,11 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 				}
 			}
 		}
+		tolower		siz;
 
 		// check
-		if (asiz=4 & opt_cpu_mod!=opt_nh)
+		strcmp	cmp=$(siz),"l";
+		if (cmp=0 & opt_cpu_mod!=opt_nh)
 		{
 			// ERROR:
 			errmsg	"mcvm_mem_write: need @Nh@ translator option"
@@ -2056,35 +2102,18 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 		}
 
 		// assembler
-		fprint	fout,"// memory write "$(siz)$,;
+		fprint	fout,"// memory write "$(asiz)$,;
 		strcmp	cmp=$(adrx),"";
 		if (cmp=0)
 		{
-			fprint	fout,"// [r7(="$(adr)")] = r0(="$(dat)")"$,;
-			if (asiz=4)
-			{
-				fprint	fout,"stl	[r7],r0"$,;
-			}
-			elif (asiz=2)
-			{
-				fprint	fout,"stw	[r7],r0"$,;
-			}
-			else
-			{
-				fprint	fout,"stb	[r7],r0"$,;
-			}
+			fprint	fout,"// "$(asiz)"[r7(="$(adr)")] = r0(="$(dat)")"$,;
+			fprint	fout,"st"$(siz)"	[r7],r0"$,;
 		}
 		else
 		{
-			fprint	fout,"// [tr(="$(adrx)"):r7(="$(adr)")] = r0(="$(dat)")"$,;
-			if (asiz=2)
-			{
-				fprint	fout,"stwx	[tr:r7],r0"$,;
-			}
-			else
-			{
-				fprint	fout,"stbx	[tr:r7],r0"$,;
-			}
+			fprint	fout,"// "$(asiz)"[tr(="$(adrx)"):r7(="$(adr)")] = r0(="
+					$(dat)")"$,;
+			fprint	fout,"st"$(siz)"x	[tr:r7],r0"$,;
 		}
 	}
 	procedure	do_blk_mcvm_memx_write
@@ -8860,6 +8889,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 	}
 	define_cstr;
+	define_aryv;
 	fprint	fout,""$,;
 	fprint	fout,"// task entry point"$,;
 	fprint	fout,"_rtlb_cpu2:"$,;
