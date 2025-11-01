@@ -68,6 +68,8 @@ endm
 
 macro	negl	rnh,rnl
 // negl $(rnh):$(rnl)
+# ATTN! neg instruction implemented by Rn'=0 - Rn,
+#		so C flag is inverted as sub instruction.
 neg		$(rnl)
 adcz	$(rnh)
 neg		$(rnh)

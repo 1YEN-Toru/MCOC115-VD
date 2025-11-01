@@ -1,12 +1,20 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="1.30";
+	macro	prog_vers="1.32";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024	1YEN Toru
 //
+//
+//		2025/11/01	ver.1.32
+//			add: program size / variables area size embedded
+//				_rtlb_prog_size[0]: program size [byte]
+//				_rtlb_prog_size[1]: variables area size [byte]
+//				variables area map: top address / variables / string buffers /
+//					allocation buffers / array buffers / bottom address
+//				variables area size=bottom address - top address
 //
 //		2025/10/25	ver.1.30
 //			add: register_alst, define_aryv; initialize array variables
@@ -492,7 +500,7 @@ if (false)
 		var		num;
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// initialize string variables"$,;
 		fprint	fout,"align	4"$,;
 		fprint	fout,"_rtlb_vlst_cstr:"$,;
@@ -528,7 +536,7 @@ if (false)
 		macro	asiz;
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// initialize array variables"$,;
 		fprint	fout,"align	4"$,;
 		fprint	fout,"_rtlb_alst_aryv:"$,;
@@ -2512,6 +2520,7 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 				}
 			}
 		}
+		pgsub	"[ 	]+","",lval;
 		strcmp	cmp=$(lnam),"";
 		if (cmp)
 		{
@@ -2569,6 +2578,7 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 			}
 		}
 		gsub	"&lt;","<",nval;
+		pgsub	"[ 	]+","",nval;
 		mlet	do_blk_mcoc_math_number=$(nval);
 
 		// assembler
@@ -3224,7 +3234,7 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 		if (defp_1st)
 		{
 			defp_1st=false;
-			fprint	fout,""$,;
+			fprint	fout,$,;
 			fprint	fout,"// halt"$,;
 			fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 		}
@@ -3255,7 +3265,7 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 						stat=1;
 
 						// assembler
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// task "$(tskf)$,;
 						fprint	fout,"align	4"$,;
 						fprint	fout,"_rtlb_task_"$(tskf)":"$,;
@@ -6321,7 +6331,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		labid=labid + 1;
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// if test"$,;
 
 		while (true)
@@ -6355,7 +6365,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						fprint	fout,"// test ("$(iexp)")"$,;
 						fprint	fout,"cmpi	r0,false"$,;
 						fprint	fout,"beq	_auto_"$(slabid)"_else"$,;
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// then"$,;
 					}
 					strcmp	cmp=$(dnam),"THEN";
@@ -6367,7 +6377,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						// assembler
 						fprint	fout,"// then ("$(vthn)")"$,;
 						fprint	fout,"bra	_auto_"$(slabid)"_endif"$,;
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// else"$,;
 						fprint	fout,"_auto_"$(slabid)"_else:"$,;
 					}
@@ -6378,7 +6388,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						mlet	vels=$(do_$(dxml));
 
 						// assembler
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// else ("$(vels)")"$,;
 						fprint	fout,"_auto_"$(slabid)"_endif:"$,;
 					}
@@ -6404,7 +6414,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		mlet	do_blk_logic_ternary="("$(iexp)")? "$(vthn)": "$(vels);
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// end of test ("$(iexp)")? "$(vthn)": "$(vels)$,;
 	}
 	procedure	do_blk_logic_compare
@@ -6591,7 +6601,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		}
 		if (cmp=0)
 		{
-			fprint	fout,""$,;
+			fprint	fout,$,;
 			if (is_cstr_cmp)
 			{
 				fprint	fout,"mov	r2,r1"$,;
@@ -7037,7 +7047,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		in_text_join=true;
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// join"$,;
 		if (!in_var_set)
 		{
@@ -7146,7 +7156,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	cstr;
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// text append"$,;
 
 		in_var_set=true;
@@ -7268,7 +7278,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		labid=labid + 1;
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// if return"$,;
 
 		while (true)
@@ -7354,7 +7364,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 			fprint	fout,"// return"$,;
 		}
 		fprint	fout,"rtn$(z)"$,;
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"_auto_"$(slabid)"_endif:"$,;
 	}
 	procedure	do_blk_procedures_defreturn
@@ -7420,7 +7430,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					// end of function
 
 					// assembler
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of function: "$(fnam)$,;
 					strcmp	cmp=$(vrtn),"";
 					if (cmp)
@@ -7484,11 +7494,11 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						if (defp_1st)
 						{
 							defp_1st=false;
-							fprint	fout,""$,;
+							fprint	fout,$,;
 							fprint	fout,"// halt"$,;
 							fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 						}
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// function: "$(fnam);
 						strcmp	cmp=$(muta),"";
 						if (cmp)
@@ -7497,7 +7507,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 							pgsub	" ",", ",muta;
 							fprint	fout," ("$(muta)")";
 						}
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"align	4"$,;
 						fprint	fout,$(fnam)":"$,;
 					}
@@ -7604,7 +7614,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
 		macro	slabid_loop=$(slabid);
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// repeat loop"$,;
 
 		while (true)
@@ -7680,14 +7690,14 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					// end of loop
 
 					// assembler
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of repeat loop"$,;
 					fprint	fout,"_auto_"$(slabid)"_continue:"$,;
 					asm_ld_var	"r0","_rpt_cnt", "r7";
 					fprint	fout,"subi	r0,1"$,;
 					fprint	fout,"st$(z)	[r7],r0"$,;
 					fprint	fout,"bne	_auto_"$(slabid)"_repeat"$,;
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"_auto_"$(slabid)"_break:"$,;
 					fprint	fout,"// restore _rpt_cnt variable"$,;
 					asm_ld_var_adr	"r7","_rpt_cnt";
@@ -7736,7 +7746,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
 		macro	slabid_loop=$(slabid);
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// for loop"$,;
 
 		while (true)
@@ -7837,10 +7847,10 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					// end of loop
 
 					// assembler
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of for loop"$,;
 					fprint	fout,"bra	_auto_"$(slabid)"_for"$,;
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"_auto_"$(slabid)"_break:"$,;
 					fprint	fout,"pop$(z)	r3	// discard"$,;
 					num2str		slabid_loop=0,"%04x";
@@ -7912,7 +7922,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
 		macro	slabid_loop=$(slabid);
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// while/until loop"$,;
 		fprint	fout,"_auto_"$(slabid)"_while:"$,;
 		fprint	fout,"_auto_"$(slabid)"_continue:"$,;
@@ -7988,10 +7998,10 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					// end of loop
 
 					// assembler
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of "$(wmod)" loop"$,;
 					fprint	fout,"bra	_auto_"$(slabid)"_while"$,;
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"_auto_"$(slabid)"_break:"$,;
 					num2str		slabid_loop=0,"%04x";
 
@@ -8069,7 +8079,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		labid=labid + 1;
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// if statement"$,;
 
 		// if
@@ -8137,10 +8147,10 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					// end of if block
 
 					// assembler
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of if block"$,;
 					fprint	fout,"bra	_auto_"$(slabid)"_endif"$,;
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"_auto_"$(slabid)"_if0:"$,;
 
 					break;
@@ -8248,10 +8258,10 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						// end of elif block
 
 						// assembler
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// end of elif# block"$,,idx;
 						fprint	fout,"bra	_auto_"$(slabid)"_endif"$,;
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"_auto_"$(slabid)"_elif#:"$,,idx;
 
 						break;
@@ -8311,7 +8321,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						}
 
 						// assembler
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// else"$,;
 
 						// continue
@@ -8338,7 +8348,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						// end of else block
 
 						// assembler
-						fprint	fout,""$,;
+						fprint	fout,$,;
 						fprint	fout,"// end of else block"$,;
 
 						break;
@@ -8357,7 +8367,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		skip_one	"block";
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// endif"$,;
 		fprint	fout,"_auto_"$(slabid)"_endif:"$,;
 	}
@@ -8375,7 +8385,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
 		macro	slabid_loop=$(slabid);
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// for-c loop"$,;
 
 		while (true)
@@ -8515,7 +8525,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		}
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// end of for-c loop"$,;
 		fprint	fout,"bra	_auto_"$(slabid)"_continue"$,;
 		fprint	fout,"_auto_"$(slabid)"_break:"$,;
@@ -8532,7 +8542,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
 		macro	slabid_loop=$(slabid);
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// do while/until loop"$,;
 		fprint	fout,"_auto_"$(slabid)"_dorep:"$,;
 
@@ -8613,7 +8623,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						// assembler
 						fprint	fout,"// do block"$,;
 					}
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of do "$(wmod)" loop"$,;
 					fprint	fout,"_auto_"$(slabid)"_continue:"$,;
 				}
@@ -8647,7 +8657,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 						// until
 						fprint	fout,"beq	_auto_"$(slabid)"_dorep"$,;
 					}
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"_auto_"$(slabid)"_break:"$,;
 					num2str		slabid_loop=0,"%04x";
 				}
@@ -8672,7 +8682,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		macro	slabid;
 		num2str		slabid=labid,"%04x";
 		macro	slabid_loop=$(slabid);
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// forever loop"$,;
 		fprint	fout,"_auto_"$(slabid)"_loop:"$,;
 		fprint	fout,"_auto_"$(slabid)"_continue:"$,;
@@ -8737,7 +8747,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 					// end of loop
 
 					// assembler
-					fprint	fout,""$,;
+					fprint	fout,$,;
 					fprint	fout,"// end of forever loop"$,;
 					fprint	fout,"bra	_auto_"$(slabid)"_loop"$,;
 					num2str		slabid_loop=0,"%04x";
@@ -8865,17 +8875,17 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 			$"$"" / fpga="$""##"$"$,;
 	fprint	fout,"def	z,"$""@cpu_mod@"$""	// access size l(long) / w(word)"$,;
 	fprint	fout,"##@vars_def@"$,;
-	fprint	fout,""$,;
+	fprint	fout,$,;
 	fprint	fout,"## include run time library"$,;
 	fprint	fout,"incl	"$"$(mynam)".incl"$"$,;
 	fprint	fout,"##@incl_lib@"$,;
-	fprint	fout,""$,;
+	fprint	fout,$,;
 	fprint	fout,"// ================================"$,;
 	fprint	fout,"// _rtlb_main: start user program code"$,;
 	fprint	fout,"// ================================"$,;
 	fprint	fout,"align	4"$,;
 	fprint	fout,"_rtlb_main:"$,;
-	fprint	fout,""$,;
+	fprint	fout,$,;
 
 	do_xml;
 	progress	"",-1;
@@ -8884,13 +8894,13 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 	if (defp_1st)
 	{
 		defp_1st=false;
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// halt"$,;
 		fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 	}
 	define_cstr;
 	define_aryv;
-	fprint	fout,""$,;
+	fprint	fout,$,;
 	fprint	fout,"// task entry point"$,;
 	fprint	fout,"_rtlb_cpu2:"$,;
 	if (tsk_def_cpu2)
@@ -8944,7 +8954,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 		var		idx;
 
 		// assembler
-		fprint	fout,""$,;
+		fprint	fout,$,;
 		fprint	fout,"// string constants"$,;
 		fprint	fout,"_rtlb_strc_top:"$,;
 
@@ -9024,7 +9034,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 			var		num;
 
 			// assembler
-			fprint	fout,""$,;
+			fprint	fout,$,;
 			fprint	fout,"## define variables"$,;
 			fprint	fout,"equ	_rtlb_var_sizw,2"$,;
 			fprint	fout,"equ	_rtlb_var_sizl,4"$,;
@@ -9049,7 +9059,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 			// assembler
 			fprint	fout,"## end of define variables"$,;
 			fprint	fout,"equ	_rtlb_var_static,_va"$,;
-			fprint	fout,""$,;
+			fprint	fout,$,;
 			fprint	fout,"## define string buffers"$,;
 
 			psub	"^@","",vlst_cstr;
@@ -9089,7 +9099,7 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 			}
 			if (need_stft)
 			{
-				fprint	fout,""$,;
+				fprint	fout,$,;
 				fprint	fout,"## define SPI-TFT buffers"$,;
 				fprint	fout,"equ	_stft_spi_max,8	// byte"$,;
 				fprint	fout,"equ	_stft_pix_max,64	// pixel"$,;
@@ -9174,6 +9184,17 @@ errmsg	"math_modulo block is obsolete, use '%' operator instead";
 	}
 
 	// assembler
+	fprint	fout,$,;
+	fprint	fout,"// program size / variable area size"$,;
+	fprint	fout,"align	4"$,;
+	fprint	fout,"_rtlb_prog_size:"$,;
+	fprint	fout,"dat$(z)	lab__rtlb_prog_bottom"$,;
+	fprint	fout,"// array buffer (bottom address)"$,;
+	fprint	fout,"dat$(z)	_rtlb_var_array"$,;
+	fprint	fout,"// string buffer (bottom address)"$,;
+	fprint	fout,"dat$(z)	_rtlb_var_string"$,;
+	fprint	fout,"// static variables (bottom address)"$,;
+	fprint	fout,"dat$(z)	_rtlb_var_static"$,;
 	fprint	fout,"_rtlb_prog_bottom:"$,;
 
 	// close files
