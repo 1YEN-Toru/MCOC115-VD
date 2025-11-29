@@ -4,7 +4,7 @@
 //
 //
 //		2025/03/08	ver.1.02
-//			change: _math_exp, _math_sin; use fact() function
+//			upd: _math_exp, _math_sin; use fact() function
 //				need Olive+ ver.4.54(R31) or later
 //
 //		2025/03/01	ver.1.00

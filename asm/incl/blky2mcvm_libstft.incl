@@ -6,8 +6,8 @@
 //		2025/10/18	ver.1.04
 //			add: _stft_pixel_hsv_r2_r1_r0
 //			fix: _stft_box_fill; parameter exchange
-//			change: _stft_box_fill; parameter clipping 
-//			change: _stft_pixel_r2_r1_r0; uint to int (parameters)
+//			upd: _stft_box_fill; parameter clipping 
+//			upd: _stft_pixel_r2_r1_r0; uint to int (parameters)
 //
 //		2025/03/15	ver.1.02
 //			fix: _stft_pix_max, _stft_pix_buf, _stft_ram_write, _stft_putpix

@@ -6,7 +6,7 @@
 //
 //		2025/02/22	ver.1.04
 //			corresponding to poly-core cpu edition
-//			change: temporary data address; ramtop to [idrgramt]
+//			upd: temporary data address; ramtop to [idrgramt]
 //			add: user macro ldrto
 //
 //		2024/03/16	ver.1.02

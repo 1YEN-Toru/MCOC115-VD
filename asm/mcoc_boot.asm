@@ -5,7 +5,7 @@
 //
 //		2023/11/18	ver.1.10
 //			corresponding to small RAM edition
-//			change: max_lbuf=20 <-- 254
+//			upd: max_lbuf=20 <-- 254
 //
 //		2023/09/23	ver.1.08
 //			corresponding to Tennessine core

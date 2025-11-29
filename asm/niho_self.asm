@@ -5,7 +5,7 @@
 //
 //
 //		2024/09/21	ver.1.12
-//			change: ramtop label to idrgramt
+//			upd: ramtop label to idrgramt
 //
 //		2023/07/08	ver.1.10
 //			add: adcz, sbbz, cmbz

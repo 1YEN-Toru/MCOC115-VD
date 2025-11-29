@@ -9,11 +9,11 @@
 //
 //		2025/01/25	ver.1.28
 //			add: mcvm_blky_slim for Moscovium-BS core
-//			change: temporary data address; ramtop to [idrgramt]
+//			upd: temporary data address; ramtop to [idrgramt]
 //			add: user macro ldrto
 //
 //		2024/09/21	ver.1.26
-//			change: ramtop label to idrgramt
+//			upd: ramtop label to idrgramt
 //
 //		2024/08/31	ver.1.24
 //			add: hdown

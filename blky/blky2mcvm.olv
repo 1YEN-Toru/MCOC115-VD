@@ -24,7 +24,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //			add: mcoc_stft_pixel_hsv
 //			add: mcoc_uart_put, mcoc_uart_get
 //			add: mcvm_mem_array_def, mcvm_mem_array_ref, mcvm_mem_array_set
-//			change: procedures_defreturn, mcoc_task; start in @int@ mode
+//			upd: procedures_defreturn, mcoc_task; start in @int@ mode
 //			fix: mcoc_text_itox; number of digits load timing
 //			fix: mcoc_pack; correct <statement> tag in disabled pack
 //
@@ -34,9 +34,9 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //			add: mcoc_math_func; sgn
 //			add: mcoc_math_binary; % modulo operator
 //			add: mcvm_sim_stat (mcvm_sim_pass and mcvm_sim_fail are obsolete)
-//			change: mcvm_cpu_cend; data size selection
-//			change: mcoc_math_bit_operation; >>> logical shift right operator
-//			change: allow except string variable also
+//			upd: mcvm_cpu_cend; data size selection
+//			upd: mcoc_math_bit_operation; >>> logical shift right operator
+//			upd: allow except string variable also
 //				mcoc_string_compare_left, mcoc_string_find,
 //				mcoc_string_get_char, mcoc_string_pointer,
 //				mcoc_string_set,
@@ -48,7 +48,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //				serial_available, serial_print, serial_println, serial_read
 //
 //		2025/07/19	ver.1.24
-//			change: mcoc_math_label; corresponding to float constant label
+//			upd: mcoc_math_label; corresponding to float constant label
 //
 //		2025/03/22	ver.1.22
 //			corresponding to define allocation buffer
@@ -81,7 +81,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //			corresponding to SPI-TFT (STFT61 unit, ST7735R)
 //			add: mcoc_stft_*
 //			add: mcoc_math_func; abs, rand, rseed, floor, ceil, round
-//			change: corresponding to S-JIS encode string;
+//			upd: corresponding to S-JIS encode string;
 //				mcoc_math_ascii, mcoc_string_ctoa, mcoc_string_get_char
 //			fix: atoi, xtoi; in_var_set=false for text_join control
 //			fix: itox; need "push r0" for !in_var_set
@@ -114,9 +114,9 @@ model	"Blockly.XML to Moscovium.ASM translator"
 //			fix: mcoc_uart_avail
 //			fix: do_value, mcoc_text_print, controls_for
 //			fix: text: replace "&lt;" as "<"
-//			change: reference to temporary string variable _tmp_str
-//			change: automatic jump label name "_auto_*"
-//			change: conditional branch for float; bmi/bpl to blt/bge
+//			upd: reference to temporary string variable _tmp_str
+//			upd: automatic jump label name "_auto_*"
+//			upd: conditional branch for float; bmi/bpl to blt/bge
 //			add: translator option @sim@ / @rom_siz@
 //			add: custom blocks for Moscovium series CPU
 //

@@ -7,7 +7,7 @@
 //			corresponding to array variables
 //
 //		2025/10/18	ver.1.22
-//			change: _atoi_r1, _xtoi_r1; skip the first whitespace
+//			upd: _atoi_r1, _xtoi_r1; skip the first whitespace
 //
 //		2025/10/11	ver.1.20
 //			fix: set Sr[NH] more earlier
@@ -27,23 +27,23 @@
 //			add: _is_sjis1_r0, _chrsjis_r1
 //			add: _rand
 //			del: _rtlb_main label
-//			change: _strchr_r0_r1; corresponding to S-JIS code
-//			change: suppress error; task CPU2 x single core
+//			upd: _strchr_r0_r1; corresponding to S-JIS code
+//			upd: suppress error; task CPU2 x single core
 //
 //		2024/10/26	ver.1.10
 //			corresponding to interrupt
-//			change: UART8N1 baud rate; _rtlb_uart_baud
+//			upd: UART8N1 baud rate; _rtlb_uart_baud
 //
 //		2024/10/19	ver.1.08
 //			corresponding to dual core cpu
-//			change: _getline_r0; temporary register r6 to r5
-//			change: _delay_ms_r0, _delay_us_r0; sytmctl not use
+//			upd: _getline_r0; temporary register r6 to r5
+//			upd: _delay_ms_r0, _delay_us_r0; sytmctl not use
 //			add: user macro: _delay_cyc_r0
 //			fix: cpu halt code
 //			del: _rtlb_var_top
 //
 //		2024/09/21	ver.1.06
-//			change: _rtlt_var_top label to determine variables area
+//			upd: _rtlt_var_top label to determine variables area
 //
 //		2024/09/07	ver.1.04
 //			add: _strfcmp_r1_r2, _strchr_r0_r1, _strofst_r1_r0
