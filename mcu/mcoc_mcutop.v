@@ -102,12 +102,12 @@ input	adcx_ain1n);
 //		add: compile option MCOC_DUAL_AMP_MC
 //
 //	2024/01/20	ver.2.18
-//		corresponding to ADCX122 unit 
+//		corresponding to ADCX122 unit
 //		add: compile option MCOC_NO_ADCX
 //		del: compile option MCOC_NO_ADC
 //
 //	2023/12/16	ver.2.16
-//		corresponding to SRAMC512K unit 
+//		corresponding to SRAMC512K unit
 //		add: compile option MCOC_SRAM_512K
 //		del: compile option MCOC_SDRAM_8M, MCOC_CACHE_4K
 //

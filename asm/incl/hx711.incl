@@ -6,7 +6,7 @@
 # HX711
 #	PD_SCK: normally low level. high level > 60us goes to power down mode
 #	DOUT: it will be high level in conversion period.
-#			it goes to low level when conversion finished. 
+#			it goes to low level when conversion finished.
 #	clocks: need at least 24 clocks to read A/D conversion data (MSB first)
 #			then additional clock
 #			+1 means hx7_mode_chax128,

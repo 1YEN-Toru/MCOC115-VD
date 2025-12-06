@@ -28,7 +28,7 @@ model	"Blockly.XML asm block generator"
 	{
 		leave	stop_error;
 	}
-	
+
 	// check
 	var		cmp;
 	strcmp	cmp=$(asm_txt),"";

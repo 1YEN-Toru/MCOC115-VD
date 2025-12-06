@@ -270,7 +270,7 @@ pause
 bra		pcnt-4
 
 _rtlb_core_smp:
-// fork cpu0/cpu1 or cpu2 
+// fork cpu0/cpu1 or cpu2
 
 // ================================
 // CPU mod (access size) set and check
@@ -294,7 +294,7 @@ _rtlb_mcnh_err:
 dats	"ERR: not a Nihonium core, halted.\r\n\0"
 _rtlb_mcnh_w:
 
-// branch cpu0/cpu1 or cpu2 
+// branch cpu0/cpu1 or cpu2
 cmpi	r0,sreg_id_2>>sreg_b_id0
 bne		_rtlb_core_cpu2n
 

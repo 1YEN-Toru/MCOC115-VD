@@ -132,7 +132,7 @@
 		- for Moscovium-BS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 - [DIVC32](https://hello.world.coocan.jp/ARDUINO16/arduino16_3.html#HYBDIV)
-	- Divide co-processor 
+	- Divide co-processor
 		- High speed hybrid (flush * step) divider
 		- for Moscovium / Moscovium-SS
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned

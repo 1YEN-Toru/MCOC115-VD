@@ -452,7 +452,7 @@ Blockly.Blocks['mcoc_math_func'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["sgn","SGN"], ["rand","RAND"], ["rseed","RSEED"], ["floor","FLOOR"], ["ceil","CEIL"], ["round","ROUND"]]), "FNC");
+        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["sgn","SGN"], ["rand","RAND"], ["rseed","RSEED"], ["floor","FLOOR"], ["ceil","CEIL"], ["round","ROUND"], ["trunc","TRUNC"]]), "FNC");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(225);

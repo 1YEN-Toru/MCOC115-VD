@@ -1,11 +1,15 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.54";
+	macro	prog_vers="1.56";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2025/12/06	ver.1.56
+//			add: alias: hdown / fdown
+//			upd: instruction: hdown / fdown --> htrunc / ftrunc
 //
 //		2025/10/11	ver.1.54
 //			upd: all words are case sensitive
@@ -27,7 +31,7 @@ model	"Moscovium series macro assembler"
 //			optimized ROM code array rom#()
 //
 //		2024/08/31	ver.1.44
-//			instruction: hdown
+//			instruction: htrunc
 //			upd: label list generation
 //
 //		2023/12/16	ver.1.42
@@ -76,7 +80,7 @@ model	"Moscovium series macro assembler"
 //		2023/02/11	ver.1.24
 //			instruction:
 //				fadd, fsub, fmul, fdiv, fneg, fsngl, fuint, ffrac,
-//				fmvsg, fsat, fcmp, fdown,
+//				fmvsg, fsat, fcmp, ftrunc
 //			pseudo: equf, datf, fldi
 //
 //		2022/10/22	ver.1.22
@@ -197,7 +201,7 @@ model	"Moscovium series macro assembler"
 			"fmvsg "
 			"fsat  "
 			"fcmp  "
-			"fdown "
+			"ftrunc"
 			"hadd  "
 			"hsub  "
 			"hmul  "
@@ -209,7 +213,7 @@ model	"Moscovium series macro assembler"
 			"hmvsg "
 			"hsat  "
 			"hcmp  "
-			"hdown "
+			"htrunc"
 			"mulur "
 			"mulsr "
 			"divur "
@@ -1996,6 +2000,7 @@ model	"Moscovium series macro assembler"
 		psub	"^pop$","popw",lbuf1;
 		psub	"^pushc$","pushcw",lbuf1;
 		psub	"^popc$","popcw",lbuf1;
+		psub	"^([hf])down$","\1trunc",lbuf1;
 		sub		"ldsp","ldwsp",lbuf1;
 		sub		"stsp","stwsp",lbuf1;
 		sub		"ldiu","ldbiu",lbuf1;
