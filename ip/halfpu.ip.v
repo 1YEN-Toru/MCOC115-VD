@@ -17,7 +17,7 @@ module halfpu
 //
 //
 //	2024/08/31	ver.1.06
-//		ccmd=HDWN: half round down to zero command
+//		ccmd=HTRC: half truncate towards zero command
 //
 //	2024/03/16	ver.1.04
 //		corresponding to Xilinx Vivado

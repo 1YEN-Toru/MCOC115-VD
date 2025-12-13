@@ -4,6 +4,12 @@
 //		(c) 2022,2023	1YEN Toru
 //
 //
+//		2025/12/13	ver.1.14
+//			add: niho_self_b.asm; mcoc_has_xadr2 (extended address test)
+//				mcoc_has_xadr2=0x08_0000: for `define MCOC_ERAM
+//				mcoc_has_xadr2=0x10_0000: for `define MCOC_SRAM_512K
+//				mcoc_has_xadr2=0x00_0000: for not test
+//
 //		2024/09/21	ver.1.12
 //			upd: ramtop label to idrgramt
 //

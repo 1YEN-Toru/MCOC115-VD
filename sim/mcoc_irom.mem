@@ -1,7 +1,7 @@
 // ================================
 // Assemble list:
 //
-//		// Moscovium series macro assembler ver.1.54
+//		// Moscovium series macro assembler ver.1.56
 //		// ================================
 //		//	Moscovium
 //		//		all instructions self test
@@ -13,14 +13,14 @@
 //		//
 //		//		2025/01/25	ver.1.28
 //		//			add: mcvm_blky_slim for Moscovium-BS core
-//		//			change: temporary data address; ramtop to [idrgramt]
+//		//			upd: temporary data address; ramtop to [idrgramt]
 //		//			add: user macro ldrto
 //		//
 //		//		2024/09/21	ver.1.26
-//		//			change: ramtop label to idrgramt
+//		//			upd: ramtop label to idrgramt
 //		//
 //		//		2024/08/31	ver.1.24
-//		//			add: hdown
+//		//			add: htrunc
 //		//
 //		//		2023/07/08	ver.1.22
 //		//			add: adcz, sbbz, cmbz
@@ -2101,11 +2101,11 @@
 //	@0693	aa50	// 0d26    cmpi   r2,sreg_cf|sreg_zf
 //	@0694	1014	// 0d28    bne    hfpu_fail
 //		// ================================
-//		// hdown
+//		// htrunc
 //		// hldi r0,12.34 (=12.34)
 //	@0695	c04a	// 0d2a    ldbih  r0,((0x4a2b)>>8)&0xff
 //	@0696	b82b	// 0d2c    ldbil  r0,(0x4a2b)&0xff
-//	@0697	72c8	// 0d2e    hdown  r1,r0
+//	@0697	72c8	// 0d2e    htrunc r1,r0
 //		// hldi r2,12 (=12)
 //	@0698	c24a	// 0d30    ldbih  r2,((0x4a00)>>8)&0xff
 //	@0699	ba00	// 0d32    ldbil  r2,(0x4a00)&0xff
@@ -2114,14 +2114,14 @@
 //		// hldi r0,-0.9876 (=-0.9876)
 //	@069c	c0bb	// 0d38    ldbih  r0,((0xbbe6)>>8)&0xff
 //	@069d	b8e6	// 0d3a    ldbil  r0,(0xbbe6)&0xff
-//	@069e	72c8	// 0d3c    hdown  r1,r0
+//	@069e	72c8	// 0d3c    htrunc r1,r0
 //	@069f	c280	// 0d3e    ldbih  r2,((half_zer_n)>>8)&0xff
 //	@06a0	ba00	// 0d40    ldbil  r2,(half_zer_n)&0xff
 //	@06a1	7a8a	// 0d42    cmp    r1,r2
 //	@06a2	1006	// 0d44    bne    hfpu_fail
 //	@06a3	c3fc	// 0d46    ldbih  r3,((half_inf_n)>>8)&0xff
 //	@06a4	bb00	// 0d48    ldbil  r3,(half_inf_n)&0xff
-//	@06a5	72e3	// 0d4a    hdown  r4,r3
+//	@06a5	72e3	// 0d4a    htrunc r4,r3
 //	@06a6	7a9c	// 0d4c    cmp    r3,r4
 //	@06a7	1001	// 0d4e    bne    hfpu_fail
 //		// ================================
@@ -3090,7 +3090,7 @@
 // ================================
 // Assemble data:
 //
-// Moscovium series macro assembler ver.1.54
+// Moscovium series macro assembler ver.1.56
 @0000
 c803a800
 1094a900

@@ -12,9 +12,12 @@
 // ================================
 asm		"mcoc_irom.mem"
 incl	"mcoc115.incl"
-equ		mcvm_has_sfpu,0					// 0 for `define MCVM_COPR_NOFPUS
+equ		mcvm_has_sfpu,1					// 0 for `define MCVM_COPR_NOFPUS
 equ		mcvm_has_hfpu,0					// 0 for `define MCVM_COPR_NOFPU
 equ		mcvm_has_xadr,0					// 1 for `define MCOC_SDRAM_8M
+#equ		mcvm_has_xadr2,0x08_0000		// >0 for `define MCOC_ERAM
+#equ		mcvm_has_xadr2,0x10_0000		// >0 for `define MCOC_SRAM_512K
+equ		mcvm_has_xadr2,0				// 0 for not test
 def		s,""							// simulation "" / fpga "#"
 # ================================
 
@@ -197,6 +200,151 @@ jmpr7	tstfail
 
 xadr_pass:
 xadr_skip:
+
+
+// ================================
+// extended address (S-RAM area)
+// ================================
+// skip if mcvm_has_xadr2==0
+ldli	r0,mcvm_has_xadr2
+cmpi	r0,0
+beq		xadr2_skip
+// ================================
+// stw -> ldbx
+ldli	r4,mcvm_has_xadr2+0x0000_5678
+mov		r5,r4
+lsfti	r5,-16
+movtc	tr,r5
+ldwi	r6,0xb1e6
+stw		[r4],r6							// **
+exzrl	r4
+ldbx	r7,[r4]							// **
+addi	r4,1
+ldbx	r0,[r4]							// **
+lsfti	r7,8
+or		r7,r0
+cmp		r7,r6
+bne		xadr2_fail
+// ================================
+// stb -> ldwx
+ldli	r5,mcvm_has_xadr2+0x0004_7654
+mov		r6,r5
+lsfti	r6,-16
+movtc	tr,r6
+ldwi	r7,0xb1e6
+mov		r0,r7
+cendw	r0
+stb		[r5],r0							// **
+addi	r5,1
+cendw	r0
+stb		[r5],r0							// **
+subi	r5,1
+exzrl	r5
+ldwx	r1,[r5]							// **
+cmp		r1,r7
+bne		xadr2_fail
+// ================================
+// pushl -> ldl
+ldli	r6,mcvm_has_xadr2+0x0006_5432
+movtc	sp,r6
+ldli	r7,0x8a7b6c5d
+pushl	r7								// **
+subi	r6,4
+ldl		r0,[r6]							// **
+cmp		r0,r7
+bne		xadr2_fail
+// ================================
+// stl -> popl
+ldli	r7,mcvm_has_xadr2+0x0005_9874
+movtc	sp,r7
+ldli	r0,0x0a1b2c3d
+stl		[r7],r0							// **
+popl	r1								// **
+cmp		r1,r0
+bne		xadr2_fail
+// ================================
+// stlsp -> ldl
+ldli	r0,mcvm_has_xadr2+0x0003_7654
+movtc	sp,r0
+ldli	r1,0x0002_3456
+ldli	r2,0x5e4d_3c2b
+stlsp	[r1],r2							// **
+add		r0,r1
+ldl		r3,[r0]							// **
+cmp		r3,r2
+bne		xadr2_fail
+movfc	r4,tr
+cmp		r4,r0
+bne		xadr2_fail
+// ================================
+// stl -> ldlsp
+ldli	r1,mcvm_has_xadr2+0x0001_5432
+movtc	sp,r1
+ldli	r2,0x0006_10fe
+ldli	r3,0x9182_7364
+add		r1,r2
+stl		[r1],r3							// **
+ldlsp	r4,[r2]							// **
+cmp		r4,r3
+bne		xadr2_fail
+movfc	r5,tr
+cmp		r5,r1
+bne		xadr2_fail
+// ================================
+// 32 bit sp
+//	works even if nh=0 mode.
+//	but does not work sp relative (stwsp, etc.),
+//	because alu works in 16 bit mode.
+sesr	sreg_b_nh
+ldli	r2,mcvm_has_xadr2+0x000_5ab10
+movtc	sp,r2
+clsr	sreg_b_nh
+pushw	r2								// **
+sesr	sreg_b_nh
+mov		r3,r2
+subi	r3,2
+ldw		r4,[r3]
+exzrl	r2
+cmp		r4,r2
+bne		xadr2_fail
+movfc	r5,sp
+cmp		r5,r3
+bne		xadr2_fail
+// ================================
+// link, extended address
+ldli	r2,mcvm_has_xadr2+0x0001_2468
+movtc	sp,r2
+link	0x8ace							// **
+movfc	r3,sp
+movfc	r4,tr
+popl	r5
+cmp		r5,r2
+bne		xadr2_fail
+cmp		r4,r2
+bne		xadr2_fail
+ldwi	r6,0x8ace+4
+sub		r2,r6
+cmp		r3,r2
+bne		xadr2_fail
+// ================================
+// unlk, extended address
+ldli	r3,mcvm_has_xadr2+0x0004_bcde
+movtc	sp,r3
+ldli	r4,0x0076_5432
+pushl	r4
+unlk									// **
+movfc	r5,sp
+cmp		r5,r4
+bne		xadr2_fail
+
+// ================================
+bra		xadr2_pass
+
+xadr2_fail:
+jmpr7	tstfail
+
+xadr2_pass:
+xadr2_skip:
 
 
 // ================================
@@ -591,19 +739,19 @@ andi	r2,sreg_fg
 cmpi	r2,sreg_cf|sreg_zf
 bne		sfpu_fail
 // ================================
-// fdown
+// ftrunc
 fldi	r0,123.4567
-fdown	r1,r0							// **
+ftrunc	r1,r0							// **
 fldi	r2,123
 cmp		r1,r2
 bne		sfpu_fail
 fldi	r0,-0.98765
-fdown	r1,r0							// **
+ftrunc	r1,r0							// **
 ldli	r2,sngl_zer_n
 cmp		r1,r2
 bne		sfpu_fail
 fldi	r3,3.21^64
-fdown	r4,r3							// **
+ftrunc	r4,r3							// **
 cmp		r3,r4
 bne		sfpu_fail
 

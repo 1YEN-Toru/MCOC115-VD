@@ -165,7 +165,7 @@ ori		r5,true
 fld$(z)i	r4,2
 fmul	r4,r1
 fld$(z)i	r0,1/2
-fdown	r4,r4
+ftrunc	r4,r4
 mov		r2,r4
 fmul	r2,r0
 fsub	r1,r2
@@ -321,7 +321,7 @@ fneg	r1,r1
 mov		r2,r1
 fld$(z)i	r0,2*PI
 fdiv	r2,r0
-fdown	r2,r2
+ftrunc	r2,r2
 fmul	r2,r0
 fsub	r1,r2
 cmpi	r1,0
