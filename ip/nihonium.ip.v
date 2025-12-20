@@ -3,9 +3,9 @@ module niho_alu
    (mul_rslt,
     dctl_sign_f,
     div_crdy,
-    niho_dsp_b,
+    core_dsp_b,
     div_crdy_reg,
-    \niho_dsp_c[31] ,
+    \core_dsp_c[31] ,
     mul_rslt_reg,
     Q,
     \rem_reg[30] ,
@@ -65,10 +65,10 @@ module niho_alu
     clk,
     dctl_sign,
     rgf_sr_nh,
-    \niho_dsp_b[4] ,
-    \niho_dsp_b[4]_0 ,
+    \core_dsp_b[4] ,
+    \core_dsp_b[4]_0 ,
     abus_0,
-    niho_dsp_c,
+    core_dsp_c,
     \tr[31]_i_5 ,
     \tr[31]_i_5_0 ,
     \dctl_stat_reg[2] ,
@@ -76,7 +76,7 @@ module niho_alu
     \bcmd[2]_INST_0_i_1 ,
     rst_n,
     out,
-    \niho_dsp_a[32]_INST_0_i_12 ,
+    \core_dsp_a[32]_INST_0_i_12 ,
     \dso_reg[19] ,
     \dso_reg[19]_0 ,
     \dso_reg[19]_1 ,
@@ -120,9 +120,9 @@ module niho_alu
   output mul_rslt;
   output dctl_sign_f;
   output div_crdy;
-  output [0:0]niho_dsp_b;
+  output [0:0]core_dsp_b;
   output div_crdy_reg;
-  output \niho_dsp_c[31] ;
+  output \core_dsp_c[31] ;
   output mul_rslt_reg;
   output [30:0]Q;
   output [30:0]\rem_reg[30] ;
@@ -182,10 +182,10 @@ module niho_alu
   input clk;
   input dctl_sign;
   input rgf_sr_nh;
-  input \niho_dsp_b[4] ;
-  input \niho_dsp_b[4]_0 ;
+  input \core_dsp_b[4] ;
+  input \core_dsp_b[4]_0 ;
   input [15:0]abus_0;
-  input [15:0]niho_dsp_c;
+  input [15:0]core_dsp_c;
   input \tr[31]_i_5 ;
   input \tr[31]_i_5_0 ;
   input \dctl_stat_reg[2] ;
@@ -193,7 +193,7 @@ module niho_alu
   input \bcmd[2]_INST_0_i_1 ;
   input rst_n;
   input [0:0]out;
-  input [0:0]\niho_dsp_a[32]_INST_0_i_12 ;
+  input [0:0]\core_dsp_a[32]_INST_0_i_12 ;
   input \dso_reg[19] ;
   input \dso_reg[19]_0 ;
   input \dso_reg[19]_1 ;
@@ -308,12 +308,12 @@ module niho_alu
   wire mul_rslt_reg;
   wire [15:0]mulh;
   wire \mulh_reg[0] ;
-  wire [0:0]\niho_dsp_a[32]_INST_0_i_12 ;
-  wire [0:0]niho_dsp_b;
-  wire \niho_dsp_b[4] ;
-  wire \niho_dsp_b[4]_0 ;
-  wire [15:0]niho_dsp_c;
-  wire \niho_dsp_c[31] ;
+  wire [0:0]\core_dsp_a[32]_INST_0_i_12 ;
+  wire [0:0]core_dsp_b;
+  wire \core_dsp_b[4] ;
+  wire \core_dsp_b[4]_0 ;
+  wire [15:0]core_dsp_c;
+  wire \core_dsp_c[31] ;
   wire [0:0]out;
   wire p_0_in;
   wire [30:0]\rem_reg[30] ;
@@ -384,9 +384,9 @@ module niho_alu
         .\dso_reg[31]_0 (\dso_reg[31]_0 ),
         .\dso_reg[31]_1 (\dso_reg[31]_1 ),
         .\dso_reg[31]_2 (\dso_reg[31]_2 ),
-        .\niho_dsp_a[32]_INST_0_i_12 (\niho_dsp_a[32]_INST_0_i_12 ),
-        .niho_dsp_c(niho_dsp_c[15]),
-        .\niho_dsp_c[31] (\niho_dsp_c[31] ),
+        .\core_dsp_a[32]_INST_0_i_12 (\core_dsp_a[32]_INST_0_i_12 ),
+        .core_dsp_c(core_dsp_c[15]),
+        .\core_dsp_c[31] (\core_dsp_c[31] ),
         .out(out),
         .p_0_in(p_0_in),
         .\rem_reg[30] (\rem_reg[30] ),
@@ -473,10 +473,10 @@ module niho_alu
         .mul_rslt_reg_0(mul_rslt_reg),
         .mulh(mulh),
         .\mulh_reg[0]_0 (\mulh_reg[0] ),
-        .niho_dsp_b(niho_dsp_b),
-        .\niho_dsp_b[4] (\niho_dsp_b[4] ),
-        .\niho_dsp_b[4]_0 (\niho_dsp_b[4]_0 ),
-        .niho_dsp_c(niho_dsp_c),
+        .core_dsp_b(core_dsp_b),
+        .\core_dsp_b[4] (\core_dsp_b[4] ),
+        .\core_dsp_b[4]_0 (\core_dsp_b[4]_0 ),
+        .core_dsp_c(core_dsp_c),
         .p_0_in(p_0_in),
         .rgf_sr_nh(rgf_sr_nh));
 endmodule
@@ -485,7 +485,7 @@ module niho_alu_div
    (dctl_sign_f,
     div_crdy_reg,
     div_crdy_reg_0,
-    \niho_dsp_c[31] ,
+    \core_dsp_c[31] ,
     Q,
     \remden_reg[13] ,
     \remden_reg[15] ,
@@ -512,7 +512,7 @@ module niho_alu_div
     abus_0,
     rgf_sr_nh,
     \tr[31]_i_5 ,
-    niho_dsp_c,
+    core_dsp_c,
     \tr[31]_i_5_0 ,
     \tr[31]_i_5_1 ,
     \dctl_stat_reg[2] ,
@@ -520,7 +520,7 @@ module niho_alu_div
     \bcmd[2]_INST_0_i_1 ,
     rst_n,
     out,
-    \niho_dsp_a[32]_INST_0_i_12 ,
+    \core_dsp_a[32]_INST_0_i_12 ,
     \dso_reg[19] ,
     \dso_reg[19]_0 ,
     \dso_reg[19]_1 ,
@@ -557,7 +557,7 @@ module niho_alu_div
   output dctl_sign_f;
   output div_crdy_reg;
   output div_crdy_reg_0;
-  output \niho_dsp_c[31] ;
+  output \core_dsp_c[31] ;
   output [30:0]Q;
   output \remden_reg[13] ;
   output \remden_reg[15] ;
@@ -584,7 +584,7 @@ module niho_alu_div
   input [15:0]abus_0;
   input rgf_sr_nh;
   input \tr[31]_i_5 ;
-  input [0:0]niho_dsp_c;
+  input [0:0]core_dsp_c;
   input \tr[31]_i_5_0 ;
   input \tr[31]_i_5_1 ;
   input \dctl_stat_reg[2] ;
@@ -592,7 +592,7 @@ module niho_alu_div
   input \bcmd[2]_INST_0_i_1 ;
   input rst_n;
   input [0:0]out;
-  input [0:0]\niho_dsp_a[32]_INST_0_i_12 ;
+  input [0:0]\core_dsp_a[32]_INST_0_i_12 ;
   input \dso_reg[19] ;
   input \dso_reg[19]_0 ;
   input \dso_reg[19]_1 ;
@@ -859,9 +859,9 @@ module niho_alu_div
   wire \dso_reg[31]_2 ;
   wire [31:0]fdiv_rem;
   wire \fsm/chg_rem_sgn0 ;
-  wire [0:0]\niho_dsp_a[32]_INST_0_i_12 ;
-  wire [0:0]niho_dsp_c;
-  wire \niho_dsp_c[31] ;
+  wire [0:0]\core_dsp_a[32]_INST_0_i_12 ;
+  wire [0:0]core_dsp_c;
+  wire \core_dsp_c[31] ;
   wire [0:0]out;
   wire p_0_in;
   wire p_0_in0;
@@ -1106,7 +1106,7 @@ module niho_alu_div
         .\dso_reg[31]_3 (\dso_reg[31]_2 ),
         .fdiv_rem(fdiv_rem),
         .fdiv_rem_msb_f_reg(p_0_in0),
-        .\niho_dsp_a[32]_INST_0_i_12 (\niho_dsp_a[32]_INST_0_i_12 ),
+        .\core_dsp_a[32]_INST_0_i_12 (\core_dsp_a[32]_INST_0_i_12 ),
         .out(out),
         .p_0_in(p_0_in),
         .\rem_reg[11] ({dctl_n_61,dctl_n_62,dctl_n_63,dctl_n_64}),
@@ -1379,8 +1379,8 @@ module niho_alu_div
         .E(dctl_n_19),
         .Q({quo,Q}),
         .clk(clk),
-        .niho_dsp_c(niho_dsp_c),
-        .\niho_dsp_c[31] (\niho_dsp_c[31] ),
+        .core_dsp_c(core_dsp_c),
+        .\core_dsp_c[31] (\core_dsp_c[31] ),
         .p_0_in(p_0_in),
         .\tr[31]_i_5 (\tr[31]_i_5 ),
         .\tr[31]_i_5_0 (\tr[31]_i_5_0 ),
@@ -1396,7 +1396,7 @@ endmodule
 
 module niho_alu_mul
    (mul_rslt,
-    niho_dsp_b,
+    core_dsp_b,
     mul_rslt_reg_0,
     mulh,
     mul_a,
@@ -1435,11 +1435,11 @@ module niho_alu_mul
     mul_rslt0,
     clk,
     rgf_sr_nh,
-    \niho_dsp_b[4] ,
-    \niho_dsp_b[4]_0 ,
+    \core_dsp_b[4] ,
+    \core_dsp_b[4]_0 ,
     \mulh_reg[0]_0 ,
     mul_b,
-    niho_dsp_c,
+    core_dsp_c,
     D,
     mul_a_i,
     \mul_a_reg[16]_0 ,
@@ -1448,7 +1448,7 @@ module niho_alu_mul
     \mul_b_reg[32]_1 ,
     bbus_0);
   output mul_rslt;
-  output [0:0]niho_dsp_b;
+  output [0:0]core_dsp_b;
   output mul_rslt_reg_0;
   output [15:0]mulh;
   output [32:0]mul_a;
@@ -1487,11 +1487,11 @@ module niho_alu_mul
   input mul_rslt0;
   input clk;
   input rgf_sr_nh;
-  input \niho_dsp_b[4] ;
-  input \niho_dsp_b[4]_0 ;
+  input \core_dsp_b[4] ;
+  input \core_dsp_b[4]_0 ;
   input \mulh_reg[0]_0 ;
   input mul_b;
-  input [15:0]niho_dsp_c;
+  input [15:0]core_dsp_c;
   input [1:0]D;
   input [13:0]mul_a_i;
   input \mul_a_reg[16]_0 ;
@@ -1549,10 +1549,10 @@ module niho_alu_mul
   wire mul_rslt_reg_0;
   wire [15:0]mulh;
   wire \mulh_reg[0]_0 ;
-  wire [0:0]niho_dsp_b;
-  wire \niho_dsp_b[4] ;
-  wire \niho_dsp_b[4]_0 ;
-  wire [15:0]niho_dsp_c;
+  wire [0:0]core_dsp_b;
+  wire \core_dsp_b[4] ;
+  wire \core_dsp_b[4]_0 ;
+  wire [15:0]core_dsp_c;
   wire p_0_in;
   wire rgf_sr_nh;
 
@@ -1965,113 +1965,113 @@ module niho_alu_mul
   FDRE \mulh_reg[0] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[0]),
+        .D(core_dsp_c[0]),
         .Q(mulh[0]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[10] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[10]),
+        .D(core_dsp_c[10]),
         .Q(mulh[10]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[11] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[11]),
+        .D(core_dsp_c[11]),
         .Q(mulh[11]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[12] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[12]),
+        .D(core_dsp_c[12]),
         .Q(mulh[12]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[13] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[13]),
+        .D(core_dsp_c[13]),
         .Q(mulh[13]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[14] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[14]),
+        .D(core_dsp_c[14]),
         .Q(mulh[14]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[15] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[15]),
+        .D(core_dsp_c[15]),
         .Q(mulh[15]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[1] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[1]),
+        .D(core_dsp_c[1]),
         .Q(mulh[1]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[2] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[2]),
+        .D(core_dsp_c[2]),
         .Q(mulh[2]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[3] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[3]),
+        .D(core_dsp_c[3]),
         .Q(mulh[3]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[4] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[4]),
+        .D(core_dsp_c[4]),
         .Q(mulh[4]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[5] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[5]),
+        .D(core_dsp_c[5]),
         .Q(mulh[5]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[6] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[6]),
+        .D(core_dsp_c[6]),
         .Q(mulh[6]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[7] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[7]),
+        .D(core_dsp_c[7]),
         .Q(mulh[7]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[8] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[8]),
+        .D(core_dsp_c[8]),
         .Q(mulh[8]),
         .R(\mulh_reg[0]_0 ));
   FDRE \mulh_reg[9] 
        (.C(clk),
         .CE(mul_b),
-        .D(niho_dsp_c[9]),
+        .D(core_dsp_c[9]),
         .Q(mulh[9]),
         .R(\mulh_reg[0]_0 ));
   LUT5 #(
     .INIT(32'h80FF8080)) 
-    \niho_dsp_b[4]_INST_0 
+    \core_dsp_b[4]_INST_0 
        (.I0(rgf_sr_nh),
         .I1(mul_rslt),
         .I2(\mul_b_reg_n_0_[4] ),
-        .I3(\niho_dsp_b[4] ),
-        .I4(\niho_dsp_b[4]_0 ),
-        .O(niho_dsp_b));
+        .I3(\core_dsp_b[4] ),
+        .I4(\core_dsp_b[4]_0 ),
+        .O(core_dsp_b));
   LUT3 #(
     .INIT(8'h4F)) 
     \tr[30]_i_4 
        (.I0(mul_rslt),
-        .I1(\niho_dsp_b[4] ),
+        .I1(\core_dsp_b[4] ),
         .I2(rgf_sr_nh),
         .O(mul_rslt_reg_0));
 endmodule
@@ -2717,7 +2717,7 @@ module niho_div_ctl
     \bcmd[2]_INST_0_i_1 ,
     rst_n,
     out,
-    \niho_dsp_a[32]_INST_0_i_12 ,
+    \core_dsp_a[32]_INST_0_i_12 ,
     fdiv_rem,
     \dso_reg[19] ,
     \dso_reg[19]_0 ,
@@ -2876,7 +2876,7 @@ module niho_div_ctl
   input \bcmd[2]_INST_0_i_1 ;
   input rst_n;
   input [0:0]out;
-  input [0:0]\niho_dsp_a[32]_INST_0_i_12 ;
+  input [0:0]\core_dsp_a[32]_INST_0_i_12 ;
   input [31:0]fdiv_rem;
   input \dso_reg[19] ;
   input \dso_reg[19]_0 ;
@@ -2968,7 +2968,7 @@ module niho_div_ctl
   wire [31:0]fdiv_rem;
   wire [0:0]fdiv_rem_msb_f_reg;
   wire fsm_n_35;
-  wire [0:0]\niho_dsp_a[32]_INST_0_i_12 ;
+  wire [0:0]\core_dsp_a[32]_INST_0_i_12 ;
   wire [0:0]out;
   wire p_0_in;
   wire [3:0]\rem_reg[11] ;
@@ -3079,7 +3079,7 @@ module niho_div_ctl
        (.I0(div_crdy_reg_0),
         .I1(crdy),
         .I2(out),
-        .I3(\niho_dsp_a[32]_INST_0_i_12 ),
+        .I3(\core_dsp_a[32]_INST_0_i_12 ),
         .O(div_crdy_reg_4));
   LUT2 #(
     .INIT(4'h7)) 
@@ -9994,10 +9994,10 @@ module niho_div_reg_dso
 endmodule
 
 module niho_div_reg_quo
-   (\niho_dsp_c[31] ,
+   (\core_dsp_c[31] ,
     Q,
     \tr[31]_i_5 ,
-    niho_dsp_c,
+    core_dsp_c,
     \tr[31]_i_5_0 ,
     \tr[31]_i_5_1 ,
     \tr[31]_i_5_2 ,
@@ -10005,10 +10005,10 @@ module niho_div_reg_quo
     E,
     D,
     clk);
-  output \niho_dsp_c[31] ;
+  output \core_dsp_c[31] ;
   output [31:0]Q;
   input \tr[31]_i_5 ;
-  input [0:0]niho_dsp_c;
+  input [0:0]core_dsp_c;
   input \tr[31]_i_5_0 ;
   input [0:0]\tr[31]_i_5_1 ;
   input \tr[31]_i_5_2 ;
@@ -10021,8 +10021,8 @@ module niho_div_reg_quo
   wire [0:0]E;
   wire [31:0]Q;
   wire clk;
-  wire [0:0]niho_dsp_c;
-  wire \niho_dsp_c[31] ;
+  wire [0:0]core_dsp_c;
+  wire \core_dsp_c[31] ;
   wire p_0_in;
   wire \tr[31]_i_5 ;
   wire \tr[31]_i_5_0 ;
@@ -10225,12 +10225,12 @@ module niho_div_reg_quo
     .INIT(64'h44F444F4FFFF44F4)) 
     \tr[31]_i_14 
        (.I0(\tr[31]_i_5 ),
-        .I1(niho_dsp_c),
+        .I1(core_dsp_c),
         .I2(Q[31]),
         .I3(\tr[31]_i_5_0 ),
         .I4(\tr[31]_i_5_1 ),
         .I5(\tr[31]_i_5_2 ),
-        .O(\niho_dsp_c[31] ));
+        .O(\core_dsp_c[31] ));
 endmodule
 
 module niho_div_reg_rem
@@ -10479,13 +10479,13 @@ module niho_fch
     \tr[21]_i_14_0 ,
     \tr[23]_i_15_0 ,
     \tr[27]_i_14 ,
-    \niho_dsp_a[15]_INST_0_i_2_0 ,
+    \core_dsp_a[15]_INST_0_i_2_0 ,
     \tr[19]_i_14_0 ,
-    \niho_dsp_a[32]_INST_0_i_5_0 ,
-    \niho_dsp_a[32]_INST_0_i_5_1 ,
+    \core_dsp_a[32]_INST_0_i_5_0 ,
+    \core_dsp_a[32]_INST_0_i_5_1 ,
     \stat_reg[2]_2 ,
     \sr_reg[8]_1 ,
-    \niho_dsp_a[32]_INST_0_i_7_0 ,
+    \core_dsp_a[32]_INST_0_i_7_0 ,
     \iv[3]_i_16 ,
     \iv[12]_i_10 ,
     \iv[15]_i_19_0 ,
@@ -10561,15 +10561,15 @@ module niho_fch
     rst_n_fl_reg_12,
     rst_n_fl_reg_13,
     rst_n_fl_reg_14,
-    \niho_dsp_a[32]_INST_0_i_5_2 ,
+    \core_dsp_a[32]_INST_0_i_5_2 ,
     mul_b,
     dctl_sign,
-    \niho_dsp_a[32]_INST_0_i_5_3 ,
+    \core_dsp_a[32]_INST_0_i_5_3 ,
     \sr_reg[6]_1 ,
     div_crdy_reg,
     div_crdy_reg_0,
     \stat_reg[2]_3 ,
-    \niho_dsp_a[32]_INST_0_i_5_4 ,
+    \core_dsp_a[32]_INST_0_i_5_4 ,
     \sr_reg[4]_0 ,
     \iv[15]_i_19_1 ,
     \sr_reg[8]_37 ,
@@ -10683,7 +10683,7 @@ module niho_fch
     \sr_reg[6]_5 ,
     \sr_reg[7] ,
     \pc_reg[15] ,
-    niho_dsp_b,
+    core_dsp_b,
     \sr_reg[8]_53 ,
     \sr_reg[8]_54 ,
     \sr_reg[8]_55 ,
@@ -10761,7 +10761,7 @@ module niho_fch
     \iv[15]_i_9_0 ,
     \sr[7]_i_4_0 ,
     mulh,
-    niho_dsp_c,
+    core_dsp_c,
     \sr_reg[4]_3 ,
     abus_0,
     \tr[23]_i_5_0 ,
@@ -11081,9 +11081,9 @@ module niho_fch
     \mul_b_reg[15]_1 ,
     \bcmd[0] ,
     crdy,
-    \niho_dsp_a[32]_INST_0_i_9_0 ,
+    \core_dsp_a[32]_INST_0_i_9_0 ,
     \badr[31]_INST_0_i_36_0 ,
-    \niho_dsp_a[32]_INST_0_i_6_0 ,
+    \core_dsp_a[32]_INST_0_i_6_0 ,
     \iv[15]_i_38_0 ,
     \tr[31]_i_12_0 ,
     \sp[0]_i_13_0 ,
@@ -11114,35 +11114,35 @@ module niho_fch
     alu_sr_flag,
     fch_pc,
     rgf_pc,
-    .niho_dsp_b_16_sp_1(niho_dsp_b_16_sn_1),
-    .niho_dsp_b_17_sp_1(niho_dsp_b_17_sn_1),
-    .niho_dsp_b_18_sp_1(niho_dsp_b_18_sn_1),
-    .niho_dsp_b_19_sp_1(niho_dsp_b_19_sn_1),
-    .niho_dsp_b_20_sp_1(niho_dsp_b_20_sn_1),
-    .niho_dsp_b_21_sp_1(niho_dsp_b_21_sn_1),
-    .niho_dsp_b_22_sp_1(niho_dsp_b_22_sn_1),
-    .niho_dsp_b_23_sp_1(niho_dsp_b_23_sn_1),
-    .niho_dsp_b_24_sp_1(niho_dsp_b_24_sn_1),
-    .niho_dsp_b_25_sp_1(niho_dsp_b_25_sn_1),
-    .niho_dsp_b_26_sp_1(niho_dsp_b_26_sn_1),
-    .niho_dsp_b_27_sp_1(niho_dsp_b_27_sn_1),
-    .niho_dsp_b_28_sp_1(niho_dsp_b_28_sn_1),
-    .niho_dsp_b_29_sp_1(niho_dsp_b_29_sn_1),
-    \niho_dsp_b[30] ,
-    \niho_dsp_b[32] ,
-    .niho_dsp_b_15_sp_1(niho_dsp_b_15_sn_1),
-    .niho_dsp_b_1_sp_1(niho_dsp_b_1_sn_1),
-    .niho_dsp_b_2_sp_1(niho_dsp_b_2_sn_1),
-    .niho_dsp_b_3_sp_1(niho_dsp_b_3_sn_1),
-    .niho_dsp_b_6_sp_1(niho_dsp_b_6_sn_1),
-    .niho_dsp_b_7_sp_1(niho_dsp_b_7_sn_1),
-    .niho_dsp_b_8_sp_1(niho_dsp_b_8_sn_1),
-    .niho_dsp_b_9_sp_1(niho_dsp_b_9_sn_1),
-    .niho_dsp_b_10_sp_1(niho_dsp_b_10_sn_1),
-    .niho_dsp_b_11_sp_1(niho_dsp_b_11_sn_1),
-    .niho_dsp_b_12_sp_1(niho_dsp_b_12_sn_1),
-    .niho_dsp_b_13_sp_1(niho_dsp_b_13_sn_1),
-    .niho_dsp_b_14_sp_1(niho_dsp_b_14_sn_1),
+    .core_dsp_b_16_sp_1(core_dsp_b_16_sn_1),
+    .core_dsp_b_17_sp_1(core_dsp_b_17_sn_1),
+    .core_dsp_b_18_sp_1(core_dsp_b_18_sn_1),
+    .core_dsp_b_19_sp_1(core_dsp_b_19_sn_1),
+    .core_dsp_b_20_sp_1(core_dsp_b_20_sn_1),
+    .core_dsp_b_21_sp_1(core_dsp_b_21_sn_1),
+    .core_dsp_b_22_sp_1(core_dsp_b_22_sn_1),
+    .core_dsp_b_23_sp_1(core_dsp_b_23_sn_1),
+    .core_dsp_b_24_sp_1(core_dsp_b_24_sn_1),
+    .core_dsp_b_25_sp_1(core_dsp_b_25_sn_1),
+    .core_dsp_b_26_sp_1(core_dsp_b_26_sn_1),
+    .core_dsp_b_27_sp_1(core_dsp_b_27_sn_1),
+    .core_dsp_b_28_sp_1(core_dsp_b_28_sn_1),
+    .core_dsp_b_29_sp_1(core_dsp_b_29_sn_1),
+    \core_dsp_b[30] ,
+    \core_dsp_b[32] ,
+    .core_dsp_b_15_sp_1(core_dsp_b_15_sn_1),
+    .core_dsp_b_1_sp_1(core_dsp_b_1_sn_1),
+    .core_dsp_b_2_sp_1(core_dsp_b_2_sn_1),
+    .core_dsp_b_3_sp_1(core_dsp_b_3_sn_1),
+    .core_dsp_b_6_sp_1(core_dsp_b_6_sn_1),
+    .core_dsp_b_7_sp_1(core_dsp_b_7_sn_1),
+    .core_dsp_b_8_sp_1(core_dsp_b_8_sn_1),
+    .core_dsp_b_9_sp_1(core_dsp_b_9_sn_1),
+    .core_dsp_b_10_sp_1(core_dsp_b_10_sn_1),
+    .core_dsp_b_11_sp_1(core_dsp_b_11_sn_1),
+    .core_dsp_b_12_sp_1(core_dsp_b_12_sn_1),
+    .core_dsp_b_13_sp_1(core_dsp_b_13_sn_1),
+    .core_dsp_b_14_sp_1(core_dsp_b_14_sn_1),
     \sr[4]_i_8_0 ,
     \iv[13]_i_8_0 ,
     \iv[4]_i_8 ,
@@ -11188,13 +11188,13 @@ module niho_fch
   output \tr[21]_i_14_0 ;
   output \tr[23]_i_15_0 ;
   output \tr[27]_i_14 ;
-  output \niho_dsp_a[15]_INST_0_i_2_0 ;
+  output \core_dsp_a[15]_INST_0_i_2_0 ;
   output \tr[19]_i_14_0 ;
-  output \niho_dsp_a[32]_INST_0_i_5_0 ;
-  output \niho_dsp_a[32]_INST_0_i_5_1 ;
+  output \core_dsp_a[32]_INST_0_i_5_0 ;
+  output \core_dsp_a[32]_INST_0_i_5_1 ;
   output \stat_reg[2]_2 ;
   output \sr_reg[8]_1 ;
-  output \niho_dsp_a[32]_INST_0_i_7_0 ;
+  output \core_dsp_a[32]_INST_0_i_7_0 ;
   output \iv[3]_i_16 ;
   output \iv[12]_i_10 ;
   output \iv[15]_i_19_0 ;
@@ -11270,15 +11270,15 @@ module niho_fch
   output rst_n_fl_reg_12;
   output rst_n_fl_reg_13;
   output rst_n_fl_reg_14;
-  output \niho_dsp_a[32]_INST_0_i_5_2 ;
+  output \core_dsp_a[32]_INST_0_i_5_2 ;
   output mul_b;
   output dctl_sign;
-  output \niho_dsp_a[32]_INST_0_i_5_3 ;
+  output \core_dsp_a[32]_INST_0_i_5_3 ;
   output \sr_reg[6]_1 ;
   output div_crdy_reg;
   output div_crdy_reg_0;
   output \stat_reg[2]_3 ;
-  output \niho_dsp_a[32]_INST_0_i_5_4 ;
+  output \core_dsp_a[32]_INST_0_i_5_4 ;
   output \sr_reg[4]_0 ;
   output \iv[15]_i_19_1 ;
   output \sr_reg[8]_37 ;
@@ -11392,7 +11392,7 @@ module niho_fch
   output \sr_reg[6]_5 ;
   output \sr_reg[7] ;
   output [15:0]\pc_reg[15] ;
-  output [29:0]niho_dsp_b;
+  output [29:0]core_dsp_b;
   output \sr_reg[8]_53 ;
   output \sr_reg[8]_54 ;
   output \sr_reg[8]_55 ;
@@ -11470,7 +11470,7 @@ module niho_fch
   input [3:0]\iv[15]_i_9_0 ;
   input [0:0]\sr[7]_i_4_0 ;
   input [15:0]mulh;
-  input [24:0]niho_dsp_c;
+  input [24:0]core_dsp_c;
   input \sr_reg[4]_3 ;
   input [31:0]abus_0;
   input \tr[23]_i_5_0 ;
@@ -11775,9 +11775,9 @@ module niho_fch
   input \mul_b_reg[15]_1 ;
   input \bcmd[0] ;
   input crdy;
-  input \niho_dsp_a[32]_INST_0_i_9_0 ;
+  input \core_dsp_a[32]_INST_0_i_9_0 ;
   input \badr[31]_INST_0_i_36_0 ;
-  input \niho_dsp_a[32]_INST_0_i_6_0 ;
+  input \core_dsp_a[32]_INST_0_i_6_0 ;
   input \iv[15]_i_38_0 ;
   input \tr[31]_i_12_0 ;
   input \sp[0]_i_13_0 ;
@@ -11808,8 +11808,8 @@ module niho_fch
   input [0:0]alu_sr_flag;
   input [15:0]fch_pc;
   input [15:0]rgf_pc;
-  input \niho_dsp_b[30] ;
-  input [1:0]\niho_dsp_b[32] ;
+  input \core_dsp_b[30] ;
+  input [1:0]\core_dsp_b[32] ;
   input \sr[4]_i_8_0 ;
   input \iv[13]_i_8_0 ;
   input \iv[4]_i_8 ;
@@ -11839,33 +11839,33 @@ module niho_fch
   input bbus_o_17_sn_1;
   input bbus_o_16_sn_1;
   input ccmd_2_sn_1;
-  input niho_dsp_b_16_sn_1;
-  input niho_dsp_b_17_sn_1;
-  input niho_dsp_b_18_sn_1;
-  input niho_dsp_b_19_sn_1;
-  input niho_dsp_b_20_sn_1;
-  input niho_dsp_b_21_sn_1;
-  input niho_dsp_b_22_sn_1;
-  input niho_dsp_b_23_sn_1;
-  input niho_dsp_b_24_sn_1;
-  input niho_dsp_b_25_sn_1;
-  input niho_dsp_b_26_sn_1;
-  input niho_dsp_b_27_sn_1;
-  input niho_dsp_b_28_sn_1;
-  input niho_dsp_b_29_sn_1;
-  input niho_dsp_b_15_sn_1;
-  input niho_dsp_b_1_sn_1;
-  input niho_dsp_b_2_sn_1;
-  input niho_dsp_b_3_sn_1;
-  input niho_dsp_b_6_sn_1;
-  input niho_dsp_b_7_sn_1;
-  input niho_dsp_b_8_sn_1;
-  input niho_dsp_b_9_sn_1;
-  input niho_dsp_b_10_sn_1;
-  input niho_dsp_b_11_sn_1;
-  input niho_dsp_b_12_sn_1;
-  input niho_dsp_b_13_sn_1;
-  input niho_dsp_b_14_sn_1;
+  input core_dsp_b_16_sn_1;
+  input core_dsp_b_17_sn_1;
+  input core_dsp_b_18_sn_1;
+  input core_dsp_b_19_sn_1;
+  input core_dsp_b_20_sn_1;
+  input core_dsp_b_21_sn_1;
+  input core_dsp_b_22_sn_1;
+  input core_dsp_b_23_sn_1;
+  input core_dsp_b_24_sn_1;
+  input core_dsp_b_25_sn_1;
+  input core_dsp_b_26_sn_1;
+  input core_dsp_b_27_sn_1;
+  input core_dsp_b_28_sn_1;
+  input core_dsp_b_29_sn_1;
+  input core_dsp_b_15_sn_1;
+  input core_dsp_b_1_sn_1;
+  input core_dsp_b_2_sn_1;
+  input core_dsp_b_3_sn_1;
+  input core_dsp_b_6_sn_1;
+  input core_dsp_b_7_sn_1;
+  input core_dsp_b_8_sn_1;
+  input core_dsp_b_9_sn_1;
+  input core_dsp_b_10_sn_1;
+  input core_dsp_b_11_sn_1;
+  input core_dsp_b_12_sn_1;
+  input core_dsp_b_13_sn_1;
+  input core_dsp_b_14_sn_1;
 
   wire \<const0> ;
   wire \<const1> ;
@@ -12797,58 +12797,58 @@ module niho_fch
   wire \mul_b_reg[9]_0 ;
   wire mul_rslt;
   wire [15:0]mulh;
-  wire \niho_dsp_a[15]_INST_0_i_2_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_10_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_11_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_12_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_13_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_14_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_15_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_17_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_18_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_3_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_4_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_5_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_5_1 ;
-  wire \niho_dsp_a[32]_INST_0_i_5_2 ;
-  wire \niho_dsp_a[32]_INST_0_i_5_3 ;
-  wire \niho_dsp_a[32]_INST_0_i_5_4 ;
-  wire \niho_dsp_a[32]_INST_0_i_6_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_7_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_8_n_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_9_0 ;
-  wire \niho_dsp_a[32]_INST_0_i_9_n_0 ;
-  wire [29:0]niho_dsp_b;
-  wire \niho_dsp_b[30] ;
-  wire [1:0]\niho_dsp_b[32] ;
-  wire niho_dsp_b_10_sn_1;
-  wire niho_dsp_b_11_sn_1;
-  wire niho_dsp_b_12_sn_1;
-  wire niho_dsp_b_13_sn_1;
-  wire niho_dsp_b_14_sn_1;
-  wire niho_dsp_b_15_sn_1;
-  wire niho_dsp_b_16_sn_1;
-  wire niho_dsp_b_17_sn_1;
-  wire niho_dsp_b_18_sn_1;
-  wire niho_dsp_b_19_sn_1;
-  wire niho_dsp_b_1_sn_1;
-  wire niho_dsp_b_20_sn_1;
-  wire niho_dsp_b_21_sn_1;
-  wire niho_dsp_b_22_sn_1;
-  wire niho_dsp_b_23_sn_1;
-  wire niho_dsp_b_24_sn_1;
-  wire niho_dsp_b_25_sn_1;
-  wire niho_dsp_b_26_sn_1;
-  wire niho_dsp_b_27_sn_1;
-  wire niho_dsp_b_28_sn_1;
-  wire niho_dsp_b_29_sn_1;
-  wire niho_dsp_b_2_sn_1;
-  wire niho_dsp_b_3_sn_1;
-  wire niho_dsp_b_6_sn_1;
-  wire niho_dsp_b_7_sn_1;
-  wire niho_dsp_b_8_sn_1;
-  wire niho_dsp_b_9_sn_1;
-  wire [24:0]niho_dsp_c;
+  wire \core_dsp_a[15]_INST_0_i_2_0 ;
+  wire \core_dsp_a[32]_INST_0_i_10_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_11_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_12_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_13_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_14_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_15_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_17_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_18_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_3_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_4_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_5_0 ;
+  wire \core_dsp_a[32]_INST_0_i_5_1 ;
+  wire \core_dsp_a[32]_INST_0_i_5_2 ;
+  wire \core_dsp_a[32]_INST_0_i_5_3 ;
+  wire \core_dsp_a[32]_INST_0_i_5_4 ;
+  wire \core_dsp_a[32]_INST_0_i_6_0 ;
+  wire \core_dsp_a[32]_INST_0_i_7_0 ;
+  wire \core_dsp_a[32]_INST_0_i_8_n_0 ;
+  wire \core_dsp_a[32]_INST_0_i_9_0 ;
+  wire \core_dsp_a[32]_INST_0_i_9_n_0 ;
+  wire [29:0]core_dsp_b;
+  wire \core_dsp_b[30] ;
+  wire [1:0]\core_dsp_b[32] ;
+  wire core_dsp_b_10_sn_1;
+  wire core_dsp_b_11_sn_1;
+  wire core_dsp_b_12_sn_1;
+  wire core_dsp_b_13_sn_1;
+  wire core_dsp_b_14_sn_1;
+  wire core_dsp_b_15_sn_1;
+  wire core_dsp_b_16_sn_1;
+  wire core_dsp_b_17_sn_1;
+  wire core_dsp_b_18_sn_1;
+  wire core_dsp_b_19_sn_1;
+  wire core_dsp_b_1_sn_1;
+  wire core_dsp_b_20_sn_1;
+  wire core_dsp_b_21_sn_1;
+  wire core_dsp_b_22_sn_1;
+  wire core_dsp_b_23_sn_1;
+  wire core_dsp_b_24_sn_1;
+  wire core_dsp_b_25_sn_1;
+  wire core_dsp_b_26_sn_1;
+  wire core_dsp_b_27_sn_1;
+  wire core_dsp_b_28_sn_1;
+  wire core_dsp_b_29_sn_1;
+  wire core_dsp_b_2_sn_1;
+  wire core_dsp_b_3_sn_1;
+  wire core_dsp_b_6_sn_1;
+  wire core_dsp_b_7_sn_1;
+  wire core_dsp_b_8_sn_1;
+  wire core_dsp_b_9_sn_1;
+  wire [24:0]core_dsp_c;
   wire p_0_in;
   wire [30:17]p_2_in;
   wire [15:0]\pc_reg[15] ;
@@ -17904,7 +17904,7 @@ module niho_fch
         .I2(ir[9]),
         .I3(\stat_reg[2]_12 [0]),
         .I4(\ccmd[3]_INST_0_i_13_n_0 ),
-        .I5(\niho_dsp_a[32]_INST_0_i_9_0 ),
+        .I5(\core_dsp_a[32]_INST_0_i_9_0 ),
         .O(\ccmd[0]_INST_0_i_10_n_0 ));
   LUT6 #(
     .INIT(64'hFFFFEEEAFFFFFEFA)) 
@@ -19079,7 +19079,7 @@ module niho_fch
     .INIT(64'h8000FFFF80000000)) 
     dctl_sign_f_i_1
        (.I0(\stat_reg[0] ),
-        .I1(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I2(\stat_reg[0]_1 ),
         .I3(\stat_reg[0]_0 ),
         .I4(div_crdy),
@@ -20239,7 +20239,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[0]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[0]),
+        .I3(core_dsp_c[0]),
         .I4(\iv[0]_i_6_n_0 ),
         .I5(\iv[0]_i_7_n_0 ),
         .O(\iv[0]_i_2_n_0 ));
@@ -20262,11 +20262,11 @@ module niho_fch
     .INIT(64'hAA08AAAA08080808)) 
     \iv[0]_i_3 
        (.I0(\stat_reg[2]_2 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I2(\tr_reg[0]_0 ),
         .I3(\tr_reg[0]_1 ),
         .I4(\tr_reg[0]_2 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[0]_i_3_n_0 ));
   LUT6 #(
     .INIT(64'h44F444F4FFFF44F4)) 
@@ -20282,7 +20282,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[0]_i_7 
        (.I0(\sr[4]_i_7_3 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\sr[4]_i_7_4 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[0]_i_13_n_0 ),
@@ -20344,7 +20344,7 @@ module niho_fch
         .I1(\tr_reg[10]_0 ),
         .I2(\tr_reg[10]_1 ),
         .I3(\iv[10]_i_6_n_0 ),
-        .I4(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I4(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[10]_i_2_n_0 ));
   LUT6 #(
     .INIT(64'hB888BBBBB888B888)) 
@@ -20352,7 +20352,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[8]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[10]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[10]_i_20_n_0 ));
@@ -20362,7 +20362,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[10]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[10]),
+        .I3(core_dsp_c[10]),
         .I4(\iv[10]_i_7_n_0 ),
         .I5(\iv[10]_i_8_n_0 ),
         .O(\iv[10]_i_3_n_0 ));
@@ -20462,7 +20462,7 @@ module niho_fch
         .I2(\tr_reg[11]_1 ),
         .I3(\tr_reg[11]_2 ),
         .I4(\iv[11]_i_7_n_0 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[11]_i_2_n_0 ));
   LUT6 #(
     .INIT(64'hAAFF3C00AA003C00)) 
@@ -20490,7 +20490,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[11]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[11]),
+        .I3(core_dsp_c[11]),
         .I4(\iv[11]_i_8_n_0 ),
         .I5(\iv[11]_i_9_n_0 ),
         .O(\iv[11]_i_3_n_0 ));
@@ -20507,7 +20507,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[9]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[11]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[11]_i_39_n_0 ));
@@ -20617,7 +20617,7 @@ module niho_fch
         .I1(\iv[12]_i_10 ),
         .I2(\tr_reg[12]_0 ),
         .I3(\iv[12]_i_6_n_0 ),
-        .I4(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I4(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[12]_i_2_n_0 ));
   LUT6 #(
     .INIT(64'hB888BBBBB888B888)) 
@@ -20625,7 +20625,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[10]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[12]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[12]_i_20_n_0 ));
@@ -20651,7 +20651,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[12]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[12]),
+        .I3(core_dsp_c[12]),
         .I4(\iv[12]_i_7_n_0 ),
         .I5(\iv[12]_i_8_n_0 ),
         .O(\iv[12]_i_3_n_0 ));
@@ -20684,7 +20684,7 @@ module niho_fch
   LUT3 #(
     .INIT(8'h8A)) 
     \iv[12]_i_4 
-       (.I0(\niho_dsp_a[32]_INST_0_i_7_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I1(\iv[12]_i_9_n_0 ),
         .I2(\sr[4]_i_20 ),
         .O(\iv[12]_i_10 ));
@@ -20795,7 +20795,7 @@ module niho_fch
         .I1(\tr_reg[13]_0 ),
         .I2(\tr_reg[13]_1 ),
         .I3(\iv[13]_i_6_n_0 ),
-        .I4(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I4(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[13]_i_2_n_0 ));
   LUT6 #(
     .INIT(64'hB888BBBBB888B888)) 
@@ -20803,7 +20803,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[11]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[13]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[13]_i_20_n_0 ));
@@ -20819,7 +20819,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[13]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[13]),
+        .I3(core_dsp_c[13]),
         .I4(\iv[13]_i_7_n_0 ),
         .I5(\iv[13]_i_8_n_0 ),
         .O(\iv[13]_i_3_n_0 ));
@@ -20921,7 +20921,7 @@ module niho_fch
         .I2(\tr_reg[14]_1 ),
         .I3(\iv[14]_i_6_n_0 ),
         .I4(\iv[14]_i_7_n_0 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[14]_i_2_n_0 ));
   LUT4 #(
     .INIT(16'hDDDF)) 
@@ -20963,7 +20963,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[14]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[14]),
+        .I3(core_dsp_c[14]),
         .I4(\iv[14]_i_8_n_0 ),
         .I5(\iv[14]_i_9_n_0 ),
         .O(\iv[14]_i_3_n_0 ));
@@ -21005,7 +21005,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[12]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[14]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[14]_i_40_n_0 ));
@@ -21428,25 +21428,25 @@ module niho_fch
        (.I0(\stat_reg[0] ),
         .I1(\stat_reg[0]_0 ),
         .I2(\stat_reg[0]_2 ),
-        .O(\niho_dsp_a[32]_INST_0_i_7_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_7_0 ));
   LUT2 #(
     .INIT(4'h2)) 
     \iv[15]_i_24 
        (.I0(\stat_reg[0]_0 ),
         .I1(\stat_reg[0] ),
-        .O(\niho_dsp_a[15]_INST_0_i_2_0 ));
+        .O(\core_dsp_a[15]_INST_0_i_2_0 ));
   LUT4 #(
     .INIT(16'hF7FF)) 
     \iv[15]_i_25 
        (.I0(\stat_reg[0] ),
-        .I1(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I2(\stat_reg[0]_0 ),
         .I3(\stat_reg[0]_1 ),
         .O(\iv[15]_i_25_n_0 ));
   LUT3 #(
     .INIT(8'hD5)) 
     \iv[15]_i_26 
-       (.I0(\niho_dsp_a[32]_INST_0_i_5_2 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I1(mul_rslt),
         .I2(\sr_reg[13] [8]),
         .O(\iv[15]_i_26_n_0 ));
@@ -21754,7 +21754,7 @@ module niho_fch
     .INIT(16'h7FFF)) 
     \iv[15]_i_65 
        (.I0(\stat_reg[2]_2 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\stat_reg[0]_2 ),
         .I3(div_crdy),
         .O(div_crdy_reg_0));
@@ -21800,7 +21800,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[13]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[15]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[15]_i_70_n_0 ));
@@ -21876,11 +21876,11 @@ module niho_fch
     .INIT(64'hAA08AAAA08080808)) 
     \iv[15]_i_8 
        (.I0(\stat_reg[2]_2 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I2(\tr_reg[15]_0 ),
         .I3(\tr_reg[15]_1 ),
         .I4(\tr_reg[15]_2 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\sr_reg[8] ));
   LUT6 #(
     .INIT(64'h00FF45FFFFFF45FF)) 
@@ -21972,7 +21972,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[15]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[15]),
+        .I3(core_dsp_c[15]),
         .I4(\iv[15]_i_27_n_0 ),
         .I5(\iv[15]_i_28_n_0 ),
         .O(\iv[15]_i_9_n_0 ));
@@ -22061,7 +22061,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[1]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[1]),
+        .I3(core_dsp_c[1]),
         .I4(\iv[1]_i_6_n_0 ),
         .I5(\iv[1]_i_7_n_0 ),
         .O(\iv[1]_i_2_n_0 ));
@@ -22106,7 +22106,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[1]_i_7 
        (.I0(\sr[4]_i_24_2 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\iv[1]_i_12_n_0 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[1]_i_13_n_0 ),
@@ -22146,7 +22146,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[2]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[2]),
+        .I3(core_dsp_c[2]),
         .I4(\iv[2]_i_6_n_0 ),
         .I5(\iv[2]_i_7_n_0 ),
         .O(\iv[2]_i_2_n_0 ));
@@ -22172,7 +22172,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[2]_i_7 
        (.I0(\sr[4]_i_24_1 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\iv[2]_i_12_n_0 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[2]_i_13_n_0 ),
@@ -22222,7 +22222,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[3]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[3]),
+        .I3(core_dsp_c[3]),
         .I4(\iv[3]_i_6_n_0 ),
         .I5(\iv[3]_i_7_n_0 ),
         .O(\iv[3]_i_2_n_0 ));
@@ -22260,7 +22260,7 @@ module niho_fch
         .I1(\iv[3]_i_16 ),
         .I2(\tr_reg[3]_0 ),
         .I3(\tr_reg[3]_1 ),
-        .I4(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I4(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[3]_i_3_n_0 ));
   LUT3 #(
     .INIT(8'h4F)) 
@@ -22312,7 +22312,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[3]_i_7 
        (.I0(\iv[3]_i_2_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\iv[3]_i_13_n_0 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[3]_i_14_n_0 ),
@@ -22320,7 +22320,7 @@ module niho_fch
   LUT3 #(
     .INIT(8'h8A)) 
     \iv[3]_i_8 
-       (.I0(\niho_dsp_a[32]_INST_0_i_7_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I1(\iv[3]_i_15_n_0 ),
         .I2(\sr[4]_i_21 ),
         .O(\iv[3]_i_16 ));
@@ -22369,7 +22369,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[4]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[4]),
+        .I3(core_dsp_c[4]),
         .I4(\iv[4]_i_6_n_0 ),
         .I5(\iv[4]_i_7_n_0 ),
         .O(\iv[4]_i_2_n_0 ));
@@ -22377,11 +22377,11 @@ module niho_fch
     .INIT(64'hAA08AAAA08080808)) 
     \iv[4]_i_3 
        (.I0(\stat_reg[2]_2 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I2(\tr_reg[4]_2 ),
         .I3(\tr_reg[4]_3 ),
         .I4(\tr_reg[4]_4 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[4]_i_3_n_0 ));
   LUT4 #(
     .INIT(16'h70FF)) 
@@ -22405,7 +22405,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[4]_i_7 
        (.I0(\sr[4]_i_24_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\iv[4]_i_12_n_0 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[4]_i_13_n_0 ),
@@ -22445,7 +22445,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[5]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[5]),
+        .I3(core_dsp_c[5]),
         .I4(\iv[5]_i_6_n_0 ),
         .I5(\iv[5]_i_7_n_0 ),
         .O(\iv[5]_i_2_n_0 ));
@@ -22473,11 +22473,11 @@ module niho_fch
     .INIT(64'hAA08AAAA08080808)) 
     \iv[5]_i_3 
        (.I0(\stat_reg[2]_2 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I2(\tr_reg[5]_0 ),
         .I3(\tr_reg[5]_1 ),
         .I4(\tr_reg[5]_2 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[5]_i_3_n_0 ));
   LUT4 #(
     .INIT(16'h70FF)) 
@@ -22501,7 +22501,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[5]_i_7 
        (.I0(\sr[4]_i_7_1 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\sr[4]_i_7_2 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[5]_i_13_n_0 ),
@@ -22532,7 +22532,7 @@ module niho_fch
        (.I0(\stat_reg[0] ),
         .I1(\stat_reg[0]_0 ),
         .I2(\stat_reg[0]_1 ),
-        .O(\niho_dsp_a[32]_INST_0_i_5_1 ));
+        .O(\core_dsp_a[32]_INST_0_i_5_1 ));
   LUT5 #(
     .INIT(32'h353F3530)) 
     \iv[6]_i_13 
@@ -22568,7 +22568,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[6]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[6]),
+        .I3(core_dsp_c[6]),
         .I4(\iv[6]_i_6_n_0 ),
         .I5(\iv[6]_i_7_n_0 ),
         .O(\iv[6]_i_2_n_0 ));
@@ -22601,7 +22601,7 @@ module niho_fch
         .I1(\iv[6]_i_8_n_0 ),
         .I2(\tr_reg[6]_0 ),
         .I3(\iv[6]_i_10_n_0 ),
-        .I4(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I4(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[6]_i_3_n_0 ));
   LUT3 #(
     .INIT(8'h4F)) 
@@ -22644,7 +22644,7 @@ module niho_fch
     .INIT(32'hFFFF4700)) 
     \iv[6]_i_7 
        (.I0(\iv[6]_i_2_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_1 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_1 ),
         .I2(\iv[6]_i_13_n_0 ),
         .I3(\iv[7]_i_14_n_0 ),
         .I4(\iv[6]_i_14_n_0 ),
@@ -22652,7 +22652,7 @@ module niho_fch
   LUT3 #(
     .INIT(8'h8A)) 
     \iv[6]_i_8 
-       (.I0(\niho_dsp_a[32]_INST_0_i_7_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I1(\iv[6]_i_15_n_0 ),
         .I2(\sr[4]_i_18_9 ),
         .O(\iv[6]_i_8_n_0 ));
@@ -22698,7 +22698,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[7]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[7]),
+        .I3(core_dsp_c[7]),
         .I4(\iv[7]_i_6_n_0 ),
         .I5(\iv[7]_i_7_n_0 ),
         .O(\iv[7]_i_2_n_0 ));
@@ -22748,7 +22748,7 @@ module niho_fch
         .I2(\tr_reg[7]_1 ),
         .I3(\tr_reg[7]_2 ),
         .I4(\iv[7]_i_11_n_0 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[7]_i_3_n_0 ));
   LUT4 #(
     .INIT(16'hF0DD)) 
@@ -22757,13 +22757,13 @@ module niho_fch
         .I1(\stat_reg[0]_0 ),
         .I2(bbus_0[5]),
         .I3(\stat_reg[0]_1 ),
-        .O(\niho_dsp_a[32]_INST_0_i_5_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_5_0 ));
   LUT3 #(
     .INIT(8'h40)) 
     \iv[7]_i_34 
        (.I0(\stat_reg[0]_2 ),
         .I1(\stat_reg[2]_2 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .O(\iv[7]_i_34_n_0 ));
   LUT3 #(
     .INIT(8'h4F)) 
@@ -22845,7 +22845,7 @@ module niho_fch
         .I2(\tr_reg[8]_0 ),
         .I3(\tr_reg[8]_1 ),
         .I4(\iv[8]_i_7_n_0 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[8]_i_2_n_0 ));
   LUT6 #(
     .INIT(64'hAAFBFBFBBBFBFBFB)) 
@@ -22863,7 +22863,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[8]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[8]),
+        .I3(core_dsp_c[8]),
         .I4(\iv[8]_i_8_n_0 ),
         .I5(\iv[8]_i_9_n_0 ),
         .O(\iv[8]_i_3_n_0 ));
@@ -22888,14 +22888,14 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[6]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[8]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[8]_i_39_n_0 ));
   LUT3 #(
     .INIT(8'h8A)) 
     \iv[8]_i_4 
-       (.I0(\niho_dsp_a[32]_INST_0_i_7_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_7_0 ),
         .I1(\iv[8]_i_10_n_0 ),
         .I2(\iv[8]_i_2_0 ),
         .O(\iv[8]_i_4_n_0 ));
@@ -22971,7 +22971,7 @@ module niho_fch
         .I2(\tr_reg[9]_1 ),
         .I3(\tr_reg[9]_2 ),
         .I4(\iv[9]_i_7_n_0 ),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\iv[9]_i_2_n_0 ));
   LUT4 #(
     .INIT(16'hDDDF)) 
@@ -23012,7 +23012,7 @@ module niho_fch
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
         .I2(bbus_0[7]),
-        .I3(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I4(abus_0[9]),
         .I5(\iv[7]_i_14_n_0 ),
         .O(\iv[9]_i_24_n_0 ));
@@ -23022,7 +23022,7 @@ module niho_fch
        (.I0(\iv[15]_i_25_n_0 ),
         .I1(mulh[9]),
         .I2(\iv[15]_i_26_n_0 ),
-        .I3(niho_dsp_c[9]),
+        .I3(core_dsp_c[9]),
         .I4(\iv[9]_i_8_n_0 ),
         .I5(\iv[9]_i_9_n_0 ),
         .O(\iv[9]_i_3_n_0 ));
@@ -23092,7 +23092,7 @@ module niho_fch
     .INIT(8'h57)) 
     \mul_a[15]_i_1 
        (.I0(rst_n),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(\sr_reg[13] [8]),
         .O(rst_n_2));
   LUT1 #(
@@ -23183,450 +23183,450 @@ module niho_fch
        (.I0(rst_n_fl_reg_0),
         .I1(rst_n),
         .I2(\sr_reg[13] [8]),
-        .I3(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I3(\core_dsp_a[32]_INST_0_i_5_3 ),
         .O(rst_n_0[1]));
   LUT3 #(
     .INIT(8'h75)) 
     \mulh[15]_i_1 
        (.I0(rst_n),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(\sr_reg[13] [8]),
         .O(rst_n_1));
   LUT2 #(
     .INIT(4'h7)) 
     \mulh[15]_i_2 
        (.I0(rst_n),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .O(mul_b));
   LUT4 #(
     .INIT(16'hFD7F)) 
-    \niho_dsp_a[15]_INST_0_i_1 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+    \core_dsp_a[15]_INST_0_i_1 
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I1(\stat_reg[0] ),
         .I2(\stat_reg[0]_0 ),
         .I3(\stat_reg[0]_1 ),
-        .O(\niho_dsp_a[32]_INST_0_i_5_2 ));
+        .O(\core_dsp_a[32]_INST_0_i_5_2 ));
   LUT2 #(
     .INIT(4'h1)) 
-    \niho_dsp_a[15]_INST_0_i_2 
+    \core_dsp_a[15]_INST_0_i_2 
        (.I0(\stat_reg[0]_3 ),
         .I1(\ccmd[0]_INST_0_i_1_n_0 ),
         .O(\stat_reg[0] ));
   LUT2 #(
     .INIT(4'h1)) 
-    \niho_dsp_a[15]_INST_0_i_3 
+    \core_dsp_a[15]_INST_0_i_3 
        (.I0(\stat_reg[0]_3 ),
         .I1(\ccmd[1]_INST_0_i_1_n_0 ),
         .O(\stat_reg[0]_0 ));
   LUT3 #(
     .INIT(8'h80)) 
-    \niho_dsp_a[32]_INST_0_i_1 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+    \core_dsp_a[32]_INST_0_i_1 
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\stat_reg[0]_1 ),
-        .O(\niho_dsp_a[32]_INST_0_i_5_3 ));
+        .O(\core_dsp_a[32]_INST_0_i_5_3 ));
   LUT6 #(
     .INIT(64'h0000380000000000)) 
-    \niho_dsp_a[32]_INST_0_i_10 
+    \core_dsp_a[32]_INST_0_i_10 
        (.I0(ir[11]),
         .I1(ir[12]),
         .I2(ir[13]),
         .I3(ir[14]),
         .I4(\stat_reg[2]_12 [2]),
-        .I5(\niho_dsp_a[32]_INST_0_i_6_0 ),
-        .O(\niho_dsp_a[32]_INST_0_i_10_n_0 ));
+        .I5(\core_dsp_a[32]_INST_0_i_6_0 ),
+        .O(\core_dsp_a[32]_INST_0_i_10_n_0 ));
   LUT6 #(
     .INIT(64'h0000020000000000)) 
-    \niho_dsp_a[32]_INST_0_i_11 
+    \core_dsp_a[32]_INST_0_i_11 
        (.I0(\ccmd[0]_INST_0_i_15_n_0 ),
         .I1(ir[6]),
         .I2(\stat_reg[2]_12 [0]),
         .I3(ir[7]),
         .I4(\stat_reg[2]_12 [1]),
-        .I5(\niho_dsp_a[32]_INST_0_i_17_n_0 ),
-        .O(\niho_dsp_a[32]_INST_0_i_11_n_0 ));
+        .I5(\core_dsp_a[32]_INST_0_i_17_n_0 ),
+        .O(\core_dsp_a[32]_INST_0_i_11_n_0 ));
   LUT6 #(
     .INIT(64'h9000900090909000)) 
-    \niho_dsp_a[32]_INST_0_i_12 
+    \core_dsp_a[32]_INST_0_i_12 
        (.I0(ir[11]),
         .I1(ir[8]),
         .I2(ir[10]),
-        .I3(\niho_dsp_a[32]_INST_0_i_9_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_9_0 ),
         .I4(\stat_reg[2]_12 [1]),
         .I5(\stat_reg[2]_12 [0]),
-        .O(\niho_dsp_a[32]_INST_0_i_12_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_12_n_0 ));
   LUT5 #(
     .INIT(32'h00000008)) 
-    \niho_dsp_a[32]_INST_0_i_13 
+    \core_dsp_a[32]_INST_0_i_13 
        (.I0(crdy),
         .I1(div_crdy),
         .I2(\stat_reg[2]_12 [0]),
         .I3(ir[11]),
         .I4(rst_n_fl_reg_17),
-        .O(\niho_dsp_a[32]_INST_0_i_13_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_13_n_0 ));
   LUT6 #(
     .INIT(64'hFBEAF9E8FFFFFFFF)) 
-    \niho_dsp_a[32]_INST_0_i_14 
+    \core_dsp_a[32]_INST_0_i_14 
        (.I0(ir[7]),
         .I1(ir[11]),
         .I2(\stat_reg[2]_12 [1]),
         .I3(ir[8]),
         .I4(\stat[1]_i_10_0 ),
-        .I5(\niho_dsp_a[32]_INST_0_i_18_n_0 ),
-        .O(\niho_dsp_a[32]_INST_0_i_14_n_0 ));
+        .I5(\core_dsp_a[32]_INST_0_i_18_n_0 ),
+        .O(\core_dsp_a[32]_INST_0_i_14_n_0 ));
   LUT6 #(
     .INIT(64'h0000100000000000)) 
-    \niho_dsp_a[32]_INST_0_i_15 
+    \core_dsp_a[32]_INST_0_i_15 
        (.I0(\stat_reg[2]_12 [1]),
         .I1(ir[11]),
         .I2(ir[7]),
         .I3(ir[8]),
         .I4(\stat_reg[2]_12 [0]),
         .I5(ir[10]),
-        .O(\niho_dsp_a[32]_INST_0_i_15_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_15_n_0 ));
   LUT3 #(
     .INIT(8'h80)) 
-    \niho_dsp_a[32]_INST_0_i_17 
+    \core_dsp_a[32]_INST_0_i_17 
        (.I0(ir[4]),
         .I1(ir[5]),
         .I2(ir[3]),
-        .O(\niho_dsp_a[32]_INST_0_i_17_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_17_n_0 ));
   LUT2 #(
     .INIT(4'h2)) 
-    \niho_dsp_a[32]_INST_0_i_18 
+    \core_dsp_a[32]_INST_0_i_18 
        (.I0(ir[10]),
         .I1(\stat_reg[2]_12 [0]),
-        .O(\niho_dsp_a[32]_INST_0_i_18_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_18_n_0 ));
   LUT2 #(
     .INIT(4'h2)) 
-    \niho_dsp_a[32]_INST_0_i_3 
+    \core_dsp_a[32]_INST_0_i_3 
        (.I0(acmd),
         .I1(\stat_reg[0]_2 ),
-        .O(\niho_dsp_a[32]_INST_0_i_3_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_3_n_0 ));
   LUT2 #(
     .INIT(4'h1)) 
-    \niho_dsp_a[32]_INST_0_i_4 
+    \core_dsp_a[32]_INST_0_i_4 
        (.I0(\stat_reg[0] ),
         .I1(\stat_reg[0]_0 ),
-        .O(\niho_dsp_a[32]_INST_0_i_4_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_4_n_0 ));
   LUT2 #(
     .INIT(4'h1)) 
-    \niho_dsp_a[32]_INST_0_i_5 
+    \core_dsp_a[32]_INST_0_i_5 
        (.I0(\stat_reg[0]_3 ),
         .I1(\ccmd[2]_INST_0_i_1_n_0 ),
         .O(\stat_reg[0]_1 ));
   LUT6 #(
     .INIT(64'h00000000FFFF1011)) 
-    \niho_dsp_a[32]_INST_0_i_6 
+    \core_dsp_a[32]_INST_0_i_6 
        (.I0(\ccmd[4]_INST_0_i_4_n_0 ),
         .I1(\stat_reg[2]_12 [2]),
-        .I2(\niho_dsp_a[32]_INST_0_i_8_n_0 ),
-        .I3(\niho_dsp_a[32]_INST_0_i_9_n_0 ),
-        .I4(\niho_dsp_a[32]_INST_0_i_10_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_8_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_9_n_0 ),
+        .I4(\core_dsp_a[32]_INST_0_i_10_n_0 ),
         .I5(\stat_reg[0]_3 ),
         .O(acmd));
   LUT2 #(
     .INIT(4'h1)) 
-    \niho_dsp_a[32]_INST_0_i_7 
+    \core_dsp_a[32]_INST_0_i_7 
        (.I0(\stat_reg[0]_3 ),
         .I1(\ccmd[3]_INST_0_i_1_n_0 ),
         .O(\stat_reg[0]_2 ));
   LUT6 #(
     .INIT(64'hAAFFFFABAAAAAAAA)) 
-    \niho_dsp_a[32]_INST_0_i_8 
-       (.I0(\niho_dsp_a[32]_INST_0_i_11_n_0 ),
+    \core_dsp_a[32]_INST_0_i_8 
+       (.I0(\core_dsp_a[32]_INST_0_i_11_n_0 ),
         .I1(ir[10]),
         .I2(ir[8]),
         .I3(\stat_reg[2]_12 [1]),
         .I4(\stat_reg[2]_12 [0]),
         .I5(\ccmd[4]_INST_0_i_1_n_0 ),
-        .O(\niho_dsp_a[32]_INST_0_i_8_n_0 ));
+        .O(\core_dsp_a[32]_INST_0_i_8_n_0 ));
   LUT6 #(
     .INIT(64'hFFFF00FFFFFF1010)) 
-    \niho_dsp_a[32]_INST_0_i_9 
-       (.I0(\niho_dsp_a[32]_INST_0_i_12_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_13_n_0 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_14_n_0 ),
+    \core_dsp_a[32]_INST_0_i_9 
+       (.I0(\core_dsp_a[32]_INST_0_i_12_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_13_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_14_n_0 ),
         .I3(ir[6]),
         .I4(ir[9]),
-        .I5(\niho_dsp_a[32]_INST_0_i_15_n_0 ),
-        .O(\niho_dsp_a[32]_INST_0_i_9_n_0 ));
+        .I5(\core_dsp_a[32]_INST_0_i_15_n_0 ),
+        .O(\core_dsp_a[32]_INST_0_i_9_n_0 ));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[10]_INST_0 
+    \core_dsp_b[10]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[8]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_10_sn_1),
-        .O(niho_dsp_b[7]));
+        .I4(core_dsp_b_10_sn_1),
+        .O(core_dsp_b[7]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[11]_INST_0 
+    \core_dsp_b[11]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[9]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_11_sn_1),
-        .O(niho_dsp_b[8]));
+        .I4(core_dsp_b_11_sn_1),
+        .O(core_dsp_b[8]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[12]_INST_0 
+    \core_dsp_b[12]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[10]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_12_sn_1),
-        .O(niho_dsp_b[9]));
+        .I4(core_dsp_b_12_sn_1),
+        .O(core_dsp_b[9]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[13]_INST_0 
+    \core_dsp_b[13]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[11]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_13_sn_1),
-        .O(niho_dsp_b[10]));
+        .I4(core_dsp_b_13_sn_1),
+        .O(core_dsp_b[10]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[14]_INST_0 
+    \core_dsp_b[14]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[12]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_14_sn_1),
-        .O(niho_dsp_b[11]));
+        .I4(core_dsp_b_14_sn_1),
+        .O(core_dsp_b[11]));
   LUT5 #(
     .INIT(32'hC000E222)) 
-    \niho_dsp_b[15]_INST_0 
+    \core_dsp_b[15]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
         .I2(mul_rslt),
-        .I3(niho_dsp_b_15_sn_1),
-        .I4(\niho_dsp_a[32]_INST_0_i_5_2 ),
-        .O(niho_dsp_b[12]));
+        .I3(core_dsp_b_15_sn_1),
+        .I4(\core_dsp_a[32]_INST_0_i_5_2 ),
+        .O(core_dsp_b[12]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[16]_INST_0 
+    \core_dsp_b[16]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_16_sn_1),
-        .O(niho_dsp_b[13]));
+        .I4(core_dsp_b_16_sn_1),
+        .O(core_dsp_b[13]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[17]_INST_0 
+    \core_dsp_b[17]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_17_sn_1),
-        .O(niho_dsp_b[14]));
+        .I4(core_dsp_b_17_sn_1),
+        .O(core_dsp_b[14]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[18]_INST_0 
+    \core_dsp_b[18]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_18_sn_1),
-        .O(niho_dsp_b[15]));
+        .I4(core_dsp_b_18_sn_1),
+        .O(core_dsp_b[15]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[19]_INST_0 
+    \core_dsp_b[19]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_19_sn_1),
-        .O(niho_dsp_b[16]));
+        .I4(core_dsp_b_19_sn_1),
+        .O(core_dsp_b[16]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[1]_INST_0 
+    \core_dsp_b[1]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[0]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_1_sn_1),
-        .O(niho_dsp_b[0]));
+        .I4(core_dsp_b_1_sn_1),
+        .O(core_dsp_b[0]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[20]_INST_0 
+    \core_dsp_b[20]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_20_sn_1),
-        .O(niho_dsp_b[17]));
+        .I4(core_dsp_b_20_sn_1),
+        .O(core_dsp_b[17]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[21]_INST_0 
+    \core_dsp_b[21]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_21_sn_1),
-        .O(niho_dsp_b[18]));
+        .I4(core_dsp_b_21_sn_1),
+        .O(core_dsp_b[18]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[22]_INST_0 
+    \core_dsp_b[22]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_22_sn_1),
-        .O(niho_dsp_b[19]));
+        .I4(core_dsp_b_22_sn_1),
+        .O(core_dsp_b[19]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[23]_INST_0 
+    \core_dsp_b[23]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_23_sn_1),
-        .O(niho_dsp_b[20]));
+        .I4(core_dsp_b_23_sn_1),
+        .O(core_dsp_b[20]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[24]_INST_0 
+    \core_dsp_b[24]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_24_sn_1),
-        .O(niho_dsp_b[21]));
+        .I4(core_dsp_b_24_sn_1),
+        .O(core_dsp_b[21]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[25]_INST_0 
+    \core_dsp_b[25]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_25_sn_1),
-        .O(niho_dsp_b[22]));
+        .I4(core_dsp_b_25_sn_1),
+        .O(core_dsp_b[22]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[26]_INST_0 
+    \core_dsp_b[26]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_26_sn_1),
-        .O(niho_dsp_b[23]));
+        .I4(core_dsp_b_26_sn_1),
+        .O(core_dsp_b[23]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[27]_INST_0 
+    \core_dsp_b[27]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_27_sn_1),
-        .O(niho_dsp_b[24]));
+        .I4(core_dsp_b_27_sn_1),
+        .O(core_dsp_b[24]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[28]_INST_0 
+    \core_dsp_b[28]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_28_sn_1),
-        .O(niho_dsp_b[25]));
+        .I4(core_dsp_b_28_sn_1),
+        .O(core_dsp_b[25]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[29]_INST_0 
+    \core_dsp_b[29]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_29_sn_1),
-        .O(niho_dsp_b[26]));
+        .I4(core_dsp_b_29_sn_1),
+        .O(core_dsp_b[26]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[2]_INST_0 
+    \core_dsp_b[2]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[1]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_2_sn_1),
-        .O(niho_dsp_b[1]));
+        .I4(core_dsp_b_2_sn_1),
+        .O(core_dsp_b[1]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[30]_INST_0 
+    \core_dsp_b[30]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(\niho_dsp_b[30] ),
-        .O(niho_dsp_b[27]));
+        .I4(\core_dsp_b[30] ),
+        .O(core_dsp_b[27]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[31]_INST_0 
+    \core_dsp_b[31]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(\niho_dsp_b[32] [0]),
-        .O(niho_dsp_b[28]));
+        .I4(\core_dsp_b[32] [0]),
+        .O(core_dsp_b[28]));
   LUT5 #(
     .INIT(32'hEC202020)) 
-    \niho_dsp_b[32]_INST_0 
+    \core_dsp_b[32]_INST_0 
        (.I0(bbus_0[13]),
         .I1(\sr_reg[13] [8]),
-        .I2(\niho_dsp_a[32]_INST_0_i_5_3 ),
+        .I2(\core_dsp_a[32]_INST_0_i_5_3 ),
         .I3(mul_rslt),
-        .I4(\niho_dsp_b[32] [1]),
-        .O(niho_dsp_b[29]));
+        .I4(\core_dsp_b[32] [1]),
+        .O(core_dsp_b[29]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[3]_INST_0 
+    \core_dsp_b[3]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[2]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_3_sn_1),
-        .O(niho_dsp_b[2]));
+        .I4(core_dsp_b_3_sn_1),
+        .O(core_dsp_b[2]));
   LUT2 #(
     .INIT(4'h2)) 
-    \niho_dsp_b[4]_INST_0_i_1 
+    \core_dsp_b[4]_INST_0_i_1 
        (.I0(bbus_0[3]),
         .I1(\sr_reg[13] [8]),
         .O(\sr_reg[8]_7 ));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[6]_INST_0 
+    \core_dsp_b[6]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[4]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_6_sn_1),
-        .O(niho_dsp_b[3]));
+        .I4(core_dsp_b_6_sn_1),
+        .O(core_dsp_b[3]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[7]_INST_0 
+    \core_dsp_b[7]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[5]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_7_sn_1),
-        .O(niho_dsp_b[4]));
+        .I4(core_dsp_b_7_sn_1),
+        .O(core_dsp_b[4]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[8]_INST_0 
+    \core_dsp_b[8]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[6]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_8_sn_1),
-        .O(niho_dsp_b[5]));
+        .I4(core_dsp_b_8_sn_1),
+        .O(core_dsp_b[5]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[9]_INST_0 
+    \core_dsp_b[9]_INST_0 
        (.I0(\sr_reg[13] [8]),
-        .I1(\niho_dsp_a[32]_INST_0_i_5_2 ),
+        .I1(\core_dsp_a[32]_INST_0_i_5_2 ),
         .I2(bbus_0[7]),
         .I3(mul_rslt),
-        .I4(niho_dsp_b_9_sn_1),
-        .O(niho_dsp_b[6]));
+        .I4(core_dsp_b_9_sn_1),
+        .O(core_dsp_b[6]));
   LUT6 #(
     .INIT(64'hF0FFF011F0EEF000)) 
     \pc[0]_i_1 
@@ -24548,8 +24548,8 @@ module niho_fch
        (.I0(\sr[4]_i_5 ),
         .I1(\sr[4]_i_5_0 ),
         .I2(\iv[0]_i_3_n_0 ),
-        .I3(\niho_dsp_a[32]_INST_0_i_7_0 ),
-        .I4(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_7_0 ),
+        .I4(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I5(\stat_reg[2]_2 ),
         .O(\iv[15]_i_19_0 ));
   LUT6 #(
@@ -24631,48 +24631,48 @@ module niho_fch
        (.I0(\sr[6]_i_25_n_0 ),
         .I1(\stat_reg[0]_0 ),
         .I2(\sr[6]_i_14_n_0 ),
-        .I3(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+        .I3(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I4(\sr_reg[13] [4]),
         .O(\sr_reg[4]_0 ));
   LUT6 #(
     .INIT(64'hD5DD0000D5DDD5DD)) 
     \sr[4]_i_37 
-       (.I0(\niho_dsp_a[15]_INST_0_i_2_0 ),
+       (.I0(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I1(\sr[4]_i_66_n_0 ),
         .I2(\sr[4]_i_18_6 ),
         .I3(\sr[4]_i_18_7 ),
         .I4(\sr[4]_i_18_8 ),
-        .I5(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I5(\core_dsp_a[32]_INST_0_i_7_0 ),
         .O(\sr[4]_i_37_n_0 ));
   LUT6 #(
     .INIT(64'hD5DD0000D5DDD5DD)) 
     \sr[4]_i_39 
-       (.I0(\niho_dsp_a[15]_INST_0_i_2_0 ),
+       (.I0(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I1(\sr[4]_i_74_n_0 ),
         .I2(\sr[4]_i_18_0 ),
         .I3(\sr[4]_i_18_1 ),
         .I4(\sr[4]_i_18_2 ),
-        .I5(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I5(\core_dsp_a[32]_INST_0_i_7_0 ),
         .O(\sr[4]_i_39_n_0 ));
   LUT6 #(
     .INIT(64'hD5DD0000D5DDD5DD)) 
     \sr[4]_i_40 
-       (.I0(\niho_dsp_a[15]_INST_0_i_2_0 ),
+       (.I0(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I1(\sr[4]_i_78_n_0 ),
         .I2(\sr[4]_i_18_3 ),
         .I3(\sr[4]_i_18_4 ),
         .I4(\sr[4]_i_18_5 ),
-        .I5(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I5(\core_dsp_a[32]_INST_0_i_7_0 ),
         .O(\sr[4]_i_40_n_0 ));
   LUT6 #(
     .INIT(64'hD5DD0000D5DDD5DD)) 
     \sr[4]_i_43 
-       (.I0(\niho_dsp_a[15]_INST_0_i_2_0 ),
+       (.I0(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I1(\sr[4]_i_91_n_0 ),
         .I2(\sr[4]_i_19 ),
         .I3(\sr[4]_i_19_0 ),
         .I4(\sr[4]_i_19_1 ),
-        .I5(\niho_dsp_a[32]_INST_0_i_7_0 ),
+        .I5(\core_dsp_a[32]_INST_0_i_7_0 ),
         .O(\sr_reg[8]_1 ));
   LUT6 #(
     .INIT(64'hAAAAAAAAAAAAAAA8)) 
@@ -24817,7 +24817,7 @@ module niho_fch
        (.I0(\stat_reg[0]_1 ),
         .I1(\stat_reg[0]_2 ),
         .I2(acmd),
-        .I3(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I3(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I4(bbus_0[3]),
         .I5(\sr_reg[13] [8]),
         .O(\sr[5]_i_8_n_0 ));
@@ -24827,7 +24827,7 @@ module niho_fch
        (.I0(\stat_reg[0]_1 ),
         .I1(\stat_reg[0]_2 ),
         .I2(acmd),
-        .I3(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I3(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I4(\bdatw[5] [1]),
         .I5(\sr_reg[13] [8]),
         .O(\sr[5]_i_9_n_0 ));
@@ -24846,7 +24846,7 @@ module niho_fch
     \sr[6]_i_13 
        (.I0(\stat_reg[0]_0 ),
         .I1(\stat_reg[0]_1 ),
-        .O(\niho_dsp_a[32]_INST_0_i_5_4 ));
+        .O(\core_dsp_a[32]_INST_0_i_5_4 ));
   LUT2 #(
     .INIT(4'h2)) 
     \sr[6]_i_14 
@@ -24870,8 +24870,8 @@ module niho_fch
   LUT3 #(
     .INIT(8'h1F)) 
     \sr[6]_i_31 
-       (.I0(\niho_dsp_a[32]_INST_0_i_7_0 ),
-        .I1(\niho_dsp_a[15]_INST_0_i_2_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_7_0 ),
+        .I1(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I2(\stat_reg[2]_2 ),
         .O(\iv[15]_i_19_1 ));
   LUT2 #(
@@ -24883,11 +24883,11 @@ module niho_fch
   LUT6 #(
     .INIT(64'h0000FFFDFFFDFFFD)) 
     \sr[6]_i_5 
-       (.I0(\niho_dsp_a[32]_INST_0_i_5_4 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_5_4 ),
         .I1(acmd),
         .I2(\stat_reg[0]_2 ),
         .I3(\stat_reg[0] ),
-        .I4(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+        .I4(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I5(\sr[6]_i_14_n_0 ),
         .O(\stat_reg[2]_3 ));
   LUT2 #(
@@ -25691,8 +25691,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[16]_i_22 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[16]),
         .I4(\stat_reg[0]_1 ),
@@ -25703,7 +25703,7 @@ module niho_fch
     \tr[16]_i_3 
        (.I0(\tr[16]_i_7_n_0 ),
         .I1(\tr[16]_i_8_n_0 ),
-        .I2(niho_dsp_c[16]),
+        .I2(core_dsp_c[16]),
         .I3(\tr_reg[30]_1 ),
         .O(\tr[16]_i_3_n_0 ));
   LUT4 #(
@@ -25719,7 +25719,7 @@ module niho_fch
     \tr[16]_i_7 
        (.I0(\tr[16]_i_18_n_0 ),
         .I1(\tr[16]_i_19_n_0 ),
-        .I2(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I2(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I3(\tr[24]_i_5_0 ),
         .I4(\tr[16]_i_21_n_0 ),
         .I5(\tr[16]_i_22_n_0 ),
@@ -25774,8 +25774,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[17]_i_15 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[17]),
         .I4(\stat_reg[0]_1 ),
@@ -25786,7 +25786,7 @@ module niho_fch
     \tr[17]_i_2 
        (.I0(\tr_reg[17]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[17]),
+        .I2(core_dsp_c[17]),
         .I3(\tr[17]_i_4_n_0 ),
         .I4(\tr[17]_i_5_n_0 ),
         .O(p_2_in[17]));
@@ -25805,7 +25805,7 @@ module niho_fch
     \tr[17]_i_5 
        (.I0(\tr[17]_i_11_n_0 ),
         .I1(\tr[17]_i_12_n_0 ),
-        .I2(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I2(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I3(\tr[17]_i_13_n_0 ),
         .I4(\tr[25]_i_5_0 ),
         .I5(\tr[17]_i_15_n_0 ),
@@ -25860,8 +25860,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[18]_i_15 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[18]),
         .I4(\stat_reg[0]_1 ),
@@ -25872,7 +25872,7 @@ module niho_fch
     \tr[18]_i_2 
        (.I0(\tr_reg[18]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[18]),
+        .I2(core_dsp_c[18]),
         .I3(\tr[18]_i_4_n_0 ),
         .I4(\tr[18]_i_5_n_0 ),
         .O(p_2_in[18]));
@@ -25891,7 +25891,7 @@ module niho_fch
     \tr[18]_i_5 
        (.I0(\tr[18]_i_11_n_0 ),
         .I1(\tr[18]_i_12_n_0 ),
-        .I2(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I2(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I3(\tr[18]_i_13_n_0 ),
         .I4(\tr[18]_i_2_0 ),
         .I5(\tr[18]_i_15_n_0 ),
@@ -25929,8 +25929,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[19]_i_12 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[19]),
         .I4(\stat_reg[0]_1 ),
@@ -25949,7 +25949,7 @@ module niho_fch
        (.I0(\tr[19]_i_10_n_0 ),
         .I1(\tr[19]_i_11_n_0 ),
         .I2(\tr[19]_i_12_n_0 ),
-        .I3(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I3(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I4(\tr[27]_i_5_0 ),
         .I5(\tr[19]_i_14_n_0 ),
         .O(\tr[19]_i_14_0 ));
@@ -26003,8 +26003,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[20]_i_15 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[20]),
         .I4(\stat_reg[0]_1 ),
@@ -26024,7 +26024,7 @@ module niho_fch
     \tr[20]_i_2 
        (.I0(\tr_reg[20]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[19]),
+        .I2(core_dsp_c[19]),
         .I3(\tr[20]_i_4_n_0 ),
         .I4(\tr[20]_i_5_n_0 ),
         .O(p_2_in[20]));
@@ -26043,7 +26043,7 @@ module niho_fch
     \tr[20]_i_5 
        (.I0(\tr[20]_i_11_n_0 ),
         .I1(\tr[20]_i_12_n_0 ),
-        .I2(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I2(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I3(\sr[4]_i_10_0 ),
         .I4(\tr[20]_i_14_n_0 ),
         .I5(\tr[20]_i_15_n_0 ),
@@ -26086,8 +26086,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[21]_i_14 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[21]),
         .I4(\stat_reg[0]_1 ),
@@ -26107,7 +26107,7 @@ module niho_fch
     \tr[21]_i_5 
        (.I0(\tr[21]_i_10_n_0 ),
         .I1(\tr[21]_i_11_n_0 ),
-        .I2(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I2(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I3(\tr[21]_i_2 ),
         .I4(\tr[21]_i_13_n_0 ),
         .I5(\tr[21]_i_14_n_0 ),
@@ -26153,8 +26153,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[22]_i_13 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[22]),
         .I4(\stat_reg[0]_1 ),
@@ -26181,7 +26181,7 @@ module niho_fch
     \tr[22]_i_2 
        (.I0(\tr_reg[22]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[20]),
+        .I2(core_dsp_c[20]),
         .I3(\tr[22]_i_4_n_0 ),
         .I4(\tr[22]_i_5_n_0 ),
         .O(p_2_in[22]));
@@ -26201,7 +26201,7 @@ module niho_fch
        (.I0(\tr[22]_i_11_n_0 ),
         .I1(\tr[22]_i_12_n_0 ),
         .I2(\tr[22]_i_13_n_0 ),
-        .I3(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I3(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I4(\tr[22]_i_14_n_0 ),
         .I5(\sr[4]_i_10_1 ),
         .O(\tr[22]_i_5_n_0 ));
@@ -26233,7 +26233,7 @@ module niho_fch
   LUT5 #(
     .INIT(32'h3530353F)) 
     \tr[23]_i_15 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I1(\iv[15]_i_111_n_0 ),
         .I2(\stat_reg[0]_1 ),
         .I3(abus_0[23]),
@@ -26306,7 +26306,7 @@ module niho_fch
     \tr[24]_i_15 
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I3(abus_0[24]),
         .I4(\iv[7]_i_14_n_0 ),
         .O(\tr[24]_i_15_n_0 ));
@@ -26336,7 +26336,7 @@ module niho_fch
     \tr[24]_i_2 
        (.I0(\tr_reg[24]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[21]),
+        .I2(core_dsp_c[21]),
         .I3(\tr[24]_i_4_n_0 ),
         .I4(\tr[24]_i_5_n_0 ),
         .O(p_2_in[24]));
@@ -26411,13 +26411,13 @@ module niho_fch
         .I2(\sr[6]_i_14_n_0 ),
         .I3(rst_n_fl_reg_16),
         .I4(abus_0[25]),
-        .I5(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I5(\core_dsp_a[15]_INST_0_i_2_0 ),
         .O(\tr[25]_i_15_n_0 ));
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[25]_i_16 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[25]),
         .I4(\stat_reg[0]_1 ),
@@ -26428,7 +26428,7 @@ module niho_fch
     \tr[25]_i_2 
        (.I0(\tr_reg[25]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[22]),
+        .I2(core_dsp_c[22]),
         .I3(\tr[25]_i_4_n_0 ),
         .I4(\tr[25]_i_5_n_0 ),
         .O(p_2_in[25]));
@@ -26455,7 +26455,7 @@ module niho_fch
   LUT3 #(
     .INIT(8'h7F)) 
     \tr[25]_i_8 
-       (.I0(\niho_dsp_a[15]_INST_0_i_2_0 ),
+       (.I0(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I1(\stat_reg[0]_2 ),
         .I2(\sr_reg[13] [8]),
         .O(\sr_reg[8]_37 ));
@@ -26491,7 +26491,7 @@ module niho_fch
     \tr[26]_i_14 
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I3(abus_0[26]),
         .I4(\iv[7]_i_14_n_0 ),
         .O(\tr[26]_i_14_n_0 ));
@@ -26515,7 +26515,7 @@ module niho_fch
     \tr[26]_i_2 
        (.I0(\tr_reg[26]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[23]),
+        .I2(core_dsp_c[23]),
         .I3(\tr[26]_i_4_n_0 ),
         .I4(\tr[26]_i_5_n_0 ),
         .O(p_2_in[26]));
@@ -26562,8 +26562,8 @@ module niho_fch
   LUT6 #(
     .INIT(64'hCCCC88C0000088C0)) 
     \tr[27]_i_12 
-       (.I0(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
-        .I1(\niho_dsp_a[32]_INST_0_i_4_n_0 ),
+       (.I0(\core_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I1(\core_dsp_a[32]_INST_0_i_4_n_0 ),
         .I2(\iv[7]_i_14_n_0 ),
         .I3(abus_0[27]),
         .I4(\stat_reg[0]_1 ),
@@ -26592,7 +26592,7 @@ module niho_fch
        (.I0(\tr[27]_i_10_n_0 ),
         .I1(\tr[27]_i_11_n_0 ),
         .I2(\tr[27]_i_12_n_0 ),
-        .I3(\niho_dsp_a[15]_INST_0_i_2_0 ),
+        .I3(\core_dsp_a[15]_INST_0_i_2_0 ),
         .I4(\tr[27]_i_13_n_0 ),
         .I5(\tr[19]_i_5_0 ),
         .O(\tr[27]_i_14 ));
@@ -26618,7 +26618,7 @@ module niho_fch
     \tr[28]_i_13 
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I3(abus_0[28]),
         .I4(\iv[7]_i_14_n_0 ),
         .O(\tr[28]_i_13_n_0 ));
@@ -26688,7 +26688,7 @@ module niho_fch
     \tr[29]_i_14 
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I3(abus_0[29]),
         .I4(\iv[7]_i_14_n_0 ),
         .O(\tr[29]_i_14_n_0 ));
@@ -26759,7 +26759,7 @@ module niho_fch
     \tr[30]_i_15 
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I3(abus_0[30]),
         .I4(\iv[7]_i_14_n_0 ),
         .O(\tr[30]_i_15_n_0 ));
@@ -26797,7 +26797,7 @@ module niho_fch
     \tr[30]_i_2 
        (.I0(\tr_reg[30]_0 ),
         .I1(\tr_reg[30]_1 ),
-        .I2(niho_dsp_c[24]),
+        .I2(core_dsp_c[24]),
         .I3(\tr[30]_i_5_n_0 ),
         .I4(\tr[30]_i_6_n_0 ),
         .O(p_2_in[30]));
@@ -27075,7 +27075,7 @@ module niho_fch
     \tr[31]_i_44 
        (.I0(\iv[15]_i_111_n_0 ),
         .I1(\stat_reg[0]_1 ),
-        .I2(\niho_dsp_a[32]_INST_0_i_3_n_0 ),
+        .I2(\core_dsp_a[32]_INST_0_i_3_n_0 ),
         .I3(abus_0[31]),
         .I4(\iv[7]_i_14_n_0 ),
         .O(\tr[31]_i_44_n_0 ));
@@ -27592,7 +27592,7 @@ module niho_fsm
         .O(\stat_reg[1]_6 ));
   LUT3 #(
     .INIT(8'h10)) 
-    \niho_dsp_a[32]_INST_0_i_16 
+    \core_dsp_a[32]_INST_0_i_16 
        (.I0(Q[1]),
         .I1(Q[0]),
         .I2(out[8]),
@@ -28513,8 +28513,8 @@ module niho_rgf
     \sp_reg[4]_0 ,
     \sr_reg[4] ,
     \grn_reg[4] ,
-    \niho_dsp_a[15]_INST_0_i_3 ,
-    niho_dsp_a,
+    \core_dsp_a[15]_INST_0_i_3 ,
+    core_dsp_a,
     \iv[15]_i_108 ,
     \sr_reg[8]_130 ,
     \iv[15]_i_108_0 ,
@@ -28606,7 +28606,7 @@ module niho_rgf
     \sr_reg[8]_162 ,
     \sr_reg[8]_163 ,
     \badr[2]_INST_0_i_1 ,
-    niho_dsp_b,
+    core_dsp_b,
     \sr_reg[8]_164 ,
     \sr_reg[8]_165 ,
     \sr_reg[8]_166 ,
@@ -28688,7 +28688,7 @@ module niho_rgf
     \tr_reg[31]_1 ,
     \tr_reg[31]_2 ,
     \tr_reg[27]_0 ,
-    niho_dsp_c,
+    core_dsp_c,
     \tr_reg[23]_0 ,
     \tr_reg[29]_0 ,
     \tr_reg[28]_0 ,
@@ -28814,7 +28814,7 @@ module niho_rgf
     \mul_b_reg[0]_0 ,
     mul_rslt,
     mul_a,
-    \niho_dsp_b[5] ,
+    \core_dsp_b[5] ,
     \mul_a_reg[15] ,
     \tr[22]_i_11 ,
     \remden_reg[26] ,
@@ -28871,8 +28871,8 @@ module niho_rgf
     \sr_reg[6]_i_6 ,
     \sr_reg[6]_i_6_0 ,
     \sr_reg[6]_i_6_1 ,
-    .niho_dsp_b_0_sp_1(niho_dsp_b_0_sn_1),
-    \niho_dsp_b[5]_0 ,
+    .core_dsp_b_0_sp_1(core_dsp_b_0_sn_1),
+    \core_dsp_b[5]_0 ,
     \i_/bdatw[15]_INST_0_i_65 ,
     ctl_selb_rn,
     \i_/bdatw[15]_INST_0_i_65_0 ,
@@ -29166,8 +29166,8 @@ module niho_rgf
   output \sp_reg[4]_0 ;
   output \sr_reg[4] ;
   output \grn_reg[4] ;
-  output \niho_dsp_a[15]_INST_0_i_3 ;
-  output [32:0]niho_dsp_a;
+  output \core_dsp_a[15]_INST_0_i_3 ;
+  output [32:0]core_dsp_a;
   output \iv[15]_i_108 ;
   output \sr_reg[8]_130 ;
   output \iv[15]_i_108_0 ;
@@ -29257,7 +29257,7 @@ module niho_rgf
   output \sr_reg[8]_162 ;
   output \sr_reg[8]_163 ;
   output \badr[2]_INST_0_i_1 ;
-  output [1:0]niho_dsp_b;
+  output [1:0]core_dsp_b;
   output \sr_reg[8]_164 ;
   output \sr_reg[8]_165 ;
   output \sr_reg[8]_166 ;
@@ -29339,7 +29339,7 @@ module niho_rgf
   input \tr_reg[31]_1 ;
   input \tr_reg[31]_2 ;
   input \tr_reg[27]_0 ;
-  input [5:0]niho_dsp_c;
+  input [5:0]core_dsp_c;
   input \tr_reg[23]_0 ;
   input \tr_reg[29]_0 ;
   input \tr_reg[28]_0 ;
@@ -29465,7 +29465,7 @@ module niho_rgf
   input \mul_b_reg[0]_0 ;
   input mul_rslt;
   input [32:0]mul_a;
-  input \niho_dsp_b[5] ;
+  input \core_dsp_b[5] ;
   input \mul_a_reg[15] ;
   input \tr[22]_i_11 ;
   input \remden_reg[26] ;
@@ -29521,7 +29521,7 @@ module niho_rgf
   input \sr_reg[6]_i_6 ;
   input \sr_reg[6]_i_6_0 ;
   input \sr_reg[6]_i_6_1 ;
-  input \niho_dsp_b[5]_0 ;
+  input \core_dsp_b[5]_0 ;
   input \i_/bdatw[15]_INST_0_i_65 ;
   input [1:0]ctl_selb_rn;
   input \i_/bdatw[15]_INST_0_i_65_0 ;
@@ -29609,7 +29609,7 @@ module niho_rgf
   output irq_lev_0_sn_1;
   output irq_lev_1_sn_1;
   input abus_o_16_sn_1;
-  input niho_dsp_b_0_sn_1;
+  input core_dsp_b_0_sn_1;
 
   wire [1:0]D;
   wire [0:0]E;
@@ -30350,13 +30350,13 @@ module niho_rgf
   wire \mul_b_reg[5]_0 ;
   wire mul_rslt;
   wire mul_rslt0;
-  wire [32:0]niho_dsp_a;
-  wire \niho_dsp_a[15]_INST_0_i_3 ;
-  wire [1:0]niho_dsp_b;
-  wire \niho_dsp_b[5] ;
-  wire \niho_dsp_b[5]_0 ;
-  wire niho_dsp_b_0_sn_1;
-  wire [5:0]niho_dsp_c;
+  wire [32:0]core_dsp_a;
+  wire \core_dsp_a[15]_INST_0_i_3 ;
+  wire [1:0]core_dsp_b;
+  wire \core_dsp_b[5] ;
+  wire \core_dsp_b[5]_0 ;
+  wire core_dsp_b_0_sn_1;
+  wire [5:0]core_dsp_c;
   wire [12:0]out;
   wire p_0_in;
   wire [15:0]p_0_in_0;
@@ -31539,14 +31539,14 @@ module niho_rgf
         .\mul_b_reg[5]_1 (bbus_out_n_11),
         .\mul_b_reg[5]_2 (bbus_out_n_28),
         .mul_rslt(mul_rslt),
-        .niho_dsp_a(niho_dsp_a[32:16]),
-        .\niho_dsp_a[15]_INST_0_i_3 (\niho_dsp_a[15]_INST_0_i_3 ),
-        .\niho_dsp_a[16] ({out[8],out[6],out[1:0]}),
-        .\niho_dsp_a[16]_0 (\mul_a_reg[32] ),
-        .\niho_dsp_a[32] (abus_out_n_5),
-        .\niho_dsp_a[32]_0 (abus_out_n_4),
-        .\niho_dsp_a[32]_1 (\mul_a_reg[15] ),
-        .niho_dsp_c(niho_dsp_c),
+        .core_dsp_a(core_dsp_a[32:16]),
+        .\core_dsp_a[15]_INST_0_i_3 (\core_dsp_a[15]_INST_0_i_3 ),
+        .\core_dsp_a[16] ({out[8],out[6],out[1:0]}),
+        .\core_dsp_a[16]_0 (\mul_a_reg[32] ),
+        .\core_dsp_a[32] (abus_out_n_5),
+        .\core_dsp_a[32]_0 (abus_out_n_4),
+        .\core_dsp_a[32]_1 (\mul_a_reg[15] ),
+        .core_dsp_c(core_dsp_c),
         .out({bank02_n_0,bank02_n_1,bank02_n_2,bank02_n_3,bank02_n_4,bank02_n_5,bank02_n_6,bank02_n_7,bank02_n_8,bank02_n_9,bank02_n_10,bank02_n_11,bank02_n_12,bank02_n_13,bank02_n_14,bank02_n_15}),
         .p_0_in(p_0_in_0),
         .p_1_in(p_1_in),
@@ -32642,17 +32642,17 @@ module niho_rgf
         .\mul_a_reg[32]_0 (\mul_a_reg[32] ),
         .mul_rslt(mul_rslt),
         .mul_rslt0(mul_rslt0),
-        .niho_dsp_a(niho_dsp_a[15:0]),
-        .\niho_dsp_a[11] (abus_0[11:8]),
-        .\niho_dsp_a[3] (abus_0[3:0]),
-        .\niho_dsp_a[7] (abus_0[7:4]),
-        .niho_dsp_a_15_sp_1(bank02_n_304),
-        .niho_dsp_b(niho_dsp_b),
-        .\niho_dsp_b[0]_0 (niho_dsp_b_0_sn_1),
-        .\niho_dsp_b[5] (\tr_reg[5] [1]),
-        .\niho_dsp_b[5]_0 (\niho_dsp_b[5] ),
-        .\niho_dsp_b[5]_1 (\niho_dsp_b[5]_0 ),
-        .niho_dsp_b_0_sp_1(\tr_reg[5] [0]),
+        .core_dsp_a(core_dsp_a[15:0]),
+        .\core_dsp_a[11] (abus_0[11:8]),
+        .\core_dsp_a[3] (abus_0[3:0]),
+        .\core_dsp_a[7] (abus_0[7:4]),
+        .core_dsp_a_15_sp_1(bank02_n_304),
+        .core_dsp_b(core_dsp_b),
+        .\core_dsp_b[0]_0 (core_dsp_b_0_sn_1),
+        .\core_dsp_b[5] (\tr_reg[5] [1]),
+        .\core_dsp_b[5]_0 (\core_dsp_b[5] ),
+        .\core_dsp_b[5]_1 (\core_dsp_b[5]_0 ),
+        .core_dsp_b_0_sp_1(\tr_reg[5] [0]),
         .out({p_0_in_2[15:14],out[12:9],p_0_in_2[9],out[8:0]}),
         .p_2_in(p_2_in[6]),
         .\pc_reg[3]_i_2 (rgf_pc[1]),
@@ -33346,7 +33346,7 @@ module niho_rgf_bank
     \sr_reg[6]_7 ,
     \sr_reg[8]_119 ,
     \badr[5]_INST_0_i_1 ,
-    \niho_dsp_a[15]_INST_0_i_3 ,
+    \core_dsp_a[15]_INST_0_i_3 ,
     \sr_reg[8]_120 ,
     p_0_in,
     p_1_in,
@@ -33378,7 +33378,7 @@ module niho_rgf_bank
     \sr_reg[8]_127 ,
     \sr_reg[6]_10 ,
     \sr_reg[6]_11 ,
-    niho_dsp_a,
+    core_dsp_a,
     \sr_reg[8]_128 ,
     \sr_reg[8]_129 ,
     \sr_reg[8]_130 ,
@@ -33461,7 +33461,7 @@ module niho_rgf_bank
     \grn_reg[1]_4 ,
     \grn_reg[0]_4 ,
     \tr_reg[27] ,
-    niho_dsp_c,
+    core_dsp_c,
     \tr_reg[23] ,
     \tr_reg[23]_0 ,
     \tr_reg[29] ,
@@ -33489,7 +33489,7 @@ module niho_rgf_bank
     \tr_reg[1] ,
     \tr_reg[16] ,
     \tr_reg[1]_0 ,
-    \niho_dsp_a[16] ,
+    \core_dsp_a[16] ,
     \tr[16]_i_6_0 ,
     \tr[16]_i_6_1 ,
     \sr_reg[4] ,
@@ -33697,9 +33697,9 @@ module niho_rgf_bank
     \iv[10]_i_25 ,
     \iv[0]_i_7 ,
     \abus_o[3] ,
-    \niho_dsp_a[32] ,
-    \niho_dsp_a[32]_0 ,
-    \niho_dsp_a[32]_1 ,
+    \core_dsp_a[32] ,
+    \core_dsp_a[32]_0 ,
+    \core_dsp_a[32]_1 ,
     \tr[22]_i_11 ,
     \iv[0]_i_6 ,
     \iv[0]_i_6_0 ,
@@ -33723,7 +33723,7 @@ module niho_rgf_bank
     \sr[4]_i_61_0 ,
     \sr[6]_i_4 ,
     \iv[14]_i_32_0 ,
-    \niho_dsp_a[16]_0 ,
+    \core_dsp_a[16]_0 ,
     mul_rslt,
     mul_a,
     \tr[24]_i_3_4 ,
@@ -33970,7 +33970,7 @@ module niho_rgf_bank
   output \sr_reg[6]_7 ;
   output \sr_reg[8]_119 ;
   output \badr[5]_INST_0_i_1 ;
-  output \niho_dsp_a[15]_INST_0_i_3 ;
+  output \core_dsp_a[15]_INST_0_i_3 ;
   output \sr_reg[8]_120 ;
   output [15:0]p_0_in;
   output [15:0]p_1_in;
@@ -34002,7 +34002,7 @@ module niho_rgf_bank
   output \sr_reg[8]_127 ;
   output \sr_reg[6]_10 ;
   output \sr_reg[6]_11 ;
-  output [16:0]niho_dsp_a;
+  output [16:0]core_dsp_a;
   output \sr_reg[8]_128 ;
   output \sr_reg[8]_129 ;
   output \sr_reg[8]_130 ;
@@ -34085,7 +34085,7 @@ module niho_rgf_bank
   output \grn_reg[1]_4 ;
   output \grn_reg[0]_4 ;
   input \tr_reg[27] ;
-  input [5:0]niho_dsp_c;
+  input [5:0]core_dsp_c;
   input \tr_reg[23] ;
   input \tr_reg[23]_0 ;
   input \tr_reg[29] ;
@@ -34113,7 +34113,7 @@ module niho_rgf_bank
   input \tr_reg[1] ;
   input \tr_reg[16] ;
   input \tr_reg[1]_0 ;
-  input [3:0]\niho_dsp_a[16] ;
+  input [3:0]\core_dsp_a[16] ;
   input \tr[16]_i_6_0 ;
   input \tr[16]_i_6_1 ;
   input \sr_reg[4] ;
@@ -34321,9 +34321,9 @@ module niho_rgf_bank
   input \iv[10]_i_25 ;
   input \iv[0]_i_7 ;
   input [3:0]\abus_o[3] ;
-  input \niho_dsp_a[32] ;
-  input \niho_dsp_a[32]_0 ;
-  input \niho_dsp_a[32]_1 ;
+  input \core_dsp_a[32] ;
+  input \core_dsp_a[32]_0 ;
+  input \core_dsp_a[32]_1 ;
   input \tr[22]_i_11 ;
   input \iv[0]_i_6 ;
   input [2:0]\iv[0]_i_6_0 ;
@@ -34346,7 +34346,7 @@ module niho_rgf_bank
   input \sr[4]_i_61_0 ;
   input \sr[6]_i_4 ;
   input \iv[14]_i_32_0 ;
-  input \niho_dsp_a[16]_0 ;
+  input \core_dsp_a[16]_0 ;
   input mul_rslt;
   input [16:0]mul_a;
   input \tr[24]_i_3_4 ;
@@ -34827,14 +34827,14 @@ module niho_rgf_bank
   wire \mul_b_reg[5]_1 ;
   wire \mul_b_reg[5]_2 ;
   wire mul_rslt;
-  wire [16:0]niho_dsp_a;
-  wire \niho_dsp_a[15]_INST_0_i_3 ;
-  wire [3:0]\niho_dsp_a[16] ;
-  wire \niho_dsp_a[16]_0 ;
-  wire \niho_dsp_a[32] ;
-  wire \niho_dsp_a[32]_0 ;
-  wire \niho_dsp_a[32]_1 ;
-  wire [5:0]niho_dsp_c;
+  wire [16:0]core_dsp_a;
+  wire \core_dsp_a[15]_INST_0_i_3 ;
+  wire [3:0]\core_dsp_a[16] ;
+  wire \core_dsp_a[16]_0 ;
+  wire \core_dsp_a[32] ;
+  wire \core_dsp_a[32]_0 ;
+  wire \core_dsp_a[32]_1 ;
+  wire [5:0]core_dsp_c;
   wire [15:0]p_0_in;
   wire [15:0]p_1_in;
   wire [5:0]p_2_in;
@@ -35421,7 +35421,7 @@ module niho_rgf_bank
   niho_rgf_bank_bus_22 abuso
        (.abus_sel_0(abus_sel_0),
         .bank_sel(bank_sel),
-        .\i_/badr[15]_INST_0_i_10_0 ({\niho_dsp_a[16] [3],\niho_dsp_a[16] [1:0]}),
+        .\i_/badr[15]_INST_0_i_10_0 ({\core_dsp_a[16] [3],\core_dsp_a[16] [1:0]}),
         .\i_/badr[15]_INST_0_i_11_0 (gr02),
         .\i_/badr[15]_INST_0_i_11_1 (gr01),
         .\i_/badr[15]_INST_0_i_3_0 (gr00),
@@ -35500,11 +35500,11 @@ module niho_rgf_bank
         .\grn_reg[8]_0 (\grn_reg[8]_2 ),
         .\grn_reg[9] (\grn_reg[9]_1 ),
         .\grn_reg[9]_0 (\grn_reg[9]_2 ),
-        .\i_/badr[31]_INST_0_i_5_0 ({\niho_dsp_a[16] [3],\niho_dsp_a[16] [0]}),
+        .\i_/badr[31]_INST_0_i_5_0 ({\core_dsp_a[16] [3],\core_dsp_a[16] [0]}),
         .out(gr27));
   niho_rgf_bank_bus_24 abuso2l
        (.abus_sel_0(abus_sel_0),
-        .\i_/badr[15]_INST_0_i_14_0 ({\niho_dsp_a[16] [3],\niho_dsp_a[16] [1:0]}),
+        .\i_/badr[15]_INST_0_i_14_0 ({\core_dsp_a[16] [3],\core_dsp_a[16] [1:0]}),
         .\i_/badr[15]_INST_0_i_15_0 (gr22),
         .\i_/badr[15]_INST_0_i_15_1 (gr21),
         .\i_/badr[15]_INST_0_i_15_2 (\i_/badr[15]_INST_0_i_15 ),
@@ -35575,7 +35575,7 @@ module niho_rgf_bank
         .\i_/bdatw[15]_INST_0_i_24_1 (gr00),
         .\i_/bdatw[15]_INST_0_i_24_2 (gr02),
         .\i_/bdatw[15]_INST_0_i_24_3 (gr01),
-        .\i_/bdatw[15]_INST_0_i_48_0 ({\niho_dsp_a[16] [3],\niho_dsp_a[16] [1:0]}),
+        .\i_/bdatw[15]_INST_0_i_48_0 ({\core_dsp_a[16] [3],\core_dsp_a[16] [1:0]}),
         .\i_/bdatw[15]_INST_0_i_48_1 (gr06),
         .\i_/bdatw[15]_INST_0_i_48_2 (gr05),
         .\i_/bdatw[15]_INST_0_i_65_0 (\i_/bdatw[15]_INST_0_i_65 ),
@@ -35616,7 +35616,7 @@ module niho_rgf_bank
         .\i_/bdatw[15]_INST_0_i_23_1 (gr20),
         .\i_/bdatw[15]_INST_0_i_23_2 (gr22),
         .\i_/bdatw[15]_INST_0_i_23_3 (gr21),
-        .\i_/bdatw[15]_INST_0_i_46_0 ({\niho_dsp_a[16] [3],\niho_dsp_a[16] [1:0]}),
+        .\i_/bdatw[15]_INST_0_i_46_0 ({\core_dsp_a[16] [3],\core_dsp_a[16] [1:0]}),
         .\i_/bdatw[15]_INST_0_i_46_1 (gr26),
         .\i_/bdatw[15]_INST_0_i_46_2 (gr25),
         .\i_/bdatw[15]_INST_0_i_64_0 (\i_/badr[15]_INST_0_i_15 ),
@@ -35921,11 +35921,11 @@ module niho_rgf_bank
         .\iv[9]_i_5_2 (\tr[25]_i_3_0 ),
         .\iv[9]_i_5_3 (\sr_reg[8]_29 ),
         .\iv[9]_i_5_4 (\iv[9]_i_5 ),
-        .\niho_dsp_a[15]_INST_0_i_3 (\niho_dsp_a[15]_INST_0_i_3 ),
-        .\niho_dsp_a[32] (\niho_dsp_a[16] [3:2]),
-        .\niho_dsp_a[32]_0 (\niho_dsp_a[32] ),
-        .\niho_dsp_a[32]_1 (\niho_dsp_a[32]_0 ),
-        .\niho_dsp_a[32]_2 (\niho_dsp_a[32]_1 ),
+        .\core_dsp_a[15]_INST_0_i_3 (\core_dsp_a[15]_INST_0_i_3 ),
+        .\core_dsp_a[32] (\core_dsp_a[16] [3:2]),
+        .\core_dsp_a[32]_0 (\core_dsp_a[32] ),
+        .\core_dsp_a[32]_1 (\core_dsp_a[32]_0 ),
+        .\core_dsp_a[32]_2 (\core_dsp_a[32]_1 ),
         .p_0_in(p_0_in[15]),
         .p_1_in(p_1_in[15]),
         .\sr[4]_i_114 (\sr[7]_i_36_n_0 ),
@@ -36022,7 +36022,7 @@ module niho_rgf_bank
     \iv[0]_i_10 
        (.I0(\iv[0]_i_3 ),
         .I1(\iv[0]_i_21_n_0 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(\iv[0]_i_22_n_0 ),
         .I4(\iv[0]_i_23_n_0 ),
         .I5(\iv[0]_i_3_0 ),
@@ -36061,7 +36061,7 @@ module niho_rgf_bank
         .I1(\sr[4]_i_89_0 ),
         .I2(\sr_reg[8]_48 ),
         .I3(\iv[13]_i_17_0 ),
-        .I4(\niho_dsp_a[16] [2]),
+        .I4(\core_dsp_a[16] [2]),
         .I5(\sr_reg[8]_1 ),
         .O(\iv[0]_i_18_n_0 ));
   LUT6 #(
@@ -36118,7 +36118,7 @@ module niho_rgf_bank
         .I1(\iv[0]_i_17_n_0 ),
         .I2(\iv[0]_i_18_n_0 ),
         .I3(\iv[0]_i_3_1 ),
-        .I4(\niho_dsp_a[16] [3]),
+        .I4(\core_dsp_a[16] [3]),
         .I5(bbus_0[1]),
         .O(\sr_reg[8]_46 ));
   LUT6 #(
@@ -36392,7 +36392,7 @@ module niho_rgf_bank
         .I1(\tr_reg[0] ),
         .I2(\iv[14]_i_60_n_0 ),
         .I3(\sr_reg[8]_93 ),
-        .I4(\niho_dsp_a[16] [2]),
+        .I4(\core_dsp_a[16] [2]),
         .O(\iv[12]_i_50_n_0 ));
   LUT5 #(
     .INIT(32'hCFCAC5C0)) 
@@ -36479,7 +36479,7 @@ module niho_rgf_bank
     \iv[13]_i_41 
        (.I0(\sr[4]_i_36 ),
         .I1(\tr_reg[0] ),
-        .I2(\niho_dsp_a[16] [2]),
+        .I2(\core_dsp_a[16] [2]),
         .I3(\sr_reg[8]_93 ),
         .I4(\badr[0]_INST_0_i_1_0 ),
         .O(\sr_reg[6]_1 ));
@@ -36513,7 +36513,7 @@ module niho_rgf_bank
     \iv[14]_i_15 
        (.I0(\tr_reg[5] ),
         .I1(bbus_0[1]),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(\sr[6]_i_12_2 ),
         .O(\sr_reg[8]_3 ));
   LUT3 #(
@@ -36630,7 +36630,7 @@ module niho_rgf_bank
     \iv[14]_i_57 
        (.I0(\abus_o[3] [0]),
         .I1(\tr_reg[0] ),
-        .I2(\niho_dsp_a[16] [2]),
+        .I2(\core_dsp_a[16] [2]),
         .I3(\sr_reg[8]_93 ),
         .I4(\sr[4]_i_36 ),
         .I5(\iv[14]_i_32_0 ),
@@ -36639,7 +36639,7 @@ module niho_rgf_bank
     .INIT(8'h35)) 
     \iv[14]_i_58 
        (.I0(\abus_o[3] [0]),
-        .I1(\niho_dsp_a[16] [2]),
+        .I1(\core_dsp_a[16] [2]),
         .I2(\tr_reg[0] ),
         .O(\sr_reg[6]_0 ));
   LUT3 #(
@@ -36780,7 +36780,7 @@ module niho_rgf_bank
     .INIT(8'h35)) 
     \iv[15]_i_157 
        (.I0(DI[3]),
-        .I1(\niho_dsp_a[16] [2]),
+        .I1(\core_dsp_a[16] [2]),
         .I2(\tr_reg[0] ),
         .O(\iv[15]_i_157_n_0 ));
   LUT6 #(
@@ -36899,7 +36899,7 @@ module niho_rgf_bank
     \iv[2]_i_31 
        (.I0(\iv[13]_i_17_0 ),
         .I1(\abus_o[3] [1]),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(\sr_reg[8]_1 ),
         .O(\iv[2]_i_31_n_0 ));
   LUT6 #(
@@ -36963,7 +36963,7 @@ module niho_rgf_bank
     \iv[4]_i_34 
        (.I0(\iv[13]_i_17_0 ),
         .I1(\abus_o[3] [3]),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(\sr_reg[8]_1 ),
         .O(\iv[4]_i_34_n_0 ));
   LUT6 #(
@@ -37002,7 +37002,7 @@ module niho_rgf_bank
     \iv[5]_i_33 
        (.I0(\iv[13]_i_17_0 ),
         .I1(\abus_o[7] [0]),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(\sr_reg[8]_1 ),
         .O(\iv[5]_i_33_n_0 ));
   LUT5 #(
@@ -37133,7 +37133,7 @@ module niho_rgf_bank
        (.I0(\badr[14]_INST_0_i_1 ),
         .I1(\sr_reg[8]_93 ),
         .I2(\badr[0]_INST_0_i_1 ),
-        .I3(\niho_dsp_a[16] [2]),
+        .I3(\core_dsp_a[16] [2]),
         .I4(\tr_reg[0] ),
         .O(\sr_reg[6] ));
   LUT6 #(
@@ -37160,14 +37160,14 @@ module niho_rgf_bank
     \iv[8]_i_42 
        (.I0(\abus_o[3] [0]),
         .I1(\tr_reg[0] ),
-        .I2(\niho_dsp_a[16] [2]),
+        .I2(\core_dsp_a[16] [2]),
         .O(\sr_reg[6]_3 ));
   LUT4 #(
     .INIT(16'h60CC)) 
     \iv[9]_i_16 
        (.I0(\tr_reg[5] ),
         .I1(bbus_0[1]),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(\sr[6]_i_12_2 ),
         .O(\sr_reg[8]_1 ));
   LUT3 #(
@@ -37225,7 +37225,7 @@ module niho_rgf_bank
     \iv[9]_i_38 
        (.I0(DI[3]),
         .I1(\tr_reg[0] ),
-        .I2(\niho_dsp_a[16] [2]),
+        .I2(\core_dsp_a[16] [2]),
         .I3(\sr_reg[8]_93 ),
         .I4(\badr[0]_INST_0_i_1_0 ),
         .O(\sr_reg[6]_2 ));
@@ -37277,157 +37277,157 @@ module niho_rgf_bank
         .S({\iv[4]_i_6 [2:1],\art/add/iv[7]_i_31_n_0 ,\iv[4]_i_6 [0]}));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[16]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[16]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[0]),
-        .O(niho_dsp_a[0]));
+        .O(core_dsp_a[0]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[17]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[17]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[1]),
-        .O(niho_dsp_a[1]));
+        .O(core_dsp_a[1]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[18]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[18]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[2]),
-        .O(niho_dsp_a[2]));
+        .O(core_dsp_a[2]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[19]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[19]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[3]),
-        .O(niho_dsp_a[3]));
+        .O(core_dsp_a[3]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[20]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[20]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[4]),
-        .O(niho_dsp_a[4]));
+        .O(core_dsp_a[4]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[21]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[21]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[5]),
-        .O(niho_dsp_a[5]));
+        .O(core_dsp_a[5]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[22]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[22]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[6]),
-        .O(niho_dsp_a[6]));
+        .O(core_dsp_a[6]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[23]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[23]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[7]),
-        .O(niho_dsp_a[7]));
+        .O(core_dsp_a[7]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[24]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[24]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[8]),
-        .O(niho_dsp_a[8]));
+        .O(core_dsp_a[8]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[25]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[25]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[9]),
-        .O(niho_dsp_a[9]));
+        .O(core_dsp_a[9]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[26]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[26]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[10]),
-        .O(niho_dsp_a[10]));
+        .O(core_dsp_a[10]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[27]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[27]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[11]),
-        .O(niho_dsp_a[11]));
+        .O(core_dsp_a[11]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[28]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[28]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[12]),
-        .O(niho_dsp_a[12]));
+        .O(core_dsp_a[12]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[29]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[29]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[13]),
-        .O(niho_dsp_a[13]));
+        .O(core_dsp_a[13]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[30]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[30]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[14]),
-        .O(niho_dsp_a[14]));
+        .O(core_dsp_a[14]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[31]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[31]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[15]),
-        .O(niho_dsp_a[15]));
+        .O(core_dsp_a[15]));
   LUT5 #(
     .INIT(32'hF8888888)) 
-    \niho_dsp_a[32]_INST_0 
-       (.I0(\niho_dsp_a[16]_0 ),
+    \core_dsp_a[32]_INST_0 
+       (.I0(\core_dsp_a[16]_0 ),
         .I1(\sr_reg[8]_120 ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .I3(mul_rslt),
         .I4(mul_a[16]),
-        .O(niho_dsp_a[16]));
+        .O(core_dsp_a[16]));
   LUT6 #(
     .INIT(64'h4444444454555444)) 
     \sr[4]_i_101 
@@ -37729,7 +37729,7 @@ module niho_rgf_bank
   LUT3 #(
     .INIT(8'h1D)) 
     \sr[4]_i_168 
-       (.I0(\niho_dsp_a[16] [2]),
+       (.I0(\core_dsp_a[16] [2]),
         .I1(\tr_reg[0] ),
         .I2(DI[3]),
         .O(\sr[4]_i_168_n_0 ));
@@ -37835,7 +37835,7 @@ module niho_rgf_bank
         .I2(\sr[4]_i_13_n_0 ),
         .I3(\sr[4]_i_14_n_0 ),
         .I4(\sr[4]_i_15_n_0 ),
-        .I5(\niho_dsp_a[16] [3]),
+        .I5(\core_dsp_a[16] [3]),
         .O(\sr_reg[8]_121 ));
   LUT6 #(
     .INIT(64'hF1F1F100FFFFFFFF)) 
@@ -38284,7 +38284,7 @@ module niho_rgf_bank
     \sr[7]_i_22 
        (.I0(bbus_0[1]),
         .I1(\tr_reg[5] ),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .O(\sr_reg[8]_36 ));
   LUT2 #(
     .INIT(4'hB)) 
@@ -38306,7 +38306,7 @@ module niho_rgf_bank
        (.I0(\iv[15]_i_155_n_0 ),
         .I1(\sr_reg[8]_93 ),
         .I2(\sr[4]_i_36 ),
-        .I3(\niho_dsp_a[16] [2]),
+        .I3(\core_dsp_a[16] [2]),
         .I4(\tr_reg[0] ),
         .O(\sr_reg[6]_7 ));
   LUT3 #(
@@ -38334,7 +38334,7 @@ module niho_rgf_bank
     .INIT(32'h57DFA820)) 
     \sr[7]_i_37 
        (.I0(\tr_reg[0] ),
-        .I1(\niho_dsp_a[16] [3]),
+        .I1(\core_dsp_a[16] [3]),
         .I2(bbus_0[1]),
         .I3(\tr_reg[5] ),
         .I4(bbus_0[0]),
@@ -38393,7 +38393,7 @@ module niho_rgf_bank
     \tr[16]_i_10 
        (.I0(\tr_reg[5] ),
         .I1(bbus_0[1]),
-        .I2(\niho_dsp_a[16] [3]),
+        .I2(\core_dsp_a[16] [3]),
         .O(\sr_reg[8]_35 ));
   LUT2 #(
     .INIT(4'h2)) 
@@ -38491,7 +38491,7 @@ module niho_rgf_bank
         .I1(\tr[16]_i_13_n_0 ),
         .I2(\tr[16]_i_2_0 ),
         .I3(\tr[16]_i_9_0 ),
-        .I4(\niho_dsp_a[16] [3]),
+        .I4(\core_dsp_a[16] [3]),
         .I5(bbus_0[1]),
         .O(\tr[16]_i_5_n_0 ));
   LUT6 #(
@@ -38501,7 +38501,7 @@ module niho_rgf_bank
         .I1(\sr_reg[8]_0 ),
         .I2(\iv[13]_i_17_0 ),
         .I3(\tr[16]_i_17_n_0 ),
-        .I4(\niho_dsp_a[16] [3]),
+        .I4(\core_dsp_a[16] [3]),
         .I5(\tr_reg[5] ),
         .O(\tr[16]_i_6_n_0 ));
   LUT5 #(
@@ -38621,7 +38621,7 @@ module niho_rgf_bank
     \tr[19]_i_2 
        (.I0(\tr[19]_i_3_n_0 ),
         .I1(\tr_reg[27] ),
-        .I2(niho_dsp_c[0]),
+        .I2(core_dsp_c[0]),
         .I3(\tr_reg[19] ),
         .I4(\tr_reg[19]_0 ),
         .O(p_2_in[0]));
@@ -38744,7 +38744,7 @@ module niho_rgf_bank
     \tr[21]_i_2 
        (.I0(\tr[21]_i_3_n_0 ),
         .I1(\tr_reg[27] ),
-        .I2(niho_dsp_c[1]),
+        .I2(core_dsp_c[1]),
         .I3(\tr_reg[21] ),
         .I4(\tr_reg[21]_0 ),
         .O(p_2_in[1]));
@@ -38842,7 +38842,7 @@ module niho_rgf_bank
     \tr[23]_i_2 
        (.I0(\tr[23]_i_3_n_0 ),
         .I1(\tr_reg[27] ),
-        .I2(niho_dsp_c[2]),
+        .I2(core_dsp_c[2]),
         .I3(\tr_reg[23] ),
         .I4(\tr_reg[23]_0 ),
         .O(p_2_in[2]));
@@ -39015,7 +39015,7 @@ module niho_rgf_bank
     \tr[27]_i_2 
        (.I0(\tr[27]_i_3_n_0 ),
         .I1(\tr_reg[27] ),
-        .I2(niho_dsp_c[3]),
+        .I2(core_dsp_c[3]),
         .I3(\tr_reg[27]_0 ),
         .I4(\tr_reg[27]_1 ),
         .O(p_2_in[3]));
@@ -39062,7 +39062,7 @@ module niho_rgf_bank
     \tr[28]_i_2 
        (.I0(\tr[28]_i_3_n_0 ),
         .I1(\tr_reg[27] ),
-        .I2(niho_dsp_c[4]),
+        .I2(core_dsp_c[4]),
         .I3(\tr_reg[28] ),
         .I4(\tr_reg[28]_0 ),
         .O(p_2_in[4]));
@@ -39099,7 +39099,7 @@ module niho_rgf_bank
     \tr[29]_i_2 
        (.I0(\tr[29]_i_3_n_0 ),
         .I1(\tr_reg[27] ),
-        .I2(niho_dsp_c[5]),
+        .I2(core_dsp_c[5]),
         .I3(\tr_reg[29] ),
         .I4(\tr_reg[29]_0 ),
         .O(p_2_in[5]));
@@ -54614,7 +54614,7 @@ module niho_rgf_grn_42
     \sr_reg[8]_44 ,
     \sr_reg[8]_45 ,
     \badr[5]_INST_0_i_1 ,
-    \niho_dsp_a[15]_INST_0_i_3 ,
+    \core_dsp_a[15]_INST_0_i_3 ,
     \sr_reg[8]_46 ,
     \sr_reg[6]_0 ,
     \sr_reg[6]_1 ,
@@ -54637,7 +54637,7 @@ module niho_rgf_grn_42
     DI,
     \iv[7]_i_7_1 ,
     \iv[7]_i_7_2 ,
-    \niho_dsp_a[32] ,
+    \core_dsp_a[32] ,
     \iv[5]_i_7 ,
     \iv[7]_i_9_0 ,
     \iv[9]_i_4_1 ,
@@ -54803,11 +54803,11 @@ module niho_rgf_grn_42
     \sr[4]_i_114_0 ,
     \iv[0]_i_7_1 ,
     \iv[14]_i_19 ,
-    \niho_dsp_a[32]_0 ,
-    \niho_dsp_a[32]_1 ,
+    \core_dsp_a[32]_0 ,
+    \core_dsp_a[32]_1 ,
     p_0_in,
     p_1_in,
-    \niho_dsp_a[32]_2 ,
+    \core_dsp_a[32]_2 ,
     \tr[23]_i_10 ,
     \iv[4]_i_10_2 ,
     \iv[5]_i_10_2 ,
@@ -54895,7 +54895,7 @@ module niho_rgf_grn_42
   output \sr_reg[8]_44 ;
   output \sr_reg[8]_45 ;
   output \badr[5]_INST_0_i_1 ;
-  output \niho_dsp_a[15]_INST_0_i_3 ;
+  output \core_dsp_a[15]_INST_0_i_3 ;
   output \sr_reg[8]_46 ;
   output \sr_reg[6]_0 ;
   output \sr_reg[6]_1 ;
@@ -54918,7 +54918,7 @@ module niho_rgf_grn_42
   input [1:0]DI;
   input \iv[7]_i_7_1 ;
   input \iv[7]_i_7_2 ;
-  input [1:0]\niho_dsp_a[32] ;
+  input [1:0]\core_dsp_a[32] ;
   input \iv[5]_i_7 ;
   input \iv[7]_i_9_0 ;
   input \iv[9]_i_4_1 ;
@@ -55084,11 +55084,11 @@ module niho_rgf_grn_42
   input \sr[4]_i_114_0 ;
   input \iv[0]_i_7_1 ;
   input [0:0]\iv[14]_i_19 ;
-  input \niho_dsp_a[32]_0 ;
-  input \niho_dsp_a[32]_1 ;
+  input \core_dsp_a[32]_0 ;
+  input \core_dsp_a[32]_1 ;
   input [0:0]p_0_in;
   input [0:0]p_1_in;
-  input \niho_dsp_a[32]_2 ;
+  input \core_dsp_a[32]_2 ;
   input \tr[23]_i_10 ;
   input \iv[4]_i_10_2 ;
   input \iv[5]_i_10_2 ;
@@ -55338,11 +55338,11 @@ module niho_rgf_grn_42
   wire \iv[9]_i_5_2 ;
   wire \iv[9]_i_5_3 ;
   wire \iv[9]_i_5_4 ;
-  wire \niho_dsp_a[15]_INST_0_i_3 ;
-  wire [1:0]\niho_dsp_a[32] ;
-  wire \niho_dsp_a[32]_0 ;
-  wire \niho_dsp_a[32]_1 ;
-  wire \niho_dsp_a[32]_2 ;
+  wire \core_dsp_a[15]_INST_0_i_3 ;
+  wire [1:0]\core_dsp_a[32] ;
+  wire \core_dsp_a[32]_0 ;
+  wire \core_dsp_a[32]_1 ;
+  wire \core_dsp_a[32]_2 ;
   wire [0:0]p_0_in;
   wire [0:0]p_1_in;
   wire \sr[4]_i_114 ;
@@ -55539,7 +55539,7 @@ module niho_rgf_grn_42
         .I2(\iv[14]_i_19 ),
         .I3(\iv[0]_i_7_0 ),
         .I4(\iv[0]_i_7_1 ),
-        .O(\niho_dsp_a[15]_INST_0_i_3 ));
+        .O(\core_dsp_a[15]_INST_0_i_3 ));
   LUT4 #(
     .INIT(16'h1F11)) 
     \iv[10]_i_12 
@@ -55591,7 +55591,7 @@ module niho_rgf_grn_42
     .INIT(32'h2AFF2A00)) 
     \iv[10]_i_47 
        (.I0(\sr[4]_i_135 ),
-        .I1(\niho_dsp_a[32] [0]),
+        .I1(\core_dsp_a[32] [0]),
         .I2(\sr[4]_i_146 ),
         .I3(\iv[12]_i_21_0 ),
         .I4(\sr[4]_i_135_0 ),
@@ -55603,7 +55603,7 @@ module niho_rgf_grn_42
         .I1(\iv[10]_i_12_n_0 ),
         .I2(\iv[10]_i_2_0 ),
         .I3(\iv[10]_i_14_n_0 ),
-        .I4(\niho_dsp_a[32] [1]),
+        .I4(\core_dsp_a[32] [1]),
         .I5(\iv[5]_i_7 ),
         .O(\sr_reg[8]_11 ));
   LUT6 #(
@@ -55656,7 +55656,7 @@ module niho_rgf_grn_42
         .I1(\sr[4]_i_146 ),
         .I2(\sr[4]_i_146_1 ),
         .I3(\iv[12]_i_21_0 ),
-        .I4(\niho_dsp_a[32] [0]),
+        .I4(\core_dsp_a[32] [0]),
         .O(\sr_reg[6]_3 ));
   LUT3 #(
     .INIT(8'hB8)) 
@@ -55672,7 +55672,7 @@ module niho_rgf_grn_42
         .I1(\sr[4]_i_146 ),
         .I2(\iv[11]_i_18_0 ),
         .I3(\iv[12]_i_21_0 ),
-        .I4(\niho_dsp_a[32] [0]),
+        .I4(\core_dsp_a[32] [0]),
         .O(\sr_reg[6]_0 ));
   LUT5 #(
     .INIT(32'hB0B0AAA0)) 
@@ -55680,7 +55680,7 @@ module niho_rgf_grn_42
        (.I0(\iv[11]_i_12_n_0 ),
         .I1(\iv[11]_i_2 ),
         .I2(\iv[11]_i_14_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_0 ));
   LUT6 #(
@@ -55733,7 +55733,7 @@ module niho_rgf_grn_42
         .I1(\iv[12]_i_2 ),
         .I2(\iv[12]_i_2_0 ),
         .I3(\iv[12]_i_14_n_0 ),
-        .I4(\niho_dsp_a[32] [1]),
+        .I4(\core_dsp_a[32] [1]),
         .I5(\iv[5]_i_7 ),
         .O(\sr_reg[8]_10 ));
   LUT4 #(
@@ -55767,7 +55767,7 @@ module niho_rgf_grn_42
     \iv[13]_i_21 
        (.I0(\iv[5]_i_7 ),
         .I1(bbus_0[0]),
-        .I2(\niho_dsp_a[32] [1]),
+        .I2(\core_dsp_a[32] [1]),
         .I3(\iv[12]_i_9 ),
         .O(\sr_reg[8]_37 ));
   LUT2 #(
@@ -55790,7 +55790,7 @@ module niho_rgf_grn_42
         .I1(\iv[13]_i_2 ),
         .I2(\iv[13]_i_2_0 ),
         .I3(\iv[13]_i_14_n_0 ),
-        .I4(\niho_dsp_a[32] [1]),
+        .I4(\core_dsp_a[32] [1]),
         .I5(\iv[5]_i_7 ),
         .O(\sr_reg[8]_9 ));
   LUT5 #(
@@ -55840,7 +55840,7 @@ module niho_rgf_grn_42
     \iv[14]_i_36 
        (.I0(\iv[14]_i_19 ),
         .I1(\sr[4]_i_146 ),
-        .I2(\niho_dsp_a[32] [0]),
+        .I2(\core_dsp_a[32] [0]),
         .I3(\iv[12]_i_21_0 ),
         .I4(\iv[12]_i_21 ),
         .O(\sr_reg[6]_2 ));
@@ -55850,7 +55850,7 @@ module niho_rgf_grn_42
        (.I0(\iv[14]_i_12_n_0 ),
         .I1(\iv[14]_i_2 ),
         .I2(\iv[14]_i_14_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_15 ));
   LUT5 #(
@@ -55859,7 +55859,7 @@ module niho_rgf_grn_42
        (.I0(\iv[1]_i_20_n_0 ),
         .I1(\iv[1]_i_3_0 ),
         .I2(\iv[1]_i_21_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(bbus_0[0]),
         .O(\iv[1]_i_10_n_0 ));
   LUT6 #(
@@ -55914,7 +55914,7 @@ module niho_rgf_grn_42
         .I2(\iv[1]_i_10_1 ),
         .I3(\iv[8]_i_5_0 ),
         .I4(\iv[1]_i_10_2 ),
-        .I5(\niho_dsp_a[32] [1]),
+        .I5(\core_dsp_a[32] [1]),
         .O(\iv[1]_i_21_n_0 ));
   LUT4 #(
     .INIT(16'hFEFF)) 
@@ -55963,7 +55963,7 @@ module niho_rgf_grn_42
         .I1(\iv[1]_i_17_n_0 ),
         .I2(\iv[1]_i_3_0 ),
         .I3(\iv[1]_i_19_n_0 ),
-        .I4(\niho_dsp_a[32] [1]),
+        .I4(\core_dsp_a[32] [1]),
         .I5(\iv[5]_i_7 ),
         .O(\iv[1]_i_9_n_0 ));
   LUT5 #(
@@ -55972,7 +55972,7 @@ module niho_rgf_grn_42
        (.I0(\bdatw[12]_INST_0_i_1 ),
         .I1(\iv[2]_i_3_0 ),
         .I2(\iv[2]_i_20_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(bbus_0[0]),
         .O(\iv[2]_i_10_n_0 ));
   LUT6 #(
@@ -56070,7 +56070,7 @@ module niho_rgf_grn_42
        (.I0(\iv[2]_i_26 ),
         .I1(\iv[2]_i_3_0 ),
         .I2(\iv[2]_i_18_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\iv[2]_i_9_n_0 ));
   LUT5 #(
@@ -56079,7 +56079,7 @@ module niho_rgf_grn_42
        (.I0(\iv[3]_i_3_0 ),
         .I1(\iv[3]_i_3 ),
         .I2(\iv[3]_i_21_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(bbus_0[0]),
         .O(\sr_reg[8]_23 ));
   LUT6 #(
@@ -56109,7 +56109,7 @@ module niho_rgf_grn_42
         .I2(\iv[3]_i_10_1 ),
         .I3(\iv[8]_i_5_0 ),
         .I4(\iv[3]_i_10_2 ),
-        .I5(\niho_dsp_a[32] [1]),
+        .I5(\core_dsp_a[32] [1]),
         .O(\iv[3]_i_21_n_0 ));
   LUT5 #(
     .INIT(32'h3A3F3035)) 
@@ -56133,7 +56133,7 @@ module niho_rgf_grn_42
        (.I0(\sr_reg[8]_8 ),
         .I1(\iv[3]_i_3 ),
         .I2(\iv[3]_i_19_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_7 ));
   LUT5 #(
@@ -56142,7 +56142,7 @@ module niho_rgf_grn_42
        (.I0(\bdatw[12]_INST_0_i_1_0 ),
         .I1(\iv[4]_i_3 ),
         .I2(\iv[4]_i_21_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(bbus_0[0]),
         .O(\sr_reg[8]_28 ));
   LUT5 #(
@@ -56212,7 +56212,7 @@ module niho_rgf_grn_42
        (.I0(\iv[4]_i_29 ),
         .I1(\iv[4]_i_3 ),
         .I2(\iv[4]_i_19_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_13 ));
   LUT5 #(
@@ -56221,7 +56221,7 @@ module niho_rgf_grn_42
        (.I0(\iv[5]_i_3_0 ),
         .I1(\iv[5]_i_3 ),
         .I2(\iv[5]_i_21_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(bbus_0[0]),
         .O(\sr_reg[8]_27 ));
   LUT5 #(
@@ -56280,7 +56280,7 @@ module niho_rgf_grn_42
        (.I0(\iv[5]_i_28 ),
         .I1(\iv[5]_i_3 ),
         .I2(\iv[5]_i_19_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_12 ));
   LUT5 #(
@@ -56300,7 +56300,7 @@ module niho_rgf_grn_42
         .I2(\iv[6]_i_10_0 ),
         .I3(\iv[8]_i_5_0 ),
         .I4(\iv[6]_i_10_1 ),
-        .I5(\niho_dsp_a[32] [1]),
+        .I5(\core_dsp_a[32] [1]),
         .O(\sr_reg[8]_29 ));
   LUT3 #(
     .INIT(8'h74)) 
@@ -56401,7 +56401,7 @@ module niho_rgf_grn_42
        (.I0(\iv[7]_i_18_n_0 ),
         .I1(\iv[7]_i_19_n_0 ),
         .I2(\iv[7]_i_20_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8] ));
   LUT6 #(
@@ -56461,7 +56461,7 @@ module niho_rgf_grn_42
        (.I0(\iv[8]_i_12_n_0 ),
         .I1(\iv[8]_i_2 ),
         .I2(\iv[8]_i_14_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_14 ));
   LUT6 #(
@@ -56533,7 +56533,7 @@ module niho_rgf_grn_42
     \iv[9]_i_39 
        (.I0(DI[1]),
         .I1(\sr[4]_i_146 ),
-        .I2(\niho_dsp_a[32] [0]),
+        .I2(\core_dsp_a[32] [0]),
         .I3(\iv[12]_i_21_0 ),
         .I4(\iv[1]_i_23_1 ),
         .O(\sr_reg[6]_1 ));
@@ -56564,7 +56564,7 @@ module niho_rgf_grn_42
        (.I0(\iv[9]_i_12_n_0 ),
         .I1(\iv[9]_i_2 ),
         .I2(\iv[9]_i_14_n_0 ),
-        .I3(\niho_dsp_a[32] [1]),
+        .I3(\core_dsp_a[32] [1]),
         .I4(\iv[5]_i_7 ),
         .O(\sr_reg[8]_17 ));
   LUT6 #(
@@ -56579,13 +56579,13 @@ module niho_rgf_grn_42
         .O(\sr_reg[8]_33 ));
   LUT6 #(
     .INIT(64'h00000000FFFFFFFE)) 
-    \niho_dsp_a[32]_INST_0_i_2 
-       (.I0(\niho_dsp_a[32]_0 ),
-        .I1(\niho_dsp_a[32]_1 ),
+    \core_dsp_a[32]_INST_0_i_2 
+       (.I0(\core_dsp_a[32]_0 ),
+        .I1(\core_dsp_a[32]_1 ),
         .I2(p_0_in),
         .I3(p_1_in),
-        .I4(\niho_dsp_a[32]_2 ),
-        .I5(\niho_dsp_a[32] [1]),
+        .I4(\core_dsp_a[32]_2 ),
+        .I5(\core_dsp_a[32] [1]),
         .O(\sr_reg[8]_46 ));
 endmodule
 
@@ -58703,7 +58703,7 @@ module niho_rgf_sreg
     \sr_reg[8]_108 ,
     \sr_reg[8]_109 ,
     \sr_reg[8]_110 ,
-    niho_dsp_a,
+    core_dsp_a,
     \sr_reg[8]_111 ,
     \sr_reg[8]_112 ,
     \sr_reg[8]_113 ,
@@ -58965,7 +58965,7 @@ module niho_rgf_sreg
     \sr_reg[8]_222 ,
     \sr_reg[8]_223 ,
     \badr[2]_INST_0_i_1 ,
-    niho_dsp_b,
+    core_dsp_b,
     \sr_reg[8]_224 ,
     \sr_reg[8]_225 ,
     \sr_reg[8]_226 ,
@@ -58982,7 +58982,7 @@ module niho_rgf_sreg
     \sr[4]_i_19_0 ,
     \sr[4]_i_19_1 ,
     \iv[6]_i_3 ,
-    \niho_dsp_b[5] ,
+    \core_dsp_b[5] ,
     \sr[4]_i_38 ,
     \sr[4]_i_38_0 ,
     \sr[4]_i_91 ,
@@ -59057,7 +59057,7 @@ module niho_rgf_sreg
     \tr[28]_i_8_0 ,
     \tr[21]_i_8 ,
     \mul_a_reg[30] ,
-    .niho_dsp_b_0_sp_1(niho_dsp_b_0_sn_1),
+    .core_dsp_b_0_sp_1(core_dsp_b_0_sn_1),
     \tr[26]_i_6 ,
     \iv[10]_i_29_0 ,
     \iv[14]_i_13 ,
@@ -59104,21 +59104,21 @@ module niho_rgf_sreg
     \mul_a_reg[16] ,
     mul_rslt,
     mul_a,
-    \niho_dsp_b[5]_0 ,
-    .niho_dsp_a_15_sp_1(niho_dsp_a_15_sn_1),
+    \core_dsp_b[5]_0 ,
+    .core_dsp_a_15_sp_1(core_dsp_a_15_sn_1),
     \remden_reg[26] ,
     DI,
     \remden_reg[29] ,
-    \niho_dsp_a[11] ,
+    \core_dsp_a[11] ,
     \remden_reg[25] ,
     \remden_reg[24] ,
-    \niho_dsp_a[7] ,
+    \core_dsp_a[7] ,
     \remden_reg[23] ,
     \remden_reg[22] ,
     \remden_reg[21] ,
     \iv[5]_i_7 ,
     \remden_reg[20] ,
-    \niho_dsp_a[3] ,
+    \core_dsp_a[3] ,
     \remden_reg[18] ,
     \remden_reg[17] ,
     \remden_reg[16] ,
@@ -59208,8 +59208,8 @@ module niho_rgf_sreg
     \sr_reg[6]_i_6_0 ,
     \sr_reg[6]_i_6_1 ,
     \sr_reg[6]_i_6_2 ,
-    \niho_dsp_b[0]_0 ,
-    \niho_dsp_b[5]_1 ,
+    \core_dsp_b[0]_0 ,
+    \core_dsp_b[5]_1 ,
     \iv[11]_i_10_0 ,
     \iv[12]_i_9 ,
     \tr[20]_i_9 ,
@@ -59369,7 +59369,7 @@ module niho_rgf_sreg
   output \sr_reg[8]_108 ;
   output \sr_reg[8]_109 ;
   output \sr_reg[8]_110 ;
-  output [15:0]niho_dsp_a;
+  output [15:0]core_dsp_a;
   output \sr_reg[8]_111 ;
   output \sr_reg[8]_112 ;
   output \sr_reg[8]_113 ;
@@ -59629,7 +59629,7 @@ module niho_rgf_sreg
   output \sr_reg[8]_222 ;
   output \sr_reg[8]_223 ;
   output \badr[2]_INST_0_i_1 ;
-  output [1:0]niho_dsp_b;
+  output [1:0]core_dsp_b;
   output \sr_reg[8]_224 ;
   output \sr_reg[8]_225 ;
   output \sr_reg[8]_226 ;
@@ -59646,7 +59646,7 @@ module niho_rgf_sreg
   input \sr[4]_i_19_0 ;
   input \sr[4]_i_19_1 ;
   input \iv[6]_i_3 ;
-  input \niho_dsp_b[5] ;
+  input \core_dsp_b[5] ;
   input \sr[4]_i_38 ;
   input \sr[4]_i_38_0 ;
   input \sr[4]_i_91 ;
@@ -59767,20 +59767,20 @@ module niho_rgf_sreg
   input \mul_a_reg[16] ;
   input mul_rslt;
   input [15:0]mul_a;
-  input \niho_dsp_b[5]_0 ;
+  input \core_dsp_b[5]_0 ;
   input \remden_reg[26] ;
   input [3:0]DI;
   input \remden_reg[29] ;
-  input [3:0]\niho_dsp_a[11] ;
+  input [3:0]\core_dsp_a[11] ;
   input \remden_reg[25] ;
   input \remden_reg[24] ;
-  input [3:0]\niho_dsp_a[7] ;
+  input [3:0]\core_dsp_a[7] ;
   input \remden_reg[23] ;
   input \remden_reg[22] ;
   input \remden_reg[21] ;
   input \iv[5]_i_7 ;
   input \remden_reg[20] ;
-  input [3:0]\niho_dsp_a[3] ;
+  input [3:0]\core_dsp_a[3] ;
   input \remden_reg[18] ;
   input \remden_reg[17] ;
   input \remden_reg[16] ;
@@ -59870,8 +59870,8 @@ module niho_rgf_sreg
   input \sr_reg[6]_i_6_0 ;
   input \sr_reg[6]_i_6_1 ;
   input \sr_reg[6]_i_6_2 ;
-  input \niho_dsp_b[0]_0 ;
-  input \niho_dsp_b[5]_1 ;
+  input \core_dsp_b[0]_0 ;
+  input \core_dsp_b[5]_1 ;
   input \iv[11]_i_10_0 ;
   input \iv[12]_i_9 ;
   input \tr[20]_i_9 ;
@@ -59892,8 +59892,8 @@ module niho_rgf_sreg
      output [15:0]sr;
   output irq_lev_0_sn_1;
   output irq_lev_1_sn_1;
-  input niho_dsp_b_0_sn_1;
-  input niho_dsp_a_15_sn_1;
+  input core_dsp_b_0_sn_1;
+  input core_dsp_a_15_sn_1;
 
   wire \<const0> ;
   wire \<const1> ;
@@ -60132,17 +60132,17 @@ module niho_rgf_sreg
   wire \mul_a_reg[32]_0 ;
   wire mul_rslt;
   wire mul_rslt0;
-  wire [15:0]niho_dsp_a;
-  wire [3:0]\niho_dsp_a[11] ;
-  wire [3:0]\niho_dsp_a[3] ;
-  wire [3:0]\niho_dsp_a[7] ;
-  wire niho_dsp_a_15_sn_1;
-  wire [1:0]niho_dsp_b;
-  wire \niho_dsp_b[0]_0 ;
-  wire \niho_dsp_b[5] ;
-  wire \niho_dsp_b[5]_0 ;
-  wire \niho_dsp_b[5]_1 ;
-  wire niho_dsp_b_0_sn_1;
+  wire [15:0]core_dsp_a;
+  wire [3:0]\core_dsp_a[11] ;
+  wire [3:0]\core_dsp_a[3] ;
+  wire [3:0]\core_dsp_a[7] ;
+  wire core_dsp_a_15_sn_1;
+  wire [1:0]core_dsp_b;
+  wire \core_dsp_b[0]_0 ;
+  wire \core_dsp_b[5] ;
+  wire \core_dsp_b[5]_0 ;
+  wire \core_dsp_b[5]_1 ;
+  wire core_dsp_b_0_sn_1;
   wire [15:9]p_0_in__0;
   wire [0:0]p_2_in;
   wire [0:0]\pc_reg[3]_i_2 ;
@@ -62636,7 +62636,7 @@ module niho_rgf_sreg
     \iv[0]_i_11 
        (.I0(\mul_a_reg[24] ),
         .I1(\iv[5]_i_7 ),
-        .I2(\niho_dsp_a[3] [0]),
+        .I2(\core_dsp_a[3] [0]),
         .O(\badr[0]_INST_0_i_1 ));
   LUT5 #(
     .INIT(32'h00044404)) 
@@ -62699,8 +62699,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[22] ),
         .I2(\mul_a_reg[23] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[0]_i_33_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -62708,8 +62708,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[20] ),
         .I2(\mul_a_reg[21] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[0]_i_34_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -62717,8 +62717,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[26] ),
         .I2(\mul_a_reg[27] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[0]_i_35_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -62726,14 +62726,14 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[24] ),
         .I2(\mul_a_reg[25] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[0]_i_36_n_0 ));
   LUT6 #(
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[0]_i_37 
        (.I0(\sr[7]_i_50_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -62898,7 +62898,7 @@ module niho_rgf_sreg
     \iv[11]_i_27 
        (.I0(bbus_0[0]),
         .I1(\mul_a_reg[32] ),
-        .I2(niho_dsp_b_0_sn_1),
+        .I2(core_dsp_b_0_sn_1),
         .I3(\iv[9]_i_28 ),
         .I4(\sr_reg[8]_94 ),
         .O(\sr_reg[8]_56 ));
@@ -62937,7 +62937,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[11]_i_45 
        (.I0(\iv[15]_i_141_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -62957,7 +62957,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[11]_i_47 
        (.I0(\iv[13]_i_52_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63024,8 +63024,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[30] ),
         .I2(\mul_a_reg[32] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[12]_i_39_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -63033,14 +63033,14 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[28] ),
         .I2(\mul_a_reg[29] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[12]_i_40_n_0 ));
   LUT6 #(
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[12]_i_41 
        (.I0(\sr[7]_i_52_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63050,7 +63050,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[12]_i_42 
        (.I0(\sr[7]_i_46_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63073,13 +63073,13 @@ module niho_rgf_sreg
         .I2(\tr[28]_i_8_0 ),
         .I3(\iv[12]_i_25 ),
         .I4(sr[6]),
-        .I5(niho_dsp_b_0_sn_1),
+        .I5(core_dsp_b_0_sn_1),
         .O(\sr_reg[6]_2 ));
   LUT6 #(
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[12]_i_45 
        (.I0(\iv[12]_i_51_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63089,7 +63089,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[12]_i_46 
        (.I0(\iv[14]_i_66_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63099,7 +63099,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[12]_i_47 
        (.I0(\iv[14]_i_68_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63109,7 +63109,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[12]_i_48 
        (.I0(\iv[14]_i_70_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63188,7 +63188,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[13]_i_42 
        (.I0(\iv[15]_i_166_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63198,7 +63198,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[13]_i_43 
        (.I0(\iv[15]_i_170_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63208,7 +63208,7 @@ module niho_rgf_sreg
     .INIT(64'hDDDDFFFFDDD1000C)) 
     \iv[13]_i_45 
        (.I0(\mul_a_reg[32] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63218,7 +63218,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[13]_i_47 
        (.I0(\iv[7]_i_48_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63228,7 +63228,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[13]_i_48 
        (.I0(\iv[13]_i_51_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63238,7 +63238,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[13]_i_49 
        (.I0(\iv[13]_i_53_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63353,14 +63353,14 @@ module niho_rgf_sreg
         .I1(\sr_reg[8]_79 ),
         .I2(\sr_reg[8]_80 ),
         .I3(\mul_a_reg[30] ),
-        .I4(niho_dsp_b_0_sn_1),
+        .I4(core_dsp_b_0_sn_1),
         .I5(\mul_a_reg[32] ),
         .O(\sr_reg[8]_77 ));
   LUT6 #(
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[14]_i_52 
        (.I0(\iv[14]_i_65_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63380,7 +63380,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[14]_i_55 
        (.I0(\iv[14]_i_67_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63390,7 +63390,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[14]_i_56 
        (.I0(\iv[14]_i_69_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63488,8 +63488,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[21] ),
         .I2(\mul_a_reg[22] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[15]_i_127_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -63497,8 +63497,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[19] ),
         .I2(\mul_a_reg[20] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[15]_i_128_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -63506,15 +63506,15 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[17] ),
         .I2(\mul_a_reg[18] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\sr_reg[8]_90 ));
   LUT4 #(
     .INIT(16'hDF80)) 
     \iv[15]_i_130 
        (.I0(sr[8]),
         .I1(\mul_a_reg[16] ),
-        .I2(niho_dsp_b_0_sn_1),
+        .I2(core_dsp_b_0_sn_1),
         .I3(DI[3]),
         .O(\sr_reg[8]_91 ));
   LUT5 #(
@@ -63523,8 +63523,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[29] ),
         .I2(\mul_a_reg[30] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[15]_i_131_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -63532,8 +63532,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[27] ),
         .I2(\mul_a_reg[28] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[15]_i_132_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -63541,8 +63541,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[25] ),
         .I2(\mul_a_reg[26] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[15]_i_133_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -63550,14 +63550,14 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[23] ),
         .I2(\mul_a_reg[24] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[15]_i_134_n_0 ));
   LUT6 #(
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[15]_i_135 
        (.I0(\iv[15]_i_163_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63567,7 +63567,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[15]_i_136 
        (.I0(\iv[15]_i_165_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63577,7 +63577,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[15]_i_137 
        (.I0(\badr[17]_INST_0_i_1 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63587,7 +63587,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[15]_i_138 
        (.I0(\iv[15]_i_169_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -63607,42 +63607,42 @@ module niho_rgf_sreg
     .INIT(8'hB8)) 
     \iv[15]_i_142 
        (.I0(\mul_a_reg[28] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\mul_a_reg[27] ),
         .O(\iv[15]_i_142_n_0 ));
   LUT3 #(
     .INIT(8'hB8)) 
     \iv[15]_i_143 
        (.I0(\mul_a_reg[26] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\mul_a_reg[25] ),
         .O(\iv[15]_i_143_n_0 ));
   LUT3 #(
     .INIT(8'hB8)) 
     \iv[15]_i_144 
        (.I0(\mul_a_reg[24] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\mul_a_reg[23] ),
         .O(\iv[15]_i_144_n_0 ));
   LUT3 #(
     .INIT(8'hB8)) 
     \iv[15]_i_145 
        (.I0(\mul_a_reg[22] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\mul_a_reg[21] ),
         .O(\iv[15]_i_145_n_0 ));
   LUT3 #(
     .INIT(8'hB8)) 
     \iv[15]_i_146 
        (.I0(\mul_a_reg[20] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\mul_a_reg[19] ),
         .O(\iv[15]_i_146_n_0 ));
   LUT3 #(
     .INIT(8'hB8)) 
     \iv[15]_i_147 
        (.I0(\mul_a_reg[18] ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\mul_a_reg[17] ),
         .O(\iv[15]_i_147_n_0 ));
   LUT6 #(
@@ -63768,7 +63768,7 @@ module niho_rgf_sreg
     .INIT(4'h8)) 
     \iv[15]_i_52 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5] ),
+        .I1(\core_dsp_b[5] ),
         .O(\sr_reg[8]_14 ));
   LUT6 #(
     .INIT(64'h8A8A8A8080808A80)) 
@@ -63835,7 +63835,7 @@ module niho_rgf_sreg
     \iv[1]_i_11 
        (.I0(\mul_a_reg[25] ),
         .I1(\iv[5]_i_7 ),
-        .I2(\niho_dsp_a[3] [1]),
+        .I2(\core_dsp_a[3] [1]),
         .O(\badr[1]_INST_0_i_1 ));
   LUT6 #(
     .INIT(64'h555557F7FFFF57F7)) 
@@ -63887,7 +63887,7 @@ module niho_rgf_sreg
     \iv[2]_i_11 
        (.I0(\mul_a_reg[26] ),
         .I1(\iv[5]_i_7 ),
-        .I2(\niho_dsp_a[3] [2]),
+        .I2(\core_dsp_a[3] [2]),
         .O(\badr[2]_INST_0_i_1 ));
   LUT6 #(
     .INIT(64'h555557F7FFFF57F7)) 
@@ -63936,7 +63936,7 @@ module niho_rgf_sreg
     .INIT(8'h53)) 
     \iv[3]_i_12 
        (.I0(\mul_a_reg[27] ),
-        .I1(\niho_dsp_a[3] [3]),
+        .I1(\core_dsp_a[3] [3]),
         .I2(\iv[5]_i_7 ),
         .O(\sr[6]_i_13 ));
   LUT6 #(
@@ -63998,14 +63998,14 @@ module niho_rgf_sreg
     \iv[3]_i_42 
        (.I0(bbus_0[0]),
         .I1(\mul_a_reg[32] ),
-        .I2(niho_dsp_b_0_sn_1),
+        .I2(core_dsp_b_0_sn_1),
         .O(\iv[3]_i_42_n_0 ));
   LUT3 #(
     .INIT(8'h47)) 
     \iv[4]_i_11 
        (.I0(\mul_a_reg[28] ),
         .I1(\iv[5]_i_7 ),
-        .I2(\niho_dsp_a[7] [0]),
+        .I2(\core_dsp_a[7] [0]),
         .O(\badr[4]_INST_0_i_1 ));
   LUT6 #(
     .INIT(64'h555557F7FFFF57F7)) 
@@ -64079,8 +64079,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[18] ),
         .I2(\mul_a_reg[19] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\iv[4]_i_36_n_0 ));
   LUT5 #(
     .INIT(32'hFFFFA088)) 
@@ -64088,8 +64088,8 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[16] ),
         .I2(\mul_a_reg[17] ),
-        .I3(niho_dsp_b_0_sn_1),
-        .I4(niho_dsp_a_15_sn_1),
+        .I3(core_dsp_b_0_sn_1),
+        .I4(core_dsp_a_15_sn_1),
         .O(\sr_reg[8]_82 ));
   LUT6 #(
     .INIT(64'h0002220222222222)) 
@@ -64106,7 +64106,7 @@ module niho_rgf_sreg
     \iv[5]_i_11 
        (.I0(\mul_a_reg[29] ),
         .I1(\iv[5]_i_7 ),
-        .I2(\niho_dsp_a[7] [1]),
+        .I2(\core_dsp_a[7] [1]),
         .O(\badr[5]_INST_0_i_1 ));
   LUT6 #(
     .INIT(64'h555557F7FFFF57F7)) 
@@ -64179,7 +64179,7 @@ module niho_rgf_sreg
     \iv[6]_i_11 
        (.I0(\mul_a_reg[30] ),
         .I1(\iv[5]_i_7 ),
-        .I2(\niho_dsp_a[7] [2]),
+        .I2(\core_dsp_a[7] [2]),
         .O(\badr[6]_INST_0_i_1 ));
   LUT6 #(
     .INIT(64'h555557F7FFFF57F7)) 
@@ -64195,7 +64195,7 @@ module niho_rgf_sreg
     .INIT(64'h550000035500FF03)) 
     \iv[6]_i_17 
        (.I0(\sr_reg[8]_6 ),
-        .I1(\niho_dsp_b[5] ),
+        .I1(\core_dsp_b[5] ),
         .I2(\sr[4]_i_38 ),
         .I3(\sr[4]_i_38_0 ),
         .I4(\sr[4]_i_91 ),
@@ -64255,7 +64255,7 @@ module niho_rgf_sreg
         .I1(\sr_reg[8]_5 ),
         .I2(\iv[6]_i_3 ),
         .I3(sr[8]),
-        .I4(\niho_dsp_b[5] ),
+        .I4(\core_dsp_b[5] ),
         .O(\sr_reg[8]_3 ));
   LUT6 #(
     .INIT(64'h555557F7FFFF57F7)) 
@@ -64297,7 +64297,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[7]_i_42 
        (.I0(\iv[7]_i_47_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -64455,7 +64455,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[9]_i_47 
        (.I0(\iv[15]_i_168_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -64474,7 +64474,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \iv[9]_i_50 
        (.I0(\sr_reg[6]_1 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -64589,170 +64589,170 @@ module niho_rgf_sreg
     .INIT(4'h2)) 
     mul_rslt_i_1
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
+        .I1(\core_dsp_b[5]_0 ),
         .O(mul_rslt0));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[0]_INST_0 
+    \core_dsp_a[0]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[3] [0]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[3] [0]),
         .I3(mul_rslt),
         .I4(mul_a[0]),
-        .O(niho_dsp_a[0]));
+        .O(core_dsp_a[0]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[10]_INST_0 
+    \core_dsp_a[10]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[11] [2]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[11] [2]),
         .I3(mul_rslt),
         .I4(mul_a[10]),
-        .O(niho_dsp_a[10]));
+        .O(core_dsp_a[10]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[11]_INST_0 
+    \core_dsp_a[11]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[11] [3]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[11] [3]),
         .I3(mul_rslt),
         .I4(mul_a[11]),
-        .O(niho_dsp_a[11]));
+        .O(core_dsp_a[11]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[12]_INST_0 
+    \core_dsp_a[12]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
+        .I1(\core_dsp_b[5]_0 ),
         .I2(DI[0]),
         .I3(mul_rslt),
         .I4(mul_a[12]),
-        .O(niho_dsp_a[12]));
+        .O(core_dsp_a[12]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[13]_INST_0 
+    \core_dsp_a[13]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
+        .I1(\core_dsp_b[5]_0 ),
         .I2(DI[1]),
         .I3(mul_rslt),
         .I4(mul_a[13]),
-        .O(niho_dsp_a[13]));
+        .O(core_dsp_a[13]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[14]_INST_0 
+    \core_dsp_a[14]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
+        .I1(\core_dsp_b[5]_0 ),
         .I2(DI[2]),
         .I3(mul_rslt),
         .I4(mul_a[14]),
-        .O(niho_dsp_a[14]));
+        .O(core_dsp_a[14]));
   LUT5 #(
     .INIT(32'h80FF8080)) 
-    \niho_dsp_a[15]_INST_0 
+    \core_dsp_a[15]_INST_0 
        (.I0(sr[8]),
         .I1(mul_rslt),
         .I2(mul_a[15]),
-        .I3(\niho_dsp_b[5]_0 ),
-        .I4(niho_dsp_a_15_sn_1),
-        .O(niho_dsp_a[15]));
+        .I3(\core_dsp_b[5]_0 ),
+        .I4(core_dsp_a_15_sn_1),
+        .O(core_dsp_a[15]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[1]_INST_0 
+    \core_dsp_a[1]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[3] [1]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[3] [1]),
         .I3(mul_rslt),
         .I4(mul_a[1]),
-        .O(niho_dsp_a[1]));
+        .O(core_dsp_a[1]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[2]_INST_0 
+    \core_dsp_a[2]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[3] [2]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[3] [2]),
         .I3(mul_rslt),
         .I4(mul_a[2]),
-        .O(niho_dsp_a[2]));
+        .O(core_dsp_a[2]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[3]_INST_0 
+    \core_dsp_a[3]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[3] [3]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[3] [3]),
         .I3(mul_rslt),
         .I4(mul_a[3]),
-        .O(niho_dsp_a[3]));
+        .O(core_dsp_a[3]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[4]_INST_0 
+    \core_dsp_a[4]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[7] [0]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[7] [0]),
         .I3(mul_rslt),
         .I4(mul_a[4]),
-        .O(niho_dsp_a[4]));
+        .O(core_dsp_a[4]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[5]_INST_0 
+    \core_dsp_a[5]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[7] [1]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[7] [1]),
         .I3(mul_rslt),
         .I4(mul_a[5]),
-        .O(niho_dsp_a[5]));
+        .O(core_dsp_a[5]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[6]_INST_0 
+    \core_dsp_a[6]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[7] [2]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[7] [2]),
         .I3(mul_rslt),
         .I4(mul_a[6]),
-        .O(niho_dsp_a[6]));
+        .O(core_dsp_a[6]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[7]_INST_0 
+    \core_dsp_a[7]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[7] [3]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[7] [3]),
         .I3(mul_rslt),
         .I4(mul_a[7]),
-        .O(niho_dsp_a[7]));
+        .O(core_dsp_a[7]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[8]_INST_0 
+    \core_dsp_a[8]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[11] [0]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[11] [0]),
         .I3(mul_rslt),
         .I4(mul_a[8]),
-        .O(niho_dsp_a[8]));
+        .O(core_dsp_a[8]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_a[9]_INST_0 
+    \core_dsp_a[9]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_a[11] [1]),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_a[11] [1]),
         .I3(mul_rslt),
         .I4(mul_a[9]),
-        .O(niho_dsp_a[9]));
+        .O(core_dsp_a[9]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[0]_INST_0 
+    \core_dsp_b[0]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(niho_dsp_b_0_sn_1),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(core_dsp_b_0_sn_1),
         .I3(mul_rslt),
-        .I4(\niho_dsp_b[0]_0 ),
-        .O(niho_dsp_b[0]));
+        .I4(\core_dsp_b[0]_0 ),
+        .O(core_dsp_b[0]));
   LUT5 #(
     .INIT(32'hBA101010)) 
-    \niho_dsp_b[5]_INST_0 
+    \core_dsp_b[5]_INST_0 
        (.I0(sr[8]),
-        .I1(\niho_dsp_b[5]_0 ),
-        .I2(\niho_dsp_b[5] ),
+        .I1(\core_dsp_b[5]_0 ),
+        .I2(\core_dsp_b[5] ),
         .I3(mul_rslt),
-        .I4(\niho_dsp_b[5]_1 ),
-        .O(niho_dsp_b[1]));
+        .I4(\core_dsp_b[5]_1 ),
+        .O(core_dsp_b[1]));
   LUT6 #(
     .INIT(64'h5955555599995955)) 
     \pc[3]_i_3 
@@ -64769,7 +64769,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[16] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[3] [0]),
+        .I3(\core_dsp_a[3] [0]),
         .I4(\remden_reg[16] ),
         .O(\sr_reg[8]_120 ));
   LUT5 #(
@@ -64778,7 +64778,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[17] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[3] [1]),
+        .I3(\core_dsp_a[3] [1]),
         .I4(\remden_reg[17] ),
         .O(\sr_reg[8]_119 ));
   LUT5 #(
@@ -64787,13 +64787,13 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[18] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[3] [2]),
+        .I3(\core_dsp_a[3] [2]),
         .I4(\remden_reg[18] ),
         .O(\sr_reg[8]_118 ));
   LUT5 #(
     .INIT(32'h30503F5F)) 
     \remden[19]_i_2 
-       (.I0(\niho_dsp_a[3] [3]),
+       (.I0(\core_dsp_a[3] [3]),
         .I1(\mul_a_reg[19] ),
         .I2(\remden_reg[26] ),
         .I3(sr[8]),
@@ -64805,7 +64805,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[20] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[7] [0]),
+        .I3(\core_dsp_a[7] [0]),
         .I4(\remden_reg[20] ),
         .O(\sr_reg[8]_117 ));
   LUT5 #(
@@ -64814,7 +64814,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[21] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[7] [1]),
+        .I3(\core_dsp_a[7] [1]),
         .I4(\remden_reg[21] ),
         .O(\sr_reg[8]_116 ));
   LUT5 #(
@@ -64823,7 +64823,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[22] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[7] [2]),
+        .I3(\core_dsp_a[7] [2]),
         .I4(\remden_reg[22] ),
         .O(\sr_reg[8]_115 ));
   LUT5 #(
@@ -64832,7 +64832,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[23] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[7] [3]),
+        .I3(\core_dsp_a[7] [3]),
         .I4(\remden_reg[23] ),
         .O(\sr_reg[8]_114 ));
   LUT5 #(
@@ -64841,7 +64841,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[24] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[11] [0]),
+        .I3(\core_dsp_a[11] [0]),
         .I4(\remden_reg[24] ),
         .O(\sr_reg[8]_113 ));
   LUT5 #(
@@ -64850,14 +64850,14 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[25] ),
         .I1(\remden_reg[26] ),
         .I2(sr[8]),
-        .I3(\niho_dsp_a[11] [1]),
+        .I3(\core_dsp_a[11] [1]),
         .I4(\remden_reg[25] ),
         .O(\sr_reg[8]_112 ));
   LUT5 #(
     .INIT(32'h50305F3F)) 
     \remden[26]_i_2 
        (.I0(\mul_a_reg[26] ),
-        .I1(\niho_dsp_a[11] [2]),
+        .I1(\core_dsp_a[11] [2]),
         .I2(\remden_reg[26] ),
         .I3(sr[8]),
         .I4(\remden_reg[26]_0 ),
@@ -64866,7 +64866,7 @@ module niho_rgf_sreg
     .INIT(32'h50305F3F)) 
     \remden[27]_i_2 
        (.I0(\mul_a_reg[27] ),
-        .I1(\niho_dsp_a[11] [3]),
+        .I1(\core_dsp_a[11] [3]),
         .I2(\remden_reg[26] ),
         .I3(sr[8]),
         .I4(\remden_reg[27] ),
@@ -64903,7 +64903,7 @@ module niho_rgf_sreg
     \remden[31]_i_2 
        (.I0(sr[8]),
         .I1(\mul_a_reg[32] ),
-        .I2(niho_dsp_a_15_sn_1),
+        .I2(core_dsp_a_15_sn_1),
         .O(\sr_reg[8]_40 ));
   LUT3 #(
     .INIT(8'h80)) 
@@ -65104,7 +65104,7 @@ module niho_rgf_sreg
     .INIT(64'h55510004555DFFF7)) 
     \sr[4]_i_169 
        (.I0(\iv[15]_i_141_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -65114,7 +65114,7 @@ module niho_rgf_sreg
     .INIT(64'h55510004555DFFF7)) 
     \sr[4]_i_170 
        (.I0(\iv[13]_i_52_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -65318,7 +65318,7 @@ module niho_rgf_sreg
     \sr[5]_i_6 
        (.I0(sr[8]),
         .I1(\mul_a_reg[16] ),
-        .I2(niho_dsp_a_15_sn_1),
+        .I2(core_dsp_a_15_sn_1),
         .O(\alu/asr0 ));
   LUT5 #(
     .INIT(32'h20020880)) 
@@ -65362,7 +65362,7 @@ module niho_rgf_sreg
     \sr[6]_i_18 
        (.I0(sr[8]),
         .I1(\mul_a_reg[16] ),
-        .I2(niho_dsp_a_15_sn_1),
+        .I2(core_dsp_a_15_sn_1),
         .O(\sr[6]_i_18_n_0 ));
   LUT4 #(
     .INIT(16'h8228)) 
@@ -65420,7 +65420,7 @@ module niho_rgf_sreg
   LUT6 #(
     .INIT(64'h4444444440444000)) 
     \sr[6]_i_29 
-       (.I0(\niho_dsp_b[5] ),
+       (.I0(\core_dsp_b[5] ),
         .I1(sr[8]),
         .I2(\sr_reg[8]_42 ),
         .I3(\sr[6]_i_11_0 ),
@@ -65444,7 +65444,7 @@ module niho_rgf_sreg
         .I1(\mul_a_reg[21] ),
         .I2(\tr[28]_i_8_0 ),
         .I3(\mul_a_reg[20] ),
-        .I4(niho_dsp_b_0_sn_1),
+        .I4(core_dsp_b_0_sn_1),
         .I5(\mul_a_reg[19] ),
         .O(\sr[6]_i_33_n_0 ));
   LUT3 #(
@@ -65485,7 +65485,7 @@ module niho_rgf_sreg
        (.I0(\mul_a_reg[29] ),
         .I1(\mul_a_reg[30] ),
         .I2(\tr[28]_i_8_0 ),
-        .I3(niho_dsp_b_0_sn_1),
+        .I3(core_dsp_b_0_sn_1),
         .I4(\mul_a_reg[32] ),
         .I5(\sr[6]_i_38_0 ),
         .O(\sr[6]_i_41_n_0 ));
@@ -65518,7 +65518,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \sr[7]_i_26 
        (.I0(\sr[7]_i_45_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -65528,7 +65528,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \sr[7]_i_27 
        (.I0(\sr[7]_i_47_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -65538,7 +65538,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \sr[7]_i_28 
        (.I0(\badr[16]_INST_0_i_1 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -65548,7 +65548,7 @@ module niho_rgf_sreg
     .INIT(64'hAAAEFFFBAAA20008)) 
     \sr[7]_i_30 
        (.I0(\sr[7]_i_51_n_0 ),
-        .I1(niho_dsp_b_0_sn_1),
+        .I1(core_dsp_b_0_sn_1),
         .I2(\sr_reg[8]_80 ),
         .I3(\sr_reg[8]_79 ),
         .I4(bbus_0[0]),
@@ -65660,7 +65660,7 @@ module niho_rgf_sreg
        (.I0(sr[8]),
         .I1(\mul_a_reg[30] ),
         .I2(\sr[6]_i_4_3 ),
-        .I3(\niho_dsp_b[5] ),
+        .I3(\core_dsp_b[5] ),
         .I4(\sr[4]_i_38_0 ),
         .O(\sr[7]_i_9_n_0 ));
   LUT3 #(
@@ -66155,7 +66155,7 @@ module niho_rgf_sreg
     \tr[27]_i_18 
        (.I0(\sr_reg[8]_94 ),
         .I1(\iv[9]_i_28 ),
-        .I2(niho_dsp_b_0_sn_1),
+        .I2(core_dsp_b_0_sn_1),
         .I3(\mul_a_reg[32] ),
         .I4(bbus_0[0]),
         .I5(\sr[6]_i_11_0 ),
@@ -66700,9 +66700,9 @@ module nihonium
     ccmd,
     abus_o,
     bbus_o,
-    niho_dsp_c,
-    niho_dsp_a,
-    niho_dsp_b);
+    core_dsp_c,
+    core_dsp_a,
+    core_dsp_b);
 //
 //	Nihonium 16/32 bit CPU core
 //		(c) 2022	1YEN Toru
@@ -66793,9 +66793,9 @@ module nihonium
   output [4:0]ccmd;
   output [31:0]abus_o;
   output [31:0]bbus_o;
-  input [65:0]niho_dsp_c;
-  output [32:0]niho_dsp_a;
-  output [32:0]niho_dsp_b;
+  input [65:0]core_dsp_c;
+  output [32:0]core_dsp_a;
+  output [32:0]core_dsp_b;
 
   wire [31:0]abus_0;
   wire [31:0]abus_o;
@@ -67227,9 +67227,9 @@ module nihonium
   wire \mul/mul_rslt0 ;
   wire [15:0]\mul/mulh ;
   wire [30:17]mul_a_i;
-  wire [32:0]niho_dsp_a;
-  wire [32:0]niho_dsp_b;
-  wire [65:0]niho_dsp_c;
+  wire [32:0]core_dsp_a;
+  wire [32:0]core_dsp_b;
+  wire [65:0]core_dsp_c;
   wire p_0_in;
   wire [31:19]p_2_in;
   wire [15:0]\pcnt/p_1_in ;
@@ -67690,12 +67690,12 @@ module nihonium
         .mul_rslt_reg(alu_n_6),
         .mulh(\mul/mulh ),
         .\mulh_reg[0] (fch_n_460),
-        .\niho_dsp_a[32]_INST_0_i_12 (stat[1]),
-        .niho_dsp_b(niho_dsp_b[4]),
-        .\niho_dsp_b[4] (fch_n_209),
-        .\niho_dsp_b[4]_0 (fch_n_143),
-        .niho_dsp_c(niho_dsp_c[31:16]),
-        .\niho_dsp_c[31] (alu_n_5),
+        .\core_dsp_a[32]_INST_0_i_12 (stat[1]),
+        .core_dsp_b(core_dsp_b[4]),
+        .\core_dsp_b[4] (fch_n_209),
+        .\core_dsp_b[4]_0 (fch_n_143),
+        .core_dsp_c(core_dsp_c[31:16]),
+        .\core_dsp_c[31] (alu_n_5),
         .out(fch_ir[7]),
         .p_0_in(p_0_in),
         .\rem_reg[30] (\div/rem ),
@@ -67999,46 +67999,46 @@ module nihonium
         .\mul_b_reg[9]_0 (rgf_n_546),
         .mul_rslt(\mul/mul_rslt ),
         .mulh(\mul/mulh ),
-        .\niho_dsp_a[15]_INST_0_i_2_0 (fch_n_127),
-        .\niho_dsp_a[32]_INST_0_i_5_0 (fch_n_129),
-        .\niho_dsp_a[32]_INST_0_i_5_1 (fch_n_130),
-        .\niho_dsp_a[32]_INST_0_i_5_2 (fch_n_209),
-        .\niho_dsp_a[32]_INST_0_i_5_3 (fch_n_212),
-        .\niho_dsp_a[32]_INST_0_i_5_4 (fch_n_217),
-        .\niho_dsp_a[32]_INST_0_i_6_0 (ctl_n_27),
-        .\niho_dsp_a[32]_INST_0_i_7_0 (fch_n_133),
-        .\niho_dsp_a[32]_INST_0_i_9_0 (alu_n_86),
-        .niho_dsp_b({niho_dsp_b[32:6],niho_dsp_b[3:1]}),
-        .\niho_dsp_b[30] (alu_n_138),
-        .\niho_dsp_b[32] ({alu_n_136,alu_n_137}),
-        .niho_dsp_b_10_sp_1(alu_n_158),
-        .niho_dsp_b_11_sp_1(alu_n_157),
-        .niho_dsp_b_12_sp_1(alu_n_156),
-        .niho_dsp_b_13_sp_1(alu_n_155),
-        .niho_dsp_b_14_sp_1(alu_n_154),
-        .niho_dsp_b_15_sp_1(alu_n_153),
-        .niho_dsp_b_16_sp_1(alu_n_152),
-        .niho_dsp_b_17_sp_1(alu_n_151),
-        .niho_dsp_b_18_sp_1(alu_n_150),
-        .niho_dsp_b_19_sp_1(alu_n_149),
-        .niho_dsp_b_1_sp_1(alu_n_166),
-        .niho_dsp_b_20_sp_1(alu_n_148),
-        .niho_dsp_b_21_sp_1(alu_n_147),
-        .niho_dsp_b_22_sp_1(alu_n_146),
-        .niho_dsp_b_23_sp_1(alu_n_145),
-        .niho_dsp_b_24_sp_1(alu_n_144),
-        .niho_dsp_b_25_sp_1(alu_n_143),
-        .niho_dsp_b_26_sp_1(alu_n_142),
-        .niho_dsp_b_27_sp_1(alu_n_141),
-        .niho_dsp_b_28_sp_1(alu_n_140),
-        .niho_dsp_b_29_sp_1(alu_n_139),
-        .niho_dsp_b_2_sp_1(alu_n_165),
-        .niho_dsp_b_3_sp_1(alu_n_164),
-        .niho_dsp_b_6_sp_1(alu_n_162),
-        .niho_dsp_b_7_sp_1(alu_n_161),
-        .niho_dsp_b_8_sp_1(alu_n_160),
-        .niho_dsp_b_9_sp_1(alu_n_159),
-        .niho_dsp_c({niho_dsp_c[30],niho_dsp_c[26:24],niho_dsp_c[22],niho_dsp_c[20],niho_dsp_c[18:0]}),
+        .\core_dsp_a[15]_INST_0_i_2_0 (fch_n_127),
+        .\core_dsp_a[32]_INST_0_i_5_0 (fch_n_129),
+        .\core_dsp_a[32]_INST_0_i_5_1 (fch_n_130),
+        .\core_dsp_a[32]_INST_0_i_5_2 (fch_n_209),
+        .\core_dsp_a[32]_INST_0_i_5_3 (fch_n_212),
+        .\core_dsp_a[32]_INST_0_i_5_4 (fch_n_217),
+        .\core_dsp_a[32]_INST_0_i_6_0 (ctl_n_27),
+        .\core_dsp_a[32]_INST_0_i_7_0 (fch_n_133),
+        .\core_dsp_a[32]_INST_0_i_9_0 (alu_n_86),
+        .core_dsp_b({core_dsp_b[32:6],core_dsp_b[3:1]}),
+        .\core_dsp_b[30] (alu_n_138),
+        .\core_dsp_b[32] ({alu_n_136,alu_n_137}),
+        .core_dsp_b_10_sp_1(alu_n_158),
+        .core_dsp_b_11_sp_1(alu_n_157),
+        .core_dsp_b_12_sp_1(alu_n_156),
+        .core_dsp_b_13_sp_1(alu_n_155),
+        .core_dsp_b_14_sp_1(alu_n_154),
+        .core_dsp_b_15_sp_1(alu_n_153),
+        .core_dsp_b_16_sp_1(alu_n_152),
+        .core_dsp_b_17_sp_1(alu_n_151),
+        .core_dsp_b_18_sp_1(alu_n_150),
+        .core_dsp_b_19_sp_1(alu_n_149),
+        .core_dsp_b_1_sp_1(alu_n_166),
+        .core_dsp_b_20_sp_1(alu_n_148),
+        .core_dsp_b_21_sp_1(alu_n_147),
+        .core_dsp_b_22_sp_1(alu_n_146),
+        .core_dsp_b_23_sp_1(alu_n_145),
+        .core_dsp_b_24_sp_1(alu_n_144),
+        .core_dsp_b_25_sp_1(alu_n_143),
+        .core_dsp_b_26_sp_1(alu_n_142),
+        .core_dsp_b_27_sp_1(alu_n_141),
+        .core_dsp_b_28_sp_1(alu_n_140),
+        .core_dsp_b_29_sp_1(alu_n_139),
+        .core_dsp_b_2_sp_1(alu_n_165),
+        .core_dsp_b_3_sp_1(alu_n_164),
+        .core_dsp_b_6_sp_1(alu_n_162),
+        .core_dsp_b_7_sp_1(alu_n_161),
+        .core_dsp_b_8_sp_1(alu_n_160),
+        .core_dsp_b_9_sp_1(alu_n_159),
+        .core_dsp_c({core_dsp_c[30],core_dsp_c[26:24],core_dsp_c[22],core_dsp_c[20],core_dsp_c[18:0]}),
         .out({fch_ir[15:10],fch_ir[7:6],fch_ir[3],fch_ir[0]}),
         .p_0_in(p_0_in),
         .\pc_reg[15] (\pcnt/p_1_in ),
@@ -68747,13 +68747,13 @@ module nihonium
         .\mul_b_reg[5]_0 (fch_n_277),
         .mul_rslt(\mul/mul_rslt ),
         .mul_rslt0(\mul/mul_rslt0 ),
-        .niho_dsp_a(niho_dsp_a),
-        .\niho_dsp_a[15]_INST_0_i_3 (rgf_n_262),
-        .niho_dsp_b({niho_dsp_b[5],niho_dsp_b[0]}),
-        .\niho_dsp_b[5] (fch_n_209),
-        .\niho_dsp_b[5]_0 (alu_n_163),
-        .niho_dsp_b_0_sp_1(alu_n_167),
-        .niho_dsp_c({niho_dsp_c[29:27],niho_dsp_c[23],niho_dsp_c[21],niho_dsp_c[19]}),
+        .core_dsp_a(core_dsp_a),
+        .\core_dsp_a[15]_INST_0_i_3 (rgf_n_262),
+        .core_dsp_b({core_dsp_b[5],core_dsp_b[0]}),
+        .\core_dsp_b[5] (fch_n_209),
+        .\core_dsp_b[5]_0 (alu_n_163),
+        .core_dsp_b_0_sp_1(alu_n_167),
+        .core_dsp_c({core_dsp_c[29:27],core_dsp_c[23],core_dsp_c[21],core_dsp_c[19]}),
         .out({\sreg/p_0_in ,rgf_sr_ml,rgf_sr_dr,rgf_sr_nh,rgf_sr_flag,rgf_sr_ie,sr_bank}),
         .p_0_in(p_0_in),
         .p_2_in({p_2_in[31],p_2_in[29:27],p_2_in[23],p_2_in[21],p_2_in[19]}),

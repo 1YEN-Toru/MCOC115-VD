@@ -5,9 +5,11 @@
 
 ## 12 MHz Clock Signal
 set_property -dict {PACKAGE_PIN L17 IOSTANDARD LVCMOS33} [get_ports sys_clock]
-#create_clock -add -name sys_clk_pin -period 83.33 -waveform {0 41.66} [get_ports {sysclk}];
-#create_clock -period 80.000 -name sys_clock -waveform {0.000 40.000} -add [get_ports sys_clock]
+#create_clock -name sys_clock -period 80.000 -waveform {0.000 40.000} [get_ports sys_clock];	# to change frequency
+#create_clock -name sys_clock -period 60.000 -waveform {0.000 30.000} [get_ports sys_clock];	# fclk=33.3MHz
+#create_clock -name sys_clock -period 50.000 -waveform {0.000 25.000} [get_ports sys_clock];	# fclk=40MHz
 create_generated_clock -name clk -source [get_pins clkg/inst/mmcm_adv_inst/CLKIN1] -master_clock [get_clocks sys_clock] [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0]
+#create_clock -name clk -period 40.000 -waveform {0.000 20.000} -add [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0];	# also OK, fclk=25MHz
 
 ## LEDs
 set_property -dict {PACKAGE_PIN A17 IOSTANDARD LVCMOS33} [get_ports tled_led1]

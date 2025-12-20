@@ -2,7 +2,7 @@ module	mcoc_boot32 (
 // boot rom 32 bit
 input	clk,
 input	rst_n,
-input	fcmdl,
+input	[1:0]	fcmd,
 input	[15:0]	fadr,
 output	reg		[31:0]	fdat);
 
@@ -24,6 +24,8 @@ mcoc_boot	matbt (
 `endif	//	MCOC_CORE_TS
 
 // rom data, read latency 1
+wire	fcmdl=fcmd[1];
+wire	fcmdr=fcmd[0];
 always	@(posedge clk)
 	begin
 		if (!rst_n)

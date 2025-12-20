@@ -38,10 +38,10 @@
 //`define		MCOC_FCPU_24M
 
 // Co-processor
-//`define		MCVM_COPR_NOMUL
-//`define		MCVM_COPR_NODIV
-//`define		MCVM_COPR_NOFPU
-`define		MCVM_COPR_NOFPUS
+`define		MCVM_COPR_MUL
+`define		MCVM_COPR_DIV
+`define		MCVM_COPR_FPUH
+//`define		MCVM_COPR_FPUS
 
 // Memory unit
 //`define		MCOC_ROM_8K
@@ -58,27 +58,27 @@
 //`define		MCOC_SRAM_512K
 
 // I/O unit
-//`define		MCOC_NO_INTC
-//`define		MCOC_NO_TIM0
-`define		MCOC_NO_TIM1
-//`define		MCOC_NO_STWS
-`define		MCOC_NO_FNJP
-`define		MCOC_NO_UAR1
-`define		MCOC_NO_POR1
-`define		MCOC_NO_UNSJ
-`define		MCOC_NO_DIST
-`define		MCOC_NO_RTC
-`define		MCOC_NO_DAC
-//`define		MCOC_NO_TIML
-`define		MCOC_NO_SMPH
-`define		MCOC_NO_ICFF
-`define		MCOC_NO_ADCX
-`define		MCOC_NO_TRNG
-//`define		MCOC_NO_SNDG
+`define		MCOC_INTC
+`define		MCOC_TIM0
+//`define		MCOC_TIM1
+`define		MCOC_STWS
+//`define		MCOC_FNJP
+//`define		MCOC_UAR1
+//`define		MCOC_POR1
+//`define		MCOC_UNSJ
+//`define		MCOC_DIST
+//`define		MCOC_RTC
+//`define		MCOC_DAC
+`define		MCOC_TIML
+//`define		MCOC_SMPH
+//`define		MCOC_ICFF
+//`define		MCOC_ADCX
+//`define		MCOC_TRNG
+`define		MCOC_SNDG
 
 // I/O unit (PMOD connector)
-`define		MCOC_NO_CM76
-`define		MCOC_NO_STFT
+//`define		MCOC_CM76
+//`define		MCOC_STFT
 
 
 // ================================

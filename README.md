@@ -96,7 +96,7 @@
 	- MCOC115.srcs/
 		- Other sources
 	- MCOC115.xpr
-		- Vivado project file template
+		- Vivado project file template for Moscovium series MCU
 
 --------
 # IP Units

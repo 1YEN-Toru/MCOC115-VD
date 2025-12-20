@@ -45,7 +45,7 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0240
+`define		MCOC_VERS		16'hb242
 
 
 //
@@ -53,22 +53,29 @@ input	adcx_ain1n);
 //		(c) 2021,2023	1YEN Toru
 //
 //
+//	2025/12/20	ver.2.42
+//		corresponding to updated fetch bus I/F
+//			fcmd[1]: fcmdl, long word fetch
+//			fcmd[0]: fcmdr, read command
+//			frdy: fetch bus ready
+//		upd: compile options
+//
 //	2025/09/27	ver.2.40
 //		corresponding to RTC400S unit
 //
 //	2025/09/13	ver.2.38
 //		corresponding to SNDG1PB unit
-//		add: compile option MCOC_NO_SNDG
+//		add: compile option MCOC_SNDG
 //		add: output dac[01]_pdm
-//		add: compile option MCOC_NO_DAC
-//		del: compile option MCOC_NO_DAC[01]
+//		add: compile option MCOC_DAC
+//		del: compile option MCOC_DAC[01]
 //
 //	2025/05/24	ver.2.36
 //		add: TRNG32; LCG I/F
 //
 //	2025/05/10	ver.2.34
 //		corresponding to TRNG32 unit
-//		add: compile option MCOC_NO_TRNG
+//		add: compile option MCOC_TRNG
 //
 //	2025/02/22	ver.2.32
 //		add: compile option MCOC_POLY / MCOC_POLY_6~14
@@ -81,7 +88,7 @@ input	adcx_ain1n);
 //
 //	2024/12/14	ver.2.28
 //		corresponding to STFT61 unit
-//		add: compile option MCOC_NO_STFT
+//		add: compile option MCOC_STFT
 //
 //	2024/10/12	ver.2.26
 //		change: main CPU1; CPU ID to 3 for AMP edition
@@ -94,7 +101,7 @@ input	adcx_ain1n);
 //
 //	2024/06/15	ver.2.22
 //		corresponding to CAM7670 unit
-//		add: compile option MCOC_NO_CM76
+//		add: compile option MCOC_CM76
 //
 //	2024/03/16	ver.2.20
 //		corresponding to AMP dual core cpu edition
@@ -103,8 +110,8 @@ input	adcx_ain1n);
 //
 //	2024/01/20	ver.2.18
 //		corresponding to ADCX122 unit
-//		add: compile option MCOC_NO_ADCX
-//		del: compile option MCOC_NO_ADC
+//		add: compile option MCOC_ADCX
+//		del: compile option MCOC_ADC
 //
 //	2023/12/16	ver.2.16
 //		corresponding to SRAMC512K unit
@@ -120,7 +127,7 @@ input	adcx_ain1n);
 //
 //	2023/11/04	ver.2.10
 //		corresponding to dual core cpu edition
-//		add: compile option MCOC_NO_SMPH, MCOC_NO_ICFF
+//		add: compile option MCOC_SMPH, MCOC_ICFF
 //
 //	2023/10/28	ver.2.08
 //		change: I-RAM: WRITE_MODE="read_first" <- "no_change"
@@ -360,6 +367,7 @@ wire	[15:0]	badrx1;
 wire	[15:0]	badr1;
 wire	[31:0]	bdatw1;
 wire	[31:0]	bdatr1;
+wire	[1:0]	fcmd1;
 wire	[15:0]	fadr1;
 wire	[31:0]	fdat1;
 wire	[3:0]	bcmd2;
@@ -367,6 +375,7 @@ wire	[15:0]	badrx2;
 wire	[15:0]	badr2;
 wire	[31:0]	bdatw2;
 wire	[31:0]	bdatr2;
+wire	[1:0]	fcmd2;
 wire	[15:0]	fadr2;
 wire	[31:0]	fdat2;
 
@@ -422,6 +431,7 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 `CPU_CORE2	cpu2 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.frdy(frdy2),	// Input
 	.brdy(brdy2),	// Input
 	.irq(irq2&(~bootmd)),	// Input
 	.cpuid(2'h2),	// Input
@@ -431,6 +441,7 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 	.fdat(fdat2[15:0]),	// Input
 	.bdatrx(bdatr2[31:16]),	// Input
 	.bdatr(bdatr2[15:0]),	// Input
+	.fcmd(fcmd2[1:0]),	// Output
 	.fadr(fadr2[15:0]),	// Output
 	.bcmd(bcmd2[3:0]),	// Output
 	.badrx(badrx2[15:0]),	// Output
@@ -459,6 +470,7 @@ wire	[1:0]	cpuid1=2'h1;
 
 `else	//	MCOC_DUAL
 wire	[1:0]	cpuid1=2'h0;
+assign	fcmd2[1:0]=2'b01;
 assign	fadr2[15:0]=16'h0;
 assign	badrx2[15:0]=16'h0;
 assign	badr2[15:0]=16'h0;
@@ -469,6 +481,7 @@ assign	bdatw2[31:0]=32'h0;
 `CPU_CORE	cpu (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
+	.frdy(frdy1),	// Input
 	.brdy(brdy1),	// Input
 	.irq(irq),	// Input
 	.cpuid(cpuid1[1:0]),	// Input
@@ -478,6 +491,7 @@ assign	bdatw2[31:0]=32'h0;
 	.fdat(fdat1[15:0]),	// Input
 	.bdatrx(bdatr1[31:16]),	// Input
 	.bdatr(bdatr1[15:0]),	// Input
+	.fcmd(fcmd1[1:0]),	// Output
 	.fadr(fadr1[15:0]),	// Output
 	.bcmd(bcmd1[3:0]),	// Output
 	.badrx(badrx1[15:0]),	// Output
@@ -496,17 +510,7 @@ assign	bdatw2[31:0]=32'h0;
 `endif	//	MCOC_POLY
 );
 
-`ifdef		MCOC_NO_SMPH
-wire	smph_smrr2=1'b0;
-wire	smph_smur2=1'b0;
-wire	smph_smrr1=1'b0;
-wire	smph_smur1=1'b0;
-wire	[4:0]	smph_ram1_n=5'h0;
-wire	[4:0]	smph_ram2_n=5'h0;
-wire	[11:0]	smph_usr1_n=12'h0;
-wire	[11:0]	smph_usr2_n=12'h0;
-assign	bdatr_smph[15:0]=16'h0;
-`else	//	MCOC_NO_SMPH
+`ifdef		MCOC_SMPH
 wire	[4:0]	smph_ram1_n;
 wire	[4:0]	smph_ram2_n;
 wire	[11:0]	smph_usr1_n;
@@ -531,15 +535,19 @@ semph5r12u	smph (
 	.smph_usr2_n(smph_usr2_n[11:0]),	// Output
 	.bdatr(bdatr_smph[15:0])	// Output
 );
-`endif	//	MCOC_NO_SMPH
+`else	//	MCOC_SMPH
+wire	smph_smrr2=1'b0;
+wire	smph_smur2=1'b0;
+wire	smph_smrr1=1'b0;
+wire	smph_smur1=1'b0;
+wire	[4:0]	smph_ram1_n=5'h0;
+wire	[4:0]	smph_ram2_n=5'h0;
+wire	[11:0]	smph_usr1_n=12'h0;
+wire	[11:0]	smph_usr2_n=12'h0;
+assign	bdatr_smph[15:0]=16'h0;
+`endif	//	MCOC_SMPH
 
-`ifdef		MCOC_NO_ICFF
-wire	icff_frar1=1'b0;
-wire	icff_ftar1=1'b0;
-wire	icff_frar2=1'b0;
-wire	icff_ftar2=1'b0;
-assign	bdatr_icff[15:0]=16'h0;
-`else	//	MCOC_NO_ICFF
+`ifdef		MCOC_ICFF
 mcoc_icff	icff (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -556,7 +564,13 @@ mcoc_icff	icff (
 	.icff_ftar2(icff_ftar2),	// Output
 	.bdatr(bdatr_icff[15:0])	// Output
 );
-`endif	//	MCOC_NO_ICFF
+`else	//	MCOC_ICFF
+wire	icff_frar1=1'b0;
+wire	icff_ftar1=1'b0;
+wire	icff_frar2=1'b0;
+wire	icff_ftar2=1'b0;
+assign	bdatr_icff[15:0]=16'h0;
+`endif	//	MCOC_ICFF
 
 busc2040dl	busc (
 	.clk(clk),	// Input
@@ -678,27 +692,7 @@ wire	[31:0]	intc_fct=
 			intc_eir1, intc_eir0, intc_icr2p, intc_icr1p
 		};
 
-`ifdef		MCOC_NO_INTC
-reg		irq_f;
-always	@(posedge clk)
-	begin
-		if (!rst_n)
-			irq_f<=1'b0;
-		else
-			irq_f<=( |intc_fct[31:0] );
-	end
-assign	irq=irq_f;
-assign	irq2=irq_f;
-assign	bdatr_intc[15:0]=16'h0;
-assign	intc_lev[1:0]=2'h0;
-assign	intc_lev2[1:0]=2'h0;
-assign	intc_vec[5:0]=6'h0;
-assign	intc_vec2[5:0]=6'h0;
-assign	intc_eir1=1'b0;
-assign	intc_eir0=1'b0;
-assign	intc_icr2=1'b0;
-assign	intc_icr1=1'b0;
-`else	//	MCOC_NO_INTC
+`ifdef		MCOC_INTC
 intc322dvl	intc (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -725,26 +719,34 @@ intc322dvl	intc (
 	.intc_vec(intc_vec[5:0]),	// Output
 	.intc_vec2(intc_vec2[5:0])	// Output
 );
-`endif	//	MCOC_NO_INTC
+`else	//	MCOC_INTC
+reg		irq_f;
+always	@(posedge clk)
+	begin
+		if (!rst_n)
+			irq_f<=1'b0;
+		else
+			irq_f<=( |intc_fct[31:0] );
+	end
+assign	irq=irq_f;
+assign	irq2=irq_f;
+assign	bdatr_intc[15:0]=16'h0;
+assign	intc_lev[1:0]=2'h0;
+assign	intc_lev2[1:0]=2'h0;
+assign	intc_vec[5:0]=6'h0;
+assign	intc_vec2[5:0]=6'h0;
+assign	intc_eir1=1'b0;
+assign	intc_eir0=1'b0;
+assign	intc_icr2=1'b0;
+assign	intc_icr1=1'b0;
+`endif	//	MCOC_INTC
 
-`ifdef		MCOC_CORE_NHSS
-wire	fcmdl1=1'b1;
-`elsif		MCOC_CORE_MCSS
-wire	fcmdl1=1'b1;
-`else
-wire	fcmdl1=1'b0;
-`endif
-`ifdef		MCOC_DUAL_AMP_TS
-wire	fcmdl2=1'b0;
-`elsif		MCOC_DUAL_AMP_MC
-wire	fcmdl2=1'b0;
-`else
-wire	fcmdl2=fcmdl1;
-`endif
 wire	[31:0]	rom_fdat1;
 wire	[31:0]	rom_fdat2;
 
 `ifdef		MCOC_POLY
+wire	frdy1=1'b1;
+wire	frdy2=1'b1;
 assign	rom_fdat1[31:0]=32'h0;
 assign	rom_fdat2[31:0]=32'h0;
 assign	bdatr_rom[31:0]=32'h0;
@@ -753,18 +755,20 @@ mcoc_rom	rom (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.bootmd(bootmd),	// Input
-	.fcmdl1(fcmdl1),	// Input
-	.fcmdl2(fcmdl2),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdl(bcmdl),	// Input
 	.bmst(bmst),	// Input
 	.bcs_rom_n(bcs_rom_n),	// Input
+	.fcmd1(fcmd1[1:0]),	// Input
+	.fcmd2(fcmd2[1:0]),	// Input
 	.fadr1(fadr1[15:0]),	// Input
 	.fadr2(fadr2[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
+	.frdy1(frdy1),	// Output
+	.frdy2(frdy2),	// Output
 	.fdat1(rom_fdat1[31:0]),	// Output
 	.fdat2(rom_fdat2[31:0]),	// Output
 	.bdatr(bdatr_rom[31:0])	// Output
@@ -958,11 +962,7 @@ port8i8o	port (
 	.port_out(port_out_o[7:0])	// Output
 );
 
-`ifdef		MCOC_NO_POR1
-assign	bdatr_por1[15:0]=16'h0;
-assign	por1_enb[7:0]=8'h0;
-assign	por1_out_o[7:0]=8'h0;
-`else	//	MCOC_NO_POR1
+`ifdef		MCOC_POR1
 wire	[7:0]	por1_sel_open;
 
 port8i8o	por1 (
@@ -981,7 +981,11 @@ port8i8o	por1 (
 	.port_sel(por1_sel_open[7:0]),	// Output
 	.port_out(por1_out_o[7:0])	// Output
 );
-`endif	//	MCOC_NO_POR1
+`else	//	MCOC_POR1
+assign	bdatr_por1[15:0]=16'h0;
+assign	por1_enb[7:0]=8'h0;
+assign	por1_out_o[7:0]=8'h0;
+`endif	//	MCOC_POR1
 
 mcoc_uart	uart (
 	.clk(clk),	// Input
@@ -1000,11 +1004,7 @@ mcoc_uart	uart (
 	.bdatr(bdatr_uart[15:0])	// Output
 );
 
-`ifdef		MCOC_NO_UAR1
-assign	uar1_txd=1'b1;
-assign	uar1_rts=1'b1;
-assign	bdatr_uar1[15:0]=16'h0;
-`else	//	MCOC_NO_UAR1
+`ifdef		MCOC_UAR1
 mcoc_uart	uar1 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1021,16 +1021,13 @@ mcoc_uart	uar1 (
 	.uart_rts(uar1_rts),	// Output
 	.bdatr(bdatr_uar1[15:0])	// Output
 );
-`endif	//	MCOC_NO_UAR1
+`else	//	MCOC_UAR1
+assign	uar1_txd=1'b1;
+assign	uar1_rts=1'b1;
+assign	bdatr_uar1[15:0]=16'h0;
+`endif	//	MCOC_UAR1
 
-`ifdef		MCOC_NO_TIM0
-assign	tim0_pwma=1'b0;
-assign	tim0_pwmb=1'b0;
-assign	tim0_ovfr=1'b0;
-assign	tim0_cmar=1'b0;
-assign	tim0_cmbr=1'b0;
-assign	bdatr_tim0[15:0]=16'h0;
-`else	//	MCOC_NO_TIM0
+`ifdef		MCOC_TIM0
 tim162	tim0 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1047,16 +1044,16 @@ tim162	tim0 (
 	.timr_cmbr(tim0_cmbr),	// Output
 	.bdatr(bdatr_tim0[15:0])	// Output
 );
-`endif	//	MCOC_NO_TIM0
+`else	//	MCOC_TIM0
+assign	tim0_pwma=1'b0;
+assign	tim0_pwmb=1'b0;
+assign	tim0_ovfr=1'b0;
+assign	tim0_cmar=1'b0;
+assign	tim0_cmbr=1'b0;
+assign	bdatr_tim0[15:0]=16'h0;
+`endif	//	MCOC_TIM0
 
-`ifdef		MCOC_NO_TIM1
-assign	tim1_pwma=1'b0;
-assign	tim1_pwmb=1'b0;
-assign	tim1_ovfr=1'b0;
-assign	tim1_cmar=1'b0;
-assign	tim1_cmbr=1'b0;
-assign	bdatr_tim1[15:0]=16'h0;
-`else	//	MCOC_NO_TIM1
+`ifdef		MCOC_TIM1
 tim162	tim1 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1073,17 +1070,16 @@ tim162	tim1 (
 	.timr_cmbr(tim1_cmbr),	// Output
 	.bdatr(bdatr_tim1[15:0])	// Output
 );
-`endif	//	MCOC_NO_TIM1
+`else	//	MCOC_TIM1
+assign	tim1_pwma=1'b0;
+assign	tim1_pwmb=1'b0;
+assign	tim1_ovfr=1'b0;
+assign	tim1_cmar=1'b0;
+assign	tim1_cmbr=1'b0;
+assign	bdatr_tim1[15:0]=16'h0;
+`endif	//	MCOC_TIM1
 
-`ifdef		MCOC_NO_STWS
-wire	stws_scl_d=1'b1;
-wire	stws_sda_d=1'b1;
-assign	stws_mter=1'b0;
-assign	stws_mrar=1'b0;
-assign	stws_star=1'b0;
-assign	stws_srar=1'b0;
-assign	bdatr_stws[15:0]=16'h0;
-`else	//	MCOC_NO_STWS
+`ifdef		MCOC_STWS
 mcoc_stwser		stws (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1103,15 +1099,21 @@ mcoc_stwser		stws (
 	.stws_srar(stws_srar),	// Output
 	.bdatr(bdatr_stws[15:0])	// Output
 );
-`endif	//	MCOC_NO_STWS
+`else	//	MCOC_STWS
+wire	stws_scl_d=1'b1;
+wire	stws_sda_d=1'b1;
+assign	stws_mter=1'b0;
+assign	stws_mrar=1'b0;
+assign	stws_star=1'b0;
+assign	stws_srar=1'b0;
+assign	bdatr_stws[15:0]=16'h0;
+`endif	//	MCOC_STWS
 
 // i/o buffer
 assign	stws_scl=(stws_scl_d)? 1'bz: stws_scl_d;
 assign	stws_sda=(stws_sda_d)? 1'bz: stws_sda_d;
 
-`ifdef		MCOC_NO_FNJP
-assign	bdatr_fnjp[15:0]=16'h0;
-`else	//	MCOC_NO_FNJP
+`ifdef		MCOC_FNJP
 mcoc_font	fnjp (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1124,11 +1126,11 @@ mcoc_font	fnjp (
 	.bdatw(bdatw[15:0]),	// Input
 	.bdatr(bdatr_fnjp[15:0])	// Output
 );
-`endif	//	MCOC_NO_FNJP
+`else	//	MCOC_FNJP
+assign	bdatr_fnjp[15:0]=16'h0;
+`endif	//	MCOC_FNJP
 
-`ifdef		MCOC_NO_ADCX
-assign	bdatr_adcx[15:0]=16'h0;
-`else	//	MCOC_NO_ADCX
+`ifdef		MCOC_ADCX
 mcoc_adcx	adcx (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1147,7 +1149,9 @@ mcoc_adcx	adcx (
 	.adcx_ain1p(adcx_ain1p),	// Input
 	.adcx_ain1n(adcx_ain1n)	// Input
 );
-`endif	//	MCOC_NO_ADCX
+`else	//	MCOC_ADCX
+assign	bdatr_adcx[15:0]=16'h0;
+`endif	//	MCOC_ADCX
 
 `ifdef		MCOC_SRAM_512K
 wire	[7:0]	sram_dqi=(!sram_cen && !sram_oen)? sram_dq[7:0]: 8'h0;
@@ -1181,9 +1185,7 @@ assign	sram_adr[18:0]=19'h0;
 assign	bdatr_sram[31:0]=32'h0;
 `endif	//	MCOC_SRAM_512K
 
-`ifdef		MCOC_NO_UNSJ
-assign	bdatr_unsj[15:0]=16'h0;
-`else	//	MCOC_NO_UNSJ
+`ifdef		MCOC_UNSJ
 mcoc_unsj	unsj (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1195,11 +1197,11 @@ mcoc_unsj	unsj (
 	.bdatw(bdatw[15:0]),	// Input
 	.bdatr(bdatr_unsj[15:0])	// Output
 );
-`endif	//	MCOC_NO_UNSJ
+`else	//	MCOC_UNSJ
+assign	bdatr_unsj[15:0]=16'h0;
+`endif	//	MCOC_UNSJ
 
-`ifdef		MCOC_NO_DIST
-assign	bdatr_dist[15:0]=16'h0;
-`else	//	MCOC_NO_DIST
+`ifdef		MCOC_DIST
 distus	dist (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1212,12 +1214,11 @@ distus	dist (
 	.port_inp(port_iop[15:0]),	// Input
 	.bdatr(bdatr_dist[15:0])	// Output
 );
-`endif	//	MCOC_NO_DIST
+`else	//	MCOC_DIST
+assign	bdatr_dist[15:0]=16'h0;
+`endif	//	MCOC_DIST
 
-`ifdef		MCOC_NO_RTC
-assign	rtc_rtcr=1'b0;
-assign	bdatr_rtcu[15:0]=16'h0;
-`else	//	MCOC_NO_RTC
+`ifdef		MCOC_RTC
 rtc400s		rtc (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1232,13 +1233,12 @@ rtc400s		rtc (
 	.rtc_rtcr(rtc_rtcr),	// Output
 	.bdatr(bdatr_rtcu[15:0])	// Output
 );
-`endif	//	MCOC_NO_RTC
+`else	//	MCOC_RTC
+assign	rtc_rtcr=1'b0;
+assign	bdatr_rtcu[15:0]=16'h0;
+`endif	//	MCOC_RTC
 
-`ifdef		MCOC_NO_DAC
-assign	dac0_pdm=1'b0;
-assign	dac1_pdm=1'b0;
-assign	bdatr_dacu[15:0]=16'h0;
-`else	//	MCOC_NO_DAC
+`ifdef		MCOC_DAC
 wire	[15:0]	bdatr_dac0;
 wire	[15:0]	bdatr_dac1;
 assign	dac0_pdm=dac0_pdm_out&dac0_pdm_enb;
@@ -1272,17 +1272,13 @@ dac121		dac1 (
 	.dac_pdm_enb(dac1_pdm_enb),	// Output
 	.bdatr(bdatr_dac1[15:0])	// Output
 );
-`endif	//	MCOC_NO_DAC
+`else	//	MCOC_DAC
+assign	dac0_pdm=1'b0;
+assign	dac1_pdm=1'b0;
+assign	bdatr_dacu[15:0]=16'h0;
+`endif	//	MCOC_DAC
 
-`ifdef		MCOC_NO_TIML
-assign	tled_ledr_n=~(port_enb[1] & (~port_out_o[1]));
-assign	tled_ledg_n=~(port_enb[2] & (~port_out_o[2]));
-assign	tled_ledb_n=~(port_enb[0] & (~port_out_o[0]));
-assign	tled_led1=1'b0;
-assign	tled_led2=1'b0;
-assign	tled_lofr=1'b0;
-assign	bdatr_tled[15:0]=16'h0;
-`else	//	MCOC_NO_TIML
+`ifdef		MCOC_TIML
 timled5		timl (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1306,11 +1302,17 @@ timled5		timl (
 assign	tled_ledr_n=~tled_ledr;
 assign	tled_ledg_n=~tled_ledg;
 assign	tled_ledb_n=~tled_ledb;
-`endif	//	MCOC_NO_TIML
+`else	//	MCOC_TIML
+assign	tled_ledr_n=~(port_enb[1] & (~port_out_o[1]));
+assign	tled_ledg_n=~(port_enb[2] & (~port_out_o[2]));
+assign	tled_ledb_n=~(port_enb[0] & (~port_out_o[0]));
+assign	tled_led1=1'b0;
+assign	tled_led2=1'b0;
+assign	tled_lofr=1'b0;
+assign	bdatr_tled[15:0]=16'h0;
+`endif	//	MCOC_TIML
 
-`ifdef		MCOC_NO_CM76
-assign	bdatr_cm76[15:0]=16'h0;
-`else	//	MCOC_NO_CM76
+`ifdef		MCOC_CM76
 wire	cm76_pclk=pmod_iop[2];
 wire	cm76_vsync=pmod_iop[3];
 wire	cm76_href=pmod_iop[7];
@@ -1333,11 +1335,11 @@ mcoc_cam76	cam76 (
 	.cm76_dat(cm76_dat[3:0]),	// Input
 	.cm76_xclk(cm76_xclk)	// Output
 );
-`endif	//	MCOC_NO_CM76
+`else	//	MCOC_CM76
+assign	bdatr_cm76[15:0]=16'h0;
+`endif	//	MCOC_CM76
 
-`ifdef		MCOC_NO_STFT
-assign	bdatr_stft[15:0]=16'h0;
-`else	//	MCOC_NO_STFT
+`ifdef		MCOC_STFT
 wire	[5:0]	stft_pout;
 wire	[5:0]	stft_poen;
 wire	[5:0]	stft_pinp=
@@ -1374,7 +1376,9 @@ stft61	stft (
 	.stft_poen(stft_poen[5:0]),	// Output
 	.bdatr(bdatr_stft[15:0])	// Output
 );
-`endif	//	MCOC_NO_STFT
+`else	//	MCOC_STFT
+assign	bdatr_stft[15:0]=16'h0;
+`endif	//	MCOC_STFT
 
 `ifdef		MCOC_POLY
 
@@ -1410,9 +1414,7 @@ assign	poly_pirq[14:1]=14'h0;
 assign	bdatr_poly[15:0]=16'h0;
 `endif	//	MCOC_POLY
 
-`ifdef		MCOC_NO_TRNG
-assign	bdatr_trng[15:0]=16'h0;
-`else	//	MCOC_NO_TRNG
+`ifdef		MCOC_TRNG
 mcoc_trng	trng (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -1424,14 +1426,11 @@ mcoc_trng	trng (
 	.bdatw(bdatw[15:0]),	// Input
 	.bdatr(bdatr_trng[15:0])	// Output
 );
-`endif	//	MCOC_NO_TRNG
+`else	//	MCOC_TRNG
+assign	bdatr_trng[15:0]=16'h0;
+`endif	//	MCOC_TRNG
 
-`ifdef		MCOC_NO_SNDG
-assign	sndg0_pwm=1'b0;
-assign	sndg1_pwm=1'b0;
-assign	sndg_sger=1'b0;
-assign	bdatr_sndg[15:0]=16'h0;
-`else	//	MCOC_NO_SNDG
+`ifdef		MCOC_SNDG
 assign	sndg_sger=sndg0_sger | sndg1_sger;
 wire	[15:0]	bdatr_sndg0;
 wire	[15:0]	bdatr_sndg1;
@@ -1468,7 +1467,12 @@ sndg1pb		sndg1 (
 	.sndg_sger(sndg1_sger),	// Output
 	.bdatr(bdatr_sndg1[15:0])	// Output
 );
-`endif	//	MCOC_NO_SNDG
+`else	//	MCOC_SNDG
+assign	sndg0_pwm=1'b0;
+assign	sndg1_pwm=1'b0;
+assign	sndg_sger=1'b0;
+assign	bdatr_sndg[15:0]=16'h0;
+`endif	//	MCOC_SNDG
 
 
 // bus output

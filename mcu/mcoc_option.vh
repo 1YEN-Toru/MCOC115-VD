@@ -3,10 +3,6 @@
 //		make the choice of options consistency module
 //		(c) 2025	1YEN Toru
 //
-//
-//	2025/02/22
-//		new
-//
 
 
 // ================================
@@ -58,10 +54,10 @@
 `undef		MCOC_CORE_MCBS
 `undef		MCOC_CORE_MCSS
 `undef		MCOC_DUAL
-`define		MCVM_COPR_NOMUL
-`define		MCVM_COPR_NODIV
-`define		MCVM_COPR_NOFPU
-`define		MCVM_COPR_NOFPUS
+`undef		MCVM_COPR_MUL
+`undef		MCVM_COPR_DIV
+`undef		MCVM_COPR_FPUH
+`undef		MCVM_COPR_FPUS
 `undef		MCOC_ERAM
 `undef		MCOC_SRAM_512K
 
@@ -69,13 +65,13 @@
 `define		CPU_CORE		nihoniumc
 `undef		MCOC_CORE_MCBS
 `undef		MCOC_CORE_MCSS
-`define		MCVM_COPR_NOMUL
-`define		MCVM_COPR_NODIV
+`undef		MCVM_COPR_MUL
+`undef		MCVM_COPR_DIV
 
 `else
 `define		CPU_CORE		moscoviumc
 `undef		MCOC_CORE_NHSS
-`define		MCVM_COPR_NOFPUS
+`undef		MCVM_COPR_FPUS
 
 `ifdef		MCOC_CORE_MCSS
 `undef		MCOC_CORE_MCBS
@@ -97,8 +93,8 @@
 `endif	//	MCOC_POLY
 
 `else	//	MCOC_DUAL
-`define		MCOC_NO_SMPH
-`define		MCOC_NO_ICFF
+`undef		MCOC_SMPH
+`undef		MCOC_ICFF
 `undef		MCOC_DUAL_AMP_TS
 `undef		MCOC_DUAL_AMP_MC
 `endif	//	MCOC_DUAL
@@ -121,10 +117,9 @@
 `define		CPU_CORE2		`CPU_CORE
 `endif	//	CPU_CORE2
 
-`ifdef		MCVM_COPR_NOFPUS
-`else	//	MCVM_COPR_NOFPUS
-`define		MCVM_COPR_NOFPU
-`endif	//	MCVM_COPR_NOFPUS
+`ifdef		MCVM_COPR_FPUS
+`undef		MCVM_COPR_FPUH
+`endif	//	MCVM_COPR_FPUS
 
 `ifdef		MCOC_FCPU_32M
 `define		MCOC_FCPU_MHZ	8'h32
@@ -150,10 +145,9 @@
 `undef		MCOC_RAM_4K
 `endif	//	MCOC_ERAM
 
-`ifdef		MCOC_NO_STFT
-`else	//	MCOC_NO_STFT
-`define		MCOC_NO_CM76
-`endif	//	MCOC_NO_STFT
+`ifdef		MCOC_STFT
+`undef		MCOC_CM76
+`endif	//	MCOC_STFT
 
 `define		MCOC_PORT_HIZO				// default now
 

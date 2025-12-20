@@ -12,8 +12,8 @@
 // ================================
 asm		"mcoc_irom.mem"
 incl	"mcoc115.incl"
-equ		mcvm_has_sfpu,1					// 0 for `define MCVM_COPR_NOFPUS
-equ		mcvm_has_hfpu,0					// 0 for `define MCVM_COPR_NOFPU
+equ		mcvm_has_sfpu,1					// 1 for `define MCVM_COPR_FPUS
+equ		mcvm_has_hfpu,0					// 1 for `define MCVM_COPR_FPUH
 equ		mcvm_has_xadr,0					// 1 for `define MCOC_SDRAM_8M
 #equ		mcvm_has_xadr2,0x08_0000		// >0 for `define MCOC_ERAM
 #equ		mcvm_has_xadr2,0x10_0000		// >0 for `define MCOC_SRAM_512K

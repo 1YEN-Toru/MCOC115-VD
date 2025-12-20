@@ -2,6 +2,7 @@ module	polycorec (
 // poly-core
 input	clk,
 input	rst_n,
+input	frdy,
 input	brdy,
 input	irq,
 input	[1:0]	cpuid,
@@ -11,6 +12,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
+output	[1:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -404,6 +406,7 @@ wire	[15:0]	cbus_i;
 wire	[15:0]	rom_fdat;
 wire	[31:0]	rom_fdat1;
 wire	[31:0]	rom_fdat2;
+wire	[1:0]	cpu_fcmd;
 wire	[15:0]	cpu_fadr;
 wire	[31:0]	cpu_fdat;
 wire	[2:0]	cpu_bcmd;
@@ -425,6 +428,9 @@ wire	tcm_bcmdl=1'b0;
 
 
 `ifdef		MCOC_CORE_MCBS
+
+assign	cpu_fcmd[1:0]=2'b01;
+
 
 moscoviumbs		core (
 	.clk(clk),	// Input
@@ -460,6 +466,9 @@ wire	signed	[8:0]	tnsn_dsp_b;
 wire	signed	[17:0]	tnsn_dsp_c=tnsn_dsp_a*tnsn_dsp_b;
 
 
+assign	cpu_fcmd[1:0]=2'b01;
+
+
 tennessine	core (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -482,10 +491,7 @@ tennessine	core (
 
 `endif	// MCOC_CORE_MCBS
 
-`ifdef		MCVM_COPR_NOMUL
-wire	crdy_mulc=1'b1;
-wire	[15:0]	cbus_mulc=16'h0;
-`else	//	MCVM_COPR_NOMUL
+`ifdef		MCVM_COPR_MUL
 wire	[15:0]	cbus_mulc;
 mcoc_mulc16		mulc (
 	.clk(clk),	// Input
@@ -496,12 +502,12 @@ mcoc_mulc16		mulc (
 	.crdy(crdy_mulc),	// Output
 	.cbus(cbus_mulc[15:0])	// Output
 );
-`endif	//	MCVM_COPR_NOMUL
+`else	//	MCVM_COPR_MUL
+wire	crdy_mulc=1'b1;
+wire	[15:0]	cbus_mulc=16'h0;
+`endif	//	MCVM_COPR_MUL
 
-`ifdef		MCVM_COPR_NODIV
-wire	crdy_divc=1'b1;
-wire	[15:0]	cbus_divc=16'h0;
-`else	//	MCVM_COPR_NODIV
+`ifdef		MCVM_COPR_DIV
 wire	[15:0]	cbus_divc;
 
 `ifdef		MCOC_CORE_MCBS
@@ -526,12 +532,12 @@ divc32	divc (
 );
 `endif	//	MCOC_CORE_MCBS
 
-`endif	//	MCVM_COPR_NODIV
+`else	//	MCVM_COPR_DIV
+wire	crdy_divc=1'b1;
+wire	[15:0]	cbus_divc=16'h0;
+`endif	//	MCVM_COPR_DIV
 
-`ifdef		MCVM_COPR_NOFPU
-wire	crdy_hfpu=1'b1;
-wire	[15:0]	cbus_hfpu=16'h0;
-`else	//	MCVM_COPR_NOFPU
+`ifdef		MCVM_COPR_FPUH
 wire	[15:0]	cbus_hfpu;
 mcoc_hfpu	hfpu (
 	.clk(clk),	// Input
@@ -542,7 +548,10 @@ mcoc_hfpu	hfpu (
 	.crdy(crdy_hfpu),	// Output
 	.cbus(cbus_hfpu[15:0])	// Output
 );
-`endif	//	MCVM_COPR_NOFPU
+`else	//	MCVM_COPR_FPUH
+wire	crdy_hfpu=1'b1;
+wire	[15:0]	cbus_hfpu=16'h0;
+`endif	//	MCVM_COPR_FPUH
 
 // co-processor bus output
 assign	crdy=crdy_mulc & crdy_divc & crdy_hfpu;
@@ -554,22 +563,25 @@ mcoc_rom	rom (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
 	.bootmd(bootmd),	// Input
-	.fcmdl1(1'b0),	// Input
-	.fcmdl2(1'b0),	// Input
 	.brdy(tcm_brdy),	// Input
 	.bcmdr(tcm_bcmdr),	// Input
 	.bcmdw(tcm_bcmdw),	// Input
 	.bcmdl(tcm_bcmdl),	// Input
 	.bmst(1'b0),	// Input
 	.bcs_rom_n(tcm_rom_n),	// Input
+	.fcmd1(cpu_fcmd[1:0]),	// Input
+	.fcmd2(cpu_fcmd[1:0]),	// Input
 	.fadr1({16{ (cpuid[3:0]==4'd15) }} & cpu_fadr[15:0]),	// Input
 	.fadr2({16{ (cpuid[3:0]!=4'd15) }} & cpu_fadr[15:0]),	// Input
 	.badr(tcm_badr[15:0]),	// Input
 	.bdatw({ 16'h0,tcm_bdatw[15:0] }),	// Input
+	.frdy1(frdy1),	// Output
+	.frdy2(frdy2),	// Output
 	.fdat1(rom_fdat1[31:0]),	// Output
 	.fdat2(rom_fdat2[31:0]),	// Output
 	.bdatr(bdatr_rom[31:0])	// Output
 );
+//	.bmst((cpuid[3:0]==4'd15)? 1'b1: 1'b0),	// Input	// is this correct?
 assign	rom_fdat[15:0]=(cpuid[3:0]==4'd15)? rom_fdat1[15:0]: rom_fdat2[15:0];
 
 mcoc_iram	iram (
