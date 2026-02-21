@@ -6,6 +6,7 @@
 
 # max30100 i/o registers
 equ		i2c_max30100,0x57				// i2c: MAX30100 slave address
+equ		i2c_max30100_fscl,400			// i2c: fSCL=400kHz(MAX)
 #
 equ		hrt_reg_int_stat,0x00			// hrt: reg: interrupt status
 equ		hrt_reg_int_enbl,0x01			// hrt: reg: interrupt enable

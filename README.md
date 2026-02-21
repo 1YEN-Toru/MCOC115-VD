@@ -309,9 +309,9 @@
 
 --------
 # Disclaimer
- All data in this repository are unsupported and unguaranteed.
-
- Use at your own risk.
-
+>[!CAUTION]
+> All data in this repository are unsupported and unguaranteed.
+>
+> Use at your own risk.
 --------
 ![1YEN Toru](img/1YEN_sign.png)

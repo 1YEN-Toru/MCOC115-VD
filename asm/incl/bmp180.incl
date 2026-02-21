@@ -6,6 +6,7 @@
 
 # bmp180 i/o registers
 equ		i2c_bmp180,0x77					// i2c: BMP180 slave address
+equ		i2c_bmp180_fscl,3_400			// i2c: fSCL=3.4MHz(MAX)
 #
 equ		bmp_reg_out_xlsb,0xf8			// bmp: reg: out_xlsb
 equ		bmp_reg_out_lsb,0xf7			// bmp: reg: out_lsb

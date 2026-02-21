@@ -2536,7 +2536,7 @@ errmsg	"mcvm_sim_fail block is obsolete, use mcvm_sim_stat block instead";
 		if (cmp=0)
 		{
 			// ERROR:
-			errmsg	"mcoc_math_label: illegal parameter";
+			errmsg	"mcoc_math_label: bad parameter";
 			leave	stop_error;
 		}
 
@@ -3399,7 +3399,7 @@ errmsg	"'[>>]' operator is obsolete, use '>>>' operator instead";
 		if (cmp=0)
 		{
 			// ERROR:
-			errmsg	"mcoc_text_label: illegal parameter";
+			errmsg	"mcoc_text_label: bad parameter";
 			leave	stop_error;
 		}
 

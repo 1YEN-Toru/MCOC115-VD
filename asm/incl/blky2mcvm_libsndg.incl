@@ -22,8 +22,8 @@
 //					mml pointer was not updated
 //				_sndg_err_bad_mml:
 //					bad mml, ignored, mml pointer was updated
-//				_sndg_err_ille_param:
-//					subroutine parameter is illegal
+//				_sndg_err_bad_param:
+//					bad subroutine parameter
 //
 // ================================
 # string macros
@@ -34,7 +34,7 @@ equ		_sndg_err_bad_tempo,0			// sndg: err: bad tempo (returns 0)
 equ		_sndg_err_empty_mml,1			// sndg: err: empty mml
 equ		_sndg_err_fifo_full,2			// sndg: err: fifo full
 equ		_sndg_err_bad_mml,3				// sndg: err: bad mml
-equ		_sndg_err_ille_param,4			// sndg: err: illegal parameter
+equ		_sndg_err_bad_param,4			// sndg: err: bad parameter
 equ		_sndg_err_max,0x00ff			// sndg: err: maximum error code
 # ================================
 
@@ -242,7 +242,7 @@ dats	"TRC D EF G A B\0"
 // ================================
 // sndg1pb initialize (#0, r0) ; disturbed r1~r3,r7
 //	parameter:	r0=whole note length [ms]
-//	return:		r0=_sndg_err_no / _sndg_err_ille_param
+//	return:		r0=_sndg_err_no / _sndg_err_bad_param
 // ================================
 align	4
 _sndg_init0_r0:
@@ -266,15 +266,15 @@ _sndg_ini0_found:
 ldwi	r2,65_535*128/1_000+1
 cmp		r0,r2
 blo		pcnt+4
-// ERROR: illegal parameter
-ldbiu	r0,_sndg_err_ille_param
+// ERROR: bad parameter
+ldbiu	r0,_sndg_err_bad_param
 bra		_sndg_ini0_return
 
 jal$(z)r7	_sndg_calc_t128_r0
 cmpi	r0,_sndg_err_bad_tempo
 bne		pcnt+4
-// ERROR: illegal parameter
-ldbiu	r0,_sndg_err_ille_param
+// ERROR: bad parameter
+ldbiu	r0,_sndg_err_bad_param
 bra		_sndg_ini0_return
 
 // set sndgt128 registers
@@ -386,7 +386,7 @@ rtn$(z)
 // ================================
 // sndg1pb initialize (#1, r0) ; disturbed r1~r3,r7
 //	parameter:	r0=whole note length [ms]
-//	return:		r0=_sndg_err_no / _sndg_err_ille_param
+//	return:		r0=_sndg_err_no / _sndg_err_bad_param
 // ================================
 align	4
 _sndg_init1_r0:
@@ -410,15 +410,15 @@ _sndg_ini1_found:
 ldwi	r2,65_535*128/1_000+1
 cmp		r0,r2
 blo		pcnt+4
-// ERROR: illegal parameter
-ldbiu	r0,_sndg_err_ille_param
+// ERROR: bad parameter
+ldbiu	r0,_sndg_err_bad_param
 bra		_sndg_ini1_return
 
 jal$(z)r7	_sndg_calc_t128_r0
 cmpi	r0,_sndg_err_bad_tempo
 bne		pcnt+4
-// ERROR: illegal parameter
-ldbiu	r0,_sndg_err_ille_param
+// ERROR: bad parameter
+ldbiu	r0,_sndg_err_bad_param
 bra		_sndg_ini1_return
 
 // set sndgt128 registers

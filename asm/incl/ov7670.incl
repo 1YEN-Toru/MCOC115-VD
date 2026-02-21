@@ -6,6 +6,7 @@
 
 # VGA camera OV7670 i/o registers
 equ		i2c_ov7670,0x21					// i2c: OV7670 slave address
+equ		i2c_ov7670_fscl,400				// i2c: fSCL=400kHz(MAX)
 #
 equ		o76_reg_gain,0x00				// o76: reg: gain control gain setting
 equ		o76_reg_blue,0x01				// o76: reg: blue channel gain setting

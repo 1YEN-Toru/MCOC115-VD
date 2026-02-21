@@ -3,6 +3,9 @@
 //		(c) 2024	1YEN Toru
 //
 //
+//		2026/02/21	ver.1.26
+//			fix: _xtoi_r1; range check for hexadecimal digits
+//
 //		2025/10/25	ver.1.24
 //			corresponding to array variables
 //
@@ -1283,17 +1286,20 @@ _xtoi_loop:
 ldb		r2,[r1]
 subi	r2,0a0
 blo		_xtoi_break						// [r1]<'0'
-cmpi	r2,10
+cmpi	r2,(0a9+1)-0a0
 blo		_xtoi_next						// [r1]<='9'
-subi	r2,0aa-asc_c2s-0a0-10
+subi	r2,0aA-0a0
 blo		_xtoi_break						// [r1]<'A'
-cmpi	r2,16
+addi	r2,0x0a
+cmpi	r2,0x0a+(0aF+1)-0aA
 blo		_xtoi_next						// [r1]<='F'
-subi	r2,0aa-(0aa-asc_c2s)
+subi	r2,0x0a+0aa-0aA
 blo		_xtoi_break						// [r1]<'a'
-cmpi	r2,16
+addi	r2,0x0a
+cmpi	r2,0x0a+(0af+1)-0aa
 bhs		_xtoi_break						// [r1]>'f'
 _xtoi_next:
+// hexadecimal digit
 // r0=16*r0+r2
 lsli	r0,4
 add		r0,r2
