@@ -554,7 +554,7 @@ wire	[15:0]	cbus_hfpu=16'h0;
 `endif	//	MCVM_COPR_FPUH
 
 // co-processor bus output
-assign	crdy=crdy_mulc & crdy_divc & crdy_hfpu;
+assign	crdy=crdy_mulc&crdy_divc&crdy_hfpu;
 assign	cbus_i[15:0]=cbus_mulc[15:0] | cbus_divc[15:0] | cbus_hfpu[15:0];
 
 
@@ -571,8 +571,8 @@ mcoc_rom	rom (
 	.bcs_rom_n(tcm_rom_n),	// Input
 	.fcmd1(cpu_fcmd[1:0]),	// Input
 	.fcmd2(cpu_fcmd[1:0]),	// Input
-	.fadr1({16{ (cpuid[3:0]==4'd15) }} & cpu_fadr[15:0]),	// Input
-	.fadr2({16{ (cpuid[3:0]!=4'd15) }} & cpu_fadr[15:0]),	// Input
+	.fadr1({16{ (cpuid[3:0]==4'd15) }}&cpu_fadr[15:0]),	// Input
+	.fadr2({16{ (cpuid[3:0]!=4'd15) }}&cpu_fadr[15:0]),	// Input
 	.badr(tcm_badr[15:0]),	// Input
 	.bdatw({ 16'h0,tcm_bdatw[15:0] }),	// Input
 	.frdy1(frdy1),	// Output

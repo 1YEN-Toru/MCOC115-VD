@@ -32,7 +32,7 @@ modela	"Moscovium.ASM: MEM file convertor"
 	mlet	fnam_out=$(dir)$/$(fnam)".dat2";
 	ifacc	$(fnam_out)
 	{
-		// otput file already exist
+		// output file already exist
 		gui		okcancel, rtn, "Over write?","OK to over write",
 				"Output file already exist."
 				$,"	"$(fnam_out)$,"Over write OK?";

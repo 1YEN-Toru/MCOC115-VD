@@ -3,6 +3,9 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2026/03/14	ver.1.12
+//			corresponding to case sensitive
+//
 //		2023/11/18	ver.1.10
 //			corresponding to small RAM edition
 //			upd: max_lbuf=20 <-- 254
@@ -22,6 +25,15 @@
 //
 //		2021/06/12	ver.1.00
 //
+// ================================
+//	register mapping
+//		r0: general data
+//		r1: read / write pointer for line buffer
+//		r2: temporary data for xtoi subroutine
+//		r3: temporary data
+//		r6: write pointer for writable rom
+//		r7: general address pointer
+//		sp: pointer to line buffer, stack pointer
 // ================================
 def		target,"moscovium"
 #def		target,"tennessine"
@@ -43,26 +55,12 @@ endi
 def		p,""							// pilot led: ""=use / "#"=do not use
 def		d,""							// detect baud: ""=use / "#"=do not use
 # constants
-equ		prog_vers,0x0110				// program version (bcd)
-#equ	max_lbuf,254					// size of lbuf (<256 & even)
-equ		max_lbuf,20						// size of lbuf (<256 & even)
+equ		prog_vers,0x0112				// program version (bcd)
 equ		baud,9600						// baud rate
 equ		uart_baud,fcpu/baud-1			// uartbaud setting
-equ		chr_tab,0x09					// tab code
-equ		chr_lf,0x0a						// lf code
-equ		chr_cr,0x0d						// cr code
-equ		chr_spc,0x20					// space ' ' code
-equ		chr_atm,0x40					// at-mark '@' code
+equ		max_lbuf,20						// size of lbuf (<256 & even)
 # ================================
 
-// register mapping
-//		r0: general data
-//		r1: read / write pointer for line buffer
-//		r2: temporary data for xtoi subroutine
-//		r3: temporary data
-//		r6: write pointer for writable rom
-//		r7: general address pointer
-//		sp: pointer to line buffer, stack pointer
 
 // version
 bra		pcnt+2
@@ -77,7 +75,7 @@ addw	r0,r7
 subwi	r0,max_lbuf						// allocate lbuf
 movtc	sp,r0
 
-// uart setting: RXE, baud rate
+// UART8N1 setting: RXE, baud rate
 ldwi	r7,uartbaud
 ldwi	r0,uart_baud
 stw		[r7],r0
@@ -89,11 +87,12 @@ stw		[r7],r0
 // ================================
 // rom data download
 ldbiu	r6,0							// reset wptr(=r6)
+// loop
 loop:
 $(p)// pilot led
 $(p)movw	r3,r6
 $(p)lsrwi	r3,1
-$(p)eori	r3,~led_builtin_b
+$(p)eori	r3,~led_builtin_b			// blue LED for wptr(=r6)=0x???0
 $(p)andi	r3,led_builtin
 $(p)ldwi	r2,porout
 $(p)stw		[r2],r3
@@ -106,6 +105,7 @@ $(p)stw		[r2],r3
 // get line from uart
 movfc	r1,sp							// r1=lbuf
 ldbih	r7,uartctl>>8
+// get line loop
 gl_loop:
 $(d)// check if BRDF=1
 $(d)ldbil	r7,uartctl
@@ -146,17 +146,18 @@ ldw		r0,[r7]
 stb		[r1],r0
 addwi	r1,1
 // LF code check
-cmpi	r0,chr_lf
-beq		gl_got
+cmpi	r0,asc_lf
+beq		gl_break
 // size check
 movfc	r0,sp
 addwi	r0,max_lbuf
 cmpw	r1,r0
 blo		gl_loop
+// end of loop
 subwi	r1,1
 bra		gl_loop
 // got line
-gl_got:
+gl_break:
 // string terminate
 ldbiu	r0,0
 subwi	r1,1
@@ -166,28 +167,28 @@ stb		[r1],r0
 // analyze line buffer
 movfc	r1,sp							// r1=lbuf
 ldwi	r7,lab_xtoi
-loop2:
 // skip space
+skp_spc:
 ldb		r0,[r1]
 addwi	r1,1
-cmpi	r0,chr_tab
-beq		loop2
-cmpi	r0,chr_spc
-beq		loop2
+cmpi	r0,asc_tab
+beq		skp_spc
+cmpi	r0,asc_spc
+beq		skp_spc
 cmpi	r0,0
 beq		loop
 
 // ================================
 // @<address>
-cmpi	r0,chr_atm
+cmpi	r0,asc_atm
 bne		not_atm
 
 // address
 jalw	r7								// xtoi()
 // set wptr(=r6)
-lslwi	r0,1
+lslwi	r0,1							// word address -> byte address
 movw	r6,r0
-bra		loop2
+bra		skp_spc
 
 not_atm:
 // ================================
@@ -202,34 +203,53 @@ beq		loop							// unrecognized characters
 stw		[r6],r0
 // update wdat(=r6)
 addwi	r6,2
-bra		loop2
+bra		skp_spc
 
 // ================================
-// hexadecimal to integer: r0=xtoi (r1) ; disturbed r1,r2
+//	r0=xtoi (r1);
+//		r1: pointer to hexadecimal string
+//	disturbed: r1,r2
+//		r1: pointer to hexadecimal string
+//		r2: temporary data
+//	return: hexadecimal to integer
+//		r0: xtoi (r1)
+//		r1: pointer to the next character of hexadecimal string
 // ================================
 xtoi:
+#// skip the first whitespace (<=0x20)
+#ldb		r0,[r1]
+#addi	r1,1
+#cmpi	r0,asc_spc+1
+#blo		pcnt-8
+#subi	r1,1
+// initialize
 ldbiu	r0,0
+// loop
+_xtoi_loop:
 // r2=[r1]-'0'
 ldb		r2,[r1]
 subi	r2,0a0
-blo		x2i_finish						// [r1]<'0'
-cmpi	r2,10
-blo		x2i_next						// [r1]<='9'
-subi	r2,(0aA-0x20)-0a0-10
-blo		x2i_finish						// [r1]<'A'
-cmpi	r2,16
-blo		x2i_next						// [r1]<='F'
-subi	r2,0aa-(0aA-0x20)
-blo		x2i_finish						// [r1]<'a'
-cmpi	r2,16
-bhs		x2i_finish						// [r1]>'f'
-x2i_next:
+blo		_xtoi_break						// [r1]<'0'
+cmpi	r2,(0a9+1)-0a0
+blo		_xtoi_next						// [r1]<='9'
+subi	r2,0aA-0a0
+blo		_xtoi_break						// [r1]<'A'
+addi	r2,0x0a
+cmpi	r2,0x0a+(0aF+1)-0aA
+blo		_xtoi_next						// [r1]<='F'
+subi	r2,0x0a+0aa-0aA
+blo		_xtoi_break						// [r1]<'a'
+addi	r2,0x0a
+cmpi	r2,0x0a+(0af+1)-0aa
+bhs		_xtoi_break						// [r1]>'f'
+_xtoi_next:
+// hexadecimal digit
 // r0=16*r0+r2
 lslwi	r0,4
 addw	r0,r2
 // end of loop
 addwi	r1,1
-bra		xtoi+2
-x2i_finish:
+bra		_xtoi_loop
+_xtoi_break:
+// end of subroutine
 rtnw
-

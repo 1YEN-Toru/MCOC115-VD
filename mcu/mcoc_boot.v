@@ -6,15 +6,18 @@
 //	output	reg		[15:0]	dat);
 //	always	@(adr[6:0])
 //		case ({ adr[6:0],1'b0 })
-//		// Moscovium series macro assembler ver.1.44
+//		// Moscovium series macro assembler ver.1.58
 //		// ================================
-//		// Moscovium series boot loader
+//		//	Moscovium series boot loader
 //		//		(c) 2021	1YEN Toru
 //		//
 //		//
+//		//		2026/03/14	ver.1.12
+//		//			corresponding to case sensitive
+//		//
 //		//		2023/11/18	ver.1.10
 //		//			corresponding to small RAM edition
-//		//			change: max_lbuf=20 <-- 254
+//		//			upd: max_lbuf=20 <-- 254
 //		//
 //		//		2023/09/23	ver.1.08
 //		//			corresponding to Tennessine core
@@ -32,7 +35,7 @@
 //		//		2021/06/12	ver.1.00
 //		//
 //		// ================================
-//		// register mapping
+//		//	register mapping
 //		//		r0: general data
 //		//		r1: read / write pointer for line buffer
 //		//		r2: temporary data for xtoi subroutine
@@ -40,9 +43,10 @@
 //		//		r6: write pointer for writable rom
 //		//		r7: general address pointer
 //		//		sp: pointer to line buffer, stack pointer
+//		// ================================
 //		// version
 //		8'h00: dat[15:0]=16'h0801;	// bra    pcnt+2
-//		8'h02: dat[15:0]=16'h0110;	// datw   0x0110    
+//		8'h02: dat[15:0]=16'h0112;	// datw   0x0112    
 //		// set sp to the bottom of ram area
 //		8'h04: dat[15:0]=16'hc7f0;	// ldbih  r7,((idrgramt)>>8)&0xff
 //		8'h06: dat[15:0]=16'hbf0c;	// ldbil  r7,(idrgramt)&0xff
@@ -52,7 +56,7 @@
 //		8'h0e: dat[15:0]=16'h7987;	// add    r0,r7
 //		8'h10: dat[15:0]=16'ha014;	// subi   r0,max_lbuf
 //		8'h12: dat[15:0]=16'h7910;	// movtc  sp,r0
-//		// uart setting: RXE, baud rate
+//		// UART8N1 setting: RXE, baud rate
 //		8'h14: dat[15:0]=16'hc7f0;	// ldbih  r7,((uartbaud)>>8)&0xff
 //		8'h16: dat[15:0]=16'hbf32;	// ldbil  r7,(uartbaud)&0xff
 //		8'h18: dat[15:0]=16'hc009;	// ldbih  r0,((uart_baud)>>8)&0xff
@@ -64,6 +68,7 @@
 //		// ================================
 //		// rom data download
 //		8'h24: dat[15:0]=16'hb600;	// ldbiu  r6,0
+//		// loop
 //			// loop:
 //		// pilot led
 //		8'h26: dat[15:0]=16'h78de;	// mov    r3,r6
@@ -81,6 +86,7 @@
 //		// get line from uart
 //		8'h3c: dat[15:0]=16'h794a;	// movfc  r1,sp
 //		8'h3e: dat[15:0]=16'hc7f0;	// ldbih  r7,uartctl>>8
+//		// get line loop
 //			// gl_loop:
 //		// check if BRDF=1
 //		8'h40: dat[15:0]=16'hbf30;	// ldbil  r7,uartctl
@@ -122,17 +128,18 @@
 //		8'h76: dat[15:0]=16'h7b48;	// stb    r1,r0
 //		8'h78: dat[15:0]=16'h9901;	// addi   r1,1
 //		// LF code check
-//		8'h7a: dat[15:0]=16'ha80a;	// cmpi   r0,chr_lf
-//		8'h7c: dat[15:0]=16'h1806;	// beq    gl_got
+//		8'h7a: dat[15:0]=16'ha80a;	// cmpi   r0,asc_lf
+//		8'h7c: dat[15:0]=16'h1806;	// beq    gl_break
 //		// size check
 //		8'h7e: dat[15:0]=16'h7942;	// movfc  r0,sp
 //		8'h80: dat[15:0]=16'h9814;	// addi   r0,max_lbuf
 //		8'h82: dat[15:0]=16'h7a88;	// cmp    r1,r0
 //		8'h84: dat[15:0]=16'h2fdd;	// blo    gl_loop
+//		// end of loop
 //		8'h86: dat[15:0]=16'ha101;	// subi   r1,1
 //		8'h88: dat[15:0]=16'h0fdb;	// bra    gl_loop
 //		// got line
-//			// gl_got:
+//			// gl_break:
 //		// string terminate
 //		8'h8a: dat[15:0]=16'hb000;	// ldbiu  r0,0
 //		8'h8c: dat[15:0]=16'ha101;	// subi   r1,1
@@ -142,26 +149,26 @@
 //		8'h90: dat[15:0]=16'h794a;	// movfc  r1,sp
 //		8'h92: dat[15:0]=16'hc700;	// ldbih  r7,((lab_xtoi)>>8)&0xff
 //		8'h94: dat[15:0]=16'hbfc2;	// ldbil  r7,(lab_xtoi)&0xff
-//			// loop2:
 //		// skip space
+//			// skp_spc:
 //		8'h96: dat[15:0]=16'h7b01;	// ldb    r0,r1
 //		8'h98: dat[15:0]=16'h9901;	// addi   r1,1
-//		8'h9a: dat[15:0]=16'ha809;	// cmpi   r0,chr_tab
-//		8'h9c: dat[15:0]=16'h1ffc;	// beq    loop2
-//		8'h9e: dat[15:0]=16'ha820;	// cmpi   r0,chr_spc
-//		8'ha0: dat[15:0]=16'h1ffa;	// beq    loop2
+//		8'h9a: dat[15:0]=16'ha809;	// cmpi   r0,asc_tab
+//		8'h9c: dat[15:0]=16'h1ffc;	// beq    skp_spc
+//		8'h9e: dat[15:0]=16'ha820;	// cmpi   r0,asc_spc
+//		8'ha0: dat[15:0]=16'h1ffa;	// beq    skp_spc
 //		8'ha2: dat[15:0]=16'ha800;	// cmpi   r0,0
 //		8'ha4: dat[15:0]=16'h1fc0;	// beq    loop
 //		// ================================
 //		// @<address>
-//		8'ha6: dat[15:0]=16'ha840;	// cmpi   r0,chr_atm
+//		8'ha6: dat[15:0]=16'ha840;	// cmpi   r0,asc_atm
 //		8'ha8: dat[15:0]=16'h1004;	// bne    not_atm
 //		// address
 //		8'haa: dat[15:0]=16'h7f8f;	// jalw   r7
 //		// set wptr(=r6)
 //		8'hac: dat[15:0]=16'hd801;	// lsfti  r0,(1)
 //		8'hae: dat[15:0]=16'h78f0;	// mov    r6,r0
-//		8'hb0: dat[15:0]=16'h0ff2;	// bra    loop2
+//		8'hb0: dat[15:0]=16'h0ff2;	// bra    skp_spc
 //			// not_atm:
 //		// ================================
 //		// <word_data>
@@ -174,35 +181,49 @@
 //		8'hbc: dat[15:0]=16'h7bf0;	// stw    r6,r0
 //		// update wdat(=r6)
 //		8'hbe: dat[15:0]=16'h9e02;	// addi   r6,2
-//		8'hc0: dat[15:0]=16'h0fea;	// bra    loop2
+//		8'hc0: dat[15:0]=16'h0fea;	// bra    skp_spc
 //		// ================================
-//		// hexadecimal to integer: r0=xtoi (r1) ; disturbed r1,r2
+//		//	r0=xtoi (r1);
+//		//		r1: pointer to hexadecimal string
+//		//	disturbed: r1,r2
+//		//		r1: pointer to hexadecimal string
+//		//		r2: temporary data
+//		//	return: hexadecimal to integer
+//		//		r0: xtoi (r1)
+//		//		r1: pointer to the next character of hexadecimal string
 //		// ================================
 //			// xtoi:
+//		// initialize
 //		8'hc2: dat[15:0]=16'hb000;	// ldbiu  r0,0
+//		// loop
+//			// _xtoi_loop:
 //		// r2=[r1]-'0'
 //		8'hc4: dat[15:0]=16'h7b11;	// ldb    r2,r1
 //		8'hc6: dat[15:0]=16'ha230;	// subi   r2,0a0
-//		8'hc8: dat[15:0]=16'h280e;	// blo    x2i_finish
-//		8'hca: dat[15:0]=16'haa0a;	// cmpi   r2,10
-//		8'hcc: dat[15:0]=16'h2808;	// blo    x2i_next
-//		8'hce: dat[15:0]=16'ha207;	// subi   r2,(0aa-0x20)-0a0-10
-//		8'hd0: dat[15:0]=16'h280a;	// blo    x2i_finish
-//		8'hd2: dat[15:0]=16'haa10;	// cmpi   r2,16
-//		8'hd4: dat[15:0]=16'h2804;	// blo    x2i_next
-//		8'hd6: dat[15:0]=16'ha220;	// subi   r2,0aa-(0aa-0x20)
-//		8'hd8: dat[15:0]=16'h2806;	// blo    x2i_finish
-//		8'hda: dat[15:0]=16'haa10;	// cmpi   r2,16
-//		8'hdc: dat[15:0]=16'h2004;	// bhs    x2i_finish
-//			// x2i_next:
+//		8'hc8: dat[15:0]=16'h2810;	// blo    _xtoi_break
+//		8'hca: dat[15:0]=16'haa0a;	// cmpi   r2,(0a9+1)-0a0
+//		8'hcc: dat[15:0]=16'h280a;	// blo    _xtoi_next
+//		8'hce: dat[15:0]=16'ha211;	// subi   r2,0aA-0a0
+//		8'hd0: dat[15:0]=16'h280c;	// blo    _xtoi_break
+//		8'hd2: dat[15:0]=16'h9a0a;	// addi   r2,0x0a
+//		8'hd4: dat[15:0]=16'haa10;	// cmpi   r2,0x0a+(0aF+1)-0aA
+//		8'hd6: dat[15:0]=16'h2805;	// blo    _xtoi_next
+//		8'hd8: dat[15:0]=16'ha22a;	// subi   r2,0x0a+0aa-0aA
+//		8'hda: dat[15:0]=16'h2807;	// blo    _xtoi_break
+//		8'hdc: dat[15:0]=16'h9a0a;	// addi   r2,0x0a
+//		8'hde: dat[15:0]=16'haa10;	// cmpi   r2,0x0a+(0af+1)-0aa
+//		8'he0: dat[15:0]=16'h2004;	// bhs    _xtoi_break
+//			// _xtoi_next:
+//		// hexadecimal digit
 //		// r0=16*r0+r2
-//		8'hde: dat[15:0]=16'hd804;	// lsfti  r0,(4)
-//		8'he0: dat[15:0]=16'h7982;	// add    r0,r2
+//		8'he2: dat[15:0]=16'hd804;	// lsfti  r0,(4)
+//		8'he4: dat[15:0]=16'h7982;	// add    r0,r2
 //		// end of loop
-//		8'he2: dat[15:0]=16'h9901;	// addi   r1,1
-//		8'he4: dat[15:0]=16'h0fef;	// bra    xtoi+2
-//			// x2i_finish:
-//		8'he6: dat[15:0]=16'h0002;	// rtnw  
+//		8'he6: dat[15:0]=16'h9901;	// addi   r1,1
+//		8'he8: dat[15:0]=16'h0fed;	// bra    _xtoi_loop
+//			// _xtoi_break:
+//		// end of subroutine
+//		8'hea: dat[15:0]=16'h0002;	// rtnw  
 //		// ================================
 //		// label lists
 //		//	0x0040	adc_adce
@@ -272,6 +293,46 @@
 //		//	0xf170	adcxctl
 //		//	0xf17a	adcxdatr
 //		//	0xf17e	adcxdatw
+//		//	0x0026	asc_amp
+//		//	0x002a	asc_ast
+//		//	0x0040	asc_atm
+//		//	0x0060	asc_bqt
+//		//	0x0028	asc_bri
+//		//	0x0029	asc_bro
+//		//	0x0008	asc_bs
+//		//	0x0020	asc_c2s
+//		//	0x007b	asc_cbi
+//		//	0x007d	asc_cbo
+//		//	0x005e	asc_cir
+//		//	0x003a	asc_cln
+//		//	0x002c	asc_cma
+//		//	0x000d	asc_cr
+//		//	0x007f	asc_del
+//		//	0x0024	asc_dol
+//		//	0x002e	asc_dot
+//		//	0x0022	asc_dqt
+//		//	0x003d	asc_eq
+//		//	0x0021	asc_exc
+//		//	0x003e	asc_gt
+//		//	0x000a	asc_lf
+//		//	0x003c	asc_lt
+//		//	0x002d	asc_mns
+//		//	0x0000	asc_nil
+//		//	0x0023	asc_num
+//		//	0x0025	asc_per
+//		//	0x002b	asc_pls
+//		//	0x003f	asc_que
+//		//	0x003b	asc_sem
+//		//	0x002f	asc_sla
+//		//	0x0020	asc_spc
+//		//	0x005b	asc_sqi
+//		//	0x005d	asc_sqo
+//		//	0x0027	asc_sqt
+//		//	0x0009	asc_tab
+//		//	0x007e	asc_tld
+//		//	0x005f	asc_und
+//		//	0x007c	asc_vrt
+//		//	0x005c	asc_yen
 //		//	0x2580	baud
 //		//	0xf0f8	cachcnth
 //		//	0xf0fa	cachcntl
@@ -283,11 +344,6 @@
 //		//	0x0001	cchc_cche
 //		//	0x8000	cchc_cclr
 //		//	0x8000	cchc_vclr
-//		//	0x0040	chr_atm
-//		//	0x000d	chr_cr
-//		//	0x000a	chr_lf
-//		//	0x0020	chr_spc
-//		//	0x0009	chr_tab
 //		//	0x0003	cm76_b10
 //		//	0x0002	cm76_cenb
 //		//	0x0040	cm76_fabl
@@ -361,6 +417,8 @@
 //		//	0xf090	icffctl
 //		//	0xf096	icffrecv
 //		//	0xf094	icffsend
+//		//	0x000f	idrg_rame
+//		//	0xfff0	idrg_romt
 //		//	0xf000	idrgcode
 //		//	0xf006	idrgedit
 //		//	0xf004	idrgfcpu
@@ -370,9 +428,9 @@
 //		//	0xf008	idrgromt
 //		//	0xf002	idrgvers
 //		//	0x0000	intc_cenl_0
-//		//	0x1000	intc_cenl_1
-//		//	0x2000	intc_cenl_2
-//		//	0x3000	intc_cenl_3
+//		//	0x4000	intc_cenl_1
+//		//	0x8000	intc_cenl_2
+//		//	0xc000	intc_cenl_3
 //		//	0x0080	intc_cenm
 //		//	0x0018	intc_cenn
 //		//	0x0080	intc_cenr
@@ -464,10 +522,10 @@
 //		//	0x0001	intc_icl1_1
 //		//	0x0002	intc_icl1_2
 //		//	0x0003	intc_icl1_3
-//		//	0x0004	intc_icl2_0
-//		//	0x0005	intc_icl2_1
-//		//	0x0006	intc_icl2_2
-//		//	0x0007	intc_icl2_3
+//		//	0x0000	intc_icl2_0
+//		//	0x0004	intc_icl2_1
+//		//	0x0008	intc_icl2_2
+//		//	0x000c	intc_icl2_3
 //		//	0x0001	intc_icm1
 //		//	0x0002	intc_icm2
 //		//	0x0001	intc_icn1
@@ -476,6 +534,13 @@
 //		//	0x0002	intc_icr2
 //		//	0x0001	intc_icrq
 //		//	0x0001	intc_leve
+//		//	0x0000	intc_lofl_0
+//		//	0x0400	intc_lofl_1
+//		//	0x0800	intc_lofl_2
+//		//	0x0c00	intc_lofl_3
+//		//	0x0020	intc_lofm
+//		//	0x0016	intc_lofn
+//		//	0x0020	intc_lofr
 //		//	0x0000	intc_mral_0
 //		//	0x1000	intc_mral_1
 //		//	0x2000	intc_mral_2
@@ -509,12 +574,19 @@
 //		//	0x0800	intc_ovfr0
 //		//	0x8000	intc_ovfr1
 //		//	0x0000	intc_rtcl_0
-//		//	0x4000	intc_rtcl_1
-//		//	0x8000	intc_rtcl_2
-//		//	0xc000	intc_rtcl_3
+//		//	0x1000	intc_rtcl_1
+//		//	0x2000	intc_rtcl_2
+//		//	0x3000	intc_rtcl_3
 //		//	0x0040	intc_rtcm
 //		//	0x0017	intc_rtcn
 //		//	0x0040	intc_rtcr
+//		//	0x0000	intc_sgel_0
+//		//	0x0100	intc_sgel_1
+//		//	0x0200	intc_sgel_2
+//		//	0x0300	intc_sgel_3
+//		//	0x0010	intc_sgem
+//		//	0x0015	intc_sgen
+//		//	0x0010	intc_sger
 //		//	0x0000	intc_smrl1_0
 //		//	0x0004	intc_smrl1_1
 //		//	0x0008	intc_smrl1_2
@@ -580,16 +652,19 @@
 //		//	0xf15c	iomedat6
 //		//	0xf15e	iomedat7
 //		//	0x4000	iramtop
+//		//	0x8000	iramtop_rom32k
+//		//	0xc000	iramtop_rom48k
 //		//	0x0001	ivec_ve
-//		//	0x008a	lab_gl_got
+//		//	0x00ea	lab__xtoi_break
+//		//	0x00c4	lab__xtoi_loop
+//		//	0x00e2	lab__xtoi_next
+//		//	0x008a	lab_gl_break
 //		//	0x0040	lab_gl_loop
 //		//	0x006a	lab_gl_not_brdf
 //		//	0x005c	lab_gl_plus
 //		//	0x0026	lab_loop
-//		//	0x0096	lab_loop2
 //		//	0x00b2	lab_not_atm
-//		//	0x00e6	lab_x2i_finish
-//		//	0x00de	lab_x2i_next
+//		//	0x0096	lab_skp_spc
 //		//	0x00c2	lab_xtoi
 //		//	0x0007	led_builtin
 //		//	0x0001	led_builtin_b
@@ -609,6 +684,33 @@
 //		//	0xf076	logatcnd
 //		//	0xf074	logatmsk
 //		//	0x0014	max_lbuf
+//		//	0x00e0	poly_cmd_clr
+//		//	0x0010	poly_cmd_set
+//		//	0x0001	poly_cpu_1
+//		//	0x000a	poly_cpu_10
+//		//	0x000b	poly_cpu_11
+//		//	0x000c	poly_cpu_12
+//		//	0x000d	poly_cpu_13
+//		//	0x000e	poly_cpu_14
+//		//	0x0002	poly_cpu_2
+//		//	0x0003	poly_cpu_3
+//		//	0x0004	poly_cpu_4
+//		//	0x0005	poly_cpu_5
+//		//	0x0006	poly_cpu_6
+//		//	0x0007	poly_cpu_7
+//		//	0x0008	poly_cpu_8
+//		//	0x0009	poly_cpu_9
+//		//	0x000f	poly_ncpu
+//		//	0x0020	poly_pcie
+//		//	0x0010	poly_psie
+//		//	0x0080	poly_serr
+//		//	0xf1a0	polyctl
+//		//	0xf1a6	polyintm
+//		//	0xf1a4	polyintr
+//		//	0xf1a8	polysmph0
+//		//	0xf1aa	polysmph1
+//		//	0xf1ac	polysmph2
+//		//	0xf1ae	polysmph3
 //		//	0xf02c	porclr
 //		//	0xf0dc	porclr1
 //		//	0xf026	pordir
@@ -624,6 +726,23 @@
 //		//	0xf024	porsel
 //		//	0xf02a	porset
 //		//	0xf0da	porset1
+//		//	0x0001	port_0
+//		//	0x0002	port_1
+//		//	0x0004	port_10
+//		//	0x0008	port_11
+//		//	0x0010	port_12
+//		//	0x0020	port_13
+//		//	0x0040	port_14
+//		//	0x0080	port_15
+//		//	0x0004	port_2
+//		//	0x0008	port_3
+//		//	0x0010	port_4
+//		//	0x0020	port_5
+//		//	0x0040	port_6
+//		//	0x0080	port_7
+//		//	0x0001	port_8
+//		//	0x0002	port_9
+//		//	0xff00	prin_chr_m
 //		//	0x0002	prin_dec
 //		//	0x0000	prin_flt_0
 //		//	0x0004	prin_flt_1
@@ -638,19 +757,40 @@
 //		//	0xfff6	prinhex
 //		//	0xfff8	prinhlf
 //		//	0xfffc	prinhxl
-//		//	0x0110	prog_vers
+//		//	0x0112	prog_vers
 //		//	0x5000	ramtop
+//		//	0x9000	ramtop_rom32k
+//		//	0xd000	ramtop_rom48k
+//		//	0x003f	rtc_day_a
 //		//	0x0080	rtc_eavl
 //		//	0x0040	rtc_esel
 //		//	0x0040	rtc_houe
 //		//	0x0004	rtc_houf
+//		//	0x3f00	rtc_hour_a
+//		//	0x0008	rtc_hour_s
 //		//	0x0020	rtc_leap
 //		//	0x0020	rtc_mine
 //		//	0x0002	rtc_minf
+//		//	0x007f	rtc_minute_a
+//		//	0x1f00	rtc_month_a
+//		//	0x0008	rtc_month_s
+//		//	0x00ff	rtc_psc_a
+//		//	0x00fa	rtc_psc_max
 //		//	0x0002	rtc_rtcw
+//		//	0x7f00	rtc_sec_a
+//		//	0x0008	rtc_sec_s
 //		//	0x0010	rtc_sece
 //		//	0x0001	rtc_secf
 //		//	0x0001	rtc_snap
+//		//	0x0000	rtc_week_0
+//		//	0x0001	rtc_week_1
+//		//	0x0002	rtc_week_2
+//		//	0x0003	rtc_week_3
+//		//	0x0004	rtc_week_4
+//		//	0x0005	rtc_week_5
+//		//	0x0006	rtc_week_6
+//		//	0x0007	rtc_week_a
+//		//	0x03ff	rtc_year_a
 //		//	0xf120	rtcctl
 //		//	0xf128	rtchrmi
 //		//	0xf122	rtcintc
@@ -665,6 +805,7 @@
 //		//	0x1100	simc_int0_1
 //		//	0x2000	simc_int1_0
 //		//	0x2200	simc_int1_1
+//		//	0x00ff	simc_intw_ff
 //		//	0x0001	simc_noto
 //		//	0x0002	simc_rtck
 //		//	0x0004	simc_tsim
@@ -704,6 +845,60 @@
 //		//	0xf088	smphusra
 //		//	0xf08a	smphusrb
 //		//	0xf08c	smphusrc
+//		//	0x0002	sndg_busy
+//		//	0x0001	sndg_enbl
+//		//	0x0010	sndg_femp
+//		//	0x0020	sndg_fful
+//		//	0x0080	sndg_frst
+//		//	0x007f	sndg_leng_1
+//		//	0x0000	sndg_leng_128
+//		//	0x0007	sndg_leng_16
+//		//	0x003f	sndg_leng_2
+//		//	0x0003	sndg_leng_32
+//		//	0x001f	sndg_leng_4
+//		//	0x0001	sndg_leng_64
+//		//	0x000f	sndg_leng_8
+//		//	0x007f	sndg_leng_a
+//		//	0xf000	sndg_mscl_a
+//		//	0x9000	sndg_mscl_ab
+//		//	0xa000	sndg_mscl_an
+//		//	0xb000	sndg_mscl_as
+//		//	0xb000	sndg_mscl_bb
+//		//	0xc000	sndg_mscl_bn
+//		//	0x1000	sndg_mscl_cn
+//		//	0x2000	sndg_mscl_cs
+//		//	0x2000	sndg_mscl_db
+//		//	0x3000	sndg_mscl_dn
+//		//	0x4000	sndg_mscl_ds
+//		//	0x4000	sndg_mscl_eb
+//		//	0x5000	sndg_mscl_en
+//		//	0x6000	sndg_mscl_fn
+//		//	0x7000	sndg_mscl_fs
+//		//	0x7000	sndg_mscl_gb
+//		//	0x8000	sndg_mscl_gn
+//		//	0x9000	sndg_mscl_gs
+//		//	0xf000	sndg_mscl_r
+//		//	0x000c	sndg_mscl_s
+//		//	0x0080	sndg_nocl
+//		//	0x0000	sndg_octv_0
+//		//	0x0100	sndg_octv_1
+//		//	0x0200	sndg_octv_2
+//		//	0x0300	sndg_octv_3
+//		//	0x0400	sndg_octv_4
+//		//	0x0500	sndg_octv_5
+//		//	0x0600	sndg_octv_6
+//		//	0x0700	sndg_octv_7
+//		//	0x0800	sndg_octv_8
+//		//	0x0f00	sndg_octv_a
+//		//	0x0008	sndg_octv_s
+//		//	0x0004	sndg_sgee
+//		//	0x0008	sndg_sgef
+//		//	0xf1c0	sndgctl0
+//		//	0xf1c8	sndgctl1
+//		//	0xf1c6	sndgfifo0
+//		//	0xf1ce	sndgfifo1
+//		//	0xf1c4	sndgt1280
+//		//	0xf1cc	sndgt1281
 //		//	0x7f800000	sngl_inf
 //		//	0xff800000	sngl_inf_n
 //		//	0x7f7fffff	sngl_max
@@ -724,6 +919,8 @@
 //		//	0x000a	sreg_b_dr
 //		//	0x000c	sreg_b_id0
 //		//	0x000d	sreg_b_id1
+//		//	0x000e	sreg_b_id2
+//		//	0x000f	sreg_b_id3
 //		//	0x0003	sreg_b_ie
 //		//	0x0002	sreg_b_ie0
 //		//	0x0003	sreg_b_ie1
@@ -742,8 +939,20 @@
 //		//	0x00f0	sreg_fg
 //		//	0x0000	sreg_id_0
 //		//	0x1000	sreg_id_1
+//		//	0xa000	sreg_id_10
+//		//	0xb000	sreg_id_11
+//		//	0xc000	sreg_id_12
+//		//	0xd000	sreg_id_13
+//		//	0xe000	sreg_id_14
+//		//	0xf000	sreg_id_15
 //		//	0x2000	sreg_id_2
 //		//	0x3000	sreg_id_3
+//		//	0x4000	sreg_id_4
+//		//	0x5000	sreg_id_5
+//		//	0x6000	sreg_id_6
+//		//	0x7000	sreg_id_7
+//		//	0x8000	sreg_id_8
+//		//	0x9000	sreg_id_9
 //		//	0x0008	sreg_ie
 //		//	0x0000	sreg_ie_0
 //		//	0x0004	sreg_ie_1
@@ -755,6 +964,21 @@
 //		//	0x0200	sreg_sd
 //		//	0x0020	sreg_vf
 //		//	0x0010	sreg_zf
+//		//	0x0040	stft_pinv
+//		//	0x0001	stft_port_0
+//		//	0x0002	stft_port_1
+//		//	0x0004	stft_port_2
+//		//	0x0008	stft_port_3
+//		//	0x0010	stft_port_4
+//		//	0x0020	stft_port_5
+//		//	0x003f	stft_port_a
+//		//	0x0080	stft_pwme
+//		//	0xf190	stftctl
+//		//	0xf196	stftduty
+//		//	0xf194	stftpclr
+//		//	0xf192	stftpind
+//		//	0xf194	stftpins
+//		//	0xf192	stftpset
 //		//	0xf0a6	stwmbaud
 //		//	0xf0a0	stwmctl
 //		//	0xf0a2	stwmdatr
@@ -845,6 +1069,14 @@
 //		//	0xf166	tleddtyr
 //		//	0xf162	tledintc
 //		//	0xf164	tledpsc
+//		//	0xf1b8	trng0cnth
+//		//	0xf1ba	trng0cntl
+//		//	0xf1bc	trng1cnth
+//		//	0xf1be	trng1cntl
+//		//	0xf1b0	trngrandh
+//		//	0xf1b2	trngrandl
+//		//	0xf1b4	trngtlcgh
+//		//	0xf1b6	trngtlcgl
 //		//	0x09c3	uart_baud
 //		//	0x0020	uart_brdf
 //		//	0x0002	uart_ctse
@@ -910,18 +1142,18 @@
 //		// ================================
 //		default: dat[15:0]=16'hffff;
 //		endcase
-//		wire	[15:0]	romsiz=16'h00e8;	// 232 bytes
+//		wire	[15:0]	romsiz=16'h00ec;	// 236 bytes
 //	endmodule
 // ================================
 // Assemble data:
 //
 module	mcoc_boot (
-// Moscovium series macro assembler ver.1.44
+// Moscovium series macro assembler ver.1.58
 input	[5:0]	adr,
 output	reg		[31:0]	dat);
 always	@(adr[5:0])
 	case (adr[5:0])
-	6'h00: dat[31:0]=32'h0801_0110;
+	6'h00: dat[31:0]=32'h0801_0112;
 	6'h01: dat[31:0]=32'hc7f0_bf0c;
 	6'h02: dat[31:0]=32'h7b87_bf0e;
 	6'h03: dat[31:0]=32'h7bbf_7987;
@@ -971,15 +1203,16 @@ always	@(adr[5:0])
 	6'h2f: dat[31:0]=32'h7bf0_9e02;
 	6'h30: dat[31:0]=32'h0fea_b000;
 	6'h31: dat[31:0]=32'h7b11_a230;
-	6'h32: dat[31:0]=32'h280e_aa0a;
-	6'h33: dat[31:0]=32'h2808_a207;
-	6'h34: dat[31:0]=32'h280a_aa10;
-	6'h35: dat[31:0]=32'h2804_a220;
-	6'h36: dat[31:0]=32'h2806_aa10;
-	6'h37: dat[31:0]=32'h2004_d804;
-	6'h38: dat[31:0]=32'h7982_9901;
-	6'h39: dat[31:0]=32'h0fef_0002;
+	6'h32: dat[31:0]=32'h2810_aa0a;
+	6'h33: dat[31:0]=32'h280a_a211;
+	6'h34: dat[31:0]=32'h280c_9a0a;
+	6'h35: dat[31:0]=32'haa10_2805;
+	6'h36: dat[31:0]=32'ha22a_2807;
+	6'h37: dat[31:0]=32'h9a0a_aa10;
+	6'h38: dat[31:0]=32'h2004_d804;
+	6'h39: dat[31:0]=32'h7982_9901;
+	6'h3a: dat[31:0]=32'h0fed_0002;
 	default: dat[31:0]=32'hffff_ffff;
 	endcase
-	wire	[15:0]	romsiz=16'd232;	// byte
+	wire	[15:0]	romsiz=16'd236;	// byte
 endmodule

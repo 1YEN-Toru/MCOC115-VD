@@ -45,7 +45,7 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'hb242
+`define		MCOC_VERS		16'h0244
 
 
 //
@@ -53,9 +53,13 @@ input	adcx_ain1n);
 //		(c) 2021,2023	1YEN Toru
 //
 //
+//	2026/03/14	ver.2.44
+//		corresponding to Nihonium-PI
+//		add: compile option MCOC_CORE_NHPI
+//
 //	2025/12/20	ver.2.42
 //		corresponding to updated fetch bus I/F
-//			fcmd[1]: fcmdl, long word fetch
+//			fcmd[1]: fcmdl, long word fetch command
 //			fcmd[0]: fcmdr, read command
 //			frdy: fetch bus ready
 //		upd: compile options
@@ -252,6 +256,8 @@ input	adcx_ain1n);
 defparam	idrg.idcode=16'h1170;
 `elsif		MCOC_CORE_NHSS
 defparam	idrg.idcode=16'h113a;
+`elsif		MCOC_CORE_NHPI
+defparam	idrg.idcode=16'h113b;
 `elsif		MCOC_CORE_NH
 defparam	idrg.idcode=16'h1130;
 `elsif		MCOC_CORE_MCSS
@@ -263,7 +269,7 @@ defparam	idrg.idcode=16'h1150;
 `endif
 defparam	idrg.versno=`MCOC_VERS;
 defparam	idrg.fcpuhz=
-				((`MCOC_FCPU_MHZ>>4)*10 + (`MCOC_FCPU_MHZ & 8'h0f))*1000;
+				((`MCOC_FCPU_MHZ>>4)*10 + (`MCOC_FCPU_MHZ&8'h0f))*1000;
 defparam	idrg.edcode=`MCOC_CODE_ED;
 `ifdef		MCOC_ERAM
 defparam	idrg.romtop=$clog2 (`MCOC_ERAM);
@@ -824,7 +830,7 @@ wire	[31:0]	bdatr_iram1;
 mcoc_iram	iram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmdl1),	// Input
+	.fcmdl(fcmd1[1]),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
@@ -844,7 +850,7 @@ wire	[31:0]	bdatr_iram2;
 mcoc_iram	iram2 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmdl2),	// Input
+	.fcmdl(fcmd2[1]),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
@@ -1303,9 +1309,9 @@ assign	tled_ledr_n=~tled_ledr;
 assign	tled_ledg_n=~tled_ledg;
 assign	tled_ledb_n=~tled_ledb;
 `else	//	MCOC_TIML
-assign	tled_ledr_n=~(port_enb[1] & (~port_out_o[1]));
-assign	tled_ledg_n=~(port_enb[2] & (~port_out_o[2]));
-assign	tled_ledb_n=~(port_enb[0] & (~port_out_o[0]));
+assign	tled_ledr_n=~(port_enb[1]&(~port_out_o[1]));
+assign	tled_ledg_n=~(port_enb[2]&(~port_out_o[2]));
+assign	tled_ledb_n=~(port_enb[0]&(~port_out_o[0]));
 assign	tled_led1=1'b0;
 assign	tled_led2=1'b0;
 assign	tled_lofr=1'b0;

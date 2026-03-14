@@ -5,11 +5,13 @@
 
 ## 12 MHz Clock Signal
 set_property -dict {PACKAGE_PIN L17 IOSTANDARD LVCMOS33} [get_ports sys_clock]
-#create_clock -name sys_clock -period 80.000 -waveform {0.000 40.000} [get_ports sys_clock];	# to change frequency
-#create_clock -name sys_clock -period 60.000 -waveform {0.000 30.000} [get_ports sys_clock];	# fclk=33.3MHz
-#create_clock -name sys_clock -period 50.000 -waveform {0.000 25.000} [get_ports sys_clock];	# fclk=40MHz
 create_generated_clock -name clk -source [get_pins clkg/inst/mmcm_adv_inst/CLKIN1] -master_clock [get_clocks sys_clock] [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0]
-#create_clock -name clk -period 40.000 -waveform {0.000 20.000} -add [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0];	# also OK, fclk=25MHz
+## to change clock frequency for trial (ignore Critical Warning)
+#create_clock -name clk -period 40.000 -waveform {0.000 20.000} -add [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0];	# fclk=25MHz
+#create_clock -name clk -period 31.250 -waveform {0.000 15.625} -add [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0];	# fclk=32MHz
+#create_clock -name clk -period 25.000 -waveform {0.000 12.500} -add [get_pins clkg/inst/mmcm_adv_inst/CLKOUT0];	# fclk=40MHz
+## also OK (sys_clock=clk/2)
+#create_clock -name sys_clock -period 80.000 -waveform {0.000 40.000} [get_ports sys_clock];	# fclk=25MHz
 
 ## LEDs
 set_property -dict {PACKAGE_PIN A17 IOSTANDARD LVCMOS33} [get_ports tled_led1]

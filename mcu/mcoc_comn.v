@@ -145,6 +145,9 @@ wire	signed	[32:0]	core_dsp_b;
 wire	signed	[65:0]	core_dsp_c=core_dsp_a*core_dsp_b;
 
 
+wire	fcmd2_open;
+wire	[15:0]	fadrx;
+
 nihoniumpi	core (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -156,8 +159,8 @@ nihoniumpi	core (
 	.irq_vec(irq_vec[5:0]),	// Input
 	.fdat({ fdatx[15:0],fdat[15:0] }),	// Input
 	.bdatr({ bdatrx[15:0],bdatr[15:0] }),	// Input
-	.fcmd(fcmd[1:0]),	// Output
-	.fadr(fadr[15:0]),	// Output
+	.fcmd({ fcmd2_open,fcmd[1:0] }),	// Output
+	.fadr({ fadrx[15:0],fadr[15:0] }),	// Output
 	.bcmd(bcmd[3:0]),	// Output
 	.badr({ badrx[15:0],badr[15:0] }),	// Output
 	.bdatw({ bdatwx[15:0],bdatw[15:0] }),	// Output
@@ -444,7 +447,7 @@ wire	[15:0]	cbus_hfpu=16'h0;
 
 
 // co-processor bus output
-assign	crdy=crdy_mulc & crdy_divc & crdy_hfpu;
+assign	crdy=crdy_mulc&crdy_divc&crdy_hfpu;
 assign	cbus_i[15:0]=cbus_mulc[15:0] | cbus_divc[15:0] | cbus_hfpu[15:0];
 
 endmodule
@@ -1026,7 +1029,7 @@ output	[31:0]	bdatr);
 
 
 // bus
-wire	[15:0]	badr_m=badr[15:0] & (`MCOC_RAM_LE1K - 1);
+wire	[15:0]	badr_m=badr[15:0]&(`MCOC_RAM_LE1K - 1);
 
 // ram mat
 (* ram_style = "distributed" *)
@@ -1558,8 +1561,8 @@ wire	bcs_ram_n=(!bcs_extadr &&
 			16'h5000<=badr[15:0] && badr[15:0]<16'hf000)? 1'b0: 1'b1;
 `endif
 assign	bcs_iou_n=(!bcs_extadr && 16'hf000<=badr[15:0])? 1'b0: 1'b1;
-assign	bcs_eram_n=((badr[23:16] & 8'hf8)==8'h08)? 1'b0: 1'b1;
-assign	bcs_sram_n=((badr[23:16] & 8'hf8)==8'h10)? 1'b0: 1'b1;
+assign	bcs_eram_n=((badr[23:16]&8'hf8)==8'h08)? 1'b0: 1'b1;
+assign	bcs_sram_n=((badr[23:16]&8'hf8)==8'h10)? 1'b0: 1'b1;
 assign	bcs_sdram_n=(badr[23])? 1'b0: 1'b1;
 
 // access
@@ -1567,11 +1570,11 @@ assign	bcs_acc_2=(!bcs_extadr && 16'hfff0<=badr[15:0])? 1'b1: 1'b0;
 wire	bcs_acc_l1_16a=(badr1[23:0]<24'h00_f000)? 1'b1: 1'b0;
 wire	bcs_acc_l2_16a=(badr2[23:0]<24'h00_f000)? 1'b1: 1'b0;
 wire	bcs_acc_l1_24a=(
-			(badr1[23:16] & 8'hf8)==8'h08 ||
-			(badr1[23:16] & 8'hf8)==8'h10)? 1'b1: 1'b0;
+			(badr1[23:16]&8'hf8)==8'h08 ||
+			(badr1[23:16]&8'hf8)==8'h10)? 1'b1: 1'b0;
 wire	bcs_acc_l2_24a=(
-			(badr2[23:16] & 8'hf8)==8'h08 ||
-			(badr2[23:16] & 8'hf8)==8'h10)? 1'b1: 1'b0;
+			(badr2[23:16]&8'hf8)==8'h08 ||
+			(badr2[23:16]&8'hf8)==8'h10)? 1'b1: 1'b0;
 assign	bcs_acc_l1=bcs_acc_l1_16a | bcs_acc_l1_24a;
 assign	bcs_acc_l2=bcs_acc_l2_16a | bcs_acc_l2_24a;
 

@@ -77,7 +77,7 @@ always
 wire	clk=top.clkg.clk_out;
 
 // reference clock, MCOC_FCPU_MHZ and duty 50%
-parameter	fclk_mhz=((`MCOC_FCPU_MHZ)>>4)*10 + (`MCOC_FCPU_MHZ & 8'h0f);
+parameter	fclk_mhz=((`MCOC_FCPU_MHZ)>>4)*10 + (`MCOC_FCPU_MHZ&8'h0f);
 reg		fclk_ref;
 always
 	begin
@@ -661,6 +661,8 @@ reg		[15:0]	inst_msk;
 reg		[15:0]	inst_cod;
 `ifdef		MCOC_CORE_NHSS
 wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
+`elsif		MCOC_CORE_NHPI
+wire	[15:0]	inst_ir=top.cpu.core.eastg.ir[15:0];
 `elsif		MCOC_CORE_MCSS
 wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
 `elsif		MCOC_POLY

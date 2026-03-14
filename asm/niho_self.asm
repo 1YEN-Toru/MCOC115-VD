@@ -4,6 +4,9 @@
 //		(c) 2022,2023	1YEN Toru
 //
 //
+//		2026/03/14	ver.1.16
+//			add: iden
+//
 //		2025/12/13	ver.1.14
 //			add: niho_self_b.asm; mcoc_has_xadr2 (extended address test)
 //				mcoc_has_xadr2=0x08_0000: for `define MCOC_ERAM
@@ -38,7 +41,25 @@
 // ================================
 asm		"mcoc_irom.mem"
 incl	"mcoc115.incl"
+# ================================
+# string macros
 def		s,""							// simulation "" / fpga "#"
+# ================================
+# user macros
+macro	ldrto	rd,ofst
+# load $(rd),ramtop+$(ofst)
+ldwi	$(rd),idrgramt
+ldw		$(rd),[$(rd)]
+addi	$(rd),$(ofst)
+endm
+#
+macro	ldrtow	rd,ofst,rn
+# load $(rd),ramtop+$(ofst)
+ldwi	$(rd),idrgramt
+ldw		$(rd),[$(rd)]
+ldwi	$(rn),$(ofst)
+add		$(rd),$(rn)
+endm
 # ================================
 
 
@@ -56,7 +77,6 @@ beq		reg_fail
 // register check
 // ================================
 clsr	sreg_b_nh
-#ldc		sp,ramtop+0x0200
 ldc		sp,iome_botm
 // bank 0 (nh=0)
 ldcl	sr,sreg_bk_0
@@ -173,11 +193,7 @@ bne		opc_no_fail
 // rtnw
 ldbiu	r1,0
 ldbiu	r2,0
-#ldwi	r4,ramtop+24
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,24
-#
+ldrto	r4,24
 movtc	sp,r4
 ldwi	r0,lab_rtnw_pass1
 pushw	r0
@@ -194,12 +210,8 @@ cmpi	r2,1
 bne		opc_no_fail
 // ================================
 // rti
-#ldc		sp,ramtop+6
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-addi	r0,6
+ldrto	r0,6
 movtc	sp,r0
-#
 ldc		iv,lab_rti_vect
 // interrupt emulation
 movfc	r1,iv
@@ -225,12 +237,7 @@ rti										// **
 rti_pass:
 // ================================
 // link
-#ldwi	r0,ramtop+0x2000
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-ldwi	r1,0x2000
-add		r0,r1
-#
+ldrtow	r0,0x2000,r1
 movtc	sp,r0
 link	0x1234							// **
 movfc	r1,sp
@@ -246,19 +253,9 @@ cmp		r1,r0
 bne		opc_no_fail
 // ================================
 // unlk
-#ldc		sp,ramtop+0x320
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-ldwi	r1,0x0320
-add		r0,r1
+ldrtow	r0,0x0320,r1
 movtc	sp,r0
-#
-#ldwi	r1,ramtop+0x1abc
-ldwi	r1,idrgramt
-ldw		r1,[r0]
-ldwi	r0,0x1abc
-add		r1,r0
-#
+ldrtow	r1,0x1abc,r0
 pushl	r1
 unlk									// **
 movfc	r2,sp
@@ -282,11 +279,7 @@ bne		opc_no_fail
 // rtnl
 ldbiu	r1,0
 ldbiu	r2,0
-#ldwi	r4,ramtop+0x34
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x34
-#
+ldrto	r4,0x34
 movtc	sp,r4
 ldwi	r0,lab_rtnl_pass1
 pushl	r0
@@ -300,6 +293,13 @@ movfc	r3,sp
 cmp		r3,r4
 bne		opc_no_fail
 cmpi	r2,1
+bne		opc_no_fail
+// ================================
+// iden
+ldbiu	r0,0
+iden									// **
+lsri	r0,8
+cmpi	r0,0x11
 bne		opc_no_fail
 
 // ================================
@@ -377,12 +377,8 @@ cmpi	r5,sreg_nf
 bne		opc_r_fail
 // ================================
 // pushl
-#ldc		sp,ramtop+86
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-addi	r0,86
+ldrto	r0,86
 movtc	sp,r0
-#
 movfc	r1,sp
 ldli	r2,0x6789abcd
 pushl	r2								// **
@@ -398,10 +394,7 @@ cmp		r3,r1
 bne		opc_r_fail
 // ================================
 // popl
-#ldc		sp,ramtop+44
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-addi	r0,44
+ldrto	r0,44
 movtc	sp,r0
 #
 movfc	r2,sp
@@ -418,11 +411,7 @@ cmp		r2,r6
 bne		opc_r_fail
 // ================================
 // pushcl
-#ldwi	r3,ramtop+0x24
-ldwi	r3,idrgramt
-ldw		r3,[r3]
-addi	r3,0x24
-#
+ldrto	r3,0x24
 movtc	sp,r3
 ldli	r4,0x02468ace
 movtc	tr,r4
@@ -436,11 +425,7 @@ cmp		r5,r4
 bne		opc_r_fail
 // ================================
 // popcl
-#ldwi	r4,ramtop+0x50
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x50
-#
+ldrto	r4,0x50
 movtc	sp,r4
 ldli	r5,0x13579abdf
 pushl	r5
@@ -457,11 +442,7 @@ bne		opc_r_fail
 // ================================
 // jall
 ldbiu	r3,0
-#ldwi	r4,ramtop+0x18
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x18
-#
+ldrto	r4,0x18
 movtc	sp,r4
 ldwi	r7,lab_jall_addr1
 jall	r7								// **
@@ -572,11 +553,7 @@ cmpi	r2,sreg_nf
 bne		opc_r_fail
 // ================================
 // pushw
-#ldwi	r1,ramtop+0x3c
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-addi	r1,0x3c
-#
+ldrto	r1,0x3c
 movtc	sp,r1
 ldli	r2,0xeca86420
 pushw	r2								// **
@@ -590,11 +567,7 @@ cmp		r4,r2
 bne		opc_r_fail
 // ================================
 // popw
-#ldwi	r2,ramtop+0x30
-ldwi	r2,idrgramt
-ldw		r2,[r2]
-addi	r2,0x30
-#
+ldrto	r2,0x30
 movtc	sp,r2
 ldli	r3,0x1e3c5a69
 stl		[r2],r3
@@ -608,11 +581,7 @@ cmp		r5,r2
 bne		opc_r_fail
 // ================================
 // pushcw
-#ldwi	r3,ramtop+0x88
-ldwi	r3,idrgramt
-ldw		r3,[r3]
-addi	r3,0x88
-#
+ldrto	r3,0x88
 movtc	sp,r3
 ldli	r4,0x13579bdf
 movtc	tr,r4
@@ -627,11 +596,7 @@ cmp		r5,r4
 bne		opc_r_fail
 // ================================
 // popcw
-#ldwi	r4,ramtop+0x4a
-ldwi	r4,idrgramt
-ldw		r4,[r4]
-addi	r4,0x4a
-#
+ldrto	r4,0x4a
 movtc	sp,r4
 ldli	r5,0x90817263
 pushl	r5
@@ -661,12 +626,7 @@ opc_r_pass:
 // opcode RR
 // ================================
 // ldl
-#ldwi	r0,ramtop+0x0248
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-ldwi	r1,0x0248
-add		r0,r1
-#
+ldrtow	r0,0x0248,r1
 ldwi	r1,0xcdef
 ldwi	r2,0x4567
 stw		[r0],r1
@@ -680,12 +640,7 @@ cmp		r3,r1
 bne		opc_rr_fail
 // ================================
 // stl
-#ldwi	r1,ramtop+0x010e
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-ldwi	r0,0x010e
-add		r1,r0
-#
+ldrtow	r1,0x010e,r0
 ldli	r2,0xabcd0123
 stl		[r1],r2							// **
 ldw		r3,[r1]
@@ -697,13 +652,8 @@ cmp		r3,r2
 bne		opc_rr_fail
 // ================================
 // ldlsp
-#ldc		sp,ramtop+0x0158
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-ldwi	r1,0x0158
-add		r0,r1
+ldrtow	r0,0x0158,r1
 movtc	sp,r0
-#
 ldwi	r2,0xace0
 ldwi	r3,0x3579
 ldbiu	r4,0x46
@@ -723,13 +673,8 @@ cmp		r5,r2
 bne		opc_rr_fail
 // ================================
 // stlsp
-#ldc		sp,ramtop+0x0052
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-ldwi	r1,0x0052
-add		r0,r1
+ldrtow	r0,0x0052,r1
 movtc	sp,r0
-#
 ldbiu	r3,0x22
 ldli	r4,0x7654edcb
 stlsp	[r3],r4							// **
@@ -794,12 +739,7 @@ cmpi	r1,sreg_nf
 bne		opc_rr_fail
 // ================================
 // movtc
-#ldwi	r0,ramtop+0x134
-ldwi	r0,idrgramt
-ldw		r0,[r0]
-ldwi	r1,0x0134
-add		r0,r1
-#
+ldrtow	r0,0x0134,r1
 ldcl	sr,sreg_fg
 movtc	sp,r0							// **
 bmi		opc_rr_fail
@@ -896,12 +836,7 @@ bne		opc_rr_fail
 // ================================
 // ldb
 ldwi	r5,0x786c
-#ldwi	r6,ramtop+0x208
-ldwi	r6,idrgramt
-ldw		r6,[r6]
-ldwi	r0,0x0208
-add		r6,r0
-#
+ldrtow	r6,0x0208,r0
 stw		[r6],r5
 ldb		r7,[r6]							// **
 addi	r6,1
@@ -913,12 +848,7 @@ bne		opc_rr_fail
 // ================================
 // stb
 ldwi	r6,0xc35a
-#ldwi	r7,ramtop+0x11
-ldwi	r7,idrgramt
-ldw		r7,[r7]
-ldwi	r0,0x0011
-add		r7,r0
-#
+ldrtow	r7,0x0011,r0
 mov		r0,r6
 lsfti	r0,-8
 stb		[r7],r6							// **
@@ -938,12 +868,7 @@ bne		opc_rr_fail
 // ================================
 // stw
 ldwi	r0,0xa9b8
-#ldwi	r1,ramtop+0x74
-ldwi	r1,idrgramt
-ldw		r1,[r1]
-ldwi	r2,0x0074
-add		r1,r2
-#
+ldrtow	r1,0x0074,r2
 stw		[r1],r0							// **
 ldw		r2,[r1]
 cmp		r2,r0
@@ -1025,12 +950,7 @@ bne		opc_rr_fail
 // ================================
 // ldwsp
 ldbiu	r5,0x1e
-#ldwi	r6,ramtop+0x128
-ldwi	r6,idrgramt
-ldw		r6,[r6]
-ldwi	r1,0x0128
-add		r6,r1
-#
+ldrtow	r6,0x0128,r1
 movtc	sp,r6
 ldwi	r7,0x7654
 ldc		tr,0
@@ -1045,12 +965,7 @@ bne		opc_rr_fail
 // ================================
 // stwsp
 ldbiu	r6,0x24
-#ldwi	r7,ramtop+0x202
-ldwi	r7,idrgramt
-ldw		r7,[r7]
-ldwi	r1,0x0202
-add		r7,r1
-#
+ldrtow	r7,0x0202,r1
 movtc	sp,r7
 ldwi	r0,0x659a
 stwsp	[r6],r0							// **

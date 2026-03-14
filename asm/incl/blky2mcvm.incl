@@ -57,6 +57,7 @@
 //		2024/07/27	ver.1.00
 //
 // ================================
+# ================================
 # constants
 equ		_rtlb_vers,0x0124				// beta(1),major(1),minor(2)
 equ		_rtlb_null,0x0000				// NULL pointer

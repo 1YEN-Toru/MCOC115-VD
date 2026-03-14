@@ -29,7 +29,10 @@
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO/rindex.html#RI_SPRSCL)
 5. Nihonium
 	- 32 bit data path
-6. Nihonium-SS
+6. Nihonium-PI
+	- 32 bit data path
+	- [Pipeline](https://hello.world.coocan.jp/ARDUINO38/arduino38-6.html#NHPI)
+7. Nihonium-SS
 	- 32 bit data path * 2
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 
@@ -42,7 +45,7 @@
 - SMP and AMP dual core CPU edition available.
 	- [SMP](https://hello.world.coocan.jp/ARDUINO17/arduino17_1.html) (Symmetric Multi-Processing)
 	- [AMP](https://hello.world.coocan.jp/ARDUINO29/arduino29_6.html) (Asymmetric Multi-Processing)
-	- Moscovium / Moscovium-SS / Nihonium / Nihonium-SS can be selected as SMP, and AMP main CPU.
+	- Moscovium / Moscovium-SS / Nihonium / Nihonium-PI / Nihonium-SS can be selected as SMP, and AMP main CPU.
 	- Moscovium / Tennessine can be selected as AMP sub CPU.
 - SMP poly-core CPU edition available.
 	- [Poly-core](https://hello.world.coocan.jp/ARDUINO33/arduino33_5.html) (The poly-core CPU is the same meaning as multi-core CPU.)
@@ -53,7 +56,7 @@
 ## Development of software
  Moscovium series MCU can be developed using an assembler or Blockly.
 
-- Macro assembler: [asm_mcvm.olv](asm/asm_mcvm.olv)
+- Moscovium macro assembler: [asm_mcvm.olv](asm/asm_mcvm.olv)
 	- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
 	- You need install Olive+ on your Windows PC.
 	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
@@ -117,6 +120,9 @@
 - [Moscovium-SS](https://hello.world.coocan.jp/ARDUINO21/arduino21_3.html#CPUMTRX)
 	- Original 16 bit CPU core
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO/rindex.html#RI_SPRSCL) edition
+- [Nihonium-PI](https://hello.world.coocan.jp/ARDUINO38/arduino38-6.html#NHPI)
+	- Original 32 bit CPU core
+	- [Pipeline](https://hello.world.coocan.jp/ARDUINO38/arduino38-6.html#NHPI) edition
 - [Nihonium-SS](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 	- Original 32 bit CPU core
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS) edition
@@ -293,7 +299,7 @@
 	- [FPGA board pin assignment](https://hello.world.coocan.jp/ARDUINO27/a274_mcoc115.html#PINTOP)
 	- [Blockly for Moscovium manual](https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
 		- [Blockly.XML to Moscovium.ASM translator](https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#TRANS)
-	- [Macro assembler manual](https://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
+	- [Moscovium macro assembler manual](https://hello.world.coocan.jp/ARDUINO15/a153_assembler.html#ASM)
 		- [Moscovium instruction set manual](https://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](https://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)
 		- [Tennessine instruction set manual](https://hello.world.coocan.jp/ARDUINO26/a263_instset.html#MANTOP)

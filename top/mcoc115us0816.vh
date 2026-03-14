@@ -23,6 +23,7 @@
 // CPU core
 //`define		MCOC_CORE_TS
 //`define		MCOC_CORE_NH
+//`define		MCOC_CORE_NHPI
 //`define		MCOC_CORE_NHSS
 //`define		MCOC_CORE_MCBS
 //`define		MCOC_CORE_MCSS

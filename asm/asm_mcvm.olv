@@ -1,11 +1,14 @@
 model	"Moscovium series macro assembler"
 {
 	macro	prog_name="Moscovium series macro assembler";
-	macro	prog_vers="1.56";
+	macro	prog_vers="1.58";
 // ================================
 // Moscovium series macro assembler
 //		(c) 2021	1YEN Toru
 //
+//
+//		2026/03/14	ver.1.58
+//			instruction: iden
 //
 //		2025/12/06	ver.1.56
 //			add: alias: hdown / fdown
@@ -156,11 +159,11 @@ model	"Moscovium series macro assembler"
 	var		TGTMCVM=1;					// target core: Moscovium
 	var		TGTNIHO=2;					// target core: Nihonium
 	var		TGTTNSN=3;					// target core: Tennessine
-	var		MAX_NO=14;					// maximum index of NO instructions
-	var		MAX_BR=27;					// maximum index of BR instructions
-	var		MAX_RR=88;					// maximum index of RR instructions
-	var		MAX_R=114;					// maximum index of R instructions
-	var		MAX_RI=128;					// maximum index of RI instructions
+	var		MAX_NO=15;					// maximum index of NO instructions
+	var		MAX_BR=28;					// maximum index of BR instructions
+	var		MAX_RR=89;					// maximum index of RR instructions
+	var		MAX_R=115;					// maximum index of R instructions
+	var		MAX_RI=129;					// maximum index of RI instructions
 	var		MSIZ=6;						// maximum mnemonic size
 	macro	mnem_list=
 			"nop   "
@@ -177,6 +180,7 @@ model	"Moscovium series macro assembler"
 			"rtnl  "
 			"divlqr"
 			"divlrr"
+			"iden  "
 			"bra   "
 			"bne   "
 			"beq   "
@@ -311,6 +315,7 @@ model	"Moscovium series macro assembler"
 			"000Bn"
 			"000Cm"
 			"000Dm"
+			"000Et"
 			"0800 "
 			"1000 "
 			"1800 "
@@ -1542,7 +1547,7 @@ model	"Moscovium series macro assembler"
 			fprint	fout,"// fldi "$(opr1)",# (="$(opr2)")"$,,$(opr2);
 			fprint	fout,"ldli	"$(opr1)$,;
 			// datw
-			fprint	fout,"datw	0+@(("$(dbl2sngl)")>>16)"$,;
+			fprint	fout,"datw	0+@((("$(dbl2sngl)")>>16)&0xffff)"$,;
 			fprint	fout,"datw	0+@(("$(dbl2sngl)")&0xffff)"$,;
 			return;
 		}
@@ -1759,7 +1764,7 @@ model	"Moscovium series macro assembler"
 			if (ptr)
 			{
 				// datw
-				fprint	fout,"datw	0+@(("$(get_word)")>>16)"$,;
+				fprint	fout,"datw	0+@((("$(get_word)")>>16)&0xffff)"$,;
 				fprint	fout,"datw	0+@(("$(get_word)")&0xffff)"$,;
 			}
 			return;

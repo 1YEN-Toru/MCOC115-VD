@@ -4,6 +4,9 @@
 //		(c) 2021	1YEN Toru
 //
 //
+//		2026/03/14	ver.1.32
+//			add: iden
+//
 //		2025/02/22	ver.1.30
 //			corresponding to poly-core cpu edition
 //
@@ -72,8 +75,8 @@ incl	"mcoc115.incl"
 # string macros
 def		s,""							// simulation "" / fpga "#"
 # constants
-equ		mcvm_has_mulc,1					// 1 for `define MCVM_COPR_MUL
-equ		mcvm_has_divc,1					// 1 for `define MCVM_COPR_DIV
+equ		mcvm_has_mulc,1					// 1 for `define MCVM_COPR_MUL or Nh
+equ		mcvm_has_divc,1					// 1 for `define MCVM_COPR_DIV or Nh
 equ		mcvm_has_divl,0					// 1 for `define MCVM_COPR_DIV and Mc
 equ		mcvm_has_hfpu,0					// 1 for `define MCVM_COPR_FPUH
 equ		mcvm_has_xadr,0					// 1 for `define MCOC_SDRAM_8M
@@ -336,6 +339,13 @@ brn										// **
 movfc	r0,sr
 andi	r0,sreg_fg
 cmpi	r0,0
+bne		opc_no_fail
+// ================================
+// iden
+ldbiu	r0,0
+iden									// **
+lsri	r0,8
+cmpi	r0,0x11
 bne		opc_no_fail
 
 // ********************************
