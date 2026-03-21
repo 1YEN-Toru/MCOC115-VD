@@ -31,7 +31,7 @@
 	- 32 bit data path
 6. Nihonium-PI
 	- 32 bit data path
-	- [Pipeline](https://hello.world.coocan.jp/ARDUINO38/arduino38-6.html#NHPI)
+	- [Pipeline](https://hello.world.coocan.jp/ARDUINO38/arduino38_6.html#NHPI)
 7. Nihonium-SS
 	- 32 bit data path * 2
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
@@ -120,9 +120,9 @@
 - [Moscovium-SS](https://hello.world.coocan.jp/ARDUINO21/arduino21_3.html#CPUMTRX)
 	- Original 16 bit CPU core
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO/rindex.html#RI_SPRSCL) edition
-- [Nihonium-PI](https://hello.world.coocan.jp/ARDUINO38/arduino38-6.html#NHPI)
+- [Nihonium-PI](https://hello.world.coocan.jp/ARDUINO38/arduino38_6.html#NHPI)
 	- Original 32 bit CPU core
-	- [Pipeline](https://hello.world.coocan.jp/ARDUINO38/arduino38-6.html#NHPI) edition
+	- [Pipeline](https://hello.world.coocan.jp/ARDUINO38/arduino38_6.html#NHPI) edition
 - [Nihonium-SS](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 	- Original 32 bit CPU core
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS) edition

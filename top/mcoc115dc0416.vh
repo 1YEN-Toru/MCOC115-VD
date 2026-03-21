@@ -1,7 +1,7 @@
 //
 //	Moscovium / Nihonium / Tennessine On Chip
 //		compile options definition module
-//		(c) 2023	1YEN Toru
+//		(c) 2021	1YEN Toru
 //
 //
 //	2021/07/31
