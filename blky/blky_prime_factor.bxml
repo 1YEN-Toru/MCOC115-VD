@@ -87,8 +87,8 @@
 <block type="variables_set" id="v%;c19q0SM@8szu$7%;s">
 <field name="VAR" id="f7LR2=G/W$^4i`oVB$JO">rm</field>
 <value name="VALUE">
-<block type="mcoc_math_binary" id="=J|OB#zGv8TcZ2r3r!0+">
-<field name="OP">%</field>
+<block type="mcoc_math_arithmetic" id="nMs1dY|yR0J=vS]QMI+X">
+<field name="OP">MODULO</field>
 <value name="A">
 <block type="variables_get" id="c=uL;@ZyCLMc1?sXRfKh">
 <field name="VAR" id="::htdbtFYwN{~qRSble1">nn</field>

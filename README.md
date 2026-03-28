@@ -83,7 +83,7 @@
 - Software development tools
 	- asm/
 		- Moscovium assembler
-		- Macro assembler and sample sources
+		- Macro assembler script and sample sources
 	- blky/
 		- Blockly for Moscovium
 		- Blockly.XML to Moscovium.ASM translator and sample sources

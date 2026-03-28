@@ -2,7 +2,7 @@ Blockly.Blocks['mcvm_cpu_asm'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("asm")
-        .appendField(new Blockly.FieldTextInput("cmpi r0,0"), "ASM")
+        .appendField(new Blockly.FieldTextInput("nop"), "ASM")
         .appendField(new Blockly.FieldImage("https://hello.world.coocan.jp/IMAGE/1YEN.png", 20, 20, { alt: "*", flipRtl: "FALSE" }));
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
@@ -89,7 +89,8 @@ Blockly.Blocks['mcvm_fpu_fdown'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField("fdown");
+        .appendField("fdown")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(0);
@@ -102,7 +103,8 @@ Blockly.Blocks['mcvm_fpu_ftoi'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField("ftoi");
+        .appendField("ftoi")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(0);
@@ -115,7 +117,8 @@ Blockly.Blocks['mcvm_fpu_isinf'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField("isinf");
+        .appendField("isinf")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Boolean");
     this.setColour(0);
@@ -128,7 +131,8 @@ Blockly.Blocks['mcvm_fpu_isnan'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField("isnan");
+        .appendField("isnan")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Boolean");
     this.setColour(0);
@@ -141,7 +145,8 @@ Blockly.Blocks['mcvm_fpu_itof'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField("itof");
+        .appendField("itof")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(0);
@@ -167,7 +172,8 @@ Blockly.Blocks['mcvm_sim_stat'] = {
 Blockly.Blocks['mcvm_sim_fail'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("sim fail (obsolete)");
+        .appendField("sim fail")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -180,7 +186,8 @@ Blockly.Blocks['mcvm_sim_fail'] = {
 Blockly.Blocks['mcvm_sim_pass'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("sim pass (obsolete)");
+        .appendField("sim pass")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -304,7 +311,7 @@ Blockly.Blocks['mcvm_mem_array_def'] = {
         .appendField("array")
         .appendField(new Blockly.FieldVariable("item"), "VAR");
     this.appendDummyInput()
-        .appendField("*")
+        .appendField("×")
         .appendField(new Blockly.FieldTextInput("12"), "SIZ");
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);
@@ -405,17 +412,17 @@ Blockly.Blocks['mcoc_controls_loop'] = {
   }
 };
 
-Blockly.Blocks['mcoc_math_binary'] = {
+Blockly.Blocks['mcoc_math_arithmetic'] = {
   init: function() {
     this.appendValueInput("A")
         .setCheck(["Number", "Boolean"]);
     this.appendValueInput("B")
         .setCheck(["Number", "Boolean"])
-        .appendField(new Blockly.FieldDropdown([["**","**"], ["%","%"], ["min","MIN"], ["max","MAX"]]), "OP");
+        .appendField(new Blockly.FieldDropdown([["+","ADD"], ["-","MINUS"], ["×","MULTIPLY"], ["÷","DIVIDE"], ["%","MODULO"], ["min","MIN"], ["max","MAX"]]), "OP");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
     this.setColour(225);
- this.setTooltip("binary operation");
+ this.setTooltip("arithmetical operation");
  this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
   }
 };
@@ -426,7 +433,23 @@ Blockly.Blocks['mcoc_math_bit_operation'] = {
         .setCheck(["Number", "Boolean"]);
     this.appendValueInput("B")
         .setCheck(["Number", "Boolean"])
-        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"], [">>>",">>>"], ["[>>](obsolete)","[>>]"]]), "OP");
+        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"], [">>>",">>>"], ["[>>]@@@@@@@@ obsolete @@@@@@@@","[>>]"]]), "OP")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("bit wise logic operation");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_math_bit_binary'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck(["Number", "Boolean"]);
+    this.appendValueInput("B")
+        .setCheck(["Number", "Boolean"])
+        .appendField(new Blockly.FieldDropdown([["&","&"], ["|","|"], ["^","^"], ["<<","<<"], [">>",">>"], [">>>",">>>"]]), "OP");
     this.setInputsInline(true);
     this.setOutput(true, "Number");
     this.setColour(225);
@@ -448,11 +471,41 @@ Blockly.Blocks['mcoc_math_unary'] = {
   }
 };
 
+Blockly.Blocks['mcoc_math_binary'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck(["Number", "Boolean"]);
+    this.appendValueInput("B")
+        .setCheck(["Number", "Boolean"])
+        .appendField(new Blockly.FieldDropdown([["**","**"], ["%","%"], ["min","MIN"], ["max","MAX"]]), "OP")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("binary operation");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
 Blockly.Blocks['mcoc_math_func'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["sgn","SGN"], ["rand","RAND"], ["rseed","RSEED"], ["floor","FLOOR"], ["ceil","CEIL"], ["round","ROUND"], ["trunc","TRUNC"]]), "FNC");
+        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["sgn","SGN"], ["rand","RAND"], ["rseed","RSEED"], ["floor","FLOOR"], ["ceil","CEIL"], ["round","ROUND"], ["trunc","TRUNC"]]), "FNC")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(225);
+ this.setTooltip("mathematical function");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
+  }
+};
+
+Blockly.Blocks['mcoc_math_funci'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["sgn","SGN"], ["rand","RAND"], ["rseed","RSEED"]]), "FNC");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(225);
@@ -465,7 +518,8 @@ Blockly.Blocks['mcoc_math_func2'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField(new Blockly.FieldDropdown([["sqrt","SQRT"], ["exp","EXP"], ["log","LOG"], ["log10","LOG10"], ["log2","LOG2"]]), "FNC");
+        .appendField(new Blockly.FieldDropdown([["sqrt","SQRT"], ["exp","EXP"], ["log","LOG"], ["log10","LOG10"], ["log2","LOG2"]]), "FNC")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(225);
@@ -478,7 +532,8 @@ Blockly.Blocks['mcoc_math_func3'] = {
   init: function() {
     this.appendValueInput("VAL")
         .setCheck("Number")
-        .appendField(new Blockly.FieldDropdown([["sin","SIN"], ["cos","COS"], ["tan","TAN"], ["asin","ASIN"], ["acos","ACOS"], ["atan","ATAN"]]), "FNC");
+        .appendField(new Blockly.FieldDropdown([["sin","SIN"], ["cos","COS"], ["tan","TAN"], ["asin","ASIN"], ["acos","ACOS"], ["atan","ATAN"]]), "FNC")
+        .appendField("@@@@@@@@ obsolete @@@@@@@@");
     this.setInputsInline(false);
     this.setOutput(true, "Number");
     this.setColour(225);
@@ -545,7 +600,8 @@ Blockly.Blocks['mcoc_math_post'] = {
 Blockly.Blocks['mcoc_pack'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("pack");
+        .appendField("pack")
+        .appendField(new Blockly.FieldTextInput(""), "CMNT");
     this.appendStatementInput("PAC")
         .setCheck(null)
         .appendField(new Blockly.FieldCheckbox("TRUE"), "ENB");
@@ -1354,5 +1410,246 @@ Blockly.Blocks['mcoc_sndg_play_ptr'] = {
     this.setColour(105);
  this.setTooltip("play 1 MML, and update pointer");
  this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSNDG");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_number'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("float")
+        .appendField(new Blockly.FieldTextInput("3.14"), "NUM");
+    this.setInputsInline(true);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float number");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSNDG");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_arithmetic'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck("Float");
+    this.appendValueInput("B")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["+","ADD"], ["-","MINUS"], ["×","MULTIPLY"], ["÷","DIVIDE"]]), "OP");
+    this.setInputsInline(true);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float arithmetical operation");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_compare'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck("Float");
+    this.appendValueInput("B")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["=","EQ"], ["≠","NEQ"], ["<","LT"], ["≤","LTE"], [">","GT"], ["≥","GTE"]]), "OP");
+    this.setInputsInline(true);
+    this.setOutput(true, "Boolean");
+    this.setColour(180);
+ this.setTooltip("float compare");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_unary'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["-","-"], ["2*","2*"], ["sq","sq"]]), "OP");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float unary operation");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_binary'] = {
+  init: function() {
+    this.appendValueInput("A")
+        .setCheck("Float");
+    this.appendValueInput("B")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["%","MODULO"], ["min","MIN"], ["max","MAX"], ["**","POWER"]]), "OP");
+    this.setInputsInline(true);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float binary operation");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_variables_get'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("float")
+        .appendField(new Blockly.FieldVariable("item"), "VAR");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("refer to float variable");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_variables_set'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField("set float")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("=");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(180);
+ this.setTooltip("set float variable");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_change'] = {
+  init: function() {
+    this.appendValueInput("DELTA")
+        .setCheck("Float")
+        .appendField("change float")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("+=");
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(180);
+ this.setTooltip("change float variable");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_array_get'] = {
+  init: function() {
+    this.appendValueInput("IDX")
+        .setCheck("Number")
+        .appendField("float")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("@");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("refer to element of float array variable ");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_array_set'] = {
+  init: function() {
+    this.appendValueInput("IDX")
+        .setCheck("Number")
+        .appendField("float")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("@");
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField("=");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(180);
+ this.setTooltip("set element of float array variable");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMEMO_A");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_func'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["abs","ABS"], ["sgn","SGN"], ["floor","FLOOR"], ["ceil","CEIL"], ["round","ROUND"], ["trunc","TRUNC"]]), "FNC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float mathematical function");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_func2'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["sqrt","SQRT"], ["exp","EXP"], ["log","LOG"], ["log10","LOG10"], ["log2","LOG2"]]), "FNC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float mathematical function #2");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_func3'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField(new Blockly.FieldDropdown([["sin","SIN"], ["cos","COS"], ["tan","TAN"], ["asin","ASIN"], ["acos","ACOS"], ["atan","ATAN"]]), "FNC");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("float mathematical function #3");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMATH_U");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_isinf'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField("is ±INF");
+    this.setInputsInline(false);
+    this.setOutput(true, "Boolean");
+    this.setColour(180);
+ this.setTooltip("is INF or -INF");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_isnan'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField("is NaN");
+    this.setInputsInline(false);
+    this.setOutput(true, "Boolean");
+    this.setColour(180);
+ this.setTooltip("is NaN");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_ftoi'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Float")
+        .appendField("ftoi");
+    this.setInputsInline(false);
+    this.setOutput(true, "Number");
+    this.setColour(180);
+ this.setTooltip("cast float to integer");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
+  }
+};
+
+Blockly.Blocks['mcoc_matf_itof'] = {
+  init: function() {
+    this.appendValueInput("VAL")
+        .setCheck("Number")
+        .appendField("itof");
+    this.setInputsInline(false);
+    this.setOutput(true, "Float");
+    this.setColour(180);
+ this.setTooltip("cast integer to float");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM_F");
   }
 };

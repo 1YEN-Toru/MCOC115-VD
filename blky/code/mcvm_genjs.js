@@ -1,10 +1,10 @@
 javascript.javascriptGenerator.forBlock['mcvm_cpu_asm'] = function(block, generator) {
   var text_asm = block.getFieldValue('ASM');
   // TODO: Assemble javascript into code variable.
-text_asm = text_asm.replace(/^#/,'//');
+text_asm=text_asm.replace (/^#/,'//');
   var code = 'cpu.asm (' + generator.quote_(text_asm) + ');\n';
 if (text_asm.match (/^\/\//)!=null)
-	code = text_asm + '\n';
+	code=text_asm + '\n';
   return code;
 };
 
@@ -52,7 +52,7 @@ javascript.javascriptGenerator.forBlock['mcvm_cpu_set'] = function(block, genera
 javascript.javascriptGenerator.forBlock['mcvm_fpu_fdown'] = function(block, generator) {
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'Math.trunc (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */Math.trunc (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -60,7 +60,7 @@ javascript.javascriptGenerator.forBlock['mcvm_fpu_fdown'] = function(block, gene
 javascript.javascriptGenerator.forBlock['mcvm_fpu_ftoi'] = function(block, generator) {
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'ftoi (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */ftoi (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -68,7 +68,7 @@ javascript.javascriptGenerator.forBlock['mcvm_fpu_ftoi'] = function(block, gener
 javascript.javascriptGenerator.forBlock['mcvm_fpu_isinf'] = function(block, generator) {
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = '!isFinite (' + value_val + ') && !isNaN (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */!isFinite (' + value_val + ') && !isNaN (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.NONE];
 };
@@ -76,7 +76,7 @@ javascript.javascriptGenerator.forBlock['mcvm_fpu_isinf'] = function(block, gene
 javascript.javascriptGenerator.forBlock['mcvm_fpu_isnan'] = function(block, generator) {
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'isNaN (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */isNaN (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -84,7 +84,7 @@ javascript.javascriptGenerator.forBlock['mcvm_fpu_isnan'] = function(block, gene
 javascript.javascriptGenerator.forBlock['mcvm_fpu_itof'] = function(block, generator) {
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'itof (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */itof (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -93,24 +93,24 @@ javascript.javascriptGenerator.forBlock['mcvm_sim_stat'] = function(block, gener
   var dropdown_stat = block.getFieldValue('STAT');
   // TODO: Assemble javascript into code variable.
 if (dropdown_stat=='simpass')
-	dropdown_stat = 'pass';
+	dropdown_stat='pass';
 else if (dropdown_stat=='simfail')
-	dropdown_stat = 'fail';
+	dropdown_stat='fail';
 else if (dropdown_stat=='simneut')
-	dropdown_stat = 'neutral';
+	dropdown_stat='neutral';
   var code = 'sim.' + dropdown_stat + ' ();\n';
   return code;
 };
 
 javascript.javascriptGenerator.forBlock['mcvm_sim_fail'] = function(block, generator) {
   // TODO: Assemble javascript into code variable.
-  var code = 'sim.fail ();	// obsolete\n';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */sim.fail ();\n';
   return code;
 };
 
 javascript.javascriptGenerator.forBlock['mcvm_sim_pass'] = function(block, generator) {
   // TODO: Assemble javascript into code variable.
-  var code = 'sim.pass ();	// obsolete\n';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */sim.pass ();\n';
   return code;
 };
 
@@ -134,13 +134,11 @@ javascript.javascriptGenerator.forBlock['mcvm_mem_read'] = function(block, gener
   var dropdown_siz = block.getFieldValue('SIZ');
   var value_adr = generator.valueToCode(block, 'ADR', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-if (dropdown_siz.toLowerCase()=='b')
-	dropdown_siz = 'byte';
-else if (dropdown_siz.toLowerCase()=='w')
-	dropdown_siz = 'word';
-else if (dropdown_siz.toLowerCase()=='l')
-	dropdown_siz = 'long';
-  var code = 'mem.read_' + dropdown_siz.toLowerCase() + ' (' + value_adr + ')';
+dropdown_siz=dropdown_siz.toLowerCase ();
+if (dropdown_siz=='b')			dropdown_siz='byte';
+else if (dropdown_siz=='w')		dropdown_siz='word';
+else if (dropdown_siz=='l')		dropdown_siz='long';
+  var code = 'mem.read_' + dropdown_siz + ' (' + value_adr + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -150,13 +148,11 @@ javascript.javascriptGenerator.forBlock['mcvm_mem_write'] = function(block, gene
   var value_adr = generator.valueToCode(block, 'ADR', javascript.Order.NONE);
   var value_dat = generator.valueToCode(block, 'DAT', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-if (dropdown_siz.toLowerCase()=='b')
-	dropdown_siz = 'byte';
-else if (dropdown_siz.toLowerCase()=='w')
-	dropdown_siz = 'word';
-else if (dropdown_siz.toLowerCase()=='l')
-	dropdown_siz = 'long';
-  var code = 'mem.write_' + dropdown_siz.toLowerCase() + ' (' + value_adr +',' + value_dat + ');\n';
+dropdown_siz=dropdown_siz.toLowerCase ();
+if (dropdown_siz=='b')			dropdown_siz='byte';
+else if (dropdown_siz=='w')		dropdown_siz='word';
+else if (dropdown_siz=='l')		dropdown_siz='long';
+  var code = 'mem.write_' + dropdown_siz + ' (' + value_adr +',' + value_dat + ');\n';
   return code;
 };
 
@@ -165,13 +161,11 @@ javascript.javascriptGenerator.forBlock['mcvm_memx_read'] = function(block, gene
   var value_adrx = generator.valueToCode(block, 'ADRX', javascript.Order.NONE);
   var value_adr = generator.valueToCode(block, 'ADR', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-if (dropdown_siz.toLowerCase()=='b')
-	dropdown_siz = 'byte';
-else if (dropdown_siz.toLowerCase()=='w')
-	dropdown_siz = 'word';
-else if (dropdown_siz.toLowerCase()=='l')
-	dropdown_siz = 'long';
-  var code = 'memx.read_' + dropdown_siz.toLowerCase() + ' (' + value_adrx + ',' + value_adr + ')';
+dropdown_siz=dropdown_siz.toLowerCase ();
+if (dropdown_siz=='b')			dropdown_siz='byte';
+else if (dropdown_siz=='w')		dropdown_siz='word';
+else if (dropdown_siz=='l')		dropdown_siz='long';
+  var code = 'memx.read_' + dropdown_siz + ' (' + value_adrx + ',' + value_adr + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -182,13 +176,11 @@ javascript.javascriptGenerator.forBlock['mcvm_memx_write'] = function(block, gen
   var value_adr = generator.valueToCode(block, 'ADR', javascript.Order.NONE);
   var value_dat = generator.valueToCode(block, 'DAT', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-if (dropdown_siz.toLowerCase()=='b')
-	dropdown_siz = 'byte';
-else if (dropdown_siz.toLowerCase()=='w')
-	dropdown_siz = 'word';
-else if (dropdown_siz.toLowerCase()=='l')
-	dropdown_siz = 'long';
-  var code = 'memx.write_' + dropdown_siz.toLowerCase() + ' (' + value_adrx + ',' + value_adr +',' + value_dat + ');\n';
+dropdown_siz=dropdown_siz.toLowerCase ();
+if (dropdown_siz=='b')			dropdown_siz='byte';
+else if (dropdown_siz=='w')		dropdown_siz='word';
+else if (dropdown_siz=='l')		dropdown_siz='long';
+  var code = 'memx.write_' + dropdown_siz + ' (' + value_adrx + ',' + value_adr +',' + value_dat + ');\n';
   return code;
 };
 
@@ -235,7 +227,7 @@ javascript.javascriptGenerator.forBlock['mcoc_controls_dorept'] = function(block
   var value_bool = generator.valueToCode(block, 'BOOL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
   var code = 'do {\n' + statements_do + '} while ';
-if (dropdown_mode.toLowerCase()=='until')
+if (dropdown_mode.toLowerCase ()=='until')
 	code +=  '(!(' + value_bool + '));\n';
 else
 	code += '(' + value_bool + ');\n';
@@ -249,14 +241,20 @@ javascript.javascriptGenerator.forBlock['mcoc_controls_loop'] = function(block, 
   return code;
 };
 
-javascript.javascriptGenerator.forBlock['mcoc_math_binary'] = function(block, generator) {
+javascript.javascriptGenerator.forBlock['mcoc_math_arithmetic'] = function(block, generator) {
   var value_a = generator.valueToCode(block, 'A', javascript.Order.ATOMIC);
   var dropdown_op = block.getFieldValue('OP');
   var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
   // TODO: Assemble javascript into code variable.
+dropdown_op=dropdown_op.toLowerCase ();
+if (dropdown_op=='add')				dropdown_op='+';
+else if (dropdown_op=='minus')		dropdown_op='-';
+else if (dropdown_op=='multiply')	dropdown_op='*';
+else if (dropdown_op=='divide')		dropdown_op='/';
+else if (dropdown_op=='modulo')		dropdown_op='%';
   var code = value_a + ' ' + dropdown_op + ' ' + value_b;
-if (dropdown_op.toLowerCase()=='min' || dropdown_op.toLowerCase()=='max')
-	code = 'Math.' + dropdown_op.toLowerCase() + ' (' + value_a + ',' + value_b + ')';
+if (dropdown_op=='min' || dropdown_op=='max')
+	code='Math.' + dropdown_op + ' (' + value_a + ',' + value_b + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.NONE];
 };
@@ -266,7 +264,21 @@ javascript.javascriptGenerator.forBlock['mcoc_math_bit_operation'] = function(bl
   var dropdown_op = block.getFieldValue('OP');
   var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
   // TODO: Assemble javascript into code variable.
-  var code = value_a + ' ' + dropdown_op.replace('[>>]','[>>]/*obsolete*/') + ' ' + value_b;
+if (value_b=='' && (dropdown_op=='<<' || dropdown_op=='>>' || dropdown_op=='>>>'))
+	value_b='1';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */' + value_a + ' ' + dropdown_op + ' ' + value_b;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.NONE];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_math_bit_binary'] = function(block, generator) {
+  var value_a = generator.valueToCode(block, 'A', javascript.Order.ATOMIC);
+  var dropdown_op = block.getFieldValue('OP');
+  var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+if (value_b=='' && (dropdown_op=='<<' || dropdown_op=='>>' || dropdown_op=='>>>'))
+	value_b='1';
+  var code = value_a + ' ' + dropdown_op + ' ' + value_b;
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.NONE];
 };
@@ -275,11 +287,25 @@ javascript.javascriptGenerator.forBlock['mcoc_math_unary'] = function(block, gen
   var dropdown_op = block.getFieldValue('OP');
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.ATOMIC);
   // TODO: Assemble javascript into code variable.
-if (dropdown_op.toLowerCase() == 'r6+')
-	dropdown_op = 'cpu.r6+';
+dropdown_op=dropdown_op.toLowerCase ();
+if (dropdown_op=='r6+')
+	dropdown_op='cpu.r6+';
   var code = dropdown_op + ' ' + value_val;
-if (dropdown_op.toLowerCase() == 'sq')
-	code = value_val + ' * ' + value_val;
+if (dropdown_op=='sq')
+	code=value_val + ' * ' + value_val;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.NONE];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_math_binary'] = function(block, generator) {
+  var value_a = generator.valueToCode(block, 'A', javascript.Order.ATOMIC);
+  var dropdown_op = block.getFieldValue('OP');
+  var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */' + value_a + ' ' + dropdown_op + ' ' + value_b;
+dropdown_op=dropdown_op.toLowerCase ();
+if (dropdown_op=='min' || dropdown_op=='max')
+	code='/* @@@@@@@@ obsolete @@@@@@@@ */Math.' + dropdown_op + ' (' + value_a + ',' + value_b + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.NONE];
 };
@@ -288,9 +314,22 @@ javascript.javascriptGenerator.forBlock['mcoc_math_func'] = function(block, gene
   var dropdown_fnc = block.getFieldValue('FNC');
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-if (dropdown_fnc.toLowerCase()=='sgn')
-	dropdown_fnc = 'sign';
-  var code = 'Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
+dropdown_fnc=dropdown_fnc.toLowerCase ();
+if (dropdown_fnc=='sgn')
+	dropdown_fnc='sign';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */Math.' + dropdown_fnc + ' (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_math_funci'] = function(block, generator) {
+  var dropdown_fnc = block.getFieldValue('FNC');
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+dropdown_fnc=dropdown_fnc.toLowerCase ();
+if (dropdown_fnc=='sgn')
+	dropdown_fnc='sign';
+  var code = 'Math.' + dropdown_fnc + ' (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -299,7 +338,7 @@ javascript.javascriptGenerator.forBlock['mcoc_math_func2'] = function(block, gen
   var dropdown_fnc = block.getFieldValue('FNC');
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -308,7 +347,7 @@ javascript.javascriptGenerator.forBlock['mcoc_math_func3'] = function(block, gen
   var dropdown_fnc = block.getFieldValue('FNC');
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
+  var code = '/* @@@@@@@@ obsolete @@@@@@@@ */Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -333,8 +372,8 @@ javascript.javascriptGenerator.forBlock['mcoc_math_number'] = function(block, ge
   var text_num = block.getFieldValue('NUM');
   // TODO: Assemble javascript into code variable.
   var code = text_num;
-if (text_num.match(/[+\-*/%!|&^~<>]/)!=null)
-	code = '(' + code + ')';
+if (text_num.match (/[+\-*/%!|&^~<>]/)!=null)
+	code='(' + code + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -349,10 +388,15 @@ javascript.javascriptGenerator.forBlock['mcoc_math_post'] = function(block, gene
 };
 
 javascript.javascriptGenerator.forBlock['mcoc_pack'] = function(block, generator) {
+  var text_cmnt = block.getFieldValue('CMNT');
   var checkbox_enb = block.getFieldValue('ENB') === 'TRUE';
   var statements_pac = generator.statementToCode(block, 'PAC');
   // TODO: Assemble javascript into code variable.
-  var code = 'if (' + checkbox_enb + ') {\n' + statements_pac + '}\n';
+if (text_cmnt==null || text_cmnt=='')
+	text_cmnt='';
+else
+	text_cmnt='  // ' + text_cmnt + '\n';
+  var code = 'if (' + checkbox_enb + ') {\n' + text_cmnt + statements_pac + '}\n';
   return code;
 };
 
@@ -369,8 +413,8 @@ javascript.javascriptGenerator.forBlock['mcoc_task'] = function(block, generator
   var statements_do = generator.statementToCode(block, 'DO');
   // TODO: Assemble javascript into code variable.
   var code = 'function _task_' + dropdown_task + ' () {\n' + statements_do + '}';
-code = generator.scrub_(block, code);
-generator.definitions_['%_task_' + dropdown_task] = code;
+code=generator.scrub_ (block, code);
+generator.definitions_['%_task_' + dropdown_task]=code;
   return null;
 };
 
@@ -693,9 +737,10 @@ javascript.javascriptGenerator.forBlock['mcoc_stft_getpix'] = function(block, ge
 javascript.javascriptGenerator.forBlock['mcoc_stft_init'] = function(block, generator) {
   var dropdown_cmnd = block.getFieldValue('CMND');
   // TODO: Assemble javascript into code variable.
-if (dropdown_cmnd.toLowerCase()=='init')
-	dropdown_cmnd = 'initialize';
-  var code = 'stft.' + dropdown_cmnd.toLowerCase() + ' ();\n';
+dropdown_cmnd=dropdown_cmnd.toLowerCase ();
+if (dropdown_cmnd=='init')
+	dropdown_cmnd='initialize';
+  var code = 'stft.' + dropdown_cmnd + ' ();\n';
   return code;
 };
 
@@ -747,9 +792,10 @@ javascript.javascriptGenerator.forBlock['mcoc_stft_transf'] = function(block, ge
   var value_siz = generator.valueToCode(block, 'SIZ', javascript.Order.NONE);
   var value_ptr = generator.valueToCode(block, 'PTR', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-if (dropdown_dir.toLowerCase()=='recv')
-	dropdown_dir = 'receive';
-  var code = 'stft.' + dropdown_dir.toLowerCase() + ' (' + value_siz + ',' + value_ptr + ');\n';
+dropdown_dir=dropdown_dir.toLowerCase ();
+if (dropdown_dir=='recv')
+	dropdown_dir='receive';
+  var code = 'stft.' + dropdown_dir + ' (' + value_siz + ',' + value_ptr + ');\n';
   return code;
 };
 
@@ -774,6 +820,179 @@ javascript.javascriptGenerator.forBlock['mcoc_sndg_play_ptr'] = function(block, 
   var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
   // TODO: Assemble javascript into code variable.
   var code = 'sndg' + dropdown_chn + '.play_ptr (' + generator.getVariableName(block.getFieldValue('VAR')) + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_number'] = function(block, generator) {
+  var text_num = block.getFieldValue('NUM');
+  // TODO: Assemble javascript into code variable.
+  var code = text_num;
+if (text_num.match (/[+\-*/%!|&^~<>]/)!=null)
+	code='(' + code + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_variables_get'] = function(block, generator) {
+  var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  // TODO: Assemble javascript into code variable.
+  var code = generator.getVariableName(block.getFieldValue('VAR'));
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_variables_set'] = function(block, generator) {
+  var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + " = " + value_val + ';\n';
+  return code;
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_array_get'] = function(block, generator) {
+  var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  var value_idx = generator.valueToCode(block, 'IDX', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + "[" + value_idx + "]";
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_array_set'] = function(block, generator) {
+  var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  var value_idx = generator.valueToCode(block, 'IDX', javascript.Order.ATOMIC);
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + "[" + value_idx + "] = " + value_val + ';\n';
+  return code;
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_change'] = function(block, generator) {
+  var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
+  var value_delta = generator.valueToCode(block, 'DELTA', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + " += " + value_delta + ';\n';
+  return code;
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_unary'] = function(block, generator) {
+  var dropdown_op = block.getFieldValue('OP');
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+  var code = dropdown_op + ' ' + value_val;
+if (dropdown_op.toLowerCase () == 'sq')
+	code=value_val + ' * ' + value_val;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.NONE];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_ftoi'] = function(block, generator) {
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = 'ftoi (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_itof'] = function(block, generator) {
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = 'itof (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_arithmetic'] = function(block, generator) {
+  var value_a = generator.valueToCode(block, 'A', javascript.Order.ATOMIC);
+  var dropdown_op = block.getFieldValue('OP');
+  var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+dropdown_op=dropdown_op.toLowerCase ();
+if (dropdown_op=='add')				dropdown_op='+';
+else if (dropdown_op=='minus')		dropdown_op='-';
+else if (dropdown_op=='multiply')	dropdown_op='*';
+else if (dropdown_op=='divide')		dropdown_op='/';
+else if (dropdown_op=='modulo')		dropdown_op='%';
+  var code = value_a + ' ' + dropdown_op + ' ' + value_b;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.NONE];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_binary'] = function(block, generator) {
+  var value_a = generator.valueToCode(block, 'A', javascript.Order.ATOMIC);
+  var dropdown_op = block.getFieldValue('OP');
+  var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+dropdown_op=dropdown_op.toLowerCase ();
+if (dropdown_op=='modulo')		dropdown_op='%';
+else if (dropdown_op=='power')	dropdown_op='**';
+  var code = value_a + ' ' + dropdown_op + ' ' + value_b;
+if (dropdown_op=='min' || dropdown_op=='max')
+	code='Math.' + dropdown_op + ' (' + value_a + ',' + value_b + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.NONE];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_compare'] = function(block, generator) {
+  var value_a = generator.valueToCode(block, 'A', javascript.Order.ATOMIC);
+  var dropdown_op = block.getFieldValue('OP');
+  var value_b = generator.valueToCode(block, 'B', javascript.Order.ATOMIC);
+  // TODO: Assemble javascript into code variable.
+dropdown_op=dropdown_op.toLowerCase ();
+if (dropdown_op=='eq')			dropdown_op='==';
+else if (dropdown_op=='neq')	dropdown_op='!=';
+else if (dropdown_op=='lt')		dropdown_op='<';
+else if (dropdown_op=='lte')	dropdown_op='<=';
+else if (dropdown_op=='gt')		dropdown_op='>';
+else if (dropdown_op=='gte')	dropdown_op='>=';
+  var code = value_a + ' ' + dropdown_op + ' ' + value_b;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.NONE];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_isinf'] = function(block, generator) {
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = 'isinf (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_isnan'] = function(block, generator) {
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = 'isnan (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_func'] = function(block, generator) {
+  var dropdown_fnc = block.getFieldValue('FNC');
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+dropdown_fnc=dropdown_fnc.toLowerCase ();
+if (dropdown_fnc=='sgn')
+	dropdown_fnc='sign';
+  var code = 'Math.' + dropdown_fnc + ' (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_func2'] = function(block, generator) {
+  var dropdown_fnc = block.getFieldValue('FNC');
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = 'Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, javascript.Order.ATOMIC];
+};
+
+javascript.javascriptGenerator.forBlock['mcoc_matf_func3'] = function(block, generator) {
+  var dropdown_fnc = block.getFieldValue('FNC');
+  var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
+  // TODO: Assemble javascript into code variable.
+  var code = 'Math.' + dropdown_fnc.toLowerCase() + ' (' + value_val + ')';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
