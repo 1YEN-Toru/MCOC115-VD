@@ -6,6 +6,9 @@ model	"Blockly.XML merger"
 //		(c) 2024	1YEN Toru
 //
 //
+//		2026/04/18	ver.1.02
+//			fix: restore "\n" to new line code
+//
 //		2024/11/02	ver.1.00
 //			1) Specify the Blockly.XML file name in the file open dialog.
 //				One file each open dialog.
@@ -213,6 +216,7 @@ if (false)
 
 			if (in_xml)
 			{
+				gsub	"\n",$,,fget_xml;
 				fputs	fout,$(fget_xml);
 
 				// new line

@@ -58,8 +58,8 @@
 
 - Moscovium macro assembler: [asm_mcvm.olv](asm/asm_mcvm.olv)
 	- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
-	- You need install Olive+ on your Windows PC.
-	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
+		- You need install Olive+ on your Windows PC.
+		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
 - [Blockly for Moscovium](https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
 	- Block base visual programming environment.
@@ -69,8 +69,8 @@
 
 - Blockly.XML to Moscovium.ASM translator: [blky2mcvm.olv](blky/blky2mcvm.olv)
 	- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
-	- You need install Olive+ on your Windows PC.
-	- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
+		- You need install Olive+ on your Windows PC.
+		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
 --------
 # Directories and Files
@@ -83,7 +83,7 @@
 - Software development tools
 	- asm/
 		- Moscovium assembler
-		- Macro assembler script and sample sources
+			- Macro assembler script and sample sources
 	- blky/
 		- Blockly for Moscovium
 		- Blockly.XML to Moscovium.ASM translator and sample sources
@@ -169,7 +169,7 @@
 	- Semaphore 4 channels with interrupt request
 
 ## Timer units
-- [SYSTIM](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCSYTM)
+- [SYSTIM](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#SYSTIM)
 	- System timer unit
 	- Millisecond, microsecond and clock counter
 - [TIM162](https://hello.world.coocan.jp/ARDUINO15/arduino15_a.html#TIM16)
@@ -186,7 +186,7 @@
 	- Synchronized clock edition
 
 ## Communication units
-- [UART8N1](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCUART)
+- [UART8N1](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#UART8N1)
 	- UART unit
 	- Format: 8N1 (8 bit data, no parity, 1 stop bit)
 	- [Communication speed detection](https://hello.world.coocan.jp/ARDUINO18/arduino18_8.html)
@@ -197,7 +197,7 @@
 	- Master and slave communication
 
 ## I/O units
-- [PORT8I8O](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#MCOCPORT)
+- [PORT8I8O](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#PORT8I8O)
 	- General purpose I/O port unit
 - [IOMEM16](https://hello.world.coocan.jp/ARDUINO24/arduino24_9.html#IOMEM16)
 	- 16 byte I/O memory (RAM) unit

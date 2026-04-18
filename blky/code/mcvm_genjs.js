@@ -394,6 +394,10 @@ javascript.javascriptGenerator.forBlock['mcoc_pack'] = function(block, generator
   // TODO: Assemble javascript into code variable.
 if (text_cmnt==null || text_cmnt=='')
 	text_cmnt='';
+else if (text_cmnt.match (/^#/)!=null)
+	text_cmnt='  ' + text_cmnt.replace (/^#/,'//') + '\n';
+else if (text_cmnt.match (/^\/\//)!=null)
+	text_cmnt='  ' + text_cmnt + '\n';
 else
 	text_cmnt='  // ' + text_cmnt + '\n';
   var code = 'if (' + checkbox_enb + ') {\n' + text_cmnt + statements_pac + '}\n';
