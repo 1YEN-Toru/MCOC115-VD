@@ -20,6 +20,7 @@ equ		simctrl,0xf00a					// simulation control
 equ		simc_noto,0x0001				// simctrl[NOTO] bit
 equ		simc_rtck,0x0002				// simctrl[RTCK] bit
 equ		simc_tsim,0x0004				// simctrl[TSIM] bit
+equ		simc_smsn,0x0008				// simctrl[SMSN] bit
 equ		princtl,0xfff0					// simulation print unit
 equ		princhr,0xfff2
 equ		prindec,0xfff4
@@ -124,6 +125,35 @@ equ		sngl_inf,0x7f80_0000			// sfpu, +inf
 equ		sngl_inf_n,0xff80_0000			// sfpu, -inf
 equ		sngl_nan,0xffc0_0000			// sfpu, nan
 equ		sngl_mpi,0x4049_0fdb			// sfpu, pi
+# ================================
+equ		sama_cmp_nf,0x0010				// Samarium cmp[N] flag
+equ		sama_cmp_cf,0x0008				// Samarium cmp[C] flag
+equ		sama_cmp_vf,0x0004				// Samarium cmp[V] flag
+equ		sama_cmp_zf,0x0002				// Samarium cmp[Z] flag
+equ		sama_cmp_sf,0x0001				// Samarium cmp[S] flag (=N^V)
+equ		sama_hcmp_nf,0x0080				// Samarium hcmp[N] flag
+equ		sama_hcmp_cf,0x0040				// Samarium hcmp[C] flag
+equ		sama_hcmp_vf,0x0020				// Samarium hcmp[V] flag
+equ		sama_hcmp_zf,0x0010				// Samarium hcmp[Z] flag
+equ		sama_sts_hfpu,0x0040			// Samarium CPU_STS[HFPU] bit
+equ		sama_sts_divc,0x0020			// Samarium CPU_STS[DIVC] bit
+equ		sama_sts_mulc,0x0010			// Samarium CPU_STS[MULC] bit
+equ		sama_sts_id_0,0x0000			// Samarium CPU_STS[IDn] field
+equ		sama_sts_id_1,0x0001
+equ		sama_sts_id_2,0x0002
+equ		sama_sts_id_3,0x0003
+equ		sama_sts_id_4,0x0004
+equ		sama_sts_id_5,0x0005
+equ		sama_sts_id_6,0x0006
+equ		sama_sts_id_7,0x0007
+equ		sama_sts_id_8,0x0008
+equ		sama_sts_id_9,0x0009
+equ		sama_sts_id_10,0x000a
+equ		sama_sts_id_11,0x000b
+equ		sama_sts_id_12,0x000c
+equ		sama_sts_id_13,0x000d
+equ		sama_sts_id_14,0x000e
+equ		sama_sts_id_15,0x000f
 # ================================
 equ		asc_nil,0x00					// asc: NIL code
 equ		asc_bs,0x08						// asc: BS code

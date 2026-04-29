@@ -1,5 +1,5 @@
 module	`MCOC_TOP_NAME (
-// Moscovium / Nihonium / Tennessine On Chip
+// Moscovium / Nihonium / Tennessine / Samarium On Chip
 input	sys_clock,
 input	sys_reset,
 input	sys_bootr,
@@ -45,13 +45,19 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0244
+`define		MCOC_VERS		16'h0246
 
 
 //
-//	Moscovium / Nihonium / Tennessine On Chip
+//	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2026/04/29	ver.2.46
+//		corresponding to Samarium
+//		add: compile option MCOC_CORE_SM
+//		corresponding to byte fetch
+//			fcmd[2]: fcmdb, byte fetch command
 //
 //	2026/03/14	ver.2.44
 //		corresponding to Nihonium-PI
@@ -252,7 +258,9 @@ input	adcx_ain1n);
 
 
 // definitions for ID register unit
-`ifdef		MCOC_CORE_TS
+`ifdef		MCOC_CORE_SM
+defparam	idrg.idcode=16'h0620;
+`elsif		MCOC_CORE_TS
 defparam	idrg.idcode=16'h1170;
 `elsif		MCOC_CORE_NHSS
 defparam	idrg.idcode=16'h113a;
@@ -373,7 +381,7 @@ wire	[15:0]	badrx1;
 wire	[15:0]	badr1;
 wire	[31:0]	bdatw1;
 wire	[31:0]	bdatr1;
-wire	[1:0]	fcmd1;
+wire	[2:0]	fcmd1;
 wire	[15:0]	fadr1;
 wire	[31:0]	fdat1;
 wire	[3:0]	bcmd2;
@@ -381,7 +389,7 @@ wire	[15:0]	badrx2;
 wire	[15:0]	badr2;
 wire	[31:0]	bdatw2;
 wire	[31:0]	bdatr2;
-wire	[1:0]	fcmd2;
+wire	[2:0]	fcmd2;
 wire	[15:0]	fadr2;
 wire	[31:0]	fdat2;
 
@@ -447,7 +455,7 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 	.fdat(fdat2[15:0]),	// Input
 	.bdatrx(bdatr2[31:16]),	// Input
 	.bdatr(bdatr2[15:0]),	// Input
-	.fcmd(fcmd2[1:0]),	// Output
+	.fcmd(fcmd2[2:0]),	// Output
 	.fadr(fadr2[15:0]),	// Output
 	.bcmd(bcmd2[3:0]),	// Output
 	.badrx(badrx2[15:0]),	// Output
@@ -476,7 +484,7 @@ wire	[1:0]	cpuid1=2'h1;
 
 `else	//	MCOC_DUAL
 wire	[1:0]	cpuid1=2'h0;
-assign	fcmd2[1:0]=2'b01;
+assign	fcmd2[2:0]=3'b001;
 assign	fadr2[15:0]=16'h0;
 assign	badrx2[15:0]=16'h0;
 assign	badr2[15:0]=16'h0;
@@ -497,7 +505,7 @@ assign	bdatw2[31:0]=32'h0;
 	.fdat(fdat1[15:0]),	// Input
 	.bdatrx(bdatr1[31:16]),	// Input
 	.bdatr(bdatr1[15:0]),	// Input
-	.fcmd(fcmd1[1:0]),	// Output
+	.fcmd(fcmd1[2:0]),	// Output
 	.fadr(fadr1[15:0]),	// Output
 	.bcmd(bcmd1[3:0]),	// Output
 	.badrx(badrx1[15:0]),	// Output
@@ -767,8 +775,8 @@ mcoc_rom	rom (
 	.bcmdl(bcmdl),	// Input
 	.bmst(bmst),	// Input
 	.bcs_rom_n(bcs_rom_n),	// Input
-	.fcmd1(fcmd1[1:0]),	// Input
-	.fcmd2(fcmd2[1:0]),	// Input
+	.fcmd1(fcmd1[2:0]),	// Input
+	.fcmd2(fcmd2[2:0]),	// Input
 	.fadr1(fadr1[15:0]),	// Input
 	.fadr2(fadr2[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
@@ -830,13 +838,13 @@ wire	[31:0]	bdatr_iram1;
 mcoc_iram	iram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmd1[1]),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
 	.bcs_iram_n(bcs_iram_n || bmst),	// Input
+	.fcmd(fcmd1[2:0]),	// Input
 	.fadr(fadr1[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input
@@ -850,13 +858,13 @@ wire	[31:0]	bdatr_iram2;
 mcoc_iram	iram2 (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmd2[1]),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
 	.bcs_iram_n(bcs_iram_n || !bmst),	// Input
+	.fcmd(fcmd2[2:0]),	// Input
 	.fadr(fadr2[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
 	.bdatw(bdatw[31:0]),	// Input

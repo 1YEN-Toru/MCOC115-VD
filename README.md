@@ -9,6 +9,7 @@
 - MCOC: Moscovium (Mc) On Chip
 	- 115 is the atomic number of Mc (Moscovium).
 	- 117 for Ts (Tennessine), 113 for Nh (Nihonium).
+	- 062 for Sm (Samarium).
 
 ## Moscovium series
  Moscovium is an [original 16 bit CPU core](https://hello.world.coocan.jp/ARDUINO15/arduino15_3.html).
@@ -72,6 +73,24 @@
 		- You need install Olive+ on your Windows PC.
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
+## Samarium series
+ Samarium is an [original ultra-small CPU core](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html).
+
+![Samarium](img/a391_cpublk.png)
+
+1. Samarium
+	- 16 bit data path
+	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
+	- About 450\[LUT6\] / 90\[FF\] by Xilinx Vivado and Artix-7 family XC7A35T FPGA
+
+ Samarium series MCU can be developed using an assembler.
+
+- Samarium assembler: [asm_sama.olv](asm/asm_sama.olv)
+	- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
+		- You need install Olive+ on your Windows PC.
+		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
+	- [Assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
+
 --------
 # Directories and Files
 
@@ -84,9 +103,11 @@
 	- asm/
 		- Moscovium assembler
 			- Macro assembler script and sample sources
+		- Samarium assembler
+			- Assembler script and sample sources
 	- blky/
 		- Blockly for Moscovium
-		- Blockly.XML to Moscovium.ASM translator and sample sources
+			- Blockly.XML to Moscovium.ASM translator script and sample sources
 - Xilinx Vivado's project
 	- ip/
 		- IP units
@@ -126,16 +147,19 @@
 - [Nihonium-SS](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS)
 	- Original 32 bit CPU core
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS) edition
+- [Samarium](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html)
+	- Original ultra-small CPU core
+	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
 
 ## Co-processor
 - [MULC16](https://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
 	- Multiply co-processor
-		- for Moscovium / Moscovium-BS / Moscovium-SS
+		- for Moscovium / Moscovium-BS / Moscovium-SS / Samarium
 	- 16 * 16 = 32 bit multiply, signed and unsigned
 - [DIVC16](https://hello.world.coocan.jp/ARDUINO33/arduino33_4.html#DIVC16)
 	- Divide co-processor
 		- Step divider
-		- for Moscovium-BS
+		- for Moscovium-BS / Samarium
 	- 16 / 16 = 16 ... 16 bit divide, signed and unsigned
 - [DIVC32](https://hello.world.coocan.jp/ARDUINO16/arduino16_3.html#HYBDIV)
 	- Divide co-processor
@@ -145,7 +169,7 @@
 	- 32 / 32 = 32 ... 32 bit divide, signed and unsigned
 - [H-FPU](https://hello.world.coocan.jp/ARDUINO16/arduino16_5.html)
 	- 16 bit Half precision Floating Point Unit (FPU)
-		- for Moscovium / Moscovium-BS / Moscovium-SS / Nihonium / Nihonium-SS
+		- for Moscovium / Moscovium-BS / Moscovium-SS / Nihonium / Nihonium-SS / Samarium
 - [S-FPU](https://hello.world.coocan.jp/ARDUINO24/arduino24_5.html)
 	- 32 bit Single precision Floating Point Unit (FPU)
 		- for Nihonium / Nihonium-SS
@@ -309,6 +333,8 @@
 		- [Moscovium instruction set manual](https://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](https://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)
 		- [Tennessine instruction set manual](https://hello.world.coocan.jp/ARDUINO26/a263_instset.html#MANTOP)
+	- [Samarium assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
+		- [Samarium instruction set manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#MANTOP)
 2. FPGA board
 	- [Digilent Cmod A7](https://digilent.com/reference/programmable-logic/cmod-a7/start)
 	- [Xilinx Artix-7 family XC7A35T](https://www.xilinx.com/products/silicon-devices/fpga/artix-7.html)

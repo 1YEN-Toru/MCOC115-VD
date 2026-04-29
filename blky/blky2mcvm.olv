@@ -1,12 +1,15 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="2.00";
+	macro	prog_vers="2.02";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024,2026	1YEN Toru
 //
+//
+//		2026/04/29	ver.2.02
+//			upd: mcoc_pack; comment handling
 //
 //		2026/03/28	ver.2.00
 //			corresponding to Float type
@@ -2388,6 +2391,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			}
 		}
 		pgsub	"[ 	]+","",lval;
+		pgsub	"&lt;","<",lval;
 		strcmp	cmp=$(lnam),"";
 		if (cmp)
 		{
@@ -2598,6 +2602,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		var		stat;
 		var		cnts;
 		macro	enbl;
+		macro	cmnt;
 
 		while (true)
 		{
@@ -2625,6 +2630,24 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						if (cmp=0)
 						{
 							stat=1;
+
+							// comment
+							strcmp	cmp=$(cmnt),"";
+							if (cmp)
+							{
+								strcmp	cmp=$(cmnt),"#",left;
+								if (cmp)
+								{
+									strcmp	cmp=$(cmnt),"//",left;
+								}
+								if (cmp)
+								{
+									mlet	cmnt="// "$(cmnt);
+								}
+								
+								// assembler
+								fputl	fout,$(cmnt);
+							}
 						}
 						else
 						{
@@ -2687,14 +2710,24 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			{
 				static : analyze_xml	$(cxml);
 				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
 				do_$(dxml);
 				if (stat=0)
 				{
 					strcmp	cmp=$(dxml),"field";
 					if (cmp=0)
 					{
-						mlet	enbl=$(do_$(dxml));
-						tolower		enbl;
+						strcmp	cmp=$(dnam),"ENB";
+						if (cmp=0)
+						{
+							mlet	enbl=$(do_$(dxml));
+							tolower		enbl;
+						}
+						else
+						{
+							mlet	cmnt=$(do_$(dxml));
+						}
 					}
 				}
 			}
@@ -9092,8 +9125,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 				pindex	cmp=$(cxml),"^</statement[ >]";
 				if (cmp>0)
 				{
-					// end of loop
+					// end of procedure/function
 					stat=2;
+					fprint	fout,$,;
+					fprint	fout,"// end of procedure/function: "$(fnam)$,;
 					continue;
 				}
 			}
@@ -9106,11 +9141,9 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 				}
 				if (cmp>0)
 				{
-					// end of function
+					// end of procedure/function
 
 					// assembler
-					fprint	fout,$,;
-					fprint	fout,"// end of function: "$(fnam)$,;
 					strcmp	cmp=$(vrtn),"";
 					if (cmp)
 					{
@@ -9178,7 +9211,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 							fprint	fout,"jmpr7	_rtlb_prog_halt"$,;
 						}
 						fprint	fout,$,;
-						fprint	fout,"// function: "$(fnam);
+						fprint	fout,"// procedure/function: "$(fnam);
 						strcmp	cmp=$(muta),"";
 						if (cmp)
 						{
@@ -9503,7 +9536,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 
 	// translator options
 	opt_cstr_siz=@(opt_cstr_siz);
-	clip	opt_cstr_siz=16,32767;
+	clip	opt_cstr_siz=16,32_767;
 	opt_isr_bank=@(opt_isr_bank);
 	clip	opt_isr_bank=0,3;
 	opt_uart_baud=@(opt_uart_baud);

@@ -1,5 +1,5 @@
 //
-//	Moscovium / Nihonium / Tennessine On Chip
+//	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		make the choice of options consistency module
 //		(c) 2025	1YEN Toru
 //
@@ -47,7 +47,24 @@
 `undef		MCOC_IRAM_4K
 `endif	//	MCOC_POLY
 
-`ifdef		MCOC_CORE_TS
+`ifdef		MCOC_CORE_SM
+`define		CPU_CORE		samariumc
+`define		SAMA_STK_SIZ	64
+`undef		MCOC_CORE_TS
+`undef		MCOC_CORE_NH
+`undef		MCOC_CORE_NHSS
+`undef		MCOC_CORE_MCBS
+`undef		MCOC_CORE_MCSS
+`undef		MCOC_DUAL
+`undef		MCVM_COPR_FPUS
+`undef		MCOC_ERAM
+`undef		MCOC_SRAM_512K
+`ifdef		MCOC_POLY
+`else	//	MCOC_POLY
+`define		MCOC_IRAM_4K
+`endif	//	MCOC_POLY
+
+`elsif		MCOC_CORE_TS
 `define		CPU_CORE		tennessinec
 `undef		MCOC_CORE_NH
 `undef		MCOC_CORE_NHSS

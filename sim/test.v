@@ -133,6 +133,11 @@ initial
 		$display ("CPI: %d/%d(%d)=%d/1000",
 			cnt_clck,cnt_inst,cnt_isu1,1000*cnt_clck/cnt_inst);
 
+`ifdef		MCOC_CORE_SM
+		// Samarium CPU stack pointer (MAX)
+		$display ("STK_PTR: %d (MAX)",sama_stk_max[15:0]);
+`endif	//	MCOC_CORE_SM
+
 		// finish simulation
 		repeat (8)
 			@(posedge clk);
@@ -141,6 +146,7 @@ initial
 	end
 
 // simulation control register
+parameter	simctrl_SMSN=3;
 parameter	simctrl_TSIM=2;
 parameter	simctrl_RTCK=1;
 parameter	simctrl_NOTO=0;
@@ -526,6 +532,39 @@ always	@(posedge clk)
 	end
 
 
+`ifdef		MCOC_CORE_SM
+reg		[15:0]	sama_stk_max;
+initial
+	sama_stk_max[15:0]=16'h0;
+always	@(posedge clk)
+	begin
+		// stack pointer
+		if (sama_stk_max[15:0]<top.cpu.core.sptr.sptr[15:0])
+			sama_stk_max[15:0]<=top.cpu.core.sptr.sptr[15:0];
+
+		// stack under run
+		if (simctrl[simctrl_SMSN]===1'b0 &&
+			top.cpu.core.sptr.sptr[15:0]==15'd0 &&
+			top.cpu.core.sptr.ctl_mmsp && !top.cpu.core.sptr.ctl_sppp)
+			begin
+				$display ("finish: %t stack under run",$stime);
+				@(posedge clk);
+				$finish;
+			end
+
+		// stack over run
+		if (simctrl[simctrl_SMSN]===1'b0 &&
+			top.cpu.core.sptr.sptr[15:0]==`SAMA_STK_SIZ &&
+			!top.cpu.core.sptr.ctl_mmsp && top.cpu.core.sptr.ctl_sppp)
+			begin
+				$display ("finish: %t stack over run",$stime);
+				@(posedge clk);
+				$finish;
+			end
+	end
+`endif	//	MCOC_CORE_SM
+
+
 `ifdef		SIM_BOOTMD
 `include	"TEST_CT/test_ct_boot.vh"
 `endif	//	SIM_BOOTMD
@@ -659,7 +698,9 @@ reg		[4:0]	inst_max;
 reg		[15:0]	inst_cur;
 reg		[15:0]	inst_msk;
 reg		[15:0]	inst_cod;
-`ifdef		MCOC_CORE_NHSS
+`ifdef		MCOC_CORE_SM
+wire	[15:0]	inst_ir={ 8'h0,top.cpu.core.ctl.ir[7:0] };
+`elsif		MCOC_CORE_NHSS
 wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
 `elsif		MCOC_CORE_NHPI
 wire	[15:0]	inst_ir=top.cpu.core.eastg.ir[15:0];
@@ -749,6 +790,21 @@ wire	[15:0]	r5=top.cpu.punit0.core.rgf.bank.gr05[15:0];
 wire	[15:0]	r6=top.cpu.punit0.core.rgf.bank.gr06[15:0];
 wire	[15:0]	r7=top.cpu.punit0.core.rgf.bank.gr07[15:0];
 `endif	//	MCOC_CORE_MCBS
+
+`elsif		MCOC_CORE_SM
+
+// Samarium stack value
+wire	[15:0]	sptr=top.cpu.core.sptr.sptr[15:0];
+`define		STK		top.cpu.core.stk.mem
+//wire	[15:0]	stk0=(sptr[15:0]>=0)? `STK[sptr[15:0] - 0]: 16'hz;
+wire	[15:0]	stk1=(sptr[15:0]>=1)? `STK[sptr[15:0] - 1]: 16'hz;
+wire	[15:0]	stk2=(sptr[15:0]>=2)? `STK[sptr[15:0] - 2]: 16'hz;
+wire	[15:0]	stk3=(sptr[15:0]>=3)? `STK[sptr[15:0] - 3]: 16'hz;
+wire	[15:0]	stk4=(sptr[15:0]>=4)? `STK[sptr[15:0] - 4]: 16'hz;
+wire	[15:0]	stk5=(sptr[15:0]>=5)? `STK[sptr[15:0] - 5]: 16'hz;
+wire	[15:0]	stk6=(sptr[15:0]>=6)? `STK[sptr[15:0] - 6]: 16'hz;
+wire	[15:0]	stk7=(sptr[15:0]>=7)? `STK[sptr[15:0] - 7]: 16'hz;
+wire	[15:0]	stk8=(sptr[15:0]>=8)? `STK[sptr[15:0] - 8]: 16'hz;
 
 `elsif		MCOC_CORE_TS
 // Tennessine general register value

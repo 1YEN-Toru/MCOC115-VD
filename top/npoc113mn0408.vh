@@ -1,5 +1,5 @@
 //
-//	Moscovium / Nihonium / Tennessine On Chip
+//	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		compile options definition module
 //		(c) 2026	1YEN Toru
 //
@@ -21,6 +21,7 @@
 
 // Compile option
 // CPU core
+//`define		MCOC_CORE_SM
 //`define		MCOC_CORE_TS
 `define		MCOC_CORE_NH
 `define		MCOC_CORE_NHPI

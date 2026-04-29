@@ -1,4 +1,157 @@
-`ifdef		MCOC_CORE_TS
+`ifdef		MCOC_CORE_SM
+
+module	samariumc (
+// Samarium
+input	clk,
+input	rst_n,
+input	frdy,
+input	brdy,
+input	irq,
+input	[1:0]	cpuid,
+input	[1:0]	irq_lev,
+input	[5:0]	irq_vec,
+input	[15:0]	fdatx,
+input	[15:0]	fdat,
+input	[15:0]	bdatrx,
+input	[15:0]	bdatr,
+output	[2:0]	fcmd,
+output	[15:0]	fadr,
+output	[3:0]	bcmd,
+output	[15:0]	badrx,
+output	[15:0]	badr,
+output	[15:0]	bdatwx,
+output	[15:0]	bdatw);
+
+
+// compile option
+//`define		MCVM_COPR_MUL
+//`define		MCVM_COPR_DIV
+//`define		MCVM_COPR_FPUH
+
+
+wire	crdy;
+wire	[4:0]	ccmd;
+wire	[15:0]	abus_o;
+wire	[15:0]	bbus_o;
+wire	[15:0]	cbus_i;
+
+assign	fcmd[2:0]=3'b101;
+assign	bcmd[3]=1'b0;
+assign	badrx[15:0]=16'h0;
+assign	bdatwx[15:0]=16'h0;
+
+
+// CPU_STS
+wire	[2:0]	copr_en;
+wire	[15:0]	cpu_sts={ 8'h0,1'b0,copr_en[2:0],2'h0,cpuid[1:0] };
+
+
+samarium	core (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.irq(irq),	// Input
+	.cpu_sts(cpu_sts[15:0]),	// Input
+	.fdat(fdat[15:0]),	// Input
+	.bdatr(bdatr[15:0]),	// Input
+	.fadr(fadr[15:0]),	// Output
+	.bcmd(bcmd[2:0]),	// Output
+	.badr(badr[15:0]),	// Output
+	.bdatw(bdatw[15:0]),	// Output
+	// Co-processor I/F
+	.crdy(crdy),	// Input
+	.cbus_i(cbus_i[15:0]),	// Input
+	.ccmd(ccmd[4:0]),	// Output
+	.abus_o(abus_o[15:0]),	// Output
+	.bbus_o(bbus_o[15:0])	// Output
+);
+
+`ifdef		MCVM_COPR_MUL
+assign	copr_en[0]=1'b1;
+wire	[15:0]	cbus_mulc_cl0;
+mcoc_mulc16		mulc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[4:0]),	// Input
+	.abus(abus_o[15:0]),	// Input
+	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy_mulc),	// Output
+	.cbus(cbus_mulc_cl0[15:0])	// Output
+);
+// MULC16 latency register
+reg		[15:0]	cbus_mulc;
+always	@(posedge clk)
+	cbus_mulc[15:0]<=cbus_mulc_cl0[15:0];
+`else	//	MCVM_COPR_MUL
+assign	copr_en[0]=1'b0;
+wire	crdy_mulc=1'b1;
+wire	[15:0]	cbus_mulc=16'h0;
+`endif	//	MCVM_COPR_MUL
+
+`ifdef		MCVM_COPR_DIV
+assign	copr_en[1]=1'b1;
+wire	[15:0]	cbus_divc;
+wire	[15:0]	cbus_divc_cl0;
+divc16	divc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[4:0]),	// Input
+	.abus(abus_o[15:0]),	// Input
+	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy_divc),	// Output
+	.cbus(cbus_divc_cl0[15:0])	// Output
+);
+// DIVC16 latency register
+parameter	[4:0]	DVWU=5'h0e;		// unsigned divide (16 bits): A/B
+parameter	[4:0]	DVWS=5'h0f;		// signed divide (16 bits): A/B
+reg		[4:0]	ccmd_rg;
+reg		[15:0]	cbus_divc_rg;
+always	@(posedge clk)
+	begin
+		if (!rst_n)
+			ccmd_rg[4:0]<=5'h0;
+		else if (crdy)
+			ccmd_rg[4:0]<=ccmd[4:0];
+
+		if (crdy && (ccmd_rg[4:0]==DVWU || ccmd_rg[4:0]==DVWS))
+			cbus_divc_rg[15:0]<=16'h0;
+		else
+			cbus_divc_rg[15:0]<=cbus_divc_cl0[15:0];
+	end
+assign	cbus_divc[15:0]=
+		(crdy && (ccmd_rg[4:0]==DVWU || ccmd_rg[4:0]==DVWS))?
+			cbus_divc_cl0[15:0]:
+			cbus_divc_rg[15:0];
+`else	//	MCVM_COPR_DIV
+assign	copr_en[1]=1'b0;
+wire	crdy_divc=1'b1;
+wire	[15:0]	cbus_divc=16'h0;
+`endif	//	MCVM_COPR_DIV
+
+`ifdef		MCVM_COPR_FPUH
+assign	copr_en[2]=1'b1;
+wire	[15:0]	cbus_hfpu;
+mcoc_hfpu	hfpu (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[4:0]),	// Input
+	.abus(abus_o[15:0]),	// Input
+	.bbus(bbus_o[15:0]),	// Input
+	.crdy(crdy_hfpu),	// Output
+	.cbus(cbus_hfpu[15:0])	// Output
+);
+`else	//	MCVM_COPR_FPUH
+assign	copr_en[2]=1'b0;
+wire	crdy_hfpu=1'b1;
+wire	[15:0]	cbus_hfpu=16'h0;
+`endif	//	MCVM_COPR_FPUH
+
+assign	crdy=crdy_mulc&crdy_divc&crdy_hfpu;
+assign	cbus_i[15:0]=cbus_mulc[15:0] | cbus_divc[15:0] | cbus_hfpu[15:0];
+
+endmodule
+
+`elsif		MCOC_CORE_TS
 
 (* use_dsp = "yes" *)
 module	tennessinec (
@@ -15,7 +168,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
-output	[1:0]	fcmd,
+output	[2:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -30,7 +183,7 @@ wire	signed	[8:0]	tnsn_dsp_b;
 wire	signed	[17:0]	tnsn_dsp_c=tnsn_dsp_a*tnsn_dsp_b;
 
 
-assign	fcmd[1:0]=2'b01;
+assign	fcmd[2:0]=3'b001;
 assign	bcmd[3]=1'b0;
 assign	badrx[15:0]=16'h0;
 assign	bdatwx[15:0]=16'h0;
@@ -74,7 +227,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
-output	[1:0]	fcmd,
+output	[2:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -105,7 +258,7 @@ wire	signed	[65:0]	core_dsp_c0=core_dsp_a0*core_dsp_b0;
 wire	signed	[65:0]	core_dsp_c1=core_dsp_a1*core_dsp_b1;
 
 
-assign	fcmd[1:0]=2'b11;
+assign	fcmd[2:0]=3'b011;
 
 
 nihoniumss	core (
@@ -145,7 +298,6 @@ wire	signed	[32:0]	core_dsp_b;
 wire	signed	[65:0]	core_dsp_c=core_dsp_a*core_dsp_b;
 
 
-wire	fcmd2_open;
 wire	[15:0]	fadrx;
 
 nihoniumpi	core (
@@ -159,7 +311,7 @@ nihoniumpi	core (
 	.irq_vec(irq_vec[5:0]),	// Input
 	.fdat({ fdatx[15:0],fdat[15:0] }),	// Input
 	.bdatr({ bdatrx[15:0],bdatr[15:0] }),	// Input
-	.fcmd({ fcmd2_open,fcmd[1:0] }),	// Output
+	.fcmd(fcmd[2:0]),	// Output
 	.fadr({ fadrx[15:0],fadr[15:0] }),	// Output
 	.bcmd(bcmd[3:0]),	// Output
 	.badr({ badrx[15:0],badr[15:0] }),	// Output
@@ -184,7 +336,7 @@ wire	signed	[32:0]	core_dsp_b;
 wire	signed	[65:0]	core_dsp_c=core_dsp_a*core_dsp_b;
 
 
-assign	fcmd[1:0]=2'b01;
+assign	fcmd[2:0]=3'b001;
 
 
 nihonium	core (
@@ -271,7 +423,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
-output	[1:0]	fcmd,
+output	[2:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -298,7 +450,7 @@ assign	bdatwx[15:0]=16'h0;
 
 `ifdef		MCOC_CORE_MCSS
 
-assign	fcmd[1:0]=2'b11;
+assign	fcmd[2:0]=3'b011;
 
 
 moscoviumss		core (
@@ -327,7 +479,7 @@ moscoviumss		core (
 
 `elsif		MCOC_CORE_MCBS
 
-assign	fcmd[1:0]=2'b01;
+assign	fcmd[2:0]=3'b001;
 
 
 moscoviumbs		core (
@@ -355,7 +507,7 @@ moscoviumbs		core (
 
 `else
 
-assign	fcmd[1:0]=2'b01;
+assign	fcmd[2:0]=3'b001;
 
 
 moscovium	core (
@@ -471,7 +623,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
-output	[1:0]	fcmd,
+output	[2:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -486,7 +638,7 @@ wire	signed	[8:0]	tnsn_dsp_b;
 wire	signed	[17:0]	tnsn_dsp_c=tnsn_dsp_a*tnsn_dsp_b;
 
 
-assign	fcmd[1:0]=2'b01;
+assign	fcmd[2:0]=3'b001;
 assign	bcmd[3]=1'b0;
 assign	badrx[15:0]=16'h0;
 assign	bdatwx[15:0]=16'h0;
@@ -531,7 +683,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
-output	[1:0]	fcmd,
+output	[2:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -546,7 +698,7 @@ wire	[15:0]	bbus_o;
 wire	[15:0]	cbus_i;
 
 
-assign	fcmd[1:0]=2'b01;
+assign	fcmd[2:0]=3'b001;
 assign	bcmd[3]=1'b0;
 assign	bdatwx[15:0]=16'h0;
 
@@ -718,8 +870,8 @@ input	bcmdw,
 input	bcmdl,
 input	bmst,
 input	bcs_rom_n,
-input	[1:0]	fcmd1,
-input	[1:0]	fcmd2,
+input	[2:0]	fcmd1,
+input	[2:0]	fcmd2,
 input	[15:0]	fadr1,
 input	[15:0]	fadr2,
 input	[15:0]	badr,
@@ -752,8 +904,8 @@ rom_wrap32d		romwp (
 	.bcmdl(bcmdl),	// Input
 	.bmst(bmst),	// Input
 	.bcs_rom_n(bcs_rom_n),	// Input
-	.fcmd1(fcmd1[1:0]),	// Input
-	.fcmd2(fcmd2[1:0]),	// Input
+	.fcmd1(fcmd1[2:0]),	// Input
+	.fcmd2(fcmd2[2:0]),	// Input
 	.fadr1(fadr1[15:0]),	// Input
 	.fadr2(fadr2[15:0]),	// Input
 	.badr(badr[15:0]),	// Input
@@ -777,7 +929,7 @@ wire	[31:0]	fdat_bt;
 mcoc_boot32		rombt (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmd(fcmd1[1:0]),	// Input
+	.fcmd(fcmd1[2:0]),	// Input
 	.fadr(fadr1[15:0]),	// Input
 	.fdat(fdat_bt[31:0])	// Output
 );
@@ -875,13 +1027,13 @@ module	mcoc_iram (
 // mcoc115 iram
 input	clk,
 input	rst_n,
-input	fcmdl,
 input	brdy,
 input	bcmdr,
 input	bcmdw,
 input	bcmdb,
 input	bcmdl,
 input	bcs_iram_n,
+input	[2:0]	fcmd,
 input	[15:0]	fadr,
 input	[15:0]	badr,
 input	[31:0]	bdatw,
@@ -909,13 +1061,13 @@ wire	[31:0]	iram_bdatw;
 iram_wrap32		iramwp (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(fcmdl),	// Input
 	.brdy(brdy),	// Input
 	.bcmdr(bcmdr),	// Input
 	.bcmdw(bcmdw),	// Input
 	.bcmdb(bcmdb),	// Input
 	.bcmdl(bcmdl),	// Input
 	.bcs_iram_n(bcs_iram_n),	// Input
+	.fcmd(fcmd[2:0]),	// Input
 	.fadr(fadr[15:0]),	// Input
 	.fadr_top(fadr_top[15:0]),	// Input
 	.badr(badr[15:0]),	// Input

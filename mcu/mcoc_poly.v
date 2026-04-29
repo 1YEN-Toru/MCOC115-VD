@@ -12,7 +12,7 @@ input	[15:0]	fdatx,
 input	[15:0]	fdat,
 input	[15:0]	bdatrx,
 input	[15:0]	bdatr,
-output	[1:0]	fcmd,
+output	[2:0]	fcmd,
 output	[15:0]	fadr,
 output	[3:0]	bcmd,
 output	[15:0]	badrx,
@@ -406,7 +406,7 @@ wire	[15:0]	cbus_i;
 wire	[15:0]	rom_fdat;
 wire	[31:0]	rom_fdat1;
 wire	[31:0]	rom_fdat2;
-wire	[1:0]	cpu_fcmd;
+wire	[2:0]	cpu_fcmd;
 wire	[15:0]	cpu_fadr;
 wire	[31:0]	cpu_fdat;
 wire	[2:0]	cpu_bcmd;
@@ -429,7 +429,7 @@ wire	tcm_bcmdl=1'b0;
 
 `ifdef		MCOC_CORE_MCBS
 
-assign	cpu_fcmd[1:0]=2'b01;
+assign	cpu_fcmd[2:0]=3'b001;
 
 
 moscoviumbs		core (
@@ -466,7 +466,7 @@ wire	signed	[8:0]	tnsn_dsp_b;
 wire	signed	[17:0]	tnsn_dsp_c=tnsn_dsp_a*tnsn_dsp_b;
 
 
-assign	cpu_fcmd[1:0]=2'b01;
+assign	cpu_fcmd[2:0]=3'b001;
 
 
 tennessine	core (
@@ -569,8 +569,8 @@ mcoc_rom	rom (
 	.bcmdl(tcm_bcmdl),	// Input
 	.bmst(1'b0),	// Input
 	.bcs_rom_n(tcm_rom_n),	// Input
-	.fcmd1(cpu_fcmd[1:0]),	// Input
-	.fcmd2(cpu_fcmd[1:0]),	// Input
+	.fcmd1(cpu_fcmd[2:0]),	// Input
+	.fcmd2(cpu_fcmd[2:0]),	// Input
 	.fadr1({16{ (cpuid[3:0]==4'd15) }}&cpu_fadr[15:0]),	// Input
 	.fadr2({16{ (cpuid[3:0]!=4'd15) }}&cpu_fadr[15:0]),	// Input
 	.badr(tcm_badr[15:0]),	// Input
@@ -587,13 +587,13 @@ assign	rom_fdat[15:0]=(cpuid[3:0]==4'd15)? rom_fdat1[15:0]: rom_fdat2[15:0];
 mcoc_iram	iram (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
-	.fcmdl(1'b0),	// Input
 	.brdy(tcm_brdy),	// Input
 	.bcmdr(tcm_bcmdr),	// Input
 	.bcmdw(tcm_bcmdw),	// Input
 	.bcmdb(tcm_bcmdb),	// Input
 	.bcmdl(1'b0),	// Input
 	.bcs_iram_n(tcm_iram_n),	// Input
+	.fcmd(cpu_fcmd[2:0]),	// Input
 	.fadr(cpu_fadr[15:0]),	// Input
 	.badr(tcm_badr[15:0]),	// Input
 	.bdatw({ 16'h0,cpu_bdatw[15:0] }),	// Input
