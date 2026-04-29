@@ -1,0 +1,1738 @@
+model	"Samarium series assembler"
+{
+	macro	prog_name="Samarium series assembler";
+	macro	prog_vers="1.02";
+// ================================
+// Samarium series assembler
+//		(c) 2026	1YEN Toru
+//
+//
+//		2026/04/29	ver.1.02
+//			add: pseudo: datw; character
+//
+//		2026/04/11	ver.1.00
+//
+// ================================
+
+	// constants
+	var		OUT_FORM_VLG=0;				// output format
+	var		OUT_FORM_MEM=1;
+	var		MSIZ=6;						// maximum mnemonic size
+	macro	mnem_list=
+		"nop   "
+		"pause "
+		"copr  "
+		"not   "
+		"cend  "
+		"lsl   "
+		"lsr   "
+		"asr   "
+		"neg   "
+		"jal   "
+		"jmp   "
+		"ijal  "
+		"ijmp  "
+		"ldb   "
+		"ldw   "
+		"dupl  "
+		"pop   "
+		"and   "
+		"or    "
+		"eor   "
+		"add   "
+		"sub   "
+		"cmp   "
+		"cjmp  "
+		"njmp  "
+		"stb   "
+		"stw   "
+		"swap  "
+		"psei  "
+		"sldi  ";
+	macro	opcd_list=
+		"00 "
+		"01 "
+		"02 "
+		"20 "
+		"21 "
+		"22 "
+		"23 "
+		"24 "
+		"25 "
+		"34 "
+		"35 "
+		"36 "
+		"37 "
+		"38 "
+		"39 "
+		"3c "
+		"3d "
+		"40 "
+		"41 "
+		"42 "
+		"43 "
+		"44 "
+		"45 "
+		"54 "
+		"55 "
+		"58 "
+		"59 "
+		"5c "
+		"60 "
+		"80 ";
+	marray	psei_list:0=
+		"MIN_UINT",	"0x00",
+		"ZERO",		"0x00",
+		"MAX_UINT",	"0x10",
+		"MINUS1",	"0x10",
+		"MAX_INT",	"0x11",
+		"MIN_INT",	"0x12",
+		"SGN_BIT",	"0x12",
+		"WORD_SG",	"0x12",
+		"BYTE_LO",	"0x13",
+		"BYTE_SG",	"0x14",
+		"CORE_ID",	"0x18",
+		"STK_SIZ",	"0x19",
+		"STK_PTR",	"0x1a",
+		"PRG_CNT",	"0x1b",
+		"INT_VEC",	"0x1c",
+		"CPU_STS",	"0x1d",
+		".";
+	marray	copr_list:0=
+		"mulu","0x01",		// unsigned multiply: C=Prd=A*B
+		"muls","0x02",		// signed multiply: C=Prd=A*B
+		"mulh","0x03",		// load high word: C=Prd[31:16]
+		"divq","0x0b",		// load quotient low word: Quo[15:0]
+		"divr","0x0d",		// load remainder low word: Rem[15:0]
+		"divu","0x0e",		// unsigned divide (16 bits): 16'h0, A/B
+		"divs","0x0f",		// signed divide (16 bits): 16'h0, A/B
+		"fadd","0x11",		// half add: C=A+B
+		"fsub","0x12",		// half subtract: C=A-B
+		"fmul","0x13",		// half multiply: C=A*B
+		"fdiv","0x14",		// half divide: C=A/B
+		"fneg","0x15",		// half negate: C=-A
+		"fhalf","0x16",		// cast uint16 to half: C=half (A)
+		"fuint","0x17",		// cast half to uint16: C=uint16 (abs (A))
+		"ffrac","0x18",		// half obtain fraction: C=uint16 (abs (A)*(2**16))
+		"fmvsg","0x19",		// half move sign: C=A*sgn (A)*sgn (B)
+		"fsat","0x1a",		// half saturate: INF, ZERO, NaN
+		"fcmp","0x1b",		// half compare: C=NCVZ (flag for A-B)
+		"ftrunc","0x1c",	// half truncate towards zero: C=trunc (A)
+		".";
+	macro	NOT="NOT";
+	tolower		NOT;
+
+
+	// variables
+	var		out_form=OUT_FORM_VLG;
+	var		out_cnt;
+	macro	incl_dir="INCL";
+	macro	dir,file,ext;
+	pathsplit	$(pathname), dir,file,ext;
+
+
+	// procedures
+	procedure	extr_incl	$$fnam_incl
+	{
+		var		fin2;
+		macro	ibuf;
+		macro	dir,file,ext;
+
+		// include file
+		psub	"^"$""([^"$""]*)"$""$","\1",fnam_incl;
+		pathsplit	$(fnam_incl), dir,file,ext;
+		ifnacc	$(fnam_incl)
+		{
+			mlet	fnam_incl=$(incl_dir)$/$(file).$(ext);
+		}
+
+		// open file
+		fopen	fin2,$(fnam_incl),"r";
+
+		fgetl	fin2,ibuf;
+		while (fNF>0)
+		{
+			pgsub	"//(.*)#","//\1\x23",ibuf;
+			psub	"^([^/].*)//.*","\1",ibuf;
+			psub	"#.*","",ibuf;
+			psub	"^[ 	]+","",ibuf;
+			psub	"[ 	]+$","",ibuf;
+			strcmp	cmp=$(ibuf),"";
+			if (cmp=0)
+			{
+				// continue
+				fgetl	fin2,ibuf;
+				continue;
+			}
+
+			strcmp	cmp=$(ibuf1),"incl";
+			if (cmp=0)
+			{
+				extr_incl	$(ibuf2);
+			}
+			fputl	fout,$(ibuf);
+
+			// continue
+			fgetl	fin2,ibuf;
+		}
+
+		// close file
+		fclose	fin2;
+	}
+	procedure	extr_push	$$imm16, ful16,$$cmnt
+	{
+		var		idx;
+		var		num;
+		nvar	ful16=false;
+		nmacro	cmnt="";
+
+		// half[]
+		pindex	cmp=$(imm16),"^half\[(.*)\]$";
+		if (cmp>0)
+		{
+			psub	"^half\[(.*)\]$","\1",imm16;
+			dbl2half	$(imm16);
+			fprint	fout,"//		\x23half["$(imm16)"]="$(dbl2half)$,;
+			mlet	imm16=$(dbl2half);
+		}
+
+		idx=0;
+		while (true)
+		{
+			strcmp	cmp=$(psei_list#(idx)),".";
+			if (cmp=0)
+			{
+				idx=-1;
+				break;
+			}
+
+			strcmp	cmp=$(imm16),$(psei_list#(idx));
+			if (cmp=0)
+			{
+				fprint	fout,"psei	"$(imm16)$(cmnt)$,;
+				break;
+			}
+
+			// continue
+			idx=idx + 2;
+		}
+		if (idx>=0)
+		{
+			extr_push=1;
+			return;
+		}
+
+		// pusha
+		pindex	idx=$(imm16),"^[+\-]?[0-9_]+$";		// decimal
+		if (idx<=0)
+		{
+			pindex	idx=$(imm16),"^[+\-]?0x[0-9a-fA-F_]+$";		// hexa decimal
+		}
+		if (idx<=0)
+		{
+			pindex	idx=$(imm16),"^[+\-]?0b[01_]+$";	// binary
+		}
+		if (idx<=0)
+		{
+			pindex	idx=$(imm16),"^[+\-]?0a.$";		// ascii
+		}
+		pindex	cmp=$(imm16),"[+\-*/%!&|^<>]";
+		if (cmp<=0 & idx<=0)
+		{
+			ifnvar	$(imm16)
+			{
+				fprint	fout,"pusha	"$(imm16)$,;
+				extr_push=3;
+				return;
+			}
+		}
+
+		num=@(($(imm16))&0xffff);
+		if (cmp>0 | idx<=0)
+		{
+			num2str		shex=num,"%04x";
+			mprint	cmnt,$(cmnt)" (0x"$(shex)")";
+		}
+		if (!ful16)
+		{
+			var		num_n;
+
+			// psei
+			if (0<=num & num<=3)
+			{
+				fprint	fout,"psei	#"$(cmnt)$,,num;
+				extr_push=1;
+				return;
+			}
+			elif (num=0xffff)
+			{
+				fprint	fout,"psei	MAX_UINT"$(cmnt)$,;
+				extr_push=1;
+				return;
+			}
+			elif (num=0x7fff)
+			{
+				fprint	fout,"psei	MAX_INT"$(cmnt)$,;
+				extr_push=1;
+				return;
+			}
+			elif (num=0x8000)
+			{
+				fprint	fout,"psei	MIN_INT"$(cmnt)$,;
+				extr_push=1;
+				return;
+			}
+			elif (num=0x00ff)
+			{
+				fprint	fout,"psei	BYTE_LO"$(cmnt)$,;
+				extr_push=1;
+				return;
+			}
+			elif (num=0x0080)
+			{
+				fprint	fout,"psei	BYTE_SG"$(cmnt)$,;
+				extr_push=1;
+				return;
+			}
+
+			// psei; not
+			num_n=@((~num)&0xffff);
+			if (0xfffc<=num_n)
+			{
+				fprint	fout,"psei	#"$(cmnt)$,,num;
+				fprint	fout,$(NOT)$,;
+				extr_push=2;
+				return;
+			}
+			elif (num_n=0x00ff)
+			{
+				fprint	fout,"psei	BYTE_LO"$(cmnt)$,;
+				fprint	fout,$(NOT)$,;
+				extr_push=2;
+				return;
+			}
+			elif (num_n=0x0080)
+			{
+				fprint	fout,"psei	BYTE_SG"$(cmnt)$,;
+				fprint	fout,$(NOT)$,;
+				extr_push=2;
+				return;
+			}
+
+			// partial 7 bit immediate
+			if (@(num&0xff80)=0xff80)
+			{
+				fprint	fout,"psei	MAX_UINT"$(cmnt)$,;
+				num2str		shex=@(num&0x7f),"%02x";
+				fprint	fout,"sldi	0x"$(shex)$,;
+				extr_push=2;
+				return;
+			}
+
+			// partial 9 bit immediate
+			if (num<=0x01ff)
+			{
+				fprint	fout,"psei	#"$(cmnt)$,,@((num>>7)&0x03);
+				num2str		shex=@(num&0x7f),"%02x";
+				fprint	fout,"sldi	0x"$(shex)$,;
+				extr_push=2;
+				return;
+			}
+
+			// MAX_INT start 1 bit shift
+			if (num=0x3fff)
+			{
+				fprint	fout,"psei	MAX_INT"$(cmnt)$,;
+				fprint	fout,"lsr"$,;
+				extr_push=2;
+				return;
+			}
+
+			// MIN_INT start 1 bit shift
+			if (num=0x4000)
+			{
+				fprint	fout,"psei	MIN_INT"$(cmnt)$,;
+				fprint	fout,"lsr"$,;
+				extr_push=2;
+				return;
+			}
+			elif (num=0xc000)
+			{
+				fprint	fout,"psei	MIN_INT"$(cmnt)$,;
+				fprint	fout,"asr"$,;
+				extr_push=2;
+				return;
+			}
+
+			// BYTE_LO start 7 bit immediate
+			if (@(num&0xff80)=@(0x00ff<<7))
+			{
+				fprint	fout,"psei	BYTE_LO"$(cmnt)$,;
+				num2str		shex=@(num&0x7f),"%02x";
+				fprint	fout,"sldi	0x"$(shex)$,;
+				extr_push=2;
+				return;
+			}
+
+			// BYTE_SG start 7 bit immediate
+			if (@(num&0xff80)=@(0x0080<<7))
+			{
+				fprint	fout,"psei	BYTE_SG"$(cmnt)$,;
+				num2str		shex=@(num&0x7f),"%02x";
+				fprint	fout,"sldi	0x"$(shex)$,;
+				extr_push=2;
+				return;
+			}
+
+			// psei; neg (lowest priority because neg takes 2 cycles)
+			num_n=@((-num)&0xffff);
+			if (0xfffd<=num_n)
+			{
+				fprint	fout,"psei	#"$(cmnt)$,,num;
+				fprint	fout,"neg"$,;
+				extr_push=2;
+				return;
+			}
+			elif (num_n=0x7fff)
+			{
+				fprint	fout,"psei	MAX_INT"$(cmnt)$,;
+				fprint	fout,"neg"$,;
+				extr_push=2;
+				return;
+			}
+			elif (num_n=0x00ff)
+			{
+				fprint	fout,"psei	BYTE_LO"$(cmnt)$,;
+				fprint	fout,"neg"$,;
+				extr_push=2;
+				return;
+			}
+			elif (num_n=0x0080)
+			{
+				fprint	fout,"psei	BYTE_SG"$(cmnt)$,;
+				fprint	fout,"neg"$,;
+				extr_push=2;
+				return;
+			}
+		}
+
+		// full 16 bit immediate
+		fprint	fout,"psei	#"$(cmnt)$,,@((num>>14)&0x03);
+		num2str		shex=@((num>>7)&0x7f),"%02x";
+		fprint	fout,"sldi	0x"$(shex)$,;
+		num2str		shex=@(num&0x7f),"%02x";
+		fprint	fout,"sldi	0x"$(shex)$,;
+		extr_push=3;
+	}
+	procedure	dbl2half	dbl
+	{
+		// convert floating point number dbl to half type binary data
+		var		sx,ex,fx;
+
+		// sign
+		sx=0;
+		if (dbl<0)
+		{
+			sx=1;
+		}
+		elif (dbl=0)
+		{
+			dbl2half=0;
+			mlet	dbl2half="0x0000";
+			return;
+		}
+		// exponent and fraction
+		ex=0;
+		fx=abs (dbl);
+		while (fx<1)
+		{
+			fx=fx*2;
+			ex=ex - 1;
+		}
+		while (fx>=2)
+		{
+			fx=fx/2;
+			ex=ex + 1;
+		}
+		if (ex<-14)
+		{
+			// zero
+			ex=-15;
+			fx=0;
+		}
+		elif (ex>15)
+		{
+			// INF
+			ex=16;
+			fx=0;
+		}
+		// convert fx to 11 bits binary
+		fx=floor (fx*0x0400);
+		fx=@(fx&0x03ff);
+		// half type
+		dbl2half=sx*0x8000 + (ex + 15)*0x0400 + fx;
+		num2str		dbl2half=dbl2half,"%04x";
+		psub	"^","0x",dbl2half;
+	}
+	procedure	extr_para	$$prmt
+	{
+		field	num=prmt,",";
+		idx=1;
+		while (idx<=num)
+		{
+			// half[]
+			pindex	cmp=$(prmt#(idx)),"^half\[(.*)\]$";
+			if (cmp>0)
+			{
+				psub	"^half\[(.*)\]$","\1",prmt#(idx);
+				dbl2half	$(prmt#(idx));
+				fprint	fout,"//		\x23half["$(prmt#(idx))"]="
+						$(dbl2half)$,;
+				mlet	prmt#(idx)=$(dbl2half);
+			}
+
+			pindex	cmp=$(prmt#(idx)),"^\[.*\]$";
+			if (cmp>0)
+			{
+				// indirect
+				psub	"\[(.*)\]","\1",prmt#(idx);
+				strcmp	cmp=$(prmt#(idx)),"";
+				if (cmp=0)
+				{
+					// ERROR:
+					errmsg	"ERR: empty indirect constant"$,$(prmt)$,;
+					leave	stop_error;
+				}
+				extr_push	$(prmt#(idx)), false,"	// ldw	"$(prmt#(idx));
+				fprint	fout,"ldw"$,;
+			}
+			else
+			{
+				// direct
+				strcmp	cmp=$(prmt#(idx)),"";
+				if (cmp=0)
+				{
+					// ERROR:
+					errmsg	"ERR: empty direct constant"$,$(prmt)$,;
+					leave	stop_error;
+				}
+				extr_push	$(prmt#(idx)), false,"	// push	"$(prmt#(idx));
+			}
+
+			// continue
+			idx=idx + 1;
+		}
+	}
+	procedure	case_line	adr,opc,$$cmnt
+	{
+		nmacro	cmnt="";
+
+		// comment
+		strcmp	cmp=$(cmnt),"";
+		if (cmp)
+		{
+			gsub	"	"," ",cmnt;
+			mlet	cmnt="	// "$(cmnt);
+		}
+
+		if (out_form=OUT_FORM_VLG)
+		{
+			// Verilog-HDL random logic ROM
+			num2str		shex=adr,"%04x";
+			fprint	fout,"//	16'h"$(shex)":	mem[7:0]=8'h";
+			num2str		shex=opc,"%02x";
+			fprint	fout,$(shex)";"$(cmnt)$,;
+		}
+		elif (out_form=OUT_FORM_MEM)
+		{
+			// Verilog-HDL MEM
+			num2str		shex=adr,"%04x";
+			fprint	fout,"//	@"$(shex)"	";
+			num2str		shex=opc,"%02x";
+			fprint	fout,$(shex)$(cmnt)$,;
+		}
+
+		static : var	out_cod#(out_cnt)=opc;
+		out_cnt=out_cnt + 1;
+	}
+	procedure	get_code
+	{
+		// returns long word data from assembled codes
+		var		idx2=idx;
+
+		get_code=@(get_code<<8);
+		ifvar	out_cod#(idx2)
+		{
+			get_code=@(get_code + (out_cod#(idx2)&0xff));
+		}
+		idx2=idx2 + 1;
+		get_code=@(get_code<<8);
+		ifvar	out_cod#(idx2)
+		{
+			get_code=@(get_code + (out_cod#(idx2)&0xff));
+		}
+		idx2=idx2 + 1;
+		get_code=@(get_code<<8);
+		ifvar	out_cod#(idx2)
+		{
+			get_code=@(get_code + (out_cod#(idx2)&0xff));
+		}
+		idx2=idx2 + 1;
+		get_code=@(get_code<<8);
+		ifvar	out_cod#(idx2)
+		{
+			get_code=@(get_code + (out_cod#(idx2)&0xff));
+		}
+		num2str		get_code=get_code,"%08x";
+	}
+
+
+	// input file
+	macro	fnam_inp=$(file)".asm";
+	var		rtn;
+	gui		openfile, rtn, "Input File","Specify the input file",fnam_inp;
+	if (rtn!=guiOK)
+	{
+		ifnacc	$(fnam_inp)
+		{
+			mlet	fnam_inp=$(file)".txt";
+		}
+		ifnacc	$(fnam_inp)
+		{
+			leave	stop_error;
+		}
+	}
+	pathsplit	$(fnam_inp), dir,file,ext;
+	macro	asm_nam=$(file);
+	macro	fnam_tmpi=$(dir)$/$(file)"_i.tmp";
+	macro	fnam_tmpo=$(dir)$/$(file)"_o.tmp";
+	macro	fnam_out;
+	if (out_form=OUT_FORM_VLG)
+	{
+		mlet	fnam_out=$(dir)$/$(file)".v";
+	}
+	elif (out_form=OUT_FORM_MEM)
+	{
+		mlet	fnam_out=$(dir)$/$(file)".mem";
+	}
+
+
+	// initialize
+	var		fin;
+	var		fout;
+	var		idx;
+	var		cmp;
+	var		num;
+	var		adr;
+	var		fpos,fsiz,facm;
+	macro	shex;
+	macro	lbuf, lbuf2;
+macro	log,tbuf;
+
+	// define co-processor command code
+	idx=0;
+	while (true)
+	{
+		strcmp	cmp=$(copr_list#(idx)),".";
+		if (cmp=0)
+		{
+			break;
+		}
+		static : nvar	copr_$(copr_list#(idx));
+		copr_$(copr_list#(idx))=$(copr_list#(idx + 1));
+
+		// continue
+		idx=idx + 2;
+	}
+
+	fcopy	$(fnam_inp),$(fnam_tmpi);
+
+	// ================================
+	// 0) include
+	// ================================
+	// open file
+	fopen	fin,$(fnam_tmpi),"r";
+	fopen	fout,$(fnam_tmpo),"w";
+
+	// file size
+	fseek	fin,-1;
+	ftell	fin,fpos;
+	fseek	fin,0;
+	fsiz=fpos*6;
+	facm=fpos*0;
+
+	fgetl	fin,lbuf;
+	while (fNF>0)
+	{
+		ftell	fin,fpos;
+		progress	"Pre-process...",100*(facm + fpos)/fsiz;
+
+		pgsub	"//(.*)#","//\1\x23",lbuf;
+		psub	"^([^/].*)//.*","\1",lbuf;
+		psub	"#.*","",lbuf;
+		psub	"^[ 	]+","",lbuf;
+		psub	"[ 	]+$","",lbuf;
+		strcmp	cmp=$(lbuf),"";
+		if (cmp=0)
+		{
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// asm (pseudo instruction)
+		strcmp	cmp=$(lbuf1),"asm";
+		if (cmp=0)
+		{
+			psub	"^"$""([^"$""]*)"$""$","\1",lbuf2;
+			mlet	fnam_out=$(lbuf2);
+			mlet	asm_nam=$(fnam_out);
+			strcmp	cmp=$(lbuf2),".v",right;
+			if (cmp=0)
+			{
+				out_form=OUT_FORM_VLG;
+			}
+			strcmp	cmp=$(lbuf2),".mem",right;
+			if (cmp=0)
+			{
+				out_form=OUT_FORM_MEM;
+			}
+			pgsub	"\..*","",asm_nam;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// incl (pseudo instruction)
+		strcmp	cmp=$(lbuf1),"incl";
+		if (cmp=0)
+		{
+			extr_incl	$(lbuf2);
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// output
+		fputl	fout,$(lbuf);
+
+		// continue
+		fgetl	fin,lbuf;
+	}
+
+	// close file
+	fclose	fin;
+	fclose	fout;
+
+	// copy
+	fcopy	$(fnam_tmpo),$(fnam_tmpi);
+
+
+	// ================================
+	// 1) constant label, integrated macro
+	// ================================
+	// open file
+	fopen	fin,$(fnam_tmpi),"r";
+	fopen	fout,$(fnam_tmpo),"w";
+
+	// file size
+	fseek	fin,-1;
+	ftell	fin,fpos;
+	fseek	fin,0;
+	fsiz=fpos*6;
+	facm=fpos*1;
+
+	fgetl	fin,lbuf;
+	while (fNF>0)
+	{
+		ftell	fin,fpos;
+		progress	"Constant label...",100*(facm + fpos)/fsiz;
+
+		psub	"^([^/].*)//.*","\1",lbuf;
+		pgsub	"([ -~].*)#.*","\1",lbuf;
+		pgsub	"^[ 	]+","",lbuf;
+		pgsub	"[ 	]+$","",lbuf;
+
+		// equ
+		strcmp	cmp=$(lbuf1),"equ";
+		if (cmp=0)
+		{
+			// equ pseudo instruction
+			fputl	fout,"#"$(lbuf);
+
+			field	num=lbuf,"";
+			mlet	lbuf=$(lbuf2);
+			field	num=lbuf,",";
+
+			// half[]
+			pindex	cmp=$(lbuf2),"^half\[(.*)\]$";
+			if (cmp>0)
+			{
+				psub	"^half\[(.*)\]$","\1",lbuf2;
+				dbl2half	$(lbuf2);
+				mlet	lbuf2=$(dbl2half);
+			}
+
+			// define constant label
+			static : nvar	$(lbuf1);
+			$(lbuf1)=@($(lbuf2));
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// halt (integrated macro)
+		strcmp	cmp=$(lbuf1),"halt";
+		if (cmp=0)
+		{
+			fputl	fout,"//	\x23"$(lbuf);
+			fprint	fout,"sub		PRG_CNT,1"$,;
+			fprint	fout,"jmp"$,;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// rtn / setpc (alias)
+		strcmp	cmp=$(lbuf1),"rtn";
+		if (cmp)
+		{
+			strcmp	cmp=$(lbuf1),"setpc";
+		}
+		if (cmp=0)
+		{
+			fputl	fout,"//	\x23"$(lbuf);
+			sub		"rtn","jmp",lbuf;
+			sub		"setpc","jmp",lbuf;
+			fprint	fout,$(lbuf)$,;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// rti (alias)
+		strcmp	cmp=$(lbuf1),"rti";
+		if (cmp=0)
+		{
+			fputl	fout,"//	\x23"$(lbuf);
+			sub		"rti","ijmp",lbuf;
+			fprint	fout,$(lbuf)$,;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// setiv (alias)
+		strcmp	cmp=$(lbuf1),"setiv";
+		if (cmp=0)
+		{
+			fputl	fout,"//	\x23"$(lbuf);
+			sub		"setiv","ijal",lbuf;
+			fprint	fout,$(lbuf)$,;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// asl (alias)
+		strcmp	cmp=$(lbuf1),"asl";
+		if (cmp=0)
+		{
+			fputl	fout,"//	\x23"$(lbuf);
+			sub		"asl","lsl",lbuf;
+			fprint	fout,$(lbuf)$,;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// subroutine macro
+		strcmp	cmp=$(lbuf1),"*",right;
+		if (cmp=0)
+		{
+			fputl	fout,"//	\x23"$(lbuf);
+			psub	"\*$","",lbuf1;
+			psub	"#.*","",lbuf2;
+			psub	"//.*","",lbuf2;
+			strcmp	cmp=$(lbuf2),"";
+			if (fNF=1 | cmp=0)
+			{
+				// no parameter
+				fprint	fout,"jal	"$(lbuf1)$,;
+			}
+			else
+			{
+				// with parameter
+				fprint	fout,"jal	"$(lbuf2)","$(lbuf1)$,;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// Co-processor instruction
+		idx=0;
+		while (true)
+		{
+			strcmp	cmp=$(copr_list#(idx)),".";
+			if (cmp=0)
+			{
+				// not found
+				idx=-1;
+				break;
+			}
+			strcmp	cmp=$(copr_list#(idx)),$(lbuf1);
+			if (cmp=0)
+			{
+				// found
+				break;
+			}
+
+			// continue
+			idx=idx + 2;
+		}
+		if (idx>=0)
+		{
+			mlet	lbuf1="copr_"$(lbuf1);
+
+			// output
+			fputl	fout,"//	\x23"$(lbuf);
+			strcmp	cmp=$(lbuf2),"";
+			if (cmp=0 | fNF=1)
+			{
+				fprint	fout,"copr	"$(lbuf1)$,;
+			}
+			else
+			{
+				fprint	fout,"copr	"$(lbuf2)","$(lbuf1)$,;
+			}
+			
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// output
+		fputl	fout,$(lbuf);
+
+		// continue
+		fgetl	fin,lbuf;
+	}
+
+	// close file
+	fclose	fin;
+	fclose	fout;
+
+	// copy
+	fcopy	$(fnam_tmpo),$(fnam_tmpi);
+
+
+	// ================================
+	// 2) extract operand
+	// ================================
+	// open file
+	fopen	fin,$(fnam_tmpi),"r";
+	fopen	fout,$(fnam_tmpo),"w";
+
+	// file size
+	fseek	fin,-1;
+	ftell	fin,fpos;
+	fseek	fin,0;
+	fsiz=fpos*6;
+	facm=fpos*2;
+
+	fgetl	fin,lbuf;
+	while (fNF>0)
+	{
+		ftell	fin,fpos;
+		progress	"Extract operand...",100*(facm + fpos)/fsiz;
+
+		pgsub	"^#.*","",lbuf;
+		strcmp	cmp=$(lbuf),"";
+		if (cmp=0)
+		{
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// sldi / psei
+		strcmp	cmp=$(lbuf1),"sldi";
+		if (cmp)
+		{
+			strcmp	cmp=$(lbuf1),"psei";
+		}
+		if (cmp=0)
+		{
+			fputl	fout,"//	"$(lbuf);
+			fputl	fout,$(lbuf);
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// push
+		strcmp	cmp=$(lbuf1),"push";
+		if (cmp=0)
+		{
+			macro	tmp;
+
+			fputl	fout,"//	"$(lbuf);
+			psub	"#.*","",lbuf2;
+			psub	"//.*","",lbuf2;
+			strcmp	cmp=$(lbuf2),"";
+			if (fNF<2 | cmp=0)
+			{
+				// ERROR:
+				errmsg	"ERR: push has no operand"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			extr_push	$(lbuf2),false,"	// push "$(lbuf2);
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// datw
+		strcmp	cmp=$(lbuf1),"datw";
+		if (cmp=0)
+		{
+			fputl	fout,"//	"$(lbuf);
+
+			macro	tmp=$(lbuf2);
+			field	num=tmp,",";
+			idx=1;
+			while (idx<=num)
+			{
+				strcmp	cmp=$(tmp#(idx)),"";
+				if (cmp=0)
+				{
+					// ERROR:
+					errmsg	"ERR: empty 'datw' data"$,$(lbuf)$,;
+					leave	stop_error;
+				}
+				fprint	fout,"datw	"$(tmp#(idx))$,;
+
+				// continue
+				idx=idx + 1;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// dats
+		strcmp	cmp=$(lbuf1),"dats";
+		if (cmp=0)
+		{
+			macro	chr;
+
+			fputl	fout,"//	"$(lbuf);
+
+			mlet	lbuf2=$(lbuf);
+			psub	"^dats[ 	]+","",lbuf2;
+			strcmp	cmp=$(lbuf2),$",left;
+			if (cmp)
+			{
+				// ERROR:
+				errmsg	"ERR: bad 'dats' string constant"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			mlet	shex="";
+			idx=2;
+			while (true)
+			{
+				substr	chr=$(lbuf2),idx,1;
+				chr2num		num=$(chr);
+				if (num=0 | num=0x22)
+				{
+					break;
+				}
+
+				if (num>255)
+				{
+					// S-JIS 2 byte code
+					num2str		chr=num,"%04x";
+					strcat	shex,$(chr);
+					idx=idx + 1;
+				}
+				else
+				{
+					// ASCII 1 byte code
+					if (num=0x5c)
+					{
+						// '\'
+						idx=idx + 1;
+						substr	chr=$(lbuf2),idx,1;
+						chr2num		num=$(chr);
+						// escape sequence
+						if (num=0x22)
+						{
+							// '\"'
+							num=0x22;
+						}
+						elif (num=0x30)
+						{
+							// '\0'
+							num=0x00;
+						}
+						elif (num=0x6e)
+						{
+							// '\n'
+							num=0x0a;
+						}
+						elif (num=0x72)
+						{
+							// '\r'
+							num=0x0d;
+						}
+						elif (num=0x74)
+						{
+							// '\t'
+							num=0x09;
+						}
+						elif (num=0x78)
+						{
+							// '\xHH'
+							substr	chr=$(lbuf2),idx + 1,2;
+							num=0x$(chr);
+							idx=idx + 2;
+						}
+					}
+					num2str		chr=num,"%02x";
+					strcat	shex,$(chr);
+				}
+
+				// continue
+				idx=idx + 1;
+			}
+			if (num=0)
+			{
+				// ERROR:
+				errmsg	"ERR: bad 'dats' string constant"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+
+			// extract to datw
+			strcat	shex,"00";
+			idx=1;
+			while (true)
+			{
+				substr	chr=$(shex),idx,4;
+				strlen	num=$(chr);
+				if (num<4)
+				{
+					break;
+				}
+
+				fprint	fout,"datw	0x"$(chr)$,;
+
+				// continue
+				idx=idx + 4;
+			}
+			if (idx<4)
+			{
+				// ERROR:
+				errmsg	"ERR: empty 'dats' string constant"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// stack parameter
+		mlet	lbuf1=$(lbuf1)"        ";
+		substr	lbuf1=$(lbuf1),1,MSIZ;
+		index	idx=$(mnem_list),$(lbuf1);
+		if (idx>0 & idx%MSIZ=1 & fNF>1)
+		{
+			fputl	fout,"//	"$(lbuf);
+			extr_para	$(lbuf2);
+			gsub	" ","",lbuf1;
+			fprint	fout,$(lbuf1)$,;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// no parameter
+		strcmp	cmp=$(lbuf),"//",left;
+		if (cmp)
+		{
+			strcmp	cmp=$(lbuf),":",right;
+		}
+		if (cmp)
+		{
+			fputl	fout,"//	"$(lbuf);
+		}
+		fputl	fout,$(lbuf);
+
+		// continue
+		fgetl	fin,lbuf;
+	}
+
+	// close file
+	fclose	fin;
+	fclose	fout;
+
+	// copy
+	fcopy	$(fnam_tmpo),$(fnam_tmpi);
+
+
+	// ================================
+	// 3) address label
+	// ================================
+	// open file
+	fopen	fin,$(fnam_tmpi),"r";
+	fopen	fout,$(fnam_tmpo),"w";
+
+	// file size
+	fseek	fin,-1;
+	ftell	fin,fpos;
+	fseek	fin,0;
+	fsiz=fpos*6;
+	facm=fpos*3;
+
+	adr=0;
+	fgetl	fin,lbuf;
+	while (fNF>0)
+	{
+		ftell	fin,fpos;
+		progress	"Address label...",100*(facm + fpos)/fsiz;
+
+		pgsub	"^#.*","",lbuf;
+		strcmp	cmp=$(lbuf),"";
+		if (cmp=0)
+		{
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// align pseudo instruction
+		strcmp	cmp=$(lbuf1),"align";
+		if (cmp=0)
+		{
+			var		pcnt;
+			var		algn;
+
+			strcmp	cmp=$(lbuf2),"";
+			if (fNF<2 | cmp=0)
+			{
+				// ERROR:
+				errmsg	"ERR: align has no operand"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			algn=$(lbuf2);
+			pcnt=int ((adr + algn - 1)/algn)*algn;
+			if (pcnt<0 | 0xffff<pcnt | pcnt%2=1)
+			{
+				errmsg	"illegal align size: "$(lbuf);
+				leave	stop_error;
+			}
+			while (pcnt>adr)
+			{
+				fprint	fout,"nop"$,;
+				adr=adr + 1;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// pusha pseudo instruction
+		strcmp	cmp=$(lbuf1),"pusha";
+		if (cmp=0)
+		{
+			ifvar	$(lbuf2)
+			{
+				sub		"pusha","push",lbuf;
+				extr_push	$(lbuf2), false,"	//	"$(lbuf);
+				adr=adr + extr_push;
+			}
+			else
+			{
+				sub		"pusha","pushf",lbuf;
+				fputl	fout,$(lbuf);
+				adr=adr + 3;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// address label
+		strcmp	cmp=$(lbuf1),":",right;
+		if (cmp=0)
+		{
+			// address label
+			num2str		shex=adr,"%04x";
+			fprint	fout,"//"$(lbuf1)" (0x"$(shex)")"$,;
+			psub	":$","",lbuf1;
+			ifvar	$(lbuf1)
+			{
+				// ERROR:
+				errmsg	"ERR: duplicate defined address label"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			// define address label
+			static  : nvar	$(lbuf1);
+			$(lbuf1)=adr;
+			// define "lab_*" address label for compatibility
+			static  : nvar	"lab_"$(lbuf1);
+			"lab_"$(lbuf1)=adr;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+		fputl	fout,$(lbuf);
+
+		// comment
+		strcmp	cmp=$(lbuf1),"//",left;
+		if (cmp)
+		{
+			strcmp	cmp=$(lbuf1),"asm";
+		}
+		if (cmp=0)
+		{
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// datw pseudo instruction
+		strcmp	cmp=$(lbuf1),"datw";
+		if (cmp=0)
+		{
+			adr=adr + 2;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// pushf pseudo instruction
+		strcmp	cmp=$(lbuf1),"pushf";
+		if (cmp=0)
+		{
+			adr=adr + 3;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// program counter
+		adr=adr + 1;
+
+		// continue
+		fgetl	fin,lbuf;
+	}
+
+	// close file
+	fclose	fin;
+	fclose	fout;
+
+	// copy
+	fcopy	$(fnam_tmpo),$(fnam_tmpi);
+
+
+	// ================================
+	// 4) assemble
+	// ================================
+	// open file
+	fopen	fin,$(fnam_tmpi),"r";
+	fopen	fout,$(fnam_out),"w";
+
+	// file size
+	fseek	fin,-1;
+	ftell	fin,fpos;
+	fseek	fin,0;
+	fsiz=fpos*6;
+	facm=fpos*4;
+
+	// header
+	fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+
+	adr=0;
+	fgetl	fin,lbuf;
+	while (fNF>0)
+	{
+		var		opc;
+
+		ftell	fin,fpos;
+		progress	"Assemble...",100*(facm + fpos)/fsiz;
+
+		pgsub	"//(.*)\\x23","//\1#",lbuf;
+		pgsub	"^#.*","",lbuf;
+		strcmp	cmp=$(lbuf),"";
+		if (cmp=0)
+		{
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// comment
+		strcmp	cmp=$(lbuf1),"//",left;
+		if (cmp=0)
+		{
+			fputl	fout,"	"$(lbuf);
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// datw
+		strcmp	cmp=$(lbuf1),"datw";
+		if (cmp=0)
+		{
+			// half[]
+			pindex	cmp=$(lbuf2),"^half\[(.*)\]$";
+			if (cmp>0)
+			{
+				psub	"^half\[(.*)\]$","\1",lbuf2;
+				dbl2half	$(lbuf2);
+				mlet	lbuf2=$(dbl2half);
+			}
+
+			// data
+			opc=@(($(lbuf2))&0xffff);
+			num2str		shex=opc,"%04x";
+			mlet	shex=" (0x"$(shex)")";
+
+			// character
+			macro	chrs,chr2;
+			while (true)
+			{
+				if (opc>=0x8000)
+				{
+					// S-JIS
+					num2chr		chr2=opc;
+					strcmp	cmp=$(chr2),"";
+					if (cmp)
+					{
+						break;
+					}
+				}
+				// ASCII
+				num2chr		chr2=@(opc>>8);
+				strcmp	cmp=$(chr2),"";
+				if (cmp=0)
+				{
+					mlet	chr2="@@@";
+				}
+				strcat	chrs,$(chr2);
+				num2chr		chr2=@(opc&0xff);
+				strcmp	cmp=$(chr2),"";
+				if (cmp=0)
+				{
+					mlet	chr2="@@@";
+				}
+				break;
+			}
+			strcat	chrs,$(chr2);
+			strcmp	cmp=$(chrs),"@@@@@@";
+			if (cmp=0)
+			{
+				mlet	chrs="";
+			}
+			psub	"@@@"," ",chrs;
+			strcmp	cmp=$(chrs),"";
+			if (cmp)
+			{
+				mlet	chrs="'"$(chrs)"'";
+			}
+
+			// output
+			case_line	adr,@(opc>>8),$(lbuf)$(shex)$(chrs);
+			adr=adr + 1;
+			case_line	adr,@(opc&0xff);
+			adr=adr + 1;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// pusha
+		strcmp	cmp=$(lbuf1),"pusha";
+		if (cmp)
+		{
+			strcmp	cmp=$(lbuf1),"pushf";
+		}
+		if (cmp=0)
+		{
+			strcmp	cmp=$(lbuf2),"";
+			if (fNF<2 | cmp=0)
+			{
+				// ERROR:
+				errmsg	"ERR: pushf has no operand"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			num=@(($(lbuf2))&0xffff);
+
+			// full 16 bit immediate
+			index	idx=$(mnem_list),"psei ";
+			substr	shex=$(opcd_list),(idx - 1)/MSIZ*3 + 1,2;
+			opc=0x$(shex);
+			num2str		shex=num,"%04x";
+			case_line	adr,@(opc + num>>14),$(lbuf)" (0x"$(shex)")";
+			adr=adr + 1;
+			index	idx=$(mnem_list),"sldi ";
+			substr	shex=$(opcd_list),(idx - 1)/MSIZ*3 + 1,2;
+			opc=0x$(shex);
+			case_line	adr,@(opc + (num>>7)&0x7f);
+			adr=adr + 1;
+			case_line	adr,@(opc + num&0x7f);
+			adr=adr + 1;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// assemble
+		mlet	lbuf1=$(lbuf1)"        ";
+		substr	lbuf1=$(lbuf1),1,MSIZ;
+		index	idx=$(mnem_list),$(lbuf1);
+		if (idx>0 & idx%MSIZ=1)
+		{
+			// instruction
+			substr	shex=$(opcd_list),(idx - 1)/MSIZ*3 + 1,2;
+			opc=0x$(shex);
+			if (fNF>1)
+			{
+				strcmp	cmp=$(lbuf1),"sldi ",left;
+				if (cmp=0)
+				{
+					// sldi
+					num=@($(lbuf2));
+					if (num<0 | 0x7f<num)
+					{
+						// ERROR:
+						errmsg	"ERR: sldi operand out of range"$,$(lbuf)$,;
+						leave	stop_error;
+					}
+					opc=opc + num;
+				}
+				else
+				{
+					strcmp	cmp=$(lbuf1),"psei ",left;
+					if (cmp=0)
+					{
+						// psei
+						idx=0;
+						while (true)
+						{
+							strcmp	cmp=$(psei_list#(idx)),".";
+							if (cmp=0)
+							{
+								idx=-1;
+								break;
+							}
+
+							strcmp	cmp=$(lbuf2),$(psei_list#(idx));
+							if (cmp=0)
+							{
+								idx=$(psei_list#(idx + 1));
+								break;
+							}
+
+							// continue
+							idx=idx + 2;
+						}
+						if (idx<0)
+						{
+							idx=@($(lbuf2));
+						}
+						if (idx<0 | 0x1f<idx)
+						{
+							// ERROR:
+							errmsg	"ERR: psei operand out of range"$,$(lbuf)$,;
+							leave	stop_error;
+						}
+						opc=opc + idx;
+					}
+				}
+			}
+			else
+			{
+				// fNF<1
+				strcmp	cmp=$(lbuf1),"sldi ",left;
+				if (cmp)
+				{
+					strcmp	cmp=$(lbuf1),"psei ",left;
+				}
+				if (cmp=0)
+				{
+					// ERROR:
+					errmsg	"ERR: sldi / psei has no operand"$,$(lbuf)$,;
+					leave	stop_error;
+				}
+			}
+
+			// output
+			case_line	adr,opc,$(lbuf);
+			adr=adr + 1;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// ERROR:
+		errmsg	"ERR: undefined mnemonic"$,$(lbuf)$,;
+		leave	stop_error;
+
+		// continue
+		fgetl	fin,lbuf;
+	}
+	if (adr=0)
+	{
+		// close file
+		fclose	fout;
+		fclose	fin;
+
+		// delete files
+		fdel	$(fnam_tmpi);
+		fdel	$(fnam_tmpo);
+		fdel	$(fnam_out);
+
+		// ERROR:
+		errmsg	"ERR: no effective instruction"$,;
+		leave	stop_error;
+	}
+
+
+	// ================================
+	// 5) formatting
+	// ================================
+	// header
+	fprint	fout,$,;
+	if (out_form=OUT_FORM_VLG)
+	{
+		// Verilog-HDL random logic ROM
+		fprint	fout,"module	"$(asm_nam)" ("$,;
+		fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+		fprint	fout,"input	clk,"$,;
+		fprint	fout,"input	rst_n,"$,;
+		fprint	fout,"input	rl0,"$,;
+		fprint	fout,"input	sel_n,"$,;
+		fprint	fout,"input	cmdb,"$,;
+		fprint	fout,"input	cmdl,"$,;
+		fprint	fout,"input	[15:0]	adr,"$,;
+		fprint	fout,"output	[31:0]	dat);"$,;
+		fprint	fout,$,;
+		fprint	fout,"// memory read"$,;
+		fprint	fout,"reg		[31:0]	mem;"$,;
+		fprint	fout,"always	@(adr[15:0])"$,;
+		fprint	fout,"	case (adr[15:0]&(~16'h3))"$,;
+	}
+	elif (out_form=OUT_FORM_MEM)
+	{
+		// Verilog-HDL MEM
+		fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
+		fprint	fout,"@0000"$,;
+	}
+
+	// body
+	idx=0;
+	while (idx<out_cnt)
+	{
+		progress	"Formatting...",100*(facm + fpos*(1 + idx/out_cnt))/fsiz;
+
+		// get long word data from assembled codes
+		get_code;
+
+		// formatting
+		if (out_form=OUT_FORM_VLG)
+		{
+			// Verilog-HDL random logic ROM
+			psub	"^(....)","\1_",get_code;
+			num2str		shex=idx,"%04x";
+			fprint	fout,"	16'h"$(shex)":	mem[31:0]=32'h"$(get_code)";"$,;
+		}
+		elif (out_form=OUT_FORM_MEM)
+		{
+			// Verilog-HDL MEM
+			fprint	fout,$(get_code)$,;
+		}
+
+		// continue
+		idx=idx + 4;
+	}
+
+	// footer
+	if (out_form=OUT_FORM_VLG)
+	{
+		// Verilog-HDL random logic ROM
+		fprint	fout,"	default:	mem[31:0]=32'hx;"$,;
+		fprint	fout,"	endcase"$,;
+		fprint	fout,"wire	[15:0]	romsiz=16'd#;	// byte"$,,adr;
+		fprint	fout,$,;
+		fprint	fout,"// read latency 0"$,;
+		fprint	fout,"wire	[7:0]	mem_by="$,;
+		fprint	fout,"			(adr[1:0]==2'h0)? mem[31:24]:"$,;
+		fprint	fout,"			(adr[1:0]==2'h1)? mem[23:16]:"$,;
+		fprint	fout,"			(adr[1:0]==2'h2)? mem[15:8]: mem[7:0];"$,;
+		fprint	fout,"wire	[15:0]	mem_wd="$,;
+		fprint	fout,"			(!adr[1])? mem[31:16]: mem[15:0];"$,;
+		fprint	fout,"wire	[31:0]	dat_rl0="$,;
+		fprint	fout,"		(cmdl)? mem[31:0]:"$,;
+		fprint	fout,"		(cmdb)? { 16'h0,mem_by[7:0],mem_by[7:0] }:"$,;
+		fprint	fout,"			{ 16'h0,mem_wd[15:0] };"$,;
+		fprint	fout,$,;
+		fprint	fout,"// read latency 1"$,;
+		fprint	fout,"reg		[31:0]	dat_rg;"$,;
+		fprint	fout,"always	@(posedge clk)"$,;
+		fprint	fout,"	begin"$,;
+		fprint	fout,"		if (!rst_n || sel_n)"$,;
+		fprint	fout,"			dat_rg[31:0]<=32'h0;"$,;
+		fprint	fout,"		else"$,;
+		fprint	fout,"			dat_rg[31:0]<=dat_rl0[31:0];"$,;
+		fprint	fout,"	end"$,;
+		fprint	fout,"assign	dat[31:0]="
+				"(rl0)? dat_rl0[31:0]: dat_rg[31:0];"$,;
+		fprint	fout,$,;
+		fprint	fout,"endmodule"$,;
+		fprint	fout,$,;
+	}
+
+	// close file
+	fclose	fout;
+	fclose	fin;
+
+
+	// delete temporary file
+	fdel	$(fnam_tmpi);
+	fdel	$(fnam_tmpo);
+strcmp	cmp=$(log),"";
+if (cmp)
+{
+	message		$(log);
+}
+
+
+	leave	stop_error;
+}
+
