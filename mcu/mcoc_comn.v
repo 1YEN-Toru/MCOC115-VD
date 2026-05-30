@@ -52,7 +52,7 @@ samarium	core (
 	.brdy(brdy),	// Input
 	.irq(irq),	// Input
 	.cpu_sts(cpu_sts[15:0]),	// Input
-	.fdat(fdat[15:0]),	// Input
+	.fdat(fdat[7:0]),	// Input
 	.bdatr(bdatr[15:0]),	// Input
 	.fadr(fadr[15:0]),	// Output
 	.bcmd(bcmd[2:0]),	// Output
@@ -146,6 +146,7 @@ wire	crdy_hfpu=1'b1;
 wire	[15:0]	cbus_hfpu=16'h0;
 `endif	//	MCVM_COPR_FPUH
 
+// co-processor bus output
 assign	crdy=crdy_mulc&crdy_divc&crdy_hfpu;
 assign	cbus_i[15:0]=cbus_mulc[15:0] | cbus_divc[15:0] | cbus_hfpu[15:0];
 
@@ -401,7 +402,7 @@ wire	[31:0]	cbus_sfpu=31'h0;
 `endif	//	MCVM_COPR_FPUS
 
 
-// bus output
+// co-processor bus output
 assign	crdy=crdy_hfpu&crdy_sfpu;
 assign	cbus_i[31:0]={ 16'h0,cbus_hfpu[15:0] } | cbus_sfpu[31:0];
 

@@ -104,7 +104,7 @@
 		- Moscovium assembler
 			- Macro assembler script and sample sources
 		- Samarium assembler
-			- Assembler script and sample sources
+			- Assembler script
 	- blky/
 		- Blockly for Moscovium
 			- Blockly.XML to Moscovium.ASM translator script and sample sources

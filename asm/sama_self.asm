@@ -12,7 +12,7 @@ asm		"mcoc_irom.mem"
 incl	"mcoc115.incl"
 # ================================
 # constants
-equ		poly_cpu_id,2					// CPU# to be tested
+equ		poly_cpu_id,2					// CPU# to be test
 equ		stx_ram_adr,iomedat0			// stw/stb test needs RAM (0=not test)
 # ================================
 

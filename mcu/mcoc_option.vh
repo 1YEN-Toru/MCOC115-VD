@@ -57,6 +57,8 @@
 `undef		MCOC_CORE_MCSS
 `undef		MCOC_DUAL
 `undef		MCVM_COPR_FPUS
+`undef		MCOC_ROM_32K
+`undef		MCOC_ROM_48K
 `undef		MCOC_ERAM
 `undef		MCOC_SRAM_512K
 `ifdef		MCOC_POLY

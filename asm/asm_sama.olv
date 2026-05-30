@@ -1,11 +1,15 @@
 model	"Samarium series assembler"
 {
 	macro	prog_name="Samarium series assembler";
-	macro	prog_vers="1.02";
+	macro	prog_vers="1.04";
 // ================================
 // Samarium series assembler
 //		(c) 2026	1YEN Toru
 //
+//
+//		2026/05/30	ver.1.04
+//			add: pseudo: datb
+//			add: pseudo: padr
 //
 //		2026/04/29	ver.1.02
 //			add: pseudo: datw; character
@@ -623,7 +627,7 @@ model	"Samarium series assembler"
 	var		idx;
 	var		cmp;
 	var		num;
-	var		adr;
+	var		adr,adr_ofst;
 	var		fpos,fsiz,facm;
 	macro	shex;
 	macro	lbuf, lbuf2;
@@ -1154,6 +1158,57 @@ macro	log,tbuf;
 			continue;
 		}
 
+		// datb
+		strcmp	cmp=$(lbuf1),"datb";
+		if (cmp=0)
+		{
+			macro	bdat;
+			macro	bbuf;
+
+			fputl	fout,"//	"$(lbuf);
+
+			mlet	bbuf=$(lbuf2);
+			field	num=bbuf,",";
+			if (fNF<2 | num<1)
+			{
+				// ERROR:
+				errmsg	"ERR: 'datb' empty data"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			mlet	shex="";
+			idx=1;
+			while (idx<=num)
+			{
+				num2str		bdat=@($(bbuf#(idx))&0xff),"%02x";
+				strcat	shex,$(bdat);
+
+				// continue
+				idx=idx + 1;
+			}
+
+			// extract to datw
+			strcat	shex,"00";
+			idx=1;
+			while (true)
+			{
+				substr	bdat=$(shex),idx,4;
+				strlen	num=$(bdat);
+				if (num<4)
+				{
+					break;
+				}
+
+				fprint	fout,"datw	0x"$(bdat)$,;
+
+				// continue
+				idx=idx + 4;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
 		// stack parameter
 		mlet	lbuf1=$(lbuf1)"        ";
 		substr	lbuf1=$(lbuf1),1,MSIZ;
@@ -1278,12 +1333,30 @@ macro	log,tbuf;
 			continue;
 		}
 
+		// padr pseudo instruction
+		strcmp	cmp=$(lbuf1),"padr";
+		if (cmp=0)
+		{
+			if (fNF<2)
+			{
+				adr_ofst=0;
+			}
+			else
+			{
+				adr_ofst=$(lbuf2) - adr;
+			}
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
 		// address label
 		strcmp	cmp=$(lbuf1),":",right;
 		if (cmp=0)
 		{
 			// address label
-			num2str		shex=adr,"%04x";
+			num2str		shex=adr + adr_ofst,"%04x";
 			fprint	fout,"//"$(lbuf1)" (0x"$(shex)")"$,;
 			psub	":$","",lbuf1;
 			ifvar	$(lbuf1)
@@ -1294,10 +1367,10 @@ macro	log,tbuf;
 			}
 			// define address label
 			static  : nvar	$(lbuf1);
-			$(lbuf1)=adr;
+			$(lbuf1)=adr + adr_ofst;
 			// define "lab_*" address label for compatibility
 			static  : nvar	"lab_"$(lbuf1);
-			"lab_"$(lbuf1)=adr;
+			"lab_"$(lbuf1)=adr + adr_ofst;
 
 			// continue
 			fgetl	fin,lbuf;

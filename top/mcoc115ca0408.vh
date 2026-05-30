@@ -57,7 +57,7 @@
 //`define		MCOC_ROM_32K
 //`define		MCOC_ROM_48K
 //`define		MCOC_IRAM_4K
-//`define		MCOC_RAM_LE1K	128		// 32~1024[B], power of 2
+//`define		MCOC_RAM_LE1K	256		// 32~1024[B], power of 2
 //`define		MCOC_RAM_16K
 //`define		MCOC_RAM_24K
 //`define		MCOC_RAM_32K

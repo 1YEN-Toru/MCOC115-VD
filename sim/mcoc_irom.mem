@@ -1,12 +1,15 @@
 // ================================
 // Assemble list:
 //
-//		// Moscovium series macro assembler ver.1.56
+//		// Moscovium series macro assembler ver.1.58
 //		// ================================
 //		//	Moscovium
 //		//		all instructions self test
 //		//		(c) 2021	1YEN Toru
 //		//
+//		//
+//		//		2026/03/14	ver.1.32
+//		//			add: iden
 //		//
 //		//		2025/02/22	ver.1.30
 //		//			corresponding to poly-core cpu edition
@@ -70,2082 +73,2093 @@
 //		//
 //		// ================================
 //		// ================================
+//		// Samarium pause code; 0x78(psei),0x01(pause)
+//		// ================================
+//	@0000	7801	// 0000    or     r0,r1
+//		// ================================
 //		// register check
 //		// ================================
 //		// initial value
 //		// bank 3
-//	@0000	c803	// 0000    ldcl   sr,sreg_bk_3
-//	@0001	a800	// 0002    cmpi   r0,0
-//	@0002	1094	// 0004    bne    reg_fail
-//	@0003	a900	// 0006    cmpi   r1,0
-//	@0004	1092	// 0008    bne    reg_fail
-//	@0005	aa00	// 000a    cmpi   r2,0
-//	@0006	1090	// 000c    bne    reg_fail
-//	@0007	ab00	// 000e    cmpi   r3,0
-//	@0008	108e	// 0010    bne    reg_fail
-//	@0009	ac00	// 0012    cmpi   r4,0
-//	@000a	108c	// 0014    bne    reg_fail
-//	@000b	ad00	// 0016    cmpi   r5,0
-//	@000c	108a	// 0018    bne    reg_fail
-//	@000d	ae00	// 001a    cmpi   r6,0
-//	@000e	1088	// 001c    bne    reg_fail
-//	@000f	af00	// 001e    cmpi   r7,0
-//	@0010	1086	// 0020    bne    reg_fail
-//	@0011	c033	// 0022    ldbih  r0,((0x3333)>>8)&0xff
-//	@0012	b833	// 0024    ldbil  r0,(0x3333)&0xff
-//	@0013	78c8	// 0026    mov    r1,r0
-//	@0014	78d1	// 0028    mov    r2,r1
-//	@0015	78da	// 002a    mov    r3,r2
-//	@0016	78e3	// 002c    mov    r4,r3
-//	@0017	78ec	// 002e    mov    r5,r4
-//	@0018	78f5	// 0030    mov    r6,r5
-//	@0019	78fe	// 0032    mov    r7,r6
+//	@0001	c803	// 0002    ldcl   sr,sreg_bk_3
+//	@0002	a800	// 0004    cmpi   r0,0
+//	@0003	1094	// 0006    bne    reg_fail
+//	@0004	a900	// 0008    cmpi   r1,0
+//	@0005	1092	// 000a    bne    reg_fail
+//	@0006	aa00	// 000c    cmpi   r2,0
+//	@0007	1090	// 000e    bne    reg_fail
+//	@0008	ab00	// 0010    cmpi   r3,0
+//	@0009	108e	// 0012    bne    reg_fail
+//	@000a	ac00	// 0014    cmpi   r4,0
+//	@000b	108c	// 0016    bne    reg_fail
+//	@000c	ad00	// 0018    cmpi   r5,0
+//	@000d	108a	// 001a    bne    reg_fail
+//	@000e	ae00	// 001c    cmpi   r6,0
+//	@000f	1088	// 001e    bne    reg_fail
+//	@0010	af00	// 0020    cmpi   r7,0
+//	@0011	1086	// 0022    bne    reg_fail
+//	@0012	c033	// 0024    ldbih  r0,((0x3333)>>8)&0xff
+//	@0013	b833	// 0026    ldbil  r0,(0x3333)&0xff
+//	@0014	78c8	// 0028    mov    r1,r0
+//	@0015	78d1	// 002a    mov    r2,r1
+//	@0016	78da	// 002c    mov    r3,r2
+//	@0017	78e3	// 002e    mov    r4,r3
+//	@0018	78ec	// 0030    mov    r5,r4
+//	@0019	78f5	// 0032    mov    r6,r5
+//	@001a	78fe	// 0034    mov    r7,r6
 //		// bank 2
-//	@001a	c802	// 0034    ldcl   sr,sreg_bk_2
-//	@001b	a800	// 0036    cmpi   r0,0
-//	@001c	107a	// 0038    bne    reg_fail
-//	@001d	a900	// 003a    cmpi   r1,0
-//	@001e	1078	// 003c    bne    reg_fail
-//	@001f	aa00	// 003e    cmpi   r2,0
-//	@0020	1076	// 0040    bne    reg_fail
-//	@0021	ab00	// 0042    cmpi   r3,0
-//	@0022	1074	// 0044    bne    reg_fail
-//	@0023	ac00	// 0046    cmpi   r4,0
-//	@0024	1072	// 0048    bne    reg_fail
-//	@0025	ad00	// 004a    cmpi   r5,0
-//	@0026	1070	// 004c    bne    reg_fail
-//	@0027	ae00	// 004e    cmpi   r6,0
-//	@0028	106e	// 0050    bne    reg_fail
-//	@0029	af00	// 0052    cmpi   r7,0
-//	@002a	106c	// 0054    bne    reg_fail
-//	@002b	c022	// 0056    ldbih  r0,((0x2222)>>8)&0xff
-//	@002c	b822	// 0058    ldbil  r0,(0x2222)&0xff
-//	@002d	78c8	// 005a    mov    r1,r0
-//	@002e	78d1	// 005c    mov    r2,r1
-//	@002f	78da	// 005e    mov    r3,r2
-//	@0030	78e3	// 0060    mov    r4,r3
-//	@0031	78ec	// 0062    mov    r5,r4
-//	@0032	78f5	// 0064    mov    r6,r5
-//	@0033	78fe	// 0066    mov    r7,r6
+//	@001b	c802	// 0036    ldcl   sr,sreg_bk_2
+//	@001c	a800	// 0038    cmpi   r0,0
+//	@001d	107a	// 003a    bne    reg_fail
+//	@001e	a900	// 003c    cmpi   r1,0
+//	@001f	1078	// 003e    bne    reg_fail
+//	@0020	aa00	// 0040    cmpi   r2,0
+//	@0021	1076	// 0042    bne    reg_fail
+//	@0022	ab00	// 0044    cmpi   r3,0
+//	@0023	1074	// 0046    bne    reg_fail
+//	@0024	ac00	// 0048    cmpi   r4,0
+//	@0025	1072	// 004a    bne    reg_fail
+//	@0026	ad00	// 004c    cmpi   r5,0
+//	@0027	1070	// 004e    bne    reg_fail
+//	@0028	ae00	// 0050    cmpi   r6,0
+//	@0029	106e	// 0052    bne    reg_fail
+//	@002a	af00	// 0054    cmpi   r7,0
+//	@002b	106c	// 0056    bne    reg_fail
+//	@002c	c022	// 0058    ldbih  r0,((0x2222)>>8)&0xff
+//	@002d	b822	// 005a    ldbil  r0,(0x2222)&0xff
+//	@002e	78c8	// 005c    mov    r1,r0
+//	@002f	78d1	// 005e    mov    r2,r1
+//	@0030	78da	// 0060    mov    r3,r2
+//	@0031	78e3	// 0062    mov    r4,r3
+//	@0032	78ec	// 0064    mov    r5,r4
+//	@0033	78f5	// 0066    mov    r6,r5
+//	@0034	78fe	// 0068    mov    r7,r6
 //		// bank 1
-//	@0034	c801	// 0068    ldcl   sr,sreg_bk_1
-//	@0035	a800	// 006a    cmpi   r0,0
-//	@0036	1060	// 006c    bne    reg_fail
-//	@0037	a900	// 006e    cmpi   r1,0
-//	@0038	105e	// 0070    bne    reg_fail
-//	@0039	aa00	// 0072    cmpi   r2,0
-//	@003a	105c	// 0074    bne    reg_fail
-//	@003b	ab00	// 0076    cmpi   r3,0
-//	@003c	105a	// 0078    bne    reg_fail
-//	@003d	ac00	// 007a    cmpi   r4,0
-//	@003e	1058	// 007c    bne    reg_fail
-//	@003f	ad00	// 007e    cmpi   r5,0
-//	@0040	1056	// 0080    bne    reg_fail
-//	@0041	ae00	// 0082    cmpi   r6,0
-//	@0042	1054	// 0084    bne    reg_fail
-//	@0043	af00	// 0086    cmpi   r7,0
-//	@0044	1052	// 0088    bne    reg_fail
-//	@0045	c011	// 008a    ldbih  r0,((0x1111)>>8)&0xff
-//	@0046	b811	// 008c    ldbil  r0,(0x1111)&0xff
-//	@0047	78c8	// 008e    mov    r1,r0
-//	@0048	78d1	// 0090    mov    r2,r1
-//	@0049	78da	// 0092    mov    r3,r2
-//	@004a	78e3	// 0094    mov    r4,r3
-//	@004b	78ec	// 0096    mov    r5,r4
-//	@004c	78f5	// 0098    mov    r6,r5
-//	@004d	78fe	// 009a    mov    r7,r6
+//	@0035	c801	// 006a    ldcl   sr,sreg_bk_1
+//	@0036	a800	// 006c    cmpi   r0,0
+//	@0037	1060	// 006e    bne    reg_fail
+//	@0038	a900	// 0070    cmpi   r1,0
+//	@0039	105e	// 0072    bne    reg_fail
+//	@003a	aa00	// 0074    cmpi   r2,0
+//	@003b	105c	// 0076    bne    reg_fail
+//	@003c	ab00	// 0078    cmpi   r3,0
+//	@003d	105a	// 007a    bne    reg_fail
+//	@003e	ac00	// 007c    cmpi   r4,0
+//	@003f	1058	// 007e    bne    reg_fail
+//	@0040	ad00	// 0080    cmpi   r5,0
+//	@0041	1056	// 0082    bne    reg_fail
+//	@0042	ae00	// 0084    cmpi   r6,0
+//	@0043	1054	// 0086    bne    reg_fail
+//	@0044	af00	// 0088    cmpi   r7,0
+//	@0045	1052	// 008a    bne    reg_fail
+//	@0046	c011	// 008c    ldbih  r0,((0x1111)>>8)&0xff
+//	@0047	b811	// 008e    ldbil  r0,(0x1111)&0xff
+//	@0048	78c8	// 0090    mov    r1,r0
+//	@0049	78d1	// 0092    mov    r2,r1
+//	@004a	78da	// 0094    mov    r3,r2
+//	@004b	78e3	// 0096    mov    r4,r3
+//	@004c	78ec	// 0098    mov    r5,r4
+//	@004d	78f5	// 009a    mov    r6,r5
+//	@004e	78fe	// 009c    mov    r7,r6
 //		// bank 0
-//	@004e	c800	// 009c    ldcl   sr,sreg_bk_0
-//	@004f	a800	// 009e    cmpi   r0,0
-//	@0050	1046	// 00a0    bne    reg_fail
-//	@0051	a900	// 00a2    cmpi   r1,0
-//	@0052	1044	// 00a4    bne    reg_fail
-//	@0053	aa00	// 00a6    cmpi   r2,0
-//	@0054	1042	// 00a8    bne    reg_fail
-//	@0055	ab00	// 00aa    cmpi   r3,0
-//	@0056	1040	// 00ac    bne    reg_fail
-//	@0057	ac00	// 00ae    cmpi   r4,0
-//	@0058	103e	// 00b0    bne    reg_fail
-//	@0059	ad00	// 00b2    cmpi   r5,0
-//	@005a	103c	// 00b4    bne    reg_fail
-//	@005b	ae00	// 00b6    cmpi   r6,0
-//	@005c	103a	// 00b8    bne    reg_fail
-//	@005d	af00	// 00ba    cmpi   r7,0
-//	@005e	1038	// 00bc    bne    reg_fail
-//	@005f	c0ff	// 00be    ldbih  r0,((0xffff)>>8)&0xff
-//	@0060	b8ff	// 00c0    ldbil  r0,(0xffff)&0xff
-//	@0061	78c8	// 00c2    mov    r1,r0
-//	@0062	78d1	// 00c4    mov    r2,r1
-//	@0063	78da	// 00c6    mov    r3,r2
-//	@0064	78e3	// 00c8    mov    r4,r3
-//	@0065	78ec	// 00ca    mov    r5,r4
-//	@0066	78f5	// 00cc    mov    r6,r5
-//	@0067	78fe	// 00ce    mov    r7,r6
+//	@004f	c800	// 009e    ldcl   sr,sreg_bk_0
+//	@0050	a800	// 00a0    cmpi   r0,0
+//	@0051	1046	// 00a2    bne    reg_fail
+//	@0052	a900	// 00a4    cmpi   r1,0
+//	@0053	1044	// 00a6    bne    reg_fail
+//	@0054	aa00	// 00a8    cmpi   r2,0
+//	@0055	1042	// 00aa    bne    reg_fail
+//	@0056	ab00	// 00ac    cmpi   r3,0
+//	@0057	1040	// 00ae    bne    reg_fail
+//	@0058	ac00	// 00b0    cmpi   r4,0
+//	@0059	103e	// 00b2    bne    reg_fail
+//	@005a	ad00	// 00b4    cmpi   r5,0
+//	@005b	103c	// 00b6    bne    reg_fail
+//	@005c	ae00	// 00b8    cmpi   r6,0
+//	@005d	103a	// 00ba    bne    reg_fail
+//	@005e	af00	// 00bc    cmpi   r7,0
+//	@005f	1038	// 00be    bne    reg_fail
+//	@0060	c0ff	// 00c0    ldbih  r0,((0xffff)>>8)&0xff
+//	@0061	b8ff	// 00c2    ldbil  r0,(0xffff)&0xff
+//	@0062	78c8	// 00c4    mov    r1,r0
+//	@0063	78d1	// 00c6    mov    r2,r1
+//	@0064	78da	// 00c8    mov    r3,r2
+//	@0065	78e3	// 00ca    mov    r4,r3
+//	@0066	78ec	// 00cc    mov    r5,r4
+//	@0067	78f5	// 00ce    mov    r6,r5
+//	@0068	78fe	// 00d0    mov    r7,r6
 //		// bank
-//	@0068	c803	// 00d0    ldcl   sr,sreg_bk_3
-//	@0069	c033	// 00d2    ldbih  r0,((0x3333)>>8)&0xff
-//	@006a	b833	// 00d4    ldbil  r0,(0x3333)&0xff
-//	@006b	7ab8	// 00d6    cmp    r7,r0
-//	@006c	102a	// 00d8    bne    reg_fail
-//	@006d	c802	// 00da    ldcl   sr,sreg_bk_2
-//	@006e	c022	// 00dc    ldbih  r0,((0x2222)>>8)&0xff
-//	@006f	b822	// 00de    ldbil  r0,(0x2222)&0xff
-//	@0070	7ab8	// 00e0    cmp    r7,r0
-//	@0071	1025	// 00e2    bne    reg_fail
-//	@0072	c801	// 00e4    ldcl   sr,sreg_bk_1
-//	@0073	c011	// 00e6    ldbih  r0,((0x1111)>>8)&0xff
-//	@0074	b811	// 00e8    ldbil  r0,(0x1111)&0xff
-//	@0075	7ab8	// 00ea    cmp    r7,r0
-//	@0076	1020	// 00ec    bne    reg_fail
-//	@0077	c800	// 00ee    ldcl   sr,sreg_bk_0
-//	@0078	c0ff	// 00f0    ldbih  r0,((0xffff)>>8)&0xff
-//	@0079	b8ff	// 00f2    ldbil  r0,(0xffff)&0xff
-//	@007a	7ab8	// 00f4    cmp    r7,r0
-//	@007b	101b	// 00f6    bne    reg_fail
+//	@0069	c803	// 00d2    ldcl   sr,sreg_bk_3
+//	@006a	c033	// 00d4    ldbih  r0,((0x3333)>>8)&0xff
+//	@006b	b833	// 00d6    ldbil  r0,(0x3333)&0xff
+//	@006c	7ab8	// 00d8    cmp    r7,r0
+//	@006d	102a	// 00da    bne    reg_fail
+//	@006e	c802	// 00dc    ldcl   sr,sreg_bk_2
+//	@006f	c022	// 00de    ldbih  r0,((0x2222)>>8)&0xff
+//	@0070	b822	// 00e0    ldbil  r0,(0x2222)&0xff
+//	@0071	7ab8	// 00e2    cmp    r7,r0
+//	@0072	1025	// 00e4    bne    reg_fail
+//	@0073	c801	// 00e6    ldcl   sr,sreg_bk_1
+//	@0074	c011	// 00e8    ldbih  r0,((0x1111)>>8)&0xff
+//	@0075	b811	// 00ea    ldbil  r0,(0x1111)&0xff
+//	@0076	7ab8	// 00ec    cmp    r7,r0
+//	@0077	1020	// 00ee    bne    reg_fail
+//	@0078	c800	// 00f0    ldcl   sr,sreg_bk_0
+//	@0079	c0ff	// 00f2    ldbih  r0,((0xffff)>>8)&0xff
+//	@007a	b8ff	// 00f4    ldbil  r0,(0xffff)&0xff
+//	@007b	7ab8	// 00f6    cmp    r7,r0
+//	@007c	101b	// 00f8    bne    reg_fail
 //		// control register
-//	@007c	7942	// 00f8    movfc  r0,sp
-//	@007d	a800	// 00fa    cmpi   r0,0
-//	@007e	1018	// 00fc    bne    reg_fail
-//	@007f	7943	// 00fe    movfc  r0,iv
-//	@0080	a800	// 0100    cmpi   r0,0
-//	@0081	1015	// 0102    bne    reg_fail
-//	@0082	7944	// 0104    movfc  r0,tr
-//	@0083	a800	// 0106    cmpi   r0,0
-//	@0084	1012	// 0108    bne    reg_fail
+//	@007d	7942	// 00fa    movfc  r0,sp
+//	@007e	a800	// 00fc    cmpi   r0,0
+//	@007f	1018	// 00fe    bne    reg_fail
+//	@0080	7943	// 0100    movfc  r0,iv
+//	@0081	a800	// 0102    cmpi   r0,0
+//	@0082	1015	// 0104    bne    reg_fail
+//	@0083	7944	// 0106    movfc  r0,tr
+//	@0084	a800	// 0108    cmpi   r0,0
+//	@0085	1012	// 010a    bne    reg_fail
 //		// sr register, check cpu id to test
-//	@0085	7940	// 010a    movfc  r0,sr
-//	@0086	d8f4	// 010c    lsfti  r0,-sreg_b_id0
-//	@0087	880f	// 010e    andi   r0,sreg_id_15>>sreg_b_id0
-//	@0088	1811	// 0110    beq    reg_pass
-//	@0089	a80f	// 0112    cmpi   r0,sreg_id_15>>sreg_b_id0
-//	@008a	1001	// 0114    bne    pcnt+2
-//	@008b	b001	// 0116    ldbiu  r0,sreg_id_1>>sreg_b_id0
-//	@008c	a802	// 0118    cmpi   r0,mcvm_dual_cpu
-//	@008d	180c	// 011a    beq    reg_pass
-//	@008e	b002	// 011c    ldbiu  r0,mcvm_dual_cpu
-//	@008f	a801	// 011e    cmpi   r0,sreg_id_1>>sreg_b_id0
-//	@0090	2806	// 0120    blo    reg_fail
-//	@0091	a80f	// 0122    cmpi   r0,sreg_id_15>>sreg_b_id0
-//	@0092	2004	// 0124    bhs    reg_fail
+//	@0086	7940	// 010c    movfc  r0,sr
+//	@0087	d8f4	// 010e    lsfti  r0,-sreg_b_id0
+//	@0088	880f	// 0110    andi   r0,sreg_id_15>>sreg_b_id0
+//	@0089	1811	// 0112    beq    reg_pass
+//	@008a	a80f	// 0114    cmpi   r0,sreg_id_15>>sreg_b_id0
+//	@008b	1001	// 0116    bne    pcnt+2
+//	@008c	b001	// 0118    ldbiu  r0,sreg_id_1>>sreg_b_id0
+//	@008d	a802	// 011a    cmpi   r0,mcvm_dual_cpu
+//	@008e	180c	// 011c    beq    reg_pass
+//	@008f	b002	// 011e    ldbiu  r0,mcvm_dual_cpu
+//	@0090	a801	// 0120    cmpi   r0,sreg_id_1>>sreg_b_id0
+//	@0091	2806	// 0122    blo    reg_fail
+//	@0092	a80f	// 0124    cmpi   r0,sreg_id_15>>sreg_b_id0
+//	@0093	2004	// 0126    bhs    reg_fail
 //		// stop cpu not to test
-//	@0093	0001	// 0126    pause 
-//	@0094	0ffe	// 0128    bra    pcnt-4
+//	@0094	0001	// 0128    pause 
+//	@0095	0ffe	// 012a    bra    pcnt-4
 //		// ================================
-//	@0095	c800	// 012a    ldcl   sr,sreg_bk_0
-//	@0096	0803	// 012c    bra    reg_pass
+//	@0096	c800	// 012c    ldcl   sr,sreg_bk_0
+//	@0097	0803	// 012e    bra    reg_pass
 //			// reg_fail:
-//	@0097	c70d	// 012e    ldbih  r7,(lab_tstfail)>>8
-//	@0098	bf5e	// 0130    ldbil  r7,(lab_tstfail)&0xff
-//	@0099	7f87	// 0132    jmp    r7
+//	@0098	c70d	// 0130    ldbih  r7,(lab_tstfail)>>8
+//	@0099	bf6a	// 0132    ldbil  r7,(lab_tstfail)&0xff
+//	@009a	7f87	// 0134    jmp    r7
 //			// reg_pass:
 //		// ================================
 //		// opcode NO
 //		// ================================
 //		// nop
-//	@009a	c8f0	// 0134    ldcl   sr,sreg_fg
-//	@009b	0000	// 0136    nop   
-//	@009c	7940	// 0138    movfc  r0,sr
-//	@009d	88f0	// 013a    andi   r0,sreg_fg
-//	@009e	a8f0	// 013c    cmpi   r0,sreg_fg
-//	@009f	10ba	// 013e    bne    opc_no_fail
-//	@00a0	c800	// 0140    ldcl   sr,0
-//	@00a1	0000	// 0142    nop   
-//	@00a2	7940	// 0144    movfc  r0,sr
-//	@00a3	88f0	// 0146    andi   r0,sreg_fg
-//	@00a4	a800	// 0148    cmpi   r0,0
-//	@00a5	10b4	// 014a    bne    opc_no_fail
+//	@009b	c8f0	// 0136    ldcl   sr,sreg_fg
+//	@009c	0000	// 0138    nop   
+//	@009d	7940	// 013a    movfc  r0,sr
+//	@009e	88f0	// 013c    andi   r0,sreg_fg
+//	@009f	a8f0	// 013e    cmpi   r0,sreg_fg
+//	@00a0	10bf	// 0140    bne    opc_no_fail
+//	@00a1	c800	// 0142    ldcl   sr,0
+//	@00a2	0000	// 0144    nop   
+//	@00a3	7940	// 0146    movfc  r0,sr
+//	@00a4	88f0	// 0148    andi   r0,sreg_fg
+//	@00a5	a800	// 014a    cmpi   r0,0
+//	@00a6	10b9	// 014c    bne    opc_no_fail
 //		// ================================
 //		// rtnw
-//	@00a6	b100	// 014c    ldbiu  r1,0
-//	@00a7	b200	// 014e    ldbiu  r2,0
-//	@00a8	c4f0	// 0150    ldbih  r4,((idrgramt)>>8)&0xff
-//	@00a9	bc0c	// 0152    ldbil  r4,(idrgramt)&0xff
-//	@00aa	7ba4	// 0154    ldw    r4,r4
-//	@00ab	9c18	// 0156    addi   r4,24
-//	@00ac	7914	// 0158    movtc  sp,r4
-//	@00ad	c001	// 015a    ldbih  r0,((lab_rtnw_pass1)>>8)&0xff
-//	@00ae	b864	// 015c    ldbil  r0,(lab_rtnw_pass1)&0xff
-//	@00af	7fe0	// 015e    pushw  r0
-//	@00b0	0002	// 0160    rtnw  
-//	@00b1	b101	// 0162    ldbiu  r1,1
+//	@00a7	b100	// 014e    ldbiu  r1,0
+//	@00a8	b200	// 0150    ldbiu  r2,0
+//	@00a9	c4f0	// 0152    ldbih  r4,((idrgramt)>>8)&0xff
+//	@00aa	bc0c	// 0154    ldbil  r4,(idrgramt)&0xff
+//	@00ab	7ba4	// 0156    ldw    r4,r4
+//	@00ac	9c18	// 0158    addi   r4,24
+//	@00ad	7914	// 015a    movtc  sp,r4
+//	@00ae	c001	// 015c    ldbih  r0,((lab_rtnw_pass1)>>8)&0xff
+//	@00af	b866	// 015e    ldbil  r0,(lab_rtnw_pass1)&0xff
+//	@00b0	7fe0	// 0160    pushw  r0
+//	@00b1	0002	// 0162    rtnw  
+//	@00b2	b101	// 0164    ldbiu  r1,1
 //			// rtnw_pass1:
-//	@00b2	b201	// 0164    ldbiu  r2,1
-//	@00b3	a900	// 0166    cmpi   r1,0
-//	@00b4	10a5	// 0168    bne    opc_no_fail
-//	@00b5	795a	// 016a    movfc  r3,sp
-//	@00b6	7a9c	// 016c    cmp    r3,r4
-//	@00b7	10a2	// 016e    bne    opc_no_fail
-//	@00b8	aa01	// 0170    cmpi   r2,1
-//	@00b9	10a0	// 0172    bne    opc_no_fail
+//	@00b3	b201	// 0166    ldbiu  r2,1
+//	@00b4	a900	// 0168    cmpi   r1,0
+//	@00b5	10aa	// 016a    bne    opc_no_fail
+//	@00b6	795a	// 016c    movfc  r3,sp
+//	@00b7	7a9c	// 016e    cmp    r3,r4
+//	@00b8	10a7	// 0170    bne    opc_no_fail
+//	@00b9	aa01	// 0172    cmpi   r2,1
+//	@00ba	10a5	// 0174    bne    opc_no_fail
 //		// ================================
 //		// rti
-//	@00ba	c0f0	// 0174    ldbih  r0,((idrgramt)>>8)&0xff
-//	@00bb	b80c	// 0176    ldbil  r0,(idrgramt)&0xff
-//	@00bc	7b80	// 0178    ldw    r0,r0
-//	@00bd	9806	// 017a    addi   r0,6
-//	@00be	7910	// 017c    movtc  sp,r0
-//	@00bf	d301	// 017e    ldch   iv,((lab_rti_vect)>>8)&0xff
-//	@00c0	cb9a	// 0180    ldcl   iv,(lab_rti_vect)&0xff
+//	@00bb	c0f0	// 0176    ldbih  r0,((idrgramt)>>8)&0xff
+//	@00bc	b80c	// 0178    ldbil  r0,(idrgramt)&0xff
+//	@00bd	7b80	// 017a    ldw    r0,r0
+//	@00be	9806	// 017c    addi   r0,6
+//	@00bf	7910	// 017e    movtc  sp,r0
+//	@00c0	d301	// 0180    ldch   iv,((lab_rti_vect)>>8)&0xff
+//	@00c1	cb9c	// 0182    ldcl   iv,(lab_rti_vect)&0xff
 //		// interrupt emulation
-//	@00c1	794b	// 0182    movfc  r1,iv
-//	@00c2	7941	// 0184    movfc  r0,pc
+//	@00c2	794b	// 0184    movfc  r1,iv
+//	@00c3	7941	// 0186    movfc  r0,pc
 //			// rti_mvpc:
-//	@00c3	980a	// 0186    addi   r0,lab_rti_retn-lab_rti_mvpc
-//	@00c4	7fe0	// 0188    pushw  r0
-//	@00c5	c8f0	// 018a    ldcl   sr,sreg_fg
-//	@00c6	7ff0	// 018c    pushcw sr
-//	@00c7	7f81	// 018e    jmp    r1
+//	@00c4	980a	// 0188    addi   r0,lab_rti_retn-lab_rti_mvpc
+//	@00c5	7fe0	// 018a    pushw  r0
+//	@00c6	c8f0	// 018c    ldcl   sr,sreg_fg
+//	@00c7	7ff0	// 018e    pushcw sr
+//	@00c8	7f81	// 0190    jmp    r1
 //		// return address
 //			// rti_retn:
-//	@00c8	7940	// 0190    movfc  r0,sr
-//	@00c9	88f0	// 0192    andi   r0,sreg_fg
-//	@00ca	a8f0	// 0194    cmpi   r0,sreg_fg
-//	@00cb	1803	// 0196    beq    rti_pass
-//	@00cc	088d	// 0198    bra    opc_no_fail
+//	@00c9	7940	// 0192    movfc  r0,sr
+//	@00ca	88f0	// 0194    andi   r0,sreg_fg
+//	@00cb	a8f0	// 0196    cmpi   r0,sreg_fg
+//	@00cc	1803	// 0198    beq    rti_pass
+//	@00cd	0892	// 019a    bra    opc_no_fail
 //			// rti_vect:
-//	@00cd	c803	// 019a    ldcl   sr,sreg_bk_3
-//	@00ce	0003	// 019c    rti   
+//	@00ce	c803	// 019c    ldcl   sr,sreg_bk_3
+//	@00cf	0003	// 019e    rti   
 //			// rti_pass:
 //		// ================================
 //		// brn
-//	@00cf	c8f0	// 019e    ldcl   sr,sreg_fg
-//	@00d0	000a	// 01a0    brn   
-//	@00d1	7940	// 01a2    movfc  r0,sr
-//	@00d2	88f0	// 01a4    andi   r0,sreg_fg
-//	@00d3	a8f0	// 01a6    cmpi   r0,sreg_fg
-//	@00d4	1085	// 01a8    bne    opc_no_fail
-//	@00d5	c800	// 01aa    ldcl   sr,0
-//	@00d6	000a	// 01ac    brn   
-//	@00d7	7940	// 01ae    movfc  r0,sr
-//	@00d8	88f0	// 01b0    andi   r0,sreg_fg
-//	@00d9	a800	// 01b2    cmpi   r0,0
-//	@00da	107f	// 01b4    bne    opc_no_fail
+//	@00d0	c8f0	// 01a0    ldcl   sr,sreg_fg
+//	@00d1	000a	// 01a2    brn   
+//	@00d2	7940	// 01a4    movfc  r0,sr
+//	@00d3	88f0	// 01a6    andi   r0,sreg_fg
+//	@00d4	a8f0	// 01a8    cmpi   r0,sreg_fg
+//	@00d5	108a	// 01aa    bne    opc_no_fail
+//	@00d6	c800	// 01ac    ldcl   sr,0
+//	@00d7	000a	// 01ae    brn   
+//	@00d8	7940	// 01b0    movfc  r0,sr
+//	@00d9	88f0	// 01b2    andi   r0,sreg_fg
+//	@00da	a800	// 01b4    cmpi   r0,0
+//	@00db	1084	// 01b6    bne    opc_no_fail
+//		// ================================
+//		// iden
+//	@00dc	b000	// 01b8    ldbiu  r0,0
+//	@00dd	000e	// 01ba    iden  
+//	@00de	d8f8	// 01bc    lsfti  r0,-(8)
+//	@00df	a811	// 01be    cmpi   r0,0x11
+//	@00e0	107f	// 01c0    bne    opc_no_fail
 //		// ********************************
 //		// skip if mcvm_has_divl==0
-//	@00db	b000	// 01b6    ldbiu  r0,mcvm_has_divl
-//	@00dc	a800	// 01b8    cmpi   r0,0
-//	@00dd	187b	// 01ba    beq    divl_skip
+//	@00e1	b000	// 01c2    ldbiu  r0,mcvm_has_divl
+//	@00e2	a800	// 01c4    cmpi   r0,0
+//	@00e3	187b	// 01c6    beq    divl_skip
 //		// ================================
 //		// divlu, divlq
-//	@00de	7f9a	// 01bc    sesrh  sreg_b_dr
-//	@00df	c076	// 01be    ldbih  r0,((0x7654)>>8)&0xff
-//	@00e0	b854	// 01c0    ldbil  r0,(0x7654)&0xff
-//	@00e1	c132	// 01c2    ldbih  r1,((0x3210)>>8)&0xff
-//	@00e2	b910	// 01c4    ldbil  r1,(0x3210)&0xff
-//	@00e3	c200	// 01c6    ldbih  r2,((0x000a)>>8)&0xff
-//	@00e4	ba0a	// 01c8    ldbil  r2,(0x000a)&0xff
-//	@00e5	c3bc	// 01ca    ldbih  r3,((0xbcde)>>8)&0xff
-//	@00e6	bbde	// 01cc    ldbil  r3,(0xbcde)&0xff
-//	@00e7	0004	// 01ce    divlu 
-//	@00e8	c400	// 01d0    ldbih  r4,(((0x76543210/0x000abcde)>>16)>>8)&0xff
-//	@00e9	bc00	// 01d2    ldbil  r4,((0x76543210/0x000abcde)>>16)&0xff
-//	@00ea	c50b	// 01d4    ldbih  r5,(((0x76543210/0x000abcde)&0xffff)>>8)&0xff
-//	@00eb	bd05	// 01d6    ldbil  r5,((0x76543210/0x000abcde)&0xffff)&0xff
-//	@00ec	c600	// 01d8    ldbih  r6,(((0x76543210%0x000abcde)>>16)>>8)&0xff
-//	@00ed	be00	// 01da    ldbil  r6,((0x76543210%0x000abcde)>>16)&0xff
-//	@00ee	c7f7	// 01dc    ldbih  r7,(((0x76543210%0x000abcde)&0xffff)>>8)&0xff
-//	@00ef	bfba	// 01de    ldbil  r7,((0x76543210%0x000abcde)&0xffff)&0xff
-//	@00f0	0006	// 01e0    divlq 
-//	@00f1	7a84	// 01e2    cmp    r0,r4
-//	@00f2	1067	// 01e4    bne    opc_no_fail
-//	@00f3	7a8d	// 01e6    cmp    r1,r5
-//	@00f4	1065	// 01e8    bne    opc_no_fail
-//	@00f5	7a96	// 01ea    cmp    r2,r6
-//	@00f6	1063	// 01ec    bne    opc_no_fail
-//	@00f7	7a9f	// 01ee    cmp    r3,r7
-//	@00f8	1061	// 01f0    bne    opc_no_fail
+//	@00e4	7f9a	// 01c8    sesrh  sreg_b_dr
+//	@00e5	c076	// 01ca    ldbih  r0,((0x7654)>>8)&0xff
+//	@00e6	b854	// 01cc    ldbil  r0,(0x7654)&0xff
+//	@00e7	c132	// 01ce    ldbih  r1,((0x3210)>>8)&0xff
+//	@00e8	b910	// 01d0    ldbil  r1,(0x3210)&0xff
+//	@00e9	c200	// 01d2    ldbih  r2,((0x000a)>>8)&0xff
+//	@00ea	ba0a	// 01d4    ldbil  r2,(0x000a)&0xff
+//	@00eb	c3bc	// 01d6    ldbih  r3,((0xbcde)>>8)&0xff
+//	@00ec	bbde	// 01d8    ldbil  r3,(0xbcde)&0xff
+//	@00ed	0004	// 01da    divlu 
+//	@00ee	c400	// 01dc    ldbih  r4,(((0x76543210/0x000abcde)>>16)>>8)&0xff
+//	@00ef	bc00	// 01de    ldbil  r4,((0x76543210/0x000abcde)>>16)&0xff
+//	@00f0	c50b	// 01e0    ldbih  r5,(((0x76543210/0x000abcde)&0xffff)>>8)&0xff
+//	@00f1	bd05	// 01e2    ldbil  r5,((0x76543210/0x000abcde)&0xffff)&0xff
+//	@00f2	c600	// 01e4    ldbih  r6,(((0x76543210%0x000abcde)>>16)>>8)&0xff
+//	@00f3	be00	// 01e6    ldbil  r6,((0x76543210%0x000abcde)>>16)&0xff
+//	@00f4	c7f7	// 01e8    ldbih  r7,(((0x76543210%0x000abcde)&0xffff)>>8)&0xff
+//	@00f5	bfba	// 01ea    ldbil  r7,((0x76543210%0x000abcde)&0xffff)&0xff
+//	@00f6	0006	// 01ec    divlq 
+//	@00f7	7a84	// 01ee    cmp    r0,r4
+//	@00f8	1067	// 01f0    bne    opc_no_fail
+//	@00f9	7a8d	// 01f2    cmp    r1,r5
+//	@00fa	1065	// 01f4    bne    opc_no_fail
+//	@00fb	7a96	// 01f6    cmp    r2,r6
+//	@00fc	1063	// 01f8    bne    opc_no_fail
+//	@00fd	7a9f	// 01fa    cmp    r3,r7
+//	@00fe	1061	// 01fc    bne    opc_no_fail
 //		// ================================
 //		// divls, divlq
-//	@00f9	7f9a	// 01f2    sesrh  sreg_b_dr
-//	@00fa	c0ab	// 01f4    ldbih  r0,((0xabcd)>>8)&0xff
-//	@00fb	b8cd	// 01f6    ldbil  r0,(0xabcd)&0xff
-//	@00fc	c1ef	// 01f8    ldbih  r1,((0xef01)>>8)&0xff
-//	@00fd	b901	// 01fa    ldbil  r1,(0xef01)&0xff
-//	@00fe	c200	// 01fc    ldbih  r2,((0x0012)>>8)&0xff
-//	@00ff	ba12	// 01fe    ldbil  r2,(0x0012)&0xff
-//	@0100	c334	// 0200    ldbih  r3,((0x3456)>>8)&0xff
-//	@0101	bb56	// 0202    ldbil  r3,(0x3456)&0xff
-//	@0102	0005	// 0204    divls 
-//	@0103	c4ff	// 0206    ldbih  r4,(((0xabcdef01/0x00123456)>>16)>>8)&0xff
-//	@0104	bcff	// 0208    ldbil  r4,((0xabcdef01/0x00123456)>>16)&0xff
-//	@0105	c5fb	// 020a    ldbih  r5,(((0xabcdef01/0x00123456)&0xffff)>>8)&0xff
-//	@0106	bd60	// 020c    ldbil  r5,((0xabcdef01/0x00123456)&0xffff)&0xff
-//	@0107	c6ff	// 020e    ldbih  r6,(((0xabcdef01%0x00123456)>>16)>>8)&0xff
-//	@0108	beff	// 0210    ldbil  r6,((0xabcdef01%0x00123456)>>16)&0xff
-//	@0109	c7fc	// 0212    ldbih  r7,(((0xabcdef01%0x00123456)&0xffff)>>8)&0xff
-//	@010a	bfc1	// 0214    ldbil  r7,((0xabcdef01%0x00123456)&0xffff)&0xff
-//	@010b	0006	// 0216    divlq 
-//	@010c	7a84	// 0218    cmp    r0,r4
-//	@010d	104c	// 021a    bne    opc_no_fail
-//	@010e	7a8d	// 021c    cmp    r1,r5
-//	@010f	104a	// 021e    bne    opc_no_fail
-//	@0110	7a96	// 0220    cmp    r2,r6
-//	@0111	1048	// 0222    bne    opc_no_fail
-//	@0112	7a9f	// 0224    cmp    r3,r7
-//	@0113	1046	// 0226    bne    opc_no_fail
+//	@00ff	7f9a	// 01fe    sesrh  sreg_b_dr
+//	@0100	c0ab	// 0200    ldbih  r0,((0xabcd)>>8)&0xff
+//	@0101	b8cd	// 0202    ldbil  r0,(0xabcd)&0xff
+//	@0102	c1ef	// 0204    ldbih  r1,((0xef01)>>8)&0xff
+//	@0103	b901	// 0206    ldbil  r1,(0xef01)&0xff
+//	@0104	c200	// 0208    ldbih  r2,((0x0012)>>8)&0xff
+//	@0105	ba12	// 020a    ldbil  r2,(0x0012)&0xff
+//	@0106	c334	// 020c    ldbih  r3,((0x3456)>>8)&0xff
+//	@0107	bb56	// 020e    ldbil  r3,(0x3456)&0xff
+//	@0108	0005	// 0210    divls 
+//	@0109	c4ff	// 0212    ldbih  r4,(((0xabcdef01/0x00123456)>>16)>>8)&0xff
+//	@010a	bcff	// 0214    ldbil  r4,((0xabcdef01/0x00123456)>>16)&0xff
+//	@010b	c5fb	// 0216    ldbih  r5,(((0xabcdef01/0x00123456)&0xffff)>>8)&0xff
+//	@010c	bd60	// 0218    ldbil  r5,((0xabcdef01/0x00123456)&0xffff)&0xff
+//	@010d	c6ff	// 021a    ldbih  r6,(((0xabcdef01%0x00123456)>>16)>>8)&0xff
+//	@010e	beff	// 021c    ldbil  r6,((0xabcdef01%0x00123456)>>16)&0xff
+//	@010f	c7fc	// 021e    ldbih  r7,(((0xabcdef01%0x00123456)&0xffff)>>8)&0xff
+//	@0110	bfc1	// 0220    ldbil  r7,((0xabcdef01%0x00123456)&0xffff)&0xff
+//	@0111	0006	// 0222    divlq 
+//	@0112	7a84	// 0224    cmp    r0,r4
+//	@0113	104c	// 0226    bne    opc_no_fail
+//	@0114	7a8d	// 0228    cmp    r1,r5
+//	@0115	104a	// 022a    bne    opc_no_fail
+//	@0116	7a96	// 022c    cmp    r2,r6
+//	@0117	1048	// 022e    bne    opc_no_fail
+//	@0118	7a9f	// 0230    cmp    r3,r7
+//	@0119	1046	// 0232    bne    opc_no_fail
 //		// ================================
 //		// divlr
-//	@0114	7f9a	// 0228    sesrh  sreg_b_dr
-//	@0115	c001	// 022a    ldbih  r0,((0x0123)>>8)&0xff
-//	@0116	b823	// 022c    ldbil  r0,(0x0123)&0xff
-//	@0117	c145	// 022e    ldbih  r1,((0x4567)>>8)&0xff
-//	@0118	b967	// 0230    ldbil  r1,(0x4567)&0xff
-//	@0119	c289	// 0232    ldbih  r2,((0x89ab)>>8)&0xff
-//	@011a	baab	// 0234    ldbil  r2,(0x89ab)&0xff
-//	@011b	c3cd	// 0236    ldbih  r3,((0xcdef)>>8)&0xff
-//	@011c	bbef	// 0238    ldbil  r3,(0xcdef)&0xff
-//	@011d	78e0	// 023a    mov    r4,r0
-//	@011e	78e9	// 023c    mov    r5,r1
-//	@011f	78f2	// 023e    mov    r6,r2
-//	@0120	78fb	// 0240    mov    r7,r3
-//	@0121	0007	// 0242    divlr 
-//	@0122	b000	// 0244    ldbiu  r0,0
-//	@0123	78c8	// 0246    mov    r1,r0
-//	@0124	78d0	// 0248    mov    r2,r0
-//	@0125	78d8	// 024a    mov    r3,r0
-//	@0126	0006	// 024c    divlq 
-//	@0127	7a84	// 024e    cmp    r0,r4
-//	@0128	1031	// 0250    bne    opc_no_fail
-//	@0129	7a8d	// 0252    cmp    r1,r5
-//	@012a	102f	// 0254    bne    opc_no_fail
-//	@012b	7a96	// 0256    cmp    r2,r6
-//	@012c	102d	// 0258    bne    opc_no_fail
-//	@012d	7a9f	// 025a    cmp    r3,r7
-//	@012e	102b	// 025c    bne    opc_no_fail
+//	@011a	7f9a	// 0234    sesrh  sreg_b_dr
+//	@011b	c001	// 0236    ldbih  r0,((0x0123)>>8)&0xff
+//	@011c	b823	// 0238    ldbil  r0,(0x0123)&0xff
+//	@011d	c145	// 023a    ldbih  r1,((0x4567)>>8)&0xff
+//	@011e	b967	// 023c    ldbil  r1,(0x4567)&0xff
+//	@011f	c289	// 023e    ldbih  r2,((0x89ab)>>8)&0xff
+//	@0120	baab	// 0240    ldbil  r2,(0x89ab)&0xff
+//	@0121	c3cd	// 0242    ldbih  r3,((0xcdef)>>8)&0xff
+//	@0122	bbef	// 0244    ldbil  r3,(0xcdef)&0xff
+//	@0123	78e0	// 0246    mov    r4,r0
+//	@0124	78e9	// 0248    mov    r5,r1
+//	@0125	78f2	// 024a    mov    r6,r2
+//	@0126	78fb	// 024c    mov    r7,r3
+//	@0127	0007	// 024e    divlr 
+//	@0128	b000	// 0250    ldbiu  r0,0
+//	@0129	78c8	// 0252    mov    r1,r0
+//	@012a	78d0	// 0254    mov    r2,r0
+//	@012b	78d8	// 0256    mov    r3,r0
+//	@012c	0006	// 0258    divlq 
+//	@012d	7a84	// 025a    cmp    r0,r4
+//	@012e	1031	// 025c    bne    opc_no_fail
+//	@012f	7a8d	// 025e    cmp    r1,r5
+//	@0130	102f	// 0260    bne    opc_no_fail
+//	@0131	7a96	// 0262    cmp    r2,r6
+//	@0132	102d	// 0264    bne    opc_no_fail
+//	@0133	7a9f	// 0266    cmp    r3,r7
+//	@0134	102b	// 0268    bne    opc_no_fail
 //		// ================================
 //		// divlqr
-//	@012f	7f9a	// 025e    sesrh  sreg_b_dr
-//	@0130	b0e0	// 0260    ldbiu  r0,0xe0
-//	@0131	b1e1	// 0262    ldbiu  r1,0xe1
-//	@0132	b2e2	// 0264    ldbiu  r2,0xe2
-//	@0133	b3e3	// 0266    ldbiu  r3,0xe3
-//	@0134	0007	// 0268    divlr 
-//	@0135	7faa	// 026a    clsrh  sreg_b_dr
-//	@0136	b010	// 026c    ldbiu  r0,0x10
-//	@0137	b111	// 026e    ldbiu  r1,0x11
-//	@0138	b212	// 0270    ldbiu  r2,0x12
-//	@0139	b313	// 0272    ldbiu  r3,0x13
-//	@013a	000c	// 0274    divlqr
-//	@013b	a8e0	// 0276    cmpi   r0,0xe0
-//	@013c	101d	// 0278    bne    opc_no_fail
-//	@013d	a9e1	// 027a    cmpi   r1,0xe1
-//	@013e	101b	// 027c    bne    opc_no_fail
-//	@013f	aae2	// 027e    cmpi   r2,0xe2
-//	@0140	1019	// 0280    bne    opc_no_fail
-//	@0141	abe3	// 0282    cmpi   r3,0xe3
-//	@0142	1017	// 0284    bne    opc_no_fail
+//	@0135	7f9a	// 026a    sesrh  sreg_b_dr
+//	@0136	b0e0	// 026c    ldbiu  r0,0xe0
+//	@0137	b1e1	// 026e    ldbiu  r1,0xe1
+//	@0138	b2e2	// 0270    ldbiu  r2,0xe2
+//	@0139	b3e3	// 0272    ldbiu  r3,0xe3
+//	@013a	0007	// 0274    divlr 
+//	@013b	7faa	// 0276    clsrh  sreg_b_dr
+//	@013c	b010	// 0278    ldbiu  r0,0x10
+//	@013d	b111	// 027a    ldbiu  r1,0x11
+//	@013e	b212	// 027c    ldbiu  r2,0x12
+//	@013f	b313	// 027e    ldbiu  r3,0x13
+//	@0140	000c	// 0280    divlqr
+//	@0141	a8e0	// 0282    cmpi   r0,0xe0
+//	@0142	101d	// 0284    bne    opc_no_fail
+//	@0143	a9e1	// 0286    cmpi   r1,0xe1
+//	@0144	101b	// 0288    bne    opc_no_fail
+//	@0145	aae2	// 028a    cmpi   r2,0xe2
+//	@0146	1019	// 028c    bne    opc_no_fail
+//	@0147	abe3	// 028e    cmpi   r3,0xe3
+//	@0148	1017	// 0290    bne    opc_no_fail
 //		// ================================
 //		// divlrr
-//	@0143	7f9a	// 0286    sesrh  sreg_b_dr
-//	@0144	b0f0	// 0288    ldbiu  r0,0xf0
-//	@0145	b1f1	// 028a    ldbiu  r1,0xf1
-//	@0146	b2f2	// 028c    ldbiu  r2,0xf2
-//	@0147	b3f3	// 028e    ldbiu  r3,0xf3
-//	@0148	0007	// 0290    divlr 
-//	@0149	7faa	// 0292    clsrh  sreg_b_dr
-//	@014a	b000	// 0294    ldbiu  r0,0x00
-//	@014b	b101	// 0296    ldbiu  r1,0x01
-//	@014c	b202	// 0298    ldbiu  r2,0x02
-//	@014d	b303	// 029a    ldbiu  r3,0x03
-//	@014e	000d	// 029c    divlrr
-//	@014f	7f9a	// 029e    sesrh  sreg_b_dr
-//	@0150	0006	// 02a0    divlq 
-//	@0151	a800	// 02a2    cmpi   r0,0x00
-//	@0152	1007	// 02a4    bne    opc_no_fail
-//	@0153	a901	// 02a6    cmpi   r1,0x01
-//	@0154	1005	// 02a8    bne    opc_no_fail
-//	@0155	aa02	// 02aa    cmpi   r2,0x02
-//	@0156	1003	// 02ac    bne    opc_no_fail
-//	@0157	ab03	// 02ae    cmpi   r3,0x03
-//	@0158	1001	// 02b0    bne    opc_no_fail
+//	@0149	7f9a	// 0292    sesrh  sreg_b_dr
+//	@014a	b0f0	// 0294    ldbiu  r0,0xf0
+//	@014b	b1f1	// 0296    ldbiu  r1,0xf1
+//	@014c	b2f2	// 0298    ldbiu  r2,0xf2
+//	@014d	b3f3	// 029a    ldbiu  r3,0xf3
+//	@014e	0007	// 029c    divlr 
+//	@014f	7faa	// 029e    clsrh  sreg_b_dr
+//	@0150	b000	// 02a0    ldbiu  r0,0x00
+//	@0151	b101	// 02a2    ldbiu  r1,0x01
+//	@0152	b202	// 02a4    ldbiu  r2,0x02
+//	@0153	b303	// 02a6    ldbiu  r3,0x03
+//	@0154	000d	// 02a8    divlrr
+//	@0155	7f9a	// 02aa    sesrh  sreg_b_dr
+//	@0156	0006	// 02ac    divlq 
+//	@0157	a800	// 02ae    cmpi   r0,0x00
+//	@0158	1007	// 02b0    bne    opc_no_fail
+//	@0159	a901	// 02b2    cmpi   r1,0x01
+//	@015a	1005	// 02b4    bne    opc_no_fail
+//	@015b	aa02	// 02b6    cmpi   r2,0x02
+//	@015c	1003	// 02b8    bne    opc_no_fail
+//	@015d	ab03	// 02ba    cmpi   r3,0x03
+//	@015e	1001	// 02bc    bne    opc_no_fail
 //			// divl_skip:
 //		// ********************************
 //		// ================================
-//	@0159	0803	// 02b2    bra    opc_no_pass
+//	@015f	0803	// 02be    bra    opc_no_pass
 //			// opc_no_fail:
-//	@015a	c70d	// 02b4    ldbih  r7,(lab_tstfail)>>8
-//	@015b	bf5e	// 02b6    ldbil  r7,(lab_tstfail)&0xff
-//	@015c	7f87	// 02b8    jmp    r7
+//	@0160	c70d	// 02c0    ldbih  r7,(lab_tstfail)>>8
+//	@0161	bf6a	// 02c2    ldbil  r7,(lab_tstfail)&0xff
+//	@0162	7f87	// 02c4    jmp    r7
 //			// opc_no_pass:
 //		// ================================
 //		// opcode BR
 //		// ================================
 //		// bra
-//	@015d	0801	// 02ba    bra    bra_pass
-//	@015e	0833	// 02bc    bra    opc_br_fail
+//	@0163	0801	// 02c6    bra    bra_pass
+//	@0164	0833	// 02c8    bra    opc_br_fail
 //			// bra_pass:
 //		// ================================
 //		// bne
-//	@015f	c8ef	// 02be    ldcl   sr,(~sreg_zf)
-//	@0160	1001	// 02c0    bne    bne_pass
+//	@0165	c8ef	// 02ca    ldcl   sr,(~sreg_zf)
+//	@0166	1001	// 02cc    bne    bne_pass
 //			// bne_fail:
-//	@0161	0830	// 02c2    bra    opc_br_fail
+//	@0167	0830	// 02ce    bra    opc_br_fail
 //			// bne_pass:
-//	@0162	c810	// 02c4    ldcl   sr,(sreg_zf)
-//	@0163	17fd	// 02c6    bne    bne_fail
+//	@0168	c810	// 02d0    ldcl   sr,(sreg_zf)
+//	@0169	17fd	// 02d2    bne    bne_fail
 //		// ================================
 //		// beq
-//	@0164	c810	// 02c8    ldcl   sr,(sreg_zf)
-//	@0165	1801	// 02ca    beq    beq_pass
+//	@016a	c810	// 02d4    ldcl   sr,(sreg_zf)
+//	@016b	1801	// 02d6    beq    beq_pass
 //			// beq_fail:
-//	@0166	082b	// 02cc    bra    opc_br_fail
+//	@016c	082b	// 02d8    bra    opc_br_fail
 //			// beq_pass:
-//	@0167	c8ef	// 02ce    ldcl   sr,(~sreg_zf)
-//	@0168	1ffd	// 02d0    beq    beq_fail
+//	@016d	c8ef	// 02da    ldcl   sr,(~sreg_zf)
+//	@016e	1ffd	// 02dc    beq    beq_fail
 //		// ================================
 //		// bcc
-//	@0169	c8bf	// 02d2    ldcl   sr,(~sreg_cf)
-//	@016a	2001	// 02d4    bcc    bcc_pass
+//	@016f	c8bf	// 02de    ldcl   sr,(~sreg_cf)
+//	@0170	2001	// 02e0    bcc    bcc_pass
 //			// bcc_fail:
-//	@016b	0826	// 02d6    bra    opc_br_fail
+//	@0171	0826	// 02e2    bra    opc_br_fail
 //			// bcc_pass:
-//	@016c	c840	// 02d8    ldcl   sr,(sreg_cf)
-//	@016d	27fd	// 02da    bcc    bcc_fail
+//	@0172	c840	// 02e4    ldcl   sr,(sreg_cf)
+//	@0173	27fd	// 02e6    bcc    bcc_fail
 //		// ================================
 //		// bcs
-//	@016e	c840	// 02dc    ldcl   sr,(sreg_cf)
-//	@016f	2801	// 02de    bcs    bcs_pass
+//	@0174	c840	// 02e8    ldcl   sr,(sreg_cf)
+//	@0175	2801	// 02ea    bcs    bcs_pass
 //			// bcs_fail:
-//	@0170	0821	// 02e0    bra    opc_br_fail
+//	@0176	0821	// 02ec    bra    opc_br_fail
 //			// bcs_pass:
-//	@0171	c8bf	// 02e2    ldcl   sr,(~sreg_cf)
-//	@0172	2ffd	// 02e4    bcs    bcs_fail
+//	@0177	c8bf	// 02ee    ldcl   sr,(~sreg_cf)
+//	@0178	2ffd	// 02f0    bcs    bcs_fail
 //		// ================================
 //		// bpl
-//	@0173	c87f	// 02e6    ldcl   sr,(~sreg_nf)
-//	@0174	3001	// 02e8    bpl    bpl_pass
+//	@0179	c87f	// 02f2    ldcl   sr,(~sreg_nf)
+//	@017a	3001	// 02f4    bpl    bpl_pass
 //			// bpl_fail:
-//	@0175	081c	// 02ea    bra    opc_br_fail
+//	@017b	081c	// 02f6    bra    opc_br_fail
 //			// bpl_pass:
-//	@0176	c880	// 02ec    ldcl   sr,(sreg_nf)
-//	@0177	37fd	// 02ee    bpl    bpl_fail
+//	@017c	c880	// 02f8    ldcl   sr,(sreg_nf)
+//	@017d	37fd	// 02fa    bpl    bpl_fail
 //		// ================================
 //		// bmi
-//	@0178	c880	// 02f0    ldcl   sr,(sreg_nf)
-//	@0179	3801	// 02f2    bmi    bmi_pass
+//	@017e	c880	// 02fc    ldcl   sr,(sreg_nf)
+//	@017f	3801	// 02fe    bmi    bmi_pass
 //			// bmi_fail:
-//	@017a	0817	// 02f4    bra    opc_br_fail
+//	@0180	0817	// 0300    bra    opc_br_fail
 //			// bmi_pass:
-//	@017b	c87f	// 02f6    ldcl   sr,(~sreg_nf)
-//	@017c	3ffd	// 02f8    bmi    bmi_fail
+//	@0181	c87f	// 0302    ldcl   sr,(~sreg_nf)
+//	@0182	3ffd	// 0304    bmi    bmi_fail
 //		// ================================
 //		// bvc
-//	@017d	c8df	// 02fa    ldcl   sr,(~sreg_vf)
-//	@017e	4001	// 02fc    bvc    bvc_pass
+//	@0183	c8df	// 0306    ldcl   sr,(~sreg_vf)
+//	@0184	4001	// 0308    bvc    bvc_pass
 //			// bvc_fail:
-//	@017f	0812	// 02fe    bra    opc_br_fail
+//	@0185	0812	// 030a    bra    opc_br_fail
 //			// bvc_pass:
-//	@0180	c820	// 0300    ldcl   sr,(sreg_vf)
-//	@0181	47fd	// 0302    bvc    bvc_fail
+//	@0186	c820	// 030c    ldcl   sr,(sreg_vf)
+//	@0187	47fd	// 030e    bvc    bvc_fail
 //		// ================================
 //		// bvs
-//	@0182	c820	// 0304    ldcl   sr,(sreg_vf)
-//	@0183	4801	// 0306    bvs    bvs_pass
+//	@0188	c820	// 0310    ldcl   sr,(sreg_vf)
+//	@0189	4801	// 0312    bvs    bvs_pass
 //			// bvs_fail:
-//	@0184	080d	// 0308    bra    opc_br_fail
+//	@018a	080d	// 0314    bra    opc_br_fail
 //			// bvs_pass:
-//	@0185	c8df	// 030a    ldcl   sr,(~sreg_vf)
-//	@0186	4ffd	// 030c    bvs    bvs_fail
+//	@018b	c8df	// 0316    ldcl   sr,(~sreg_vf)
+//	@018c	4ffd	// 0318    bvs    bvs_fail
 //		// ================================
 //		// bge
-//	@0187	c8a0	// 030e    ldcl   sr,sreg_nf|sreg_vf
-//	@0188	5001	// 0310    bge    bge_pass
+//	@018d	c8a0	// 031a    ldcl   sr,sreg_nf|sreg_vf
+//	@018e	5001	// 031c    bge    bge_pass
 //			// bge_fail:
-//	@0189	0808	// 0312    bra    opc_br_fail
+//	@018f	0808	// 031e    bra    opc_br_fail
 //			// bge_pass:
-//	@018a	c880	// 0314    ldcl   sr,sreg_nf
-//	@018b	57fd	// 0316    bge    bge_fail
+//	@0190	c880	// 0320    ldcl   sr,sreg_nf
+//	@0191	57fd	// 0322    bge    bge_fail
 //		// ================================
 //		// blt
-//	@018c	c820	// 0318    ldcl   sr,sreg_vf
-//	@018d	5801	// 031a    blt    blt_pass
+//	@0192	c820	// 0324    ldcl   sr,sreg_vf
+//	@0193	5801	// 0326    blt    blt_pass
 //			// blt_fail:
-//	@018e	0803	// 031c    bra    opc_br_fail
+//	@0194	0803	// 0328    bra    opc_br_fail
 //			// blt_pass:
-//	@018f	c800	// 031e    ldcl   sr,0x00
-//	@0190	5ffd	// 0320    blt    blt_fail
+//	@0195	c800	// 032a    ldcl   sr,0x00
+//	@0196	5ffd	// 032c    blt    blt_fail
 //		// ================================
-//	@0191	0803	// 0322    bra    opc_br_pass
+//	@0197	0803	// 032e    bra    opc_br_pass
 //			// opc_br_fail:
-//	@0192	c70d	// 0324    ldbih  r7,(lab_tstfail)>>8
-//	@0193	bf5e	// 0326    ldbil  r7,(lab_tstfail)&0xff
-//	@0194	7f87	// 0328    jmp    r7
+//	@0198	c70d	// 0330    ldbih  r7,(lab_tstfail)>>8
+//	@0199	bf6a	// 0332    ldbil  r7,(lab_tstfail)&0xff
+//	@019a	7f87	// 0334    jmp    r7
 //			// opc_br_pass:
 //		// ================================
 //		// opcode R
 //		// ================================
 //		// sbbz
-//	@0195	b036	// 032a    ldbiu  r0,0x36
-//	@0196	b15a	// 032c    ldbiu  r1,0x5a
-//	@0197	7f96	// 032e    sesrl  sreg_b_cf
-//	@0198	7f00	// 0330    sbbz   r0
-//	@0199	7fa6	// 0332    clsrl  sreg_b_cf
-//	@019a	7f01	// 0334    sbbz   r1
-//	@019b	a835	// 0336    cmpi   r0,0x36-1
-//	@019c	10dd	// 0338    bne    opc_r_fail
-//	@019d	a95a	// 033a    cmpi   r1,0x5a
-//	@019e	10db	// 033c    bne    opc_r_fail
+//	@019b	b036	// 0336    ldbiu  r0,0x36
+//	@019c	b15a	// 0338    ldbiu  r1,0x5a
+//	@019d	7f96	// 033a    sesrl  sreg_b_cf
+//	@019e	7f00	// 033c    sbbz   r0
+//	@019f	7fa6	// 033e    clsrl  sreg_b_cf
+//	@01a0	7f01	// 0340    sbbz   r1
+//	@01a1	a835	// 0342    cmpi   r0,0x36-1
+//	@01a2	10dd	// 0344    bne    opc_r_fail
+//	@01a3	a95a	// 0346    cmpi   r1,0x5a
+//	@01a4	10db	// 0348    bne    opc_r_fail
 //		// ================================
 //		// cmbz
-//	@019f	b201	// 033e    ldbiu  r2,0x01
-//	@01a0	b3ff	// 0340    ldbiu  r3,0xff
-//	@01a1	7f96	// 0342    sesrl  sreg_b_cf
-//	@01a2	7f0a	// 0344    cmbz   r2
-//	@01a3	7960	// 0346    movfc  r4,sr
-//	@01a4	7fa6	// 0348    clsrl  sreg_b_cf
-//	@01a5	7f0b	// 034a    cmbz   r3
-//	@01a6	7968	// 034c    movfc  r5,sr
-//	@01a7	aa01	// 034e    cmpi   r2,0x01
-//	@01a8	10d1	// 0350    bne    opc_r_fail
-//	@01a9	abff	// 0352    cmpi   r3,0xff
-//	@01aa	10cf	// 0354    bne    opc_r_fail
-//	@01ab	8cf0	// 0356    andi   r4,sreg_fg
-//	@01ac	ac10	// 0358    cmpi   r4,sreg_zf
-//	@01ad	8df0	// 035a    andi   r5,sreg_fg
-//	@01ae	ad80	// 035c    cmpi   r5,sreg_nf
+//	@01a5	b201	// 034a    ldbiu  r2,0x01
+//	@01a6	b3ff	// 034c    ldbiu  r3,0xff
+//	@01a7	7f96	// 034e    sesrl  sreg_b_cf
+//	@01a8	7f0a	// 0350    cmbz   r2
+//	@01a9	7960	// 0352    movfc  r4,sr
+//	@01aa	7fa6	// 0354    clsrl  sreg_b_cf
+//	@01ab	7f0b	// 0356    cmbz   r3
+//	@01ac	7968	// 0358    movfc  r5,sr
+//	@01ad	aa01	// 035a    cmpi   r2,0x01
+//	@01ae	10d1	// 035c    bne    opc_r_fail
+//	@01af	abff	// 035e    cmpi   r3,0xff
+//	@01b0	10cf	// 0360    bne    opc_r_fail
+//	@01b1	8cf0	// 0362    andi   r4,sreg_fg
+//	@01b2	ac10	// 0364    cmpi   r4,sreg_zf
+//	@01b3	8df0	// 0366    andi   r5,sreg_fg
+//	@01b4	ad80	// 0368    cmpi   r5,sreg_nf
 //		// ================================
 //		// adcz
-//	@01af	b4ec	// 035e    ldbiu  r4,0xec
-//	@01b0	b564	// 0360    ldbiu  r5,0x64
-//	@01b1	7f96	// 0362    sesrl  sreg_b_cf
-//	@01b2	7f74	// 0364    adcz   r4
-//	@01b3	7fa6	// 0366    clsrl  sreg_b_cf
-//	@01b4	7f75	// 0368    adcz   r5
-//	@01b5	aced	// 036a    cmpi   r4,0xec+1
-//	@01b6	10c3	// 036c    bne    opc_r_fail
-//	@01b7	ad64	// 036e    cmpi   r5,0x64
-//	@01b8	10c1	// 0370    bne    opc_r_fail
+//	@01b5	b4ec	// 036a    ldbiu  r4,0xec
+//	@01b6	b564	// 036c    ldbiu  r5,0x64
+//	@01b7	7f96	// 036e    sesrl  sreg_b_cf
+//	@01b8	7f74	// 0370    adcz   r4
+//	@01b9	7fa6	// 0372    clsrl  sreg_b_cf
+//	@01ba	7f75	// 0374    adcz   r5
+//	@01bb	aced	// 0376    cmpi   r4,0xec+1
+//	@01bc	10c3	// 0378    bne    opc_r_fail
+//	@01bd	ad64	// 037a    cmpi   r5,0x64
+//	@01be	10c1	// 037c    bne    opc_r_fail
 //		// ================================
 //		// jmp
-//	@01b9	c000	// 0372    ldbih  r0,((0)>>8)&0xff
-//	@01ba	b800	// 0374    ldbil  r0,(0)&0xff
-//	@01bb	c503	// 0376    ldbih  r5,((lab_jmp_addr1)>>8)&0xff
-//	@01bc	bd8c	// 0378    ldbil  r5,(lab_jmp_addr1)&0xff
-//	@01bd	7f85	// 037a    jmp    r5
+//	@01bf	c000	// 037e    ldbih  r0,((0)>>8)&0xff
+//	@01c0	b800	// 0380    ldbil  r0,(0)&0xff
+//	@01c1	c503	// 0382    ldbih  r5,((lab_jmp_addr1)>>8)&0xff
+//	@01c2	bd98	// 0384    ldbil  r5,(lab_jmp_addr1)&0xff
+//	@01c3	7f85	// 0386    jmp    r5
 //			// jmp_addr2:
-//	@01be	90aa	// 037c    eori   r0,0xaa
-//	@01bf	c103	// 037e    ldbih  r1,((lab_jmp_addr3)>>8)&0xff
-//	@01c0	b994	// 0380    ldbil  r1,(lab_jmp_addr3)&0xff
-//	@01c1	7f81	// 0382    jmp    r1
+//	@01c4	90aa	// 0388    eori   r0,0xaa
+//	@01c5	c103	// 038a    ldbih  r1,((lab_jmp_addr3)>>8)&0xff
+//	@01c6	b9a0	// 038c    ldbil  r1,(lab_jmp_addr3)&0xff
+//	@01c7	7f81	// 038e    jmp    r1
 //			// jmp_addr4:
-//	@01c2	8080	// 0384    ori    r0,0x80
-//	@01c3	c203	// 0386    ldbih  r2,((lab_jmp_addr5)>>8)&0xff
-//	@01c4	ba9c	// 0388    ldbil  r2,(lab_jmp_addr5)&0xff
-//	@01c5	7f82	// 038a    jmp    r2
+//	@01c8	8080	// 0390    ori    r0,0x80
+//	@01c9	c203	// 0392    ldbih  r2,((lab_jmp_addr5)>>8)&0xff
+//	@01ca	baa8	// 0394    ldbil  r2,(lab_jmp_addr5)&0xff
+//	@01cb	7f82	// 0396    jmp    r2
 //			// jmp_addr1:
-//	@01c6	983c	// 038c    addi   r0,0x3c
-//	@01c7	c603	// 038e    ldbih  r6,((lab_jmp_addr2)>>8)&0xff
-//	@01c8	be7c	// 0390    ldbil  r6,(lab_jmp_addr2)&0xff
-//	@01c9	7f86	// 0392    jmp    r6
+//	@01cc	983c	// 0398    addi   r0,0x3c
+//	@01cd	c603	// 039a    ldbih  r6,((lab_jmp_addr2)>>8)&0xff
+//	@01ce	be88	// 039c    ldbil  r6,(lab_jmp_addr2)&0xff
+//	@01cf	7f86	// 039e    jmp    r6
 //			// jmp_addr3:
-//	@01ca	a069	// 0394    subi   r0,0x69
-//	@01cb	c403	// 0396    ldbih  r4,((lab_jmp_addr4)>>8)&0xff
-//	@01cc	bc84	// 0398    ldbil  r4,(lab_jmp_addr4)&0xff
-//	@01cd	7f84	// 039a    jmp    r4
+//	@01d0	a069	// 03a0    subi   r0,0x69
+//	@01d1	c403	// 03a2    ldbih  r4,((lab_jmp_addr4)>>8)&0xff
+//	@01d2	bc90	// 03a4    ldbil  r4,(lab_jmp_addr4)&0xff
+//	@01d3	7f84	// 03a6    jmp    r4
 //			// jmp_addr5:
-//	@01ce	a8ad	// 039c    cmpi   r0,0xad
-//	@01cf	10aa	// 039e    bne    opc_r_fail
+//	@01d4	a8ad	// 03a8    cmpi   r0,0xad
+//	@01d5	10aa	// 03aa    bne    opc_r_fail
 //		// ================================
 //		// jalw
-//	@01d0	b300	// 03a0    ldbiu  r3,0
-//	@01d1	c4f0	// 03a2    ldbih  r4,((idrgramt)>>8)&0xff
-//	@01d2	bc0c	// 03a4    ldbil  r4,(idrgramt)&0xff
-//	@01d3	7ba4	// 03a6    ldw    r4,r4
-//	@01d4	9c10	// 03a8    addi   r4,16
-//	@01d5	7914	// 03aa    movtc  sp,r4
-//	@01d6	c703	// 03ac    ldbih  r7,((lab_jalw_addr1)>>8)&0xff
-//	@01d7	bfc0	// 03ae    ldbil  r7,(lab_jalw_addr1)&0xff
-//	@01d8	7f8f	// 03b0    jalw   r7
+//	@01d6	b300	// 03ac    ldbiu  r3,0
+//	@01d7	c4f0	// 03ae    ldbih  r4,((idrgramt)>>8)&0xff
+//	@01d8	bc0c	// 03b0    ldbil  r4,(idrgramt)&0xff
+//	@01d9	7ba4	// 03b2    ldw    r4,r4
+//	@01da	9c10	// 03b4    addi   r4,16
+//	@01db	7914	// 03b6    movtc  sp,r4
+//	@01dc	c703	// 03b8    ldbih  r7,((lab_jalw_addr1)>>8)&0xff
+//	@01dd	bfcc	// 03ba    ldbil  r7,(lab_jalw_addr1)&0xff
+//	@01de	7f8f	// 03bc    jalw   r7
 //			// jalw_addr2:
-//	@01d9	ab00	// 03b2    cmpi   r3,0
-//	@01da	189f	// 03b4    beq    opc_r_fail
-//	@01db	7942	// 03b6    movfc  r0,sp
-//	@01dc	9c02	// 03b8    addi   r4,2
-//	@01dd	7a84	// 03ba    cmp    r0,r4
-//	@01de	180c	// 03bc    beq    jalw_pass4
-//	@01df	089a	// 03be    bra    opc_r_fail
-//			// jalw_addr1:
-//	@01e0	7942	// 03c0    movfc  r0,sp
-//	@01e1	7b88	// 03c2    ldw    r1,r0
-//	@01e2	a402	// 03c4    subi   r4,2
+//	@01df	ab00	// 03be    cmpi   r3,0
+//	@01e0	189f	// 03c0    beq    opc_r_fail
+//	@01e1	7942	// 03c2    movfc  r0,sp
+//	@01e2	9c02	// 03c4    addi   r4,2
 //	@01e3	7a84	// 03c6    cmp    r0,r4
-//	@01e4	1095	// 03c8    bne    opc_r_fail
-//	@01e5	c303	// 03ca    ldbih  r3,((lab_jalw_addr2)>>8)&0xff
-//	@01e6	bbb2	// 03cc    ldbil  r3,(lab_jalw_addr2)&0xff
-//	@01e7	7a8b	// 03ce    cmp    r1,r3
-//	@01e8	1091	// 03d0    bne    opc_r_fail
-//	@01e9	7fee	// 03d2    popw   r6
-//	@01ea	7f86	// 03d4    jmp    r6
+//	@01e4	180c	// 03c8    beq    jalw_pass4
+//	@01e5	089a	// 03ca    bra    opc_r_fail
+//			// jalw_addr1:
+//	@01e6	7942	// 03cc    movfc  r0,sp
+//	@01e7	7b88	// 03ce    ldw    r1,r0
+//	@01e8	a402	// 03d0    subi   r4,2
+//	@01e9	7a84	// 03d2    cmp    r0,r4
+//	@01ea	1095	// 03d4    bne    opc_r_fail
+//	@01eb	c303	// 03d6    ldbih  r3,((lab_jalw_addr2)>>8)&0xff
+//	@01ec	bbbe	// 03d8    ldbil  r3,(lab_jalw_addr2)&0xff
+//	@01ed	7a8b	// 03da    cmp    r1,r3
+//	@01ee	1091	// 03dc    bne    opc_r_fail
+//	@01ef	7fee	// 03de    popw   r6
+//	@01f0	7f86	// 03e0    jmp    r6
 //			// jalw_pass4:
 //		// ================================
 //		// sesrl
-//	@01eb	c800	// 03d6    ldcl   sr,0x00
-//	@01ec	7f94	// 03d8    sesrl  sreg_b_zf
-//	@01ed	7940	// 03da    movfc  r0,sr
-//	@01ee	88ff	// 03dc    andi   r0,0xff
-//	@01ef	a810	// 03de    cmpi   r0,sreg_zf
-//	@01f0	1089	// 03e0    bne    opc_r_fail
+//	@01f1	c800	// 03e2    ldcl   sr,0x00
+//	@01f2	7f94	// 03e4    sesrl  sreg_b_zf
+//	@01f3	7940	// 03e6    movfc  r0,sr
+//	@01f4	88ff	// 03e8    andi   r0,0xff
+//	@01f5	a810	// 03ea    cmpi   r0,sreg_zf
+//	@01f6	1089	// 03ec    bne    opc_r_fail
 //		// ================================
 //		// sesrh
-//	@01f1	d000	// 03e2    ldch   sr,0x00
-//	@01f2	7f9a	// 03e4    sesrh  sreg_b_dr
-//	@01f3	7940	// 03e6    movfc  r0,sr
-//	@01f4	d8f8	// 03e8    lsfti  r0,-8
-//	@01f5	880f	// 03ea    andi   r0,(~sreg_id_15)>>8
-//	@01f6	a804	// 03ec    cmpi   r0,sreg_dr>>8
-//	@01f7	1082	// 03ee    bne    opc_r_fail
+//	@01f7	d000	// 03ee    ldch   sr,0x00
+//	@01f8	7f9a	// 03f0    sesrh  sreg_b_dr
+//	@01f9	7940	// 03f2    movfc  r0,sr
+//	@01fa	d8f8	// 03f4    lsfti  r0,-8
+//	@01fb	880f	// 03f6    andi   r0,(~sreg_id_15)>>8
+//	@01fc	a804	// 03f8    cmpi   r0,sreg_dr>>8
+//	@01fd	1082	// 03fa    bne    opc_r_fail
 //		// ================================
 //		// clsrl
-//	@01f8	c8f0	// 03f0    ldcl   sr,sreg_fg
-//	@01f9	7fa7	// 03f2    clsrl  sreg_b_nf
-//	@01fa	7940	// 03f4    movfc  r0,sr
-//	@01fb	88ff	// 03f6    andi   r0,0xff
-//	@01fc	a870	// 03f8    cmpi   r0,sreg_fg&(~sreg_nf)
-//	@01fd	107c	// 03fa    bne    opc_r_fail
+//	@01fe	c8f0	// 03fc    ldcl   sr,sreg_fg
+//	@01ff	7fa7	// 03fe    clsrl  sreg_b_nf
+//	@0200	7940	// 0400    movfc  r0,sr
+//	@0201	88ff	// 0402    andi   r0,0xff
+//	@0202	a870	// 0404    cmpi   r0,sreg_fg&(~sreg_nf)
+//	@0203	107c	// 0406    bne    opc_r_fail
 //		// ================================
 //		// clsrh
-//	@01fe	d004	// 03fc    ldch   sr,sreg_dr>>8
-//	@01ff	7940	// 03fe    movfc  r0,sr
-//	@0200	d8f8	// 0400    lsfti  r0,-8
-//	@0201	8804	// 0402    andi   r0,sreg_dr>>8
-//	@0202	1877	// 0404    beq    opc_r_fail
-//	@0203	7faa	// 0406    clsrh  sreg_b_dr
-//	@0204	7940	// 0408    movfc  r0,sr
-//	@0205	d8f8	// 040a    lsfti  r0,-8
-//	@0206	8804	// 040c    andi   r0,sreg_dr>>8
-//	@0207	1072	// 040e    bne    opc_r_fail
+//	@0204	d004	// 0408    ldch   sr,sreg_dr>>8
+//	@0205	7940	// 040a    movfc  r0,sr
+//	@0206	d8f8	// 040c    lsfti  r0,-8
+//	@0207	8804	// 040e    andi   r0,sreg_dr>>8
+//	@0208	1877	// 0410    beq    opc_r_fail
+//	@0209	7faa	// 0412    clsrh  sreg_b_dr
+//	@020a	7940	// 0414    movfc  r0,sr
+//	@020b	d8f8	// 0416    lsfti  r0,-8
+//	@020c	8804	// 0418    andi   r0,sreg_dr>>8
+//	@020d	1072	// 041a    bne    opc_r_fail
 //		// ================================
 //		// neg
-//	@0208	c000	// 0410    ldbih  r0,((0x3a)>>8)&0xff
-//	@0209	b83a	// 0412    ldbil  r0,(0x3a)&0xff
-//	@020a	7fc0	// 0414    neg    r0
-//	@020b	7948	// 0416    movfc  r1,sr
-//	@020c	c2ff	// 0418    ldbih  r2,((0xffc6)>>8)&0xff
-//	@020d	bac6	// 041a    ldbil  r2,(0xffc6)&0xff
-//	@020e	7a82	// 041c    cmp    r0,r2
-//	@020f	106a	// 041e    bne    opc_r_fail
-//	@0210	89f0	// 0420    andi   r1,sreg_fg
-//	@0211	a9c0	// 0422    cmpi   r1,sreg_nf|sreg_cf
-//	@0212	1067	// 0424    bne    opc_r_fail
-//	@0213	c080	// 0426    ldbih  r0,((0x8000)>>8)&0xff
-//	@0214	b800	// 0428    ldbil  r0,(0x8000)&0xff
-//	@0215	78d0	// 042a    mov    r2,r0
-//	@0216	7fc0	// 042c    neg    r0
-//	@0217	7948	// 042e    movfc  r1,sr
-//	@0218	7a82	// 0430    cmp    r0,r2
-//	@0219	1060	// 0432    bne    opc_r_fail
-//	@021a	89f0	// 0434    andi   r1,sreg_fg
-//	@021b	a9e0	// 0436    cmpi   r1,sreg_nf|sreg_cf|sreg_vf
-//	@021c	105d	// 0438    bne    opc_r_fail
+//	@020e	c000	// 041c    ldbih  r0,((0x3a)>>8)&0xff
+//	@020f	b83a	// 041e    ldbil  r0,(0x3a)&0xff
+//	@0210	7fc0	// 0420    neg    r0
+//	@0211	7948	// 0422    movfc  r1,sr
+//	@0212	c2ff	// 0424    ldbih  r2,((0xffc6)>>8)&0xff
+//	@0213	bac6	// 0426    ldbil  r2,(0xffc6)&0xff
+//	@0214	7a82	// 0428    cmp    r0,r2
+//	@0215	106a	// 042a    bne    opc_r_fail
+//	@0216	89f0	// 042c    andi   r1,sreg_fg
+//	@0217	a9c0	// 042e    cmpi   r1,sreg_nf|sreg_cf
+//	@0218	1067	// 0430    bne    opc_r_fail
+//	@0219	c080	// 0432    ldbih  r0,((0x8000)>>8)&0xff
+//	@021a	b800	// 0434    ldbil  r0,(0x8000)&0xff
+//	@021b	78d0	// 0436    mov    r2,r0
+//	@021c	7fc0	// 0438    neg    r0
+//	@021d	7948	// 043a    movfc  r1,sr
+//	@021e	7a82	// 043c    cmp    r0,r2
+//	@021f	1060	// 043e    bne    opc_r_fail
+//	@0220	89f0	// 0440    andi   r1,sreg_fg
+//	@0221	a9e0	// 0442    cmpi   r1,sreg_nf|sreg_cf|sreg_vf
+//	@0222	105d	// 0444    bne    opc_r_fail
 //		// ================================
 //		// not
-//	@021d	b0ca	// 043a    ldbiu  r0,0xca
-//	@021e	7fd8	// 043c    exsgw  r0
-//	@021f	7fc8	// 043e    not    r0
-//	@0220	7948	// 0440    movfc  r1,sr
-//	@0221	a835	// 0442    cmpi   r0,0x35
-//	@0222	1057	// 0444    bne    opc_r_fail
-//	@0223	89f0	// 0446    andi   r1,sreg_fg
-//	@0224	a900	// 0448    cmpi   r1,0x00
-//	@0225	1054	// 044a    bne    opc_r_fail
+//	@0223	b0ca	// 0446    ldbiu  r0,0xca
+//	@0224	7fd8	// 0448    exsgw  r0
+//	@0225	7fc8	// 044a    not    r0
+//	@0226	7948	// 044c    movfc  r1,sr
+//	@0227	a835	// 044e    cmpi   r0,0x35
+//	@0228	1057	// 0450    bne    opc_r_fail
+//	@0229	89f0	// 0452    andi   r1,sreg_fg
+//	@022a	a900	// 0454    cmpi   r1,0x00
+//	@022b	1054	// 0456    bne    opc_r_fail
 //		// ================================
 //		// cendw
-//	@0226	c056	// 044c    ldbih  r0,((0x5678)>>8)&0xff
-//	@0227	b878	// 044e    ldbil  r0,(0x5678)&0xff
-//	@0228	7fd0	// 0450    cendw  r0
-//	@0229	7948	// 0452    movfc  r1,sr
-//	@022a	c278	// 0454    ldbih  r2,((0x7856)>>8)&0xff
-//	@022b	ba56	// 0456    ldbil  r2,(0x7856)&0xff
-//	@022c	7a82	// 0458    cmp    r0,r2
-//	@022d	104c	// 045a    bne    opc_r_fail
-//	@022e	89f0	// 045c    andi   r1,sreg_fg
-//	@022f	a900	// 045e    cmpi   r1,0x00
-//	@0230	1049	// 0460    bne    opc_r_fail
+//	@022c	c056	// 0458    ldbih  r0,((0x5678)>>8)&0xff
+//	@022d	b878	// 045a    ldbil  r0,(0x5678)&0xff
+//	@022e	7fd0	// 045c    cendw  r0
+//	@022f	7948	// 045e    movfc  r1,sr
+//	@0230	c278	// 0460    ldbih  r2,((0x7856)>>8)&0xff
+//	@0231	ba56	// 0462    ldbil  r2,(0x7856)&0xff
+//	@0232	7a82	// 0464    cmp    r0,r2
+//	@0233	104c	// 0466    bne    opc_r_fail
+//	@0234	89f0	// 0468    andi   r1,sreg_fg
+//	@0235	a900	// 046a    cmpi   r1,0x00
+//	@0236	1049	// 046c    bne    opc_r_fail
 //		// ================================
 //		// exsgw
-//	@0231	c089	// 0462    ldbih  r0,((0x89ab)>>8)&0xff
-//	@0232	b8ab	// 0464    ldbil  r0,(0x89ab)&0xff
-//	@0233	7fd8	// 0466    exsgw  r0
-//	@0234	7948	// 0468    movfc  r1,sr
-//	@0235	c2ff	// 046a    ldbih  r2,((0xffab)>>8)&0xff
-//	@0236	baab	// 046c    ldbil  r2,(0xffab)&0xff
-//	@0237	7a82	// 046e    cmp    r0,r2
-//	@0238	1041	// 0470    bne    opc_r_fail
-//	@0239	89f0	// 0472    andi   r1,sreg_fg
-//	@023a	a980	// 0474    cmpi   r1,sreg_nf
-//	@023b	103e	// 0476    bne    opc_r_fail
+//	@0237	c089	// 046e    ldbih  r0,((0x89ab)>>8)&0xff
+//	@0238	b8ab	// 0470    ldbil  r0,(0x89ab)&0xff
+//	@0239	7fd8	// 0472    exsgw  r0
+//	@023a	7948	// 0474    movfc  r1,sr
+//	@023b	c2ff	// 0476    ldbih  r2,((0xffab)>>8)&0xff
+//	@023c	baab	// 0478    ldbil  r2,(0xffab)&0xff
+//	@023d	7a82	// 047a    cmp    r0,r2
+//	@023e	1041	// 047c    bne    opc_r_fail
+//	@023f	89f0	// 047e    andi   r1,sreg_fg
+//	@0240	a980	// 0480    cmpi   r1,sreg_nf
+//	@0241	103e	// 0482    bne    opc_r_fail
 //		// ================================
 //		// pushw
-//	@023c	c4f0	// 0478    ldbih  r4,((idrgramt)>>8)&0xff
-//	@023d	bc0c	// 047a    ldbil  r4,(idrgramt)&0xff
-//	@023e	7ba4	// 047c    ldw    r4,r4
-//	@023f	9c20	// 047e    addi   r4,0x20
-//	@0240	7914	// 0480    movtc  sp,r4
-//	@0241	c09a	// 0482    ldbih  r0,((0x9abc)>>8)&0xff
-//	@0242	b8bc	// 0484    ldbil  r0,(0x9abc)&0xff
-//	@0243	7fe0	// 0486    pushw  r0
-//	@0244	a402	// 0488    subi   r4,2
-//	@0245	794a	// 048a    movfc  r1,sp
-//	@0246	7a8c	// 048c    cmp    r1,r4
-//	@0247	1032	// 048e    bne    opc_r_fail
-//	@0248	7b94	// 0490    ldw    r2,r4
-//	@0249	7a90	// 0492    cmp    r2,r0
-//	@024a	102f	// 0494    bne    opc_r_fail
+//	@0242	c4f0	// 0484    ldbih  r4,((idrgramt)>>8)&0xff
+//	@0243	bc0c	// 0486    ldbil  r4,(idrgramt)&0xff
+//	@0244	7ba4	// 0488    ldw    r4,r4
+//	@0245	9c20	// 048a    addi   r4,0x20
+//	@0246	7914	// 048c    movtc  sp,r4
+//	@0247	c09a	// 048e    ldbih  r0,((0x9abc)>>8)&0xff
+//	@0248	b8bc	// 0490    ldbil  r0,(0x9abc)&0xff
+//	@0249	7fe0	// 0492    pushw  r0
+//	@024a	a402	// 0494    subi   r4,2
+//	@024b	794a	// 0496    movfc  r1,sp
+//	@024c	7a8c	// 0498    cmp    r1,r4
+//	@024d	1032	// 049a    bne    opc_r_fail
+//	@024e	7b94	// 049c    ldw    r2,r4
+//	@024f	7a90	// 049e    cmp    r2,r0
+//	@0250	102f	// 04a0    bne    opc_r_fail
 //		// ================================
 //		// popw
-//	@024b	c4f0	// 0496    ldbih  r4,((idrgramt)>>8)&0xff
-//	@024c	bc0c	// 0498    ldbil  r4,(idrgramt)&0xff
-//	@024d	7ba4	// 049a    ldw    r4,r4
-//	@024e	9c30	// 049c    addi   r4,0x30
-//	@024f	c024	// 049e    ldbih  r0,((0x2468)>>8)&0xff
-//	@0250	b868	// 04a0    ldbil  r0,(0x2468)&0xff
-//	@0251	7be0	// 04a2    stw    r4,r0
-//	@0252	7914	// 04a4    movtc  sp,r4
-//	@0253	7fe9	// 04a6    popw   r1
-//	@0254	7952	// 04a8    movfc  r2,sp
-//	@0255	7a88	// 04aa    cmp    r1,r0
-//	@0256	1023	// 04ac    bne    opc_r_fail
-//	@0257	9c02	// 04ae    addi   r4,2
-//	@0258	7a94	// 04b0    cmp    r2,r4
-//	@0259	1020	// 04b2    bne    opc_r_fail
+//	@0251	c4f0	// 04a2    ldbih  r4,((idrgramt)>>8)&0xff
+//	@0252	bc0c	// 04a4    ldbil  r4,(idrgramt)&0xff
+//	@0253	7ba4	// 04a6    ldw    r4,r4
+//	@0254	9c30	// 04a8    addi   r4,0x30
+//	@0255	c024	// 04aa    ldbih  r0,((0x2468)>>8)&0xff
+//	@0256	b868	// 04ac    ldbil  r0,(0x2468)&0xff
+//	@0257	7be0	// 04ae    stw    r4,r0
+//	@0258	7914	// 04b0    movtc  sp,r4
+//	@0259	7fe9	// 04b2    popw   r1
+//	@025a	7952	// 04b4    movfc  r2,sp
+//	@025b	7a88	// 04b6    cmp    r1,r0
+//	@025c	1023	// 04b8    bne    opc_r_fail
+//	@025d	9c02	// 04ba    addi   r4,2
+//	@025e	7a94	// 04bc    cmp    r2,r4
+//	@025f	1020	// 04be    bne    opc_r_fail
 //		// ================================
 //		// pushcw
-//	@025a	c4f0	// 04b4    ldbih  r4,((idrgramt)>>8)&0xff
-//	@025b	bc0c	// 04b6    ldbil  r4,(idrgramt)&0xff
-//	@025c	7ba4	// 04b8    ldw    r4,r4
-//	@025d	9c18	// 04ba    addi   r4,0x18
-//	@025e	7914	// 04bc    movtc  sp,r4
-//	@025f	c8f0	// 04be    ldcl   sr,sreg_fg
-//	@0260	7ff0	// 04c0    pushcw sr
-//	@0261	7940	// 04c2    movfc  r0,sr
-//	@0262	a402	// 04c4    subi   r4,2
-//	@0263	794a	// 04c6    movfc  r1,sp
-//	@0264	7a8c	// 04c8    cmp    r1,r4
-//	@0265	1014	// 04ca    bne    opc_r_fail
-//	@0266	7fea	// 04cc    popw   r2
-//	@0267	7a90	// 04ce    cmp    r2,r0
-//	@0268	1011	// 04d0    bne    opc_r_fail
+//	@0260	c4f0	// 04c0    ldbih  r4,((idrgramt)>>8)&0xff
+//	@0261	bc0c	// 04c2    ldbil  r4,(idrgramt)&0xff
+//	@0262	7ba4	// 04c4    ldw    r4,r4
+//	@0263	9c18	// 04c6    addi   r4,0x18
+//	@0264	7914	// 04c8    movtc  sp,r4
+//	@0265	c8f0	// 04ca    ldcl   sr,sreg_fg
+//	@0266	7ff0	// 04cc    pushcw sr
+//	@0267	7940	// 04ce    movfc  r0,sr
+//	@0268	a402	// 04d0    subi   r4,2
+//	@0269	794a	// 04d2    movfc  r1,sp
+//	@026a	7a8c	// 04d4    cmp    r1,r4
+//	@026b	1014	// 04d6    bne    opc_r_fail
+//	@026c	7fea	// 04d8    popw   r2
+//	@026d	7a90	// 04da    cmp    r2,r0
+//	@026e	1011	// 04dc    bne    opc_r_fail
 //		// ================================
 //		// popcw
-//	@0269	c4f0	// 04d2    ldbih  r4,((idrgramt)>>8)&0xff
-//	@026a	bc0c	// 04d4    ldbil  r4,(idrgramt)&0xff
-//	@026b	7ba4	// 04d6    ldw    r4,r4
-//	@026c	9c28	// 04d8    addi   r4,0x28
-//	@026d	c012	// 04da    ldbih  r0,((0x1248)>>8)&0xff
-//	@026e	b848	// 04dc    ldbil  r0,(0x1248)&0xff
-//	@026f	7be0	// 04de    stw    r4,r0
-//	@0270	7914	// 04e0    movtc  sp,r4
-//	@0271	7ffc	// 04e2    popcw  tr
-//	@0272	794a	// 04e4    movfc  r1,sp
-//	@0273	7954	// 04e6    movfc  r2,tr
-//	@0274	9c02	// 04e8    addi   r4,2
-//	@0275	7a8c	// 04ea    cmp    r1,r4
-//	@0276	1003	// 04ec    bne    opc_r_fail
-//	@0277	7a90	// 04ee    cmp    r2,r0
-//	@0278	1001	// 04f0    bne    opc_r_fail
+//	@026f	c4f0	// 04de    ldbih  r4,((idrgramt)>>8)&0xff
+//	@0270	bc0c	// 04e0    ldbil  r4,(idrgramt)&0xff
+//	@0271	7ba4	// 04e2    ldw    r4,r4
+//	@0272	9c28	// 04e4    addi   r4,0x28
+//	@0273	c012	// 04e6    ldbih  r0,((0x1248)>>8)&0xff
+//	@0274	b848	// 04e8    ldbil  r0,(0x1248)&0xff
+//	@0275	7be0	// 04ea    stw    r4,r0
+//	@0276	7914	// 04ec    movtc  sp,r4
+//	@0277	7ffc	// 04ee    popcw  tr
+//	@0278	794a	// 04f0    movfc  r1,sp
+//	@0279	7954	// 04f2    movfc  r2,tr
+//	@027a	9c02	// 04f4    addi   r4,2
+//	@027b	7a8c	// 04f6    cmp    r1,r4
+//	@027c	1003	// 04f8    bne    opc_r_fail
+//	@027d	7a90	// 04fa    cmp    r2,r0
+//	@027e	1001	// 04fc    bne    opc_r_fail
 //		// ================================
-//	@0279	0803	// 04f2    bra    opc_r_pass
+//	@027f	0803	// 04fe    bra    opc_r_pass
 //			// opc_r_fail:
-//	@027a	c70d	// 04f4    ldbih  r7,(lab_tstfail)>>8
-//	@027b	bf5e	// 04f6    ldbil  r7,(lab_tstfail)&0xff
-//	@027c	7f87	// 04f8    jmp    r7
+//	@0280	c70d	// 0500    ldbih  r7,(lab_tstfail)>>8
+//	@0281	bf6a	// 0502    ldbil  r7,(lab_tstfail)&0xff
+//	@0282	7f87	// 0504    jmp    r7
 //			// opc_r_pass:
 //		// ================================
 //		// opcode RR
 //		// ================================
 //		// or
-//	@027d	c03c	// 04fa    ldbih  r0,((0x3ca5)>>8)&0xff
-//	@027e	b8a5	// 04fc    ldbil  r0,(0x3ca5)&0xff
-//	@027f	c196	// 04fe    ldbih  r1,((0x9618)>>8)&0xff
-//	@0280	b918	// 0500    ldbil  r1,(0x9618)&0xff
-//	@0281	7801	// 0502    or     r0,r1
-//	@0282	7950	// 0504    movfc  r2,sr
-//	@0283	c3be	// 0506    ldbih  r3,((0xbebd)>>8)&0xff
-//	@0284	bbbd	// 0508    ldbil  r3,(0xbebd)&0xff
-//	@0285	7a83	// 050a    cmp    r0,r3
-//	@0286	1243	// 050c    bne    opc_rr_fail
-//	@0287	8af0	// 050e    andi   r2,sreg_fg
-//	@0288	aa80	// 0510    cmpi   r2,sreg_nf
-//	@0289	1240	// 0512    bne    opc_rr_fail
+//	@0283	c03c	// 0506    ldbih  r0,((0x3ca5)>>8)&0xff
+//	@0284	b8a5	// 0508    ldbil  r0,(0x3ca5)&0xff
+//	@0285	c196	// 050a    ldbih  r1,((0x9618)>>8)&0xff
+//	@0286	b918	// 050c    ldbil  r1,(0x9618)&0xff
+//	@0287	7801	// 050e    or     r0,r1
+//	@0288	7950	// 0510    movfc  r2,sr
+//	@0289	c3be	// 0512    ldbih  r3,((0xbebd)>>8)&0xff
+//	@028a	bbbd	// 0514    ldbil  r3,(0xbebd)&0xff
+//	@028b	7a83	// 0516    cmp    r0,r3
+//	@028c	1243	// 0518    bne    opc_rr_fail
+//	@028d	8af0	// 051a    andi   r2,sreg_fg
+//	@028e	aa80	// 051c    cmpi   r2,sreg_nf
+//	@028f	1240	// 051e    bne    opc_rr_fail
 //		// ================================
 //		// and
-//	@028a	c08a	// 0514    ldbih  r0,((0x8ace)>>8)&0xff
-//	@028b	b8ce	// 0516    ldbil  r0,(0x8ace)&0xff
-//	@028c	c15a	// 0518    ldbih  r1,((0x5a3c)>>8)&0xff
-//	@028d	b93c	// 051a    ldbil  r1,(0x5a3c)&0xff
-//	@028e	7841	// 051c    and    r0,r1
-//	@028f	7950	// 051e    movfc  r2,sr
-//	@0290	c30a	// 0520    ldbih  r3,((0x0a0c)>>8)&0xff
-//	@0291	bb0c	// 0522    ldbil  r3,(0x0a0c)&0xff
-//	@0292	7a83	// 0524    cmp    r0,r3
-//	@0293	1236	// 0526    bne    opc_rr_fail
-//	@0294	8af0	// 0528    andi   r2,sreg_fg
-//	@0295	aa00	// 052a    cmpi   r2,0x00
-//	@0296	1233	// 052c    bne    opc_rr_fail
+//	@0290	c08a	// 0520    ldbih  r0,((0x8ace)>>8)&0xff
+//	@0291	b8ce	// 0522    ldbil  r0,(0x8ace)&0xff
+//	@0292	c15a	// 0524    ldbih  r1,((0x5a3c)>>8)&0xff
+//	@0293	b93c	// 0526    ldbil  r1,(0x5a3c)&0xff
+//	@0294	7841	// 0528    and    r0,r1
+//	@0295	7950	// 052a    movfc  r2,sr
+//	@0296	c30a	// 052c    ldbih  r3,((0x0a0c)>>8)&0xff
+//	@0297	bb0c	// 052e    ldbil  r3,(0x0a0c)&0xff
+//	@0298	7a83	// 0530    cmp    r0,r3
+//	@0299	1236	// 0532    bne    opc_rr_fail
+//	@029a	8af0	// 0534    andi   r2,sreg_fg
+//	@029b	aa00	// 0536    cmpi   r2,0x00
+//	@029c	1233	// 0538    bne    opc_rr_fail
 //		// ================================
 //		// eor
-//	@0297	c036	// 052e    ldbih  r0,((0x36c9)>>8)&0xff
-//	@0298	b8c9	// 0530    ldbil  r0,(0x36c9)&0xff
-//	@0299	c112	// 0532    ldbih  r1,((0x1234)>>8)&0xff
-//	@029a	b934	// 0534    ldbil  r1,(0x1234)&0xff
-//	@029b	7881	// 0536    eor    r0,r1
-//	@029c	7950	// 0538    movfc  r2,sr
-//	@029d	c324	// 053a    ldbih  r3,((0x24fd)>>8)&0xff
-//	@029e	bbfd	// 053c    ldbil  r3,(0x24fd)&0xff
-//	@029f	7a83	// 053e    cmp    r0,r3
-//	@02a0	1229	// 0540    bne    opc_rr_fail
-//	@02a1	8af0	// 0542    andi   r2,sreg_fg
-//	@02a2	aa00	// 0544    cmpi   r2,0x00
+//	@029d	c036	// 053a    ldbih  r0,((0x36c9)>>8)&0xff
+//	@029e	b8c9	// 053c    ldbil  r0,(0x36c9)&0xff
+//	@029f	c112	// 053e    ldbih  r1,((0x1234)>>8)&0xff
+//	@02a0	b934	// 0540    ldbil  r1,(0x1234)&0xff
+//	@02a1	7881	// 0542    eor    r0,r1
+//	@02a2	7950	// 0544    movfc  r2,sr
+//	@02a3	c324	// 0546    ldbih  r3,((0x24fd)>>8)&0xff
+//	@02a4	bbfd	// 0548    ldbil  r3,(0x24fd)&0xff
+//	@02a5	7a83	// 054a    cmp    r0,r3
+//	@02a6	1229	// 054c    bne    opc_rr_fail
+//	@02a7	8af0	// 054e    andi   r2,sreg_fg
+//	@02a8	aa00	// 0550    cmpi   r2,0x00
 //		// ================================
 //		// mov
-//	@02a3	c087	// 0546    ldbih  r0,((0x8769)>>8)&0xff
-//	@02a4	b869	// 0548    ldbil  r0,(0x8769)&0xff
-//	@02a5	c8f0	// 054a    ldcl   sr,sreg_fg
-//	@02a6	78c8	// 054c    mov    r1,r0
-//	@02a7	7950	// 054e    movfc  r2,sr
-//	@02a8	7a81	// 0550    cmp    r0,r1
-//	@02a9	1220	// 0552    bne    opc_rr_fail
-//	@02aa	8af0	// 0554    andi   r2,sreg_fg
-//	@02ab	aa80	// 0556    cmpi   r2,sreg_nf
-//	@02ac	121d	// 0558    bne    opc_rr_fail
+//	@02a9	c087	// 0552    ldbih  r0,((0x8769)>>8)&0xff
+//	@02aa	b869	// 0554    ldbil  r0,(0x8769)&0xff
+//	@02ab	c8f0	// 0556    ldcl   sr,sreg_fg
+//	@02ac	78c8	// 0558    mov    r1,r0
+//	@02ad	7950	// 055a    movfc  r2,sr
+//	@02ae	7a81	// 055c    cmp    r0,r1
+//	@02af	1220	// 055e    bne    opc_rr_fail
+//	@02b0	8af0	// 0560    andi   r2,sreg_fg
+//	@02b1	aa80	// 0562    cmpi   r2,sreg_nf
+//	@02b2	121d	// 0564    bne    opc_rr_fail
 //		// ================================
 //		// movtc
-//	@02ad	c7f0	// 055a    ldbih  r7,((idrgramt)>>8)&0xff
-//	@02ae	bf0c	// 055c    ldbil  r7,(idrgramt)&0xff
-//	@02af	7bbf	// 055e    ldw    r7,r7
-//	@02b0	9f24	// 0560    addi   r7,0x24
-//	@02b1	7917	// 0562    movtc  sp,r7
-//	@02b2	c000	// 0564    ldbih  r0,((0x00)>>8)&0xff
-//	@02b3	b800	// 0566    ldbil  r0,(0x00)&0xff
-//	@02b4	a702	// 0568    subi   r7,2
-//	@02b5	7bf8	// 056a    stw    r7,r0
-//	@02b6	7fe7	// 056c    pushw  r7
-//	@02b7	7b8f	// 056e    ldw    r1,r7
-//	@02b8	7a8f	// 0570    cmp    r1,r7
-//	@02b9	1210	// 0572    bne    opc_rr_fail
-//	@02ba	c080	// 0574    ldbih  r0,((0x8000)>>8)&0xff
-//	@02bb	b800	// 0576    ldbil  r0,(0x8000)&0xff
-//	@02bc	c870	// 0578    ldcl   sr,sreg_cf|sreg_vf|sreg_zf
-//	@02bd	7910	// 057a    movtc  sp,r0
-//	@02be	320b	// 057c    bpl    opc_rr_fail
-//	@02bf	2a0a	// 057e    bcs    opc_rr_fail
-//	@02c0	4a09	// 0580    bvs    opc_rr_fail
-//	@02c1	1a08	// 0582    beq    opc_rr_fail
+//	@02b3	c7f0	// 0566    ldbih  r7,((idrgramt)>>8)&0xff
+//	@02b4	bf0c	// 0568    ldbil  r7,(idrgramt)&0xff
+//	@02b5	7bbf	// 056a    ldw    r7,r7
+//	@02b6	9f24	// 056c    addi   r7,0x24
+//	@02b7	7917	// 056e    movtc  sp,r7
+//	@02b8	c000	// 0570    ldbih  r0,((0x00)>>8)&0xff
+//	@02b9	b800	// 0572    ldbil  r0,(0x00)&0xff
+//	@02ba	a702	// 0574    subi   r7,2
+//	@02bb	7bf8	// 0576    stw    r7,r0
+//	@02bc	7fe7	// 0578    pushw  r7
+//	@02bd	7b8f	// 057a    ldw    r1,r7
+//	@02be	7a8f	// 057c    cmp    r1,r7
+//	@02bf	1210	// 057e    bne    opc_rr_fail
+//	@02c0	c080	// 0580    ldbih  r0,((0x8000)>>8)&0xff
+//	@02c1	b800	// 0582    ldbil  r0,(0x8000)&0xff
+//	@02c2	c870	// 0584    ldcl   sr,sreg_cf|sreg_vf|sreg_zf
+//	@02c3	7910	// 0586    movtc  sp,r0
+//	@02c4	320b	// 0588    bpl    opc_rr_fail
+//	@02c5	2a0a	// 058a    bcs    opc_rr_fail
+//	@02c6	4a09	// 058c    bvs    opc_rr_fail
+//	@02c7	1a08	// 058e    beq    opc_rr_fail
 //		// ================================
 //		// movfc
-//	@02c2	c8f0	// 0584    ldcl   sr,sreg_fg
-//	@02c3	7948	// 0586    movfc  r1,sr
-//	@02c4	89f0	// 0588    andi   r1,sreg_fg
-//	@02c5	a9f0	// 058a    cmpi   r1,sreg_fg
-//	@02c6	1203	// 058c    bne    opc_rr_fail
-//	@02c7	d200	// 058e    ldch   sp,((0)>>8)&0xff
-//	@02c8	ca00	// 0590    ldcl   sp,(0)&0xff
-//	@02c9	c8e0	// 0592    ldcl   sr,sreg_nf|sreg_cf|sreg_vf
-//	@02ca	794a	// 0594    movfc  r1,sp
-//	@02cb	39fe	// 0596    bmi    opc_rr_fail
-//	@02cc	29fd	// 0598    bcs    opc_rr_fail
-//	@02cd	49fc	// 059a    bvs    opc_rr_fail
-//	@02ce	11fb	// 059c    bne    opc_rr_fail
-//	@02cf	11fa	// 059e    bne    opc_rr_fail
+//	@02c8	c8f0	// 0590    ldcl   sr,sreg_fg
+//	@02c9	7948	// 0592    movfc  r1,sr
+//	@02ca	89f0	// 0594    andi   r1,sreg_fg
+//	@02cb	a9f0	// 0596    cmpi   r1,sreg_fg
+//	@02cc	1203	// 0598    bne    opc_rr_fail
+//	@02cd	d200	// 059a    ldch   sp,((0)>>8)&0xff
+//	@02ce	ca00	// 059c    ldcl   sp,(0)&0xff
+//	@02cf	c8e0	// 059e    ldcl   sr,sreg_nf|sreg_cf|sreg_vf
+//	@02d0	794a	// 05a0    movfc  r1,sp
+//	@02d1	39fe	// 05a2    bmi    opc_rr_fail
+//	@02d2	29fd	// 05a4    bcs    opc_rr_fail
+//	@02d3	49fc	// 05a6    bvs    opc_rr_fail
+//	@02d4	11fb	// 05a8    bne    opc_rr_fail
+//	@02d5	11fa	// 05aa    bne    opc_rr_fail
 //		// ================================
 //		// add
-//	@02d0	c0f5	// 05a0    ldbih  r0,((0xf50a)>>8)&0xff
-//	@02d1	b80a	// 05a2    ldbil  r0,(0xf50a)&0xff
-//	@02d2	c124	// 05a4    ldbih  r1,((0x2468)>>8)&0xff
-//	@02d3	b968	// 05a6    ldbil  r1,(0x2468)&0xff
-//	@02d4	7981	// 05a8    add    r0,r1
-//	@02d5	7950	// 05aa    movfc  r2,sr
-//	@02d6	c319	// 05ac    ldbih  r3,((0x1972)>>8)&0xff
-//	@02d7	bb72	// 05ae    ldbil  r3,(0x1972)&0xff
-//	@02d8	7a83	// 05b0    cmp    r0,r3
-//	@02d9	11f0	// 05b2    bne    opc_rr_fail
-//	@02da	8af0	// 05b4    andi   r2,sreg_fg
-//	@02db	aa40	// 05b6    cmpi   r2,sreg_cf
-//	@02dc	11ed	// 05b8    bne    opc_rr_fail
+//	@02d6	c0f5	// 05ac    ldbih  r0,((0xf50a)>>8)&0xff
+//	@02d7	b80a	// 05ae    ldbil  r0,(0xf50a)&0xff
+//	@02d8	c124	// 05b0    ldbih  r1,((0x2468)>>8)&0xff
+//	@02d9	b968	// 05b2    ldbil  r1,(0x2468)&0xff
+//	@02da	7981	// 05b4    add    r0,r1
+//	@02db	7950	// 05b6    movfc  r2,sr
+//	@02dc	c319	// 05b8    ldbih  r3,((0x1972)>>8)&0xff
+//	@02dd	bb72	// 05ba    ldbil  r3,(0x1972)&0xff
+//	@02de	7a83	// 05bc    cmp    r0,r3
+//	@02df	11f0	// 05be    bne    opc_rr_fail
+//	@02e0	8af0	// 05c0    andi   r2,sreg_fg
+//	@02e1	aa40	// 05c2    cmpi   r2,sreg_cf
+//	@02e2	11ed	// 05c4    bne    opc_rr_fail
 //		// ================================
 //		// adc
-//	@02dd	c024	// 05ba    ldbih  r0,((0x2468)>>8)&0xff
-//	@02de	b868	// 05bc    ldbil  r0,(0x2468)&0xff
-//	@02df	c153	// 05be    ldbih  r1,((0x53ca)>>8)&0xff
-//	@02e0	b9ca	// 05c0    ldbil  r1,(0x53ca)&0xff
-//	@02e1	c840	// 05c2    ldcl   sr,sreg_cf
-//	@02e2	79c1	// 05c4    adc    r0,r1
-//	@02e3	7950	// 05c6    movfc  r2,sr
-//	@02e4	c378	// 05c8    ldbih  r3,((0x7833)>>8)&0xff
-//	@02e5	bb33	// 05ca    ldbil  r3,(0x7833)&0xff
-//	@02e6	7a83	// 05cc    cmp    r0,r3
-//	@02e7	11e2	// 05ce    bne    opc_rr_fail
-//	@02e8	8af0	// 05d0    andi   r2,sreg_fg
-//	@02e9	aa00	// 05d2    cmpi   r2,0x00
-//	@02ea	11df	// 05d4    bne    opc_rr_fail
+//	@02e3	c024	// 05c6    ldbih  r0,((0x2468)>>8)&0xff
+//	@02e4	b868	// 05c8    ldbil  r0,(0x2468)&0xff
+//	@02e5	c153	// 05ca    ldbih  r1,((0x53ca)>>8)&0xff
+//	@02e6	b9ca	// 05cc    ldbil  r1,(0x53ca)&0xff
+//	@02e7	c840	// 05ce    ldcl   sr,sreg_cf
+//	@02e8	79c1	// 05d0    adc    r0,r1
+//	@02e9	7950	// 05d2    movfc  r2,sr
+//	@02ea	c378	// 05d4    ldbih  r3,((0x7833)>>8)&0xff
+//	@02eb	bb33	// 05d6    ldbil  r3,(0x7833)&0xff
+//	@02ec	7a83	// 05d8    cmp    r0,r3
+//	@02ed	11e2	// 05da    bne    opc_rr_fail
+//	@02ee	8af0	// 05dc    andi   r2,sreg_fg
+//	@02ef	aa00	// 05de    cmpi   r2,0x00
+//	@02f0	11df	// 05e0    bne    opc_rr_fail
 //		// ================================
 //		// sub
-//	@02eb	c083	// 05d6    ldbih  r0,((0x83c7)>>8)&0xff
-//	@02ec	b8c7	// 05d8    ldbil  r0,(0x83c7)&0xff
-//	@02ed	c117	// 05da    ldbih  r1,((0x1765)>>8)&0xff
-//	@02ee	b965	// 05dc    ldbil  r1,(0x1765)&0xff
-//	@02ef	7a01	// 05de    sub    r0,r1
-//	@02f0	7950	// 05e0    movfc  r2,sr
-//	@02f1	c36c	// 05e2    ldbih  r3,((0x6c62)>>8)&0xff
-//	@02f2	bb62	// 05e4    ldbil  r3,(0x6c62)&0xff
-//	@02f3	7a83	// 05e6    cmp    r0,r3
-//	@02f4	11d5	// 05e8    bne    opc_rr_fail
-//	@02f5	8af0	// 05ea    andi   r2,sreg_fg
-//	@02f6	aa20	// 05ec    cmpi   r2,sreg_vf
-//	@02f7	11d2	// 05ee    bne    opc_rr_fail
+//	@02f1	c083	// 05e2    ldbih  r0,((0x83c7)>>8)&0xff
+//	@02f2	b8c7	// 05e4    ldbil  r0,(0x83c7)&0xff
+//	@02f3	c117	// 05e6    ldbih  r1,((0x1765)>>8)&0xff
+//	@02f4	b965	// 05e8    ldbil  r1,(0x1765)&0xff
+//	@02f5	7a01	// 05ea    sub    r0,r1
+//	@02f6	7950	// 05ec    movfc  r2,sr
+//	@02f7	c36c	// 05ee    ldbih  r3,((0x6c62)>>8)&0xff
+//	@02f8	bb62	// 05f0    ldbil  r3,(0x6c62)&0xff
+//	@02f9	7a83	// 05f2    cmp    r0,r3
+//	@02fa	11d5	// 05f4    bne    opc_rr_fail
+//	@02fb	8af0	// 05f6    andi   r2,sreg_fg
+//	@02fc	aa20	// 05f8    cmpi   r2,sreg_vf
+//	@02fd	11d2	// 05fa    bne    opc_rr_fail
 //		// ================================
 //		// sbb
-//	@02f8	c0fe	// 05f0    ldbih  r0,((0xfedc)>>8)&0xff
-//	@02f9	b8dc	// 05f2    ldbil  r0,(0xfedc)&0xff
-//	@02fa	c1ba	// 05f4    ldbih  r1,((0xba98)>>8)&0xff
-//	@02fb	b998	// 05f6    ldbil  r1,(0xba98)&0xff
-//	@02fc	c840	// 05f8    ldcl   sr,sreg_cf
-//	@02fd	7a41	// 05fa    sbb    r0,r1
-//	@02fe	7950	// 05fc    movfc  r2,sr
-//	@02ff	c344	// 05fe    ldbih  r3,((0x4443)>>8)&0xff
-//	@0300	bb43	// 0600    ldbil  r3,(0x4443)&0xff
-//	@0301	7a83	// 0602    cmp    r0,r3
-//	@0302	11c7	// 0604    bne    opc_rr_fail
-//	@0303	8af0	// 0606    andi   r2,sreg_fg
-//	@0304	aa00	// 0608    cmpi   r2,0x00
-//	@0305	11c4	// 060a    bne    opc_rr_fail
+//	@02fe	c0fe	// 05fc    ldbih  r0,((0xfedc)>>8)&0xff
+//	@02ff	b8dc	// 05fe    ldbil  r0,(0xfedc)&0xff
+//	@0300	c1ba	// 0600    ldbih  r1,((0xba98)>>8)&0xff
+//	@0301	b998	// 0602    ldbil  r1,(0xba98)&0xff
+//	@0302	c840	// 0604    ldcl   sr,sreg_cf
+//	@0303	7a41	// 0606    sbb    r0,r1
+//	@0304	7950	// 0608    movfc  r2,sr
+//	@0305	c344	// 060a    ldbih  r3,((0x4443)>>8)&0xff
+//	@0306	bb43	// 060c    ldbil  r3,(0x4443)&0xff
+//	@0307	7a83	// 060e    cmp    r0,r3
+//	@0308	11c7	// 0610    bne    opc_rr_fail
+//	@0309	8af0	// 0612    andi   r2,sreg_fg
+//	@030a	aa00	// 0614    cmpi   r2,0x00
+//	@030b	11c4	// 0616    bne    opc_rr_fail
 //		// ================================
 //		// cmp
-//	@0306	c032	// 060c    ldbih  r0,((0x3210)>>8)&0xff
-//	@0307	b810	// 060e    ldbil  r0,(0x3210)&0xff
-//	@0308	c132	// 0610    ldbih  r1,((0x3210)>>8)&0xff
-//	@0309	b910	// 0612    ldbil  r1,(0x3210)&0xff
-//	@030a	7a81	// 0614    cmp    r0,r1
-//	@030b	7950	// 0616    movfc  r2,sr
-//	@030c	7a81	// 0618    cmp    r0,r1
-//	@030d	11bc	// 061a    bne    opc_rr_fail
-//	@030e	8af0	// 061c    andi   r2,sreg_fg
-//	@030f	aa10	// 061e    cmpi   r2,sreg_zf
-//	@0310	11b9	// 0620    bne    opc_rr_fail
+//	@030c	c032	// 0618    ldbih  r0,((0x3210)>>8)&0xff
+//	@030d	b810	// 061a    ldbil  r0,(0x3210)&0xff
+//	@030e	c132	// 061c    ldbih  r1,((0x3210)>>8)&0xff
+//	@030f	b910	// 061e    ldbil  r1,(0x3210)&0xff
+//	@0310	7a81	// 0620    cmp    r0,r1
+//	@0311	7950	// 0622    movfc  r2,sr
+//	@0312	7a81	// 0624    cmp    r0,r1
+//	@0313	11bc	// 0626    bne    opc_rr_fail
+//	@0314	8af0	// 0628    andi   r2,sreg_fg
+//	@0315	aa10	// 062a    cmpi   r2,sreg_zf
+//	@0316	11b9	// 062c    bne    opc_rr_fail
 //		// ================================
 //		// cmb
-//	@0311	c012	// 0622    ldbih  r0,((0x1234)>>8)&0xff
-//	@0312	b834	// 0624    ldbil  r0,(0x1234)&0xff
-//	@0313	c156	// 0626    ldbih  r1,((0x5678)>>8)&0xff
-//	@0314	b978	// 0628    ldbil  r1,(0x5678)&0xff
-//	@0315	78d0	// 062a    mov    r2,r0
-//	@0316	78d9	// 062c    mov    r3,r1
-//	@0317	7a81	// 062e    cmp    r0,r1
-//	@0318	7ac1	// 0630    cmb    r0,r1
-//	@0319	7960	// 0632    movfc  r4,sr
-//	@031a	8cf0	// 0634    andi   r4,sreg_fg
-//	@031b	acc0	// 0636    cmpi   r4,sreg_nf|sreg_cf
-//	@031c	11ad	// 0638    bne    opc_rr_fail
-//	@031d	7a82	// 063a    cmp    r0,r2
-//	@031e	11ab	// 063c    bne    opc_rr_fail
-//	@031f	7a8b	// 063e    cmp    r1,r3
-//	@0320	11a9	// 0640    bne    opc_rr_fail
-//	@0321	c076	// 0642    ldbih  r0,((0x7654)>>8)&0xff
-//	@0322	b854	// 0644    ldbil  r0,(0x7654)&0xff
-//	@0323	c132	// 0646    ldbih  r1,((0x3210)>>8)&0xff
-//	@0324	b910	// 0648    ldbil  r1,(0x3210)&0xff
-//	@0325	78d0	// 064a    mov    r2,r0
-//	@0326	78d9	// 064c    mov    r3,r1
-//	@0327	7a8b	// 064e    cmp    r1,r3
-//	@0328	7ac2	// 0650    cmb    r0,r2
-//	@0329	7960	// 0652    movfc  r4,sr
-//	@032a	8cf0	// 0654    andi   r4,sreg_fg
-//	@032b	ac10	// 0656    cmpi   r4,sreg_zf
-//	@032c	119d	// 0658    bne    opc_rr_fail
-//	@032d	c0db	// 065a    ldbih  r0,((0xdb97)>>8)&0xff
-//	@032e	b897	// 065c    ldbil  r0,(0xdb97)&0xff
-//	@032f	c153	// 065e    ldbih  r1,((0x531f)>>8)&0xff
-//	@0330	b91f	// 0660    ldbil  r1,(0x531f)&0xff
-//	@0331	c275	// 0662    ldbih  r2,((0x7531)>>8)&0xff
-//	@0332	ba31	// 0664    ldbil  r2,(0x7531)&0xff
-//	@0333	c364	// 0666    ldbih  r3,((0x6420)>>8)&0xff
-//	@0334	bb20	// 0668    ldbil  r3,(0x6420)&0xff
-//	@0335	7a8b	// 066a    cmp    r1,r3
-//	@0336	7ac2	// 066c    cmb    r0,r2
-//	@0337	7960	// 066e    movfc  r4,sr
-//	@0338	8cf0	// 0670    andi   r4,sreg_fg
-//	@0339	ac20	// 0672    cmpi   r4,sreg_vf
-//	@033a	118f	// 0674    bne    opc_rr_fail
+//	@0317	c012	// 062e    ldbih  r0,((0x1234)>>8)&0xff
+//	@0318	b834	// 0630    ldbil  r0,(0x1234)&0xff
+//	@0319	c156	// 0632    ldbih  r1,((0x5678)>>8)&0xff
+//	@031a	b978	// 0634    ldbil  r1,(0x5678)&0xff
+//	@031b	78d0	// 0636    mov    r2,r0
+//	@031c	78d9	// 0638    mov    r3,r1
+//	@031d	7a81	// 063a    cmp    r0,r1
+//	@031e	7ac1	// 063c    cmb    r0,r1
+//	@031f	7960	// 063e    movfc  r4,sr
+//	@0320	8cf0	// 0640    andi   r4,sreg_fg
+//	@0321	acc0	// 0642    cmpi   r4,sreg_nf|sreg_cf
+//	@0322	11ad	// 0644    bne    opc_rr_fail
+//	@0323	7a82	// 0646    cmp    r0,r2
+//	@0324	11ab	// 0648    bne    opc_rr_fail
+//	@0325	7a8b	// 064a    cmp    r1,r3
+//	@0326	11a9	// 064c    bne    opc_rr_fail
+//	@0327	c076	// 064e    ldbih  r0,((0x7654)>>8)&0xff
+//	@0328	b854	// 0650    ldbil  r0,(0x7654)&0xff
+//	@0329	c132	// 0652    ldbih  r1,((0x3210)>>8)&0xff
+//	@032a	b910	// 0654    ldbil  r1,(0x3210)&0xff
+//	@032b	78d0	// 0656    mov    r2,r0
+//	@032c	78d9	// 0658    mov    r3,r1
+//	@032d	7a8b	// 065a    cmp    r1,r3
+//	@032e	7ac2	// 065c    cmb    r0,r2
+//	@032f	7960	// 065e    movfc  r4,sr
+//	@0330	8cf0	// 0660    andi   r4,sreg_fg
+//	@0331	ac10	// 0662    cmpi   r4,sreg_zf
+//	@0332	119d	// 0664    bne    opc_rr_fail
+//	@0333	c0db	// 0666    ldbih  r0,((0xdb97)>>8)&0xff
+//	@0334	b897	// 0668    ldbil  r0,(0xdb97)&0xff
+//	@0335	c153	// 066a    ldbih  r1,((0x531f)>>8)&0xff
+//	@0336	b91f	// 066c    ldbil  r1,(0x531f)&0xff
+//	@0337	c275	// 066e    ldbih  r2,((0x7531)>>8)&0xff
+//	@0338	ba31	// 0670    ldbil  r2,(0x7531)&0xff
+//	@0339	c364	// 0672    ldbih  r3,((0x6420)>>8)&0xff
+//	@033a	bb20	// 0674    ldbil  r3,(0x6420)&0xff
+//	@033b	7a8b	// 0676    cmp    r1,r3
+//	@033c	7ac2	// 0678    cmb    r0,r2
+//	@033d	7960	// 067a    movfc  r4,sr
+//	@033e	8cf0	// 067c    andi   r4,sreg_fg
+//	@033f	ac20	// 067e    cmpi   r4,sreg_vf
+//	@0340	118f	// 0680    bne    opc_rr_fail
 //		// ================================
 //		// ldb
-//	@033b	c03a	// 0676    ldbih  r0,((0x3a5c)>>8)&0xff
-//	@033c	b85c	// 0678    ldbil  r0,(0x3a5c)&0xff
-//	@033d	c1f0	// 067a    ldbih  r1,((idrgramt)>>8)&0xff
-//	@033e	b90c	// 067c    ldbil  r1,(idrgramt)&0xff
-//	@033f	7b89	// 067e    ldw    r1,r1
-//	@0340	9900	// 0680    addi   r1,0
-//	@0341	7bc8	// 0682    stw    r1,r0
-//	@0342	7b11	// 0684    ldb    r2,r1
-//	@0343	9901	// 0686    addi   r1,1
-//	@0344	7b19	// 0688    ldb    r3,r1
-//	@0345	aa3a	// 068a    cmpi   r2,0x3a
-//	@0346	1183	// 068c    bne    opc_rr_fail
-//	@0347	ab5c	// 068e    cmpi   r3,0x5c
-//	@0348	1181	// 0690    bne    opc_rr_fail
+//	@0341	c03a	// 0682    ldbih  r0,((0x3a5c)>>8)&0xff
+//	@0342	b85c	// 0684    ldbil  r0,(0x3a5c)&0xff
+//	@0343	c1f0	// 0686    ldbih  r1,((idrgramt)>>8)&0xff
+//	@0344	b90c	// 0688    ldbil  r1,(idrgramt)&0xff
+//	@0345	7b89	// 068a    ldw    r1,r1
+//	@0346	9900	// 068c    addi   r1,0
+//	@0347	7bc8	// 068e    stw    r1,r0
+//	@0348	7b11	// 0690    ldb    r2,r1
+//	@0349	9901	// 0692    addi   r1,1
+//	@034a	7b19	// 0694    ldb    r3,r1
+//	@034b	aa3a	// 0696    cmpi   r2,0x3a
+//	@034c	1183	// 0698    bne    opc_rr_fail
+//	@034d	ab5c	// 069a    cmpi   r3,0x5c
+//	@034e	1181	// 069c    bne    opc_rr_fail
 //		// ================================
 //		// stb
-//	@0349	c096	// 0692    ldbih  r0,((0x9653)>>8)&0xff
-//	@034a	b853	// 0694    ldbil  r0,(0x9653)&0xff
-//	@034b	c1f0	// 0696    ldbih  r1,((idrgramt)>>8)&0xff
-//	@034c	b90c	// 0698    ldbil  r1,(idrgramt)&0xff
-//	@034d	7b89	// 069a    ldw    r1,r1
-//	@034e	9901	// 069c    addi   r1,1
-//	@034f	78d0	// 069e    mov    r2,r0
-//	@0350	daf8	// 06a0    lsfti  r2,-8
-//	@0351	7b48	// 06a2    stb    r1,r0
-//	@0352	a101	// 06a4    subi   r1,1
-//	@0353	7b4a	// 06a6    stb    r1,r2
-//	@0354	7b99	// 06a8    ldw    r3,r1
-//	@0355	7a83	// 06aa    cmp    r0,r3
-//	@0356	1173	// 06ac    bne    opc_rr_fail
+//	@034f	c096	// 069e    ldbih  r0,((0x9653)>>8)&0xff
+//	@0350	b853	// 06a0    ldbil  r0,(0x9653)&0xff
+//	@0351	c1f0	// 06a2    ldbih  r1,((idrgramt)>>8)&0xff
+//	@0352	b90c	// 06a4    ldbil  r1,(idrgramt)&0xff
+//	@0353	7b89	// 06a6    ldw    r1,r1
+//	@0354	9901	// 06a8    addi   r1,1
+//	@0355	78d0	// 06aa    mov    r2,r0
+//	@0356	daf8	// 06ac    lsfti  r2,-8
+//	@0357	7b48	// 06ae    stb    r1,r0
+//	@0358	a101	// 06b0    subi   r1,1
+//	@0359	7b4a	// 06b2    stb    r1,r2
+//	@035a	7b99	// 06b4    ldw    r3,r1
+//	@035b	7a83	// 06b6    cmp    r0,r3
+//	@035c	1173	// 06b8    bne    opc_rr_fail
 //		// ================================
 //		// ldw
-//	@0357	c075	// 06ae    ldbih  r0,((0x7531)>>8)&0xff
-//	@0358	b831	// 06b0    ldbil  r0,(0x7531)&0xff
-//	@0359	c1f0	// 06b2    ldbih  r1,((idrgramt)>>8)&0xff
-//	@035a	b90c	// 06b4    ldbil  r1,(idrgramt)&0xff
-//	@035b	7b89	// 06b6    ldw    r1,r1
-//	@035c	990a	// 06b8    addi   r1,10
-//	@035d	7bc8	// 06ba    stw    r1,r0
-//	@035e	7b91	// 06bc    ldw    r2,r1
-//	@035f	7a90	// 06be    cmp    r2,r0
-//	@0360	1169	// 06c0    bne    opc_rr_fail
+//	@035d	c075	// 06ba    ldbih  r0,((0x7531)>>8)&0xff
+//	@035e	b831	// 06bc    ldbil  r0,(0x7531)&0xff
+//	@035f	c1f0	// 06be    ldbih  r1,((idrgramt)>>8)&0xff
+//	@0360	b90c	// 06c0    ldbil  r1,(idrgramt)&0xff
+//	@0361	7b89	// 06c2    ldw    r1,r1
+//	@0362	990a	// 06c4    addi   r1,10
+//	@0363	7bc8	// 06c6    stw    r1,r0
+//	@0364	7b91	// 06c8    ldw    r2,r1
+//	@0365	7a90	// 06ca    cmp    r2,r0
+//	@0366	1169	// 06cc    bne    opc_rr_fail
 //		// ================================
 //		// stw
-//	@0361	c0fe	// 06c2    ldbih  r0,((0xfedc)>>8)&0xff
-//	@0362	b8dc	// 06c4    ldbil  r0,(0xfedc)&0xff
-//	@0363	c1f0	// 06c6    ldbih  r1,((idrgramt)>>8)&0xff
-//	@0364	b90c	// 06c8    ldbil  r1,(idrgramt)&0xff
-//	@0365	7b89	// 06ca    ldw    r1,r1
-//	@0366	9906	// 06cc    addi   r1,6
-//	@0367	7bc8	// 06ce    stw    r1,r0
-//	@0368	7b99	// 06d0    ldw    r3,r1
-//	@0369	7a83	// 06d2    cmp    r0,r3
-//	@036a	115f	// 06d4    bne    opc_rr_fail
+//	@0367	c0fe	// 06ce    ldbih  r0,((0xfedc)>>8)&0xff
+//	@0368	b8dc	// 06d0    ldbil  r0,(0xfedc)&0xff
+//	@0369	c1f0	// 06d2    ldbih  r1,((idrgramt)>>8)&0xff
+//	@036a	b90c	// 06d4    ldbil  r1,(idrgramt)&0xff
+//	@036b	7b89	// 06d6    ldw    r1,r1
+//	@036c	9906	// 06d8    addi   r1,6
+//	@036d	7bc8	// 06da    stw    r1,r0
+//	@036e	7b99	// 06dc    ldw    r3,r1
+//	@036f	7a83	// 06de    cmp    r0,r3
+//	@0370	115f	// 06e0    bne    opc_rr_fail
 //		// ================================
 //		// lsft, left shift
-//	@036b	c0f1	// 06d6    ldbih  r0,((0xf1e0)>>8)&0xff
-//	@036c	b8e0	// 06d8    ldbil  r0,(0xf1e0)&0xff
-//	@036d	c100	// 06da    ldbih  r1,((3)>>8)&0xff
-//	@036e	b903	// 06dc    ldbil  r1,(3)&0xff
-//	@036f	7c01	// 06de    lsft   r0,r1
-//	@0370	7958	// 06e0    movfc  r3,sr
-//	@0371	c28f	// 06e2    ldbih  r2,((0x8f00)>>8)&0xff
-//	@0372	ba00	// 06e4    ldbil  r2,(0x8f00)&0xff
-//	@0373	7a82	// 06e6    cmp    r0,r2
-//	@0374	1155	// 06e8    bne    opc_rr_fail
-//	@0375	8bf0	// 06ea    andi   r3,sreg_fg
-//	@0376	abc0	// 06ec    cmpi   r3,sreg_nf|sreg_cf
-//	@0377	1152	// 06ee    bne    opc_rr_fail
+//	@0371	c0f1	// 06e2    ldbih  r0,((0xf1e0)>>8)&0xff
+//	@0372	b8e0	// 06e4    ldbil  r0,(0xf1e0)&0xff
+//	@0373	c100	// 06e6    ldbih  r1,((3)>>8)&0xff
+//	@0374	b903	// 06e8    ldbil  r1,(3)&0xff
+//	@0375	7c01	// 06ea    lsft   r0,r1
+//	@0376	7958	// 06ec    movfc  r3,sr
+//	@0377	c28f	// 06ee    ldbih  r2,((0x8f00)>>8)&0xff
+//	@0378	ba00	// 06f0    ldbil  r2,(0x8f00)&0xff
+//	@0379	7a82	// 06f2    cmp    r0,r2
+//	@037a	1155	// 06f4    bne    opc_rr_fail
+//	@037b	8bf0	// 06f6    andi   r3,sreg_fg
+//	@037c	abc0	// 06f8    cmpi   r3,sreg_nf|sreg_cf
+//	@037d	1152	// 06fa    bne    opc_rr_fail
 //		// ================================
 //		// lsft, right shift
-//	@0378	c08a	// 06f0    ldbih  r0,((0x8abc)>>8)&0xff
-//	@0379	b8bc	// 06f2    ldbil  r0,(0x8abc)&0xff
-//	@037a	c1ff	// 06f4    ldbih  r1,((-5)>>8)&0xff
-//	@037b	b9fb	// 06f6    ldbil  r1,(-5)&0xff
-//	@037c	7c01	// 06f8    lsft   r0,r1
-//	@037d	7958	// 06fa    movfc  r3,sr
-//	@037e	c204	// 06fc    ldbih  r2,((0x0455)>>8)&0xff
-//	@037f	ba55	// 06fe    ldbil  r2,(0x0455)&0xff
-//	@0380	7a82	// 0700    cmp    r0,r2
-//	@0381	1148	// 0702    bne    opc_rr_fail
-//	@0382	8bf0	// 0704    andi   r3,sreg_fg
-//	@0383	ab40	// 0706    cmpi   r3,sreg_cf
-//	@0384	1145	// 0708    bne    opc_rr_fail
+//	@037e	c08a	// 06fc    ldbih  r0,((0x8abc)>>8)&0xff
+//	@037f	b8bc	// 06fe    ldbil  r0,(0x8abc)&0xff
+//	@0380	c1ff	// 0700    ldbih  r1,((-5)>>8)&0xff
+//	@0381	b9fb	// 0702    ldbil  r1,(-5)&0xff
+//	@0382	7c01	// 0704    lsft   r0,r1
+//	@0383	7958	// 0706    movfc  r3,sr
+//	@0384	c204	// 0708    ldbih  r2,((0x0455)>>8)&0xff
+//	@0385	ba55	// 070a    ldbil  r2,(0x0455)&0xff
+//	@0386	7a82	// 070c    cmp    r0,r2
+//	@0387	1148	// 070e    bne    opc_rr_fail
+//	@0388	8bf0	// 0710    andi   r3,sreg_fg
+//	@0389	ab40	// 0712    cmpi   r3,sreg_cf
+//	@038a	1145	// 0714    bne    opc_rr_fail
 //		// ================================
 //		// asft, left shift
-//	@0385	c036	// 070a    ldbih  r0,((0x36a5)>>8)&0xff
-//	@0386	b8a5	// 070c    ldbil  r0,(0x36a5)&0xff
-//	@0387	c100	// 070e    ldbih  r1,((4)>>8)&0xff
-//	@0388	b904	// 0710    ldbil  r1,(4)&0xff
-//	@0389	7c41	// 0712    asft   r0,r1
-//	@038a	7958	// 0714    movfc  r3,sr
-//	@038b	c26a	// 0716    ldbih  r2,((0x6a50)>>8)&0xff
-//	@038c	ba50	// 0718    ldbil  r2,(0x6a50)&0xff
-//	@038d	7a82	// 071a    cmp    r0,r2
-//	@038e	113b	// 071c    bne    opc_rr_fail
-//	@038f	8bf0	// 071e    andi   r3,sreg_fg
-//	@0390	ab60	// 0720    cmpi   r3,sreg_cf|sreg_vf
-//	@0391	1138	// 0722    bne    opc_rr_fail
+//	@038b	c036	// 0716    ldbih  r0,((0x36a5)>>8)&0xff
+//	@038c	b8a5	// 0718    ldbil  r0,(0x36a5)&0xff
+//	@038d	c100	// 071a    ldbih  r1,((4)>>8)&0xff
+//	@038e	b904	// 071c    ldbil  r1,(4)&0xff
+//	@038f	7c41	// 071e    asft   r0,r1
+//	@0390	7958	// 0720    movfc  r3,sr
+//	@0391	c26a	// 0722    ldbih  r2,((0x6a50)>>8)&0xff
+//	@0392	ba50	// 0724    ldbil  r2,(0x6a50)&0xff
+//	@0393	7a82	// 0726    cmp    r0,r2
+//	@0394	113b	// 0728    bne    opc_rr_fail
+//	@0395	8bf0	// 072a    andi   r3,sreg_fg
+//	@0396	ab60	// 072c    cmpi   r3,sreg_cf|sreg_vf
+//	@0397	1138	// 072e    bne    opc_rr_fail
 //		// ================================
 //		// asft, right shift
-//	@0392	c0c9	// 0724    ldbih  r0,((0xc961)>>8)&0xff
-//	@0393	b861	// 0726    ldbil  r0,(0xc961)&0xff
-//	@0394	c1ff	// 0728    ldbih  r1,((-7)>>8)&0xff
-//	@0395	b9f9	// 072a    ldbil  r1,(-7)&0xff
-//	@0396	7c41	// 072c    asft   r0,r1
-//	@0397	7958	// 072e    movfc  r3,sr
-//	@0398	c2ff	// 0730    ldbih  r2,((0xff92)>>8)&0xff
-//	@0399	ba92	// 0732    ldbil  r2,(0xff92)&0xff
-//	@039a	7a82	// 0734    cmp    r0,r2
-//	@039b	112e	// 0736    bne    opc_rr_fail
-//	@039c	8bf0	// 0738    andi   r3,sreg_fg
-//	@039d	abc0	// 073a    cmpi   r3,sreg_nf|sreg_cf
-//	@039e	112b	// 073c    bne    opc_rr_fail
+//	@0398	c0c9	// 0730    ldbih  r0,((0xc961)>>8)&0xff
+//	@0399	b861	// 0732    ldbil  r0,(0xc961)&0xff
+//	@039a	c1ff	// 0734    ldbih  r1,((-7)>>8)&0xff
+//	@039b	b9f9	// 0736    ldbil  r1,(-7)&0xff
+//	@039c	7c41	// 0738    asft   r0,r1
+//	@039d	7958	// 073a    movfc  r3,sr
+//	@039e	c2ff	// 073c    ldbih  r2,((0xff92)>>8)&0xff
+//	@039f	ba92	// 073e    ldbil  r2,(0xff92)&0xff
+//	@03a0	7a82	// 0740    cmp    r0,r2
+//	@03a1	112e	// 0742    bne    opc_rr_fail
+//	@03a2	8bf0	// 0744    andi   r3,sreg_fg
+//	@03a3	abc0	// 0746    cmpi   r3,sreg_nf|sreg_cf
+//	@03a4	112b	// 0748    bne    opc_rr_fail
 //		// ================================
 //		// csft, left shift
-//	@039f	c01e	// 073e    ldbih  r0,((0x1e78)>>8)&0xff
-//	@03a0	b878	// 0740    ldbil  r0,(0x1e78)&0xff
-//	@03a1	c100	// 0742    ldbih  r1,((9)>>8)&0xff
-//	@03a2	b909	// 0744    ldbil  r1,(9)&0xff
-//	@03a3	7fa6	// 0746    clsrl  sreg_b_cf
-//	@03a4	75c1	// 0748    csft   r0,r1
-//	@03a5	7958	// 074a    movfc  r3,sr
-//	@03a6	c2f0	// 074c    ldbih  r2,((0xf01e)>>8)&0xff
-//	@03a7	ba1e	// 074e    ldbil  r2,(0xf01e)&0xff
-//	@03a8	7a82	// 0750    cmp    r0,r2
-//	@03a9	1120	// 0752    bne    opc_rr_fail
-//	@03aa	8bf0	// 0754    andi   r3,sreg_fg
-//	@03ab	ab80	// 0756    cmpi   r3,sreg_nf
-//	@03ac	111d	// 0758    bne    opc_rr_fail
+//	@03a5	c01e	// 074a    ldbih  r0,((0x1e78)>>8)&0xff
+//	@03a6	b878	// 074c    ldbil  r0,(0x1e78)&0xff
+//	@03a7	c100	// 074e    ldbih  r1,((9)>>8)&0xff
+//	@03a8	b909	// 0750    ldbil  r1,(9)&0xff
+//	@03a9	7fa6	// 0752    clsrl  sreg_b_cf
+//	@03aa	75c1	// 0754    csft   r0,r1
+//	@03ab	7958	// 0756    movfc  r3,sr
+//	@03ac	c2f0	// 0758    ldbih  r2,((0xf01e)>>8)&0xff
+//	@03ad	ba1e	// 075a    ldbil  r2,(0xf01e)&0xff
+//	@03ae	7a82	// 075c    cmp    r0,r2
+//	@03af	1120	// 075e    bne    opc_rr_fail
+//	@03b0	8bf0	// 0760    andi   r3,sreg_fg
+//	@03b1	ab80	// 0762    cmpi   r3,sreg_nf
+//	@03b2	111d	// 0764    bne    opc_rr_fail
 //		// ================================
 //		// csft, right shift
-//	@03ad	c05a	// 075a    ldbih  r0,((0x5ac6)>>8)&0xff
-//	@03ae	b8c6	// 075c    ldbil  r0,(0x5ac6)&0xff
-//	@03af	c1ff	// 075e    ldbih  r1,((-7)>>8)&0xff
-//	@03b0	b9f9	// 0760    ldbil  r1,(-7)&0xff
-//	@03b1	7f96	// 0762    sesrl  sreg_b_cf
-//	@03b2	75c1	// 0764    csft   r0,r1
-//	@03b3	7958	// 0766    movfc  r3,sr
-//	@03b4	c21a	// 0768    ldbih  r2,((0x1ab5)>>8)&0xff
-//	@03b5	bab5	// 076a    ldbil  r2,(0x1ab5)&0xff
-//	@03b6	7a82	// 076c    cmp    r0,r2
-//	@03b7	1112	// 076e    bne    opc_rr_fail
-//	@03b8	8bf0	// 0770    andi   r3,sreg_fg
-//	@03b9	ab40	// 0772    cmpi   r3,sreg_cf
-//	@03ba	110f	// 0774    bne    opc_rr_fail
+//	@03b3	c05a	// 0766    ldbih  r0,((0x5ac6)>>8)&0xff
+//	@03b4	b8c6	// 0768    ldbil  r0,(0x5ac6)&0xff
+//	@03b5	c1ff	// 076a    ldbih  r1,((-7)>>8)&0xff
+//	@03b6	b9f9	// 076c    ldbil  r1,(-7)&0xff
+//	@03b7	7f96	// 076e    sesrl  sreg_b_cf
+//	@03b8	75c1	// 0770    csft   r0,r1
+//	@03b9	7958	// 0772    movfc  r3,sr
+//	@03ba	c21a	// 0774    ldbih  r2,((0x1ab5)>>8)&0xff
+//	@03bb	bab5	// 0776    ldbil  r2,(0x1ab5)&0xff
+//	@03bc	7a82	// 0778    cmp    r0,r2
+//	@03bd	1112	// 077a    bne    opc_rr_fail
+//	@03be	8bf0	// 077c    andi   r3,sreg_fg
+//	@03bf	ab40	// 077e    cmpi   r3,sreg_cf
+//	@03c0	110f	// 0780    bne    opc_rr_fail
 //		// ================================
 //		// ldwsp
-//	@03bb	b308	// 0776    ldbiu  r3,8
-//	@03bc	c4f0	// 0778    ldbih  r4,((idrgramt)>>8)&0xff
-//	@03bd	bc0c	// 077a    ldbil  r4,(idrgramt)&0xff
-//	@03be	7ba4	// 077c    ldw    r4,r4
-//	@03bf	9c0e	// 077e    addi   r4,14
-//	@03c0	c697	// 0780    ldbih  r6,((0x9753)>>8)&0xff
-//	@03c1	be53	// 0782    ldbil  r6,(0x9753)&0xff
-//	@03c2	7926	// 0784    movtc  tr,r6
-//	@03c3	7be6	// 0786    stw    r4,r6
-//	@03c4	78ec	// 0788    mov    r5,r4
-//	@03c5	7a2b	// 078a    sub    r5,r3
-//	@03c6	7915	// 078c    movtc  sp,r5
-//	@03c7	c8f0	// 078e    ldcl   sr,sreg_fg
-//	@03c8	7c83	// 0790    ldwsp  r0,r3
-//	@03c9	7950	// 0792    movfc  r2,sr
-//	@03ca	7a86	// 0794    cmp    r0,r6
-//	@03cb	10fe	// 0796    bne    opc_rr_fail
-//	@03cc	8af0	// 0798    andi   r2,sreg_fg
-//	@03cd	aaf0	// 079a    cmpi   r2,sreg_fg
-//	@03ce	10fb	// 079c    bne    opc_rr_fail
-//	@03cf	7942	// 079e    movfc  r0,sp
-//	@03d0	7a85	// 07a0    cmp    r0,r5
-//	@03d1	10f8	// 07a2    bne    opc_rr_fail
-//	@03d2	7944	// 07a4    movfc  r0,tr
-//	@03d3	7a84	// 07a6    cmp    r0,r4
-//	@03d4	10f5	// 07a8    bne    opc_rr_fail
+//	@03c1	b308	// 0782    ldbiu  r3,8
+//	@03c2	c4f0	// 0784    ldbih  r4,((idrgramt)>>8)&0xff
+//	@03c3	bc0c	// 0786    ldbil  r4,(idrgramt)&0xff
+//	@03c4	7ba4	// 0788    ldw    r4,r4
+//	@03c5	9c0e	// 078a    addi   r4,14
+//	@03c6	c697	// 078c    ldbih  r6,((0x9753)>>8)&0xff
+//	@03c7	be53	// 078e    ldbil  r6,(0x9753)&0xff
+//	@03c8	7926	// 0790    movtc  tr,r6
+//	@03c9	7be6	// 0792    stw    r4,r6
+//	@03ca	78ec	// 0794    mov    r5,r4
+//	@03cb	7a2b	// 0796    sub    r5,r3
+//	@03cc	7915	// 0798    movtc  sp,r5
+//	@03cd	c8f0	// 079a    ldcl   sr,sreg_fg
+//	@03ce	7c83	// 079c    ldwsp  r0,r3
+//	@03cf	7950	// 079e    movfc  r2,sr
+//	@03d0	7a86	// 07a0    cmp    r0,r6
+//	@03d1	10fe	// 07a2    bne    opc_rr_fail
+//	@03d2	8af0	// 07a4    andi   r2,sreg_fg
+//	@03d3	aaf0	// 07a6    cmpi   r2,sreg_fg
+//	@03d4	10fb	// 07a8    bne    opc_rr_fail
+//	@03d5	7942	// 07aa    movfc  r0,sp
+//	@03d6	7a85	// 07ac    cmp    r0,r5
+//	@03d7	10f8	// 07ae    bne    opc_rr_fail
+//	@03d8	7944	// 07b0    movfc  r0,tr
+//	@03d9	7a84	// 07b2    cmp    r0,r4
+//	@03da	10f5	// 07b4    bne    opc_rr_fail
 //		// ================================
 //		// stwsp
-//	@03d5	b308	// 07aa    ldbiu  r3,8
-//	@03d6	c4f0	// 07ac    ldbih  r4,((idrgramt)>>8)&0xff
-//	@03d7	bc0c	// 07ae    ldbil  r4,(idrgramt)&0xff
-//	@03d8	7ba4	// 07b0    ldw    r4,r4
-//	@03d9	9c0e	// 07b2    addi   r4,14
-//	@03da	c6ab	// 07b4    ldbih  r6,((0xabcd)>>8)&0xff
-//	@03db	becd	// 07b6    ldbil  r6,(0xabcd)&0xff
-//	@03dc	7926	// 07b8    movtc  tr,r6
-//	@03dd	78c6	// 07ba    mov    r0,r6
-//	@03de	7fc8	// 07bc    not    r0
-//	@03df	7be0	// 07be    stw    r4,r0
-//	@03e0	78ec	// 07c0    mov    r5,r4
-//	@03e1	7a2b	// 07c2    sub    r5,r3
-//	@03e2	7915	// 07c4    movtc  sp,r5
-//	@03e3	c8f0	// 07c6    ldcl   sr,sreg_fg
-//	@03e4	7cde	// 07c8    stwsp  r3,r6
-//	@03e5	7950	// 07ca    movfc  r2,sr
-//	@03e6	7b84	// 07cc    ldw    r0,r4
-//	@03e7	7a86	// 07ce    cmp    r0,r6
-//	@03e8	10e1	// 07d0    bne    opc_rr_fail
-//	@03e9	8af0	// 07d2    andi   r2,sreg_fg
-//	@03ea	aaf0	// 07d4    cmpi   r2,sreg_fg
-//	@03eb	10de	// 07d6    bne    opc_rr_fail
-//	@03ec	7942	// 07d8    movfc  r0,sp
-//	@03ed	7a85	// 07da    cmp    r0,r5
-//	@03ee	10db	// 07dc    bne    opc_rr_fail
-//	@03ef	7944	// 07de    movfc  r0,tr
-//	@03f0	7a84	// 07e0    cmp    r0,r4
-//	@03f1	10d8	// 07e2    bne    opc_rr_fail
+//	@03db	b308	// 07b6    ldbiu  r3,8
+//	@03dc	c4f0	// 07b8    ldbih  r4,((idrgramt)>>8)&0xff
+//	@03dd	bc0c	// 07ba    ldbil  r4,(idrgramt)&0xff
+//	@03de	7ba4	// 07bc    ldw    r4,r4
+//	@03df	9c0e	// 07be    addi   r4,14
+//	@03e0	c6ab	// 07c0    ldbih  r6,((0xabcd)>>8)&0xff
+//	@03e1	becd	// 07c2    ldbil  r6,(0xabcd)&0xff
+//	@03e2	7926	// 07c4    movtc  tr,r6
+//	@03e3	78c6	// 07c6    mov    r0,r6
+//	@03e4	7fc8	// 07c8    not    r0
+//	@03e5	7be0	// 07ca    stw    r4,r0
+//	@03e6	78ec	// 07cc    mov    r5,r4
+//	@03e7	7a2b	// 07ce    sub    r5,r3
+//	@03e8	7915	// 07d0    movtc  sp,r5
+//	@03e9	c8f0	// 07d2    ldcl   sr,sreg_fg
+//	@03ea	7cde	// 07d4    stwsp  r3,r6
+//	@03eb	7950	// 07d6    movfc  r2,sr
+//	@03ec	7b84	// 07d8    ldw    r0,r4
+//	@03ed	7a86	// 07da    cmp    r0,r6
+//	@03ee	10e1	// 07dc    bne    opc_rr_fail
+//	@03ef	8af0	// 07de    andi   r2,sreg_fg
+//	@03f0	aaf0	// 07e0    cmpi   r2,sreg_fg
+//	@03f1	10de	// 07e2    bne    opc_rr_fail
+//	@03f2	7942	// 07e4    movfc  r0,sp
+//	@03f3	7a85	// 07e6    cmp    r0,r5
+//	@03f4	10db	// 07e8    bne    opc_rr_fail
+//	@03f5	7944	// 07ea    movfc  r0,tr
+//	@03f6	7a84	// 07ec    cmp    r0,r4
+//	@03f7	10d8	// 07ee    bne    opc_rr_fail
 //		// ********************************
 //		// skip if mcvm_has_mulc==0
-//	@03f2	b001	// 07e4    ldbiu  r0,mcvm_has_mulc
-//	@03f3	a800	// 07e6    cmpi   r0,0
-//	@03f4	184a	// 07e8    beq    mulc_skip
+//	@03f8	b001	// 07f0    ldbiu  r0,mcvm_has_mulc
+//	@03f9	a800	// 07f2    cmpi   r0,0
+//	@03fa	184a	// 07f4    beq    mulc_skip
 //		// ================================
 //		// mulu
-//	@03f5	c001	// 07ea    ldbih  r0,((0x0123)>>8)&0xff
-//	@03f6	b823	// 07ec    ldbil  r0,(0x0123)&0xff
-//	@03f7	c109	// 07ee    ldbih  r1,((0x0987)>>8)&0xff
-//	@03f8	b987	// 07f0    ldbil  r1,(0x0987)&0xff
-//	@03f9	c2d4	// 07f2    ldbih  r2,(((0x0123*0x0987)&0xffff)>>8)&0xff
-//	@03fa	ba75	// 07f4    ldbil  r2,((0x0123*0x0987)&0xffff)&0xff
-//	@03fb	c300	// 07f6    ldbih  r3,(((0x0123*0x0987)>>16)>>8)&0xff
-//	@03fc	bb0a	// 07f8    ldbil  r3,((0x0123*0x0987)>>16)&0xff
-//	@03fd	7f9b	// 07fa    sesrh  sreg_b_ml
-//	@03fe	7d01	// 07fc    mulu   r0,r1
-//	@03ff	7a82	// 07fe    cmp    r0,r2
-//	@0400	10c9	// 0800    bne    opc_rr_fail
-//	@0401	7a8b	// 0802    cmp    r1,r3
-//	@0402	10c7	// 0804    bne    opc_rr_fail
+//	@03fb	c001	// 07f6    ldbih  r0,((0x0123)>>8)&0xff
+//	@03fc	b823	// 07f8    ldbil  r0,(0x0123)&0xff
+//	@03fd	c109	// 07fa    ldbih  r1,((0x0987)>>8)&0xff
+//	@03fe	b987	// 07fc    ldbil  r1,(0x0987)&0xff
+//	@03ff	c2d4	// 07fe    ldbih  r2,(((0x0123*0x0987)&0xffff)>>8)&0xff
+//	@0400	ba75	// 0800    ldbil  r2,((0x0123*0x0987)&0xffff)&0xff
+//	@0401	c300	// 0802    ldbih  r3,(((0x0123*0x0987)>>16)>>8)&0xff
+//	@0402	bb0a	// 0804    ldbil  r3,((0x0123*0x0987)>>16)&0xff
+//	@0403	7f9b	// 0806    sesrh  sreg_b_ml
+//	@0404	7d01	// 0808    mulu   r0,r1
+//	@0405	7a82	// 080a    cmp    r0,r2
+//	@0406	10c9	// 080c    bne    opc_rr_fail
+//	@0407	7a8b	// 080e    cmp    r1,r3
+//	@0408	10c7	// 0810    bne    opc_rr_fail
 //		// ================================
 //		// muls
-//	@0403	c0ff	// 0806    ldbih  r0,((0xffed)>>8)&0xff
-//	@0404	b8ed	// 0808    ldbil  r0,(0xffed)&0xff
-//	@0405	c100	// 080a    ldbih  r1,((0x0034)>>8)&0xff
-//	@0406	b934	// 080c    ldbil  r1,(0x0034)&0xff
-//	@0407	c2fc	// 080e    ldbih  r2,(((0xffffffed*0x0034)&0xffff)>>8)&0xff
-//	@0408	ba24	// 0810    ldbil  r2,((0xffffffed*0x0034)&0xffff)&0xff
-//	@0409	c3ff	// 0812    ldbih  r3,(((0xffffffed*0x0034)>>16)>>8)&0xff
-//	@040a	bbff	// 0814    ldbil  r3,((0xffffffed*0x0034)>>16)&0xff
-//	@040b	7f9b	// 0816    sesrh  sreg_b_ml
-//	@040c	7d41	// 0818    muls   r0,r1
-//	@040d	7a82	// 081a    cmp    r0,r2
-//	@040e	10bb	// 081c    bne    opc_rr_fail
-//	@040f	7a8b	// 081e    cmp    r1,r3
-//	@0410	10b9	// 0820    bne    opc_rr_fail
+//	@0409	c0ff	// 0812    ldbih  r0,((0xffed)>>8)&0xff
+//	@040a	b8ed	// 0814    ldbil  r0,(0xffed)&0xff
+//	@040b	c100	// 0816    ldbih  r1,((0x0034)>>8)&0xff
+//	@040c	b934	// 0818    ldbil  r1,(0x0034)&0xff
+//	@040d	c2fc	// 081a    ldbih  r2,(((0xffffffed*0x0034)&0xffff)>>8)&0xff
+//	@040e	ba24	// 081c    ldbil  r2,((0xffffffed*0x0034)&0xffff)&0xff
+//	@040f	c3ff	// 081e    ldbih  r3,(((0xffffffed*0x0034)>>16)>>8)&0xff
+//	@0410	bbff	// 0820    ldbil  r3,((0xffffffed*0x0034)>>16)&0xff
+//	@0411	7f9b	// 0822    sesrh  sreg_b_ml
+//	@0412	7d41	// 0824    muls   r0,r1
+//	@0413	7a82	// 0826    cmp    r0,r2
+//	@0414	10bb	// 0828    bne    opc_rr_fail
+//	@0415	7a8b	// 082a    cmp    r1,r3
+//	@0416	10b9	// 082c    bne    opc_rr_fail
 //		// ================================
 //		// mulur
-//	@0411	c202	// 0822    ldbih  r2,((0x0246)>>8)&0xff
-//	@0412	ba46	// 0824    ldbil  r2,(0x0246)&0xff
-//	@0413	c303	// 0826    ldbih  r3,((0x0357)>>8)&0xff
-//	@0414	bb57	// 0828    ldbil  r3,(0x0357)&0xff
-//	@0415	c497	// 082a    ldbih  r4,(((0x0246*0x0357)&0xffff)>>8)&0xff
-//	@0416	bcca	// 082c    ldbil  r4,((0x0246*0x0357)&0xffff)&0xff
-//	@0417	c500	// 082e    ldbih  r5,(((0x0246*0x0357)>>16)>>8)&0xff
-//	@0418	bd07	// 0830    ldbil  r5,((0x0246*0x0357)>>16)&0xff
-//	@0419	78f2	// 0832    mov    r6,r2
-//	@041a	78fb	// 0834    mov    r7,r3
-//	@041b	78cf	// 0836    mov    r1,r7
-//	@041c	7fab	// 0838    clsrh  sreg_b_ml
-//	@041d	7413	// 083a    mulur  r2,r3
-//	@041e	7f9b	// 083c    sesrh  sreg_b_ml
-//	@041f	7437	// 083e    mulur  r6,r7
-//	@0420	7aa2	// 0840    cmp    r4,r2
-//	@0421	10a8	// 0842    bne    opc_rr_fail
-//	@0422	7aab	// 0844    cmp    r5,r3
-//	@0423	10a6	// 0846    bne    opc_rr_fail
-//	@0424	7aa6	// 0848    cmp    r4,r6
-//	@0425	10a4	// 084a    bne    opc_rr_fail
-//	@0426	7a8f	// 084c    cmp    r1,r7
-//	@0427	10a2	// 084e    bne    opc_rr_fail
+//	@0417	c202	// 082e    ldbih  r2,((0x0246)>>8)&0xff
+//	@0418	ba46	// 0830    ldbil  r2,(0x0246)&0xff
+//	@0419	c303	// 0832    ldbih  r3,((0x0357)>>8)&0xff
+//	@041a	bb57	// 0834    ldbil  r3,(0x0357)&0xff
+//	@041b	c497	// 0836    ldbih  r4,(((0x0246*0x0357)&0xffff)>>8)&0xff
+//	@041c	bcca	// 0838    ldbil  r4,((0x0246*0x0357)&0xffff)&0xff
+//	@041d	c500	// 083a    ldbih  r5,(((0x0246*0x0357)>>16)>>8)&0xff
+//	@041e	bd07	// 083c    ldbil  r5,((0x0246*0x0357)>>16)&0xff
+//	@041f	78f2	// 083e    mov    r6,r2
+//	@0420	78fb	// 0840    mov    r7,r3
+//	@0421	78cf	// 0842    mov    r1,r7
+//	@0422	7fab	// 0844    clsrh  sreg_b_ml
+//	@0423	7413	// 0846    mulur  r2,r3
+//	@0424	7f9b	// 0848    sesrh  sreg_b_ml
+//	@0425	7437	// 084a    mulur  r6,r7
+//	@0426	7aa2	// 084c    cmp    r4,r2
+//	@0427	10a8	// 084e    bne    opc_rr_fail
+//	@0428	7aab	// 0850    cmp    r5,r3
+//	@0429	10a6	// 0852    bne    opc_rr_fail
+//	@042a	7aa6	// 0854    cmp    r4,r6
+//	@042b	10a4	// 0856    bne    opc_rr_fail
+//	@042c	7a8f	// 0858    cmp    r1,r7
+//	@042d	10a2	// 085a    bne    opc_rr_fail
 //		// ================================
 //		// mulsr
-//	@0428	c1ff	// 0850    ldbih  r1,((0xffec)>>8)&0xff
-//	@0429	b9ec	// 0852    ldbil  r1,(0xffec)&0xff
-//	@042a	c200	// 0854    ldbih  r2,((0x0045)>>8)&0xff
-//	@042b	ba45	// 0856    ldbil  r2,(0x0045)&0xff
-//	@042c	c3fa	// 0858    ldbih  r3,(((0xffffffec*0x0045)&0xffff)>>8)&0xff
-//	@042d	bb9c	// 085a    ldbil  r3,((0xffffffec*0x0045)&0xffff)&0xff
-//	@042e	c4ff	// 085c    ldbih  r4,(((0xffffffec*0x0045)>>16)>>8)&0xff
-//	@042f	bcff	// 085e    ldbil  r4,((0xffffffec*0x0045)>>16)&0xff
-//	@0430	78e9	// 0860    mov    r5,r1
-//	@0431	78f2	// 0862    mov    r6,r2
-//	@0432	78c6	// 0864    mov    r0,r6
-//	@0433	7fab	// 0866    clsrh  sreg_b_ml
-//	@0434	744a	// 0868    mulsr  r1,r2
-//	@0435	7f9b	// 086a    sesrh  sreg_b_ml
-//	@0436	746e	// 086c    mulsr  r5,r6
-//	@0437	7a99	// 086e    cmp    r3,r1
-//	@0438	1091	// 0870    bne    opc_rr_fail
-//	@0439	7aa2	// 0872    cmp    r4,r2
-//	@043a	108f	// 0874    bne    opc_rr_fail
-//	@043b	7a9d	// 0876    cmp    r3,r5
-//	@043c	108d	// 0878    bne    opc_rr_fail
-//	@043d	7a86	// 087a    cmp    r0,r6
-//	@043e	108b	// 087c    bne    opc_rr_fail
+//	@042e	c1ff	// 085c    ldbih  r1,((0xffec)>>8)&0xff
+//	@042f	b9ec	// 085e    ldbil  r1,(0xffec)&0xff
+//	@0430	c200	// 0860    ldbih  r2,((0x0045)>>8)&0xff
+//	@0431	ba45	// 0862    ldbil  r2,(0x0045)&0xff
+//	@0432	c3fa	// 0864    ldbih  r3,(((0xffffffec*0x0045)&0xffff)>>8)&0xff
+//	@0433	bb9c	// 0866    ldbil  r3,((0xffffffec*0x0045)&0xffff)&0xff
+//	@0434	c4ff	// 0868    ldbih  r4,(((0xffffffec*0x0045)>>16)>>8)&0xff
+//	@0435	bcff	// 086a    ldbil  r4,((0xffffffec*0x0045)>>16)&0xff
+//	@0436	78e9	// 086c    mov    r5,r1
+//	@0437	78f2	// 086e    mov    r6,r2
+//	@0438	78c6	// 0870    mov    r0,r6
+//	@0439	7fab	// 0872    clsrh  sreg_b_ml
+//	@043a	744a	// 0874    mulsr  r1,r2
+//	@043b	7f9b	// 0876    sesrh  sreg_b_ml
+//	@043c	746e	// 0878    mulsr  r5,r6
+//	@043d	7a99	// 087a    cmp    r3,r1
+//	@043e	1091	// 087c    bne    opc_rr_fail
+//	@043f	7aa2	// 087e    cmp    r4,r2
+//	@0440	108f	// 0880    bne    opc_rr_fail
+//	@0441	7a9d	// 0882    cmp    r3,r5
+//	@0442	108d	// 0884    bne    opc_rr_fail
+//	@0443	7a86	// 0886    cmp    r0,r6
+//	@0444	108b	// 0888    bne    opc_rr_fail
 //			// mulc_skip:
 //		// ********************************
 //		// ********************************
 //		// skip if mcvm_has_divc==0
-//	@043f	b001	// 087e    ldbiu  r0,mcvm_has_divc
-//	@0440	a800	// 0880    cmpi   r0,0
-//	@0441	184c	// 0882    beq    divc_skip
+//	@0445	b001	// 088a    ldbiu  r0,mcvm_has_divc
+//	@0446	a800	// 088c    cmpi   r0,0
+//	@0447	184c	// 088e    beq    divc_skip
 //		// ================================
 //		// divu
-//	@0442	c087	// 0884    ldbih  r0,((0x8765)>>8)&0xff
-//	@0443	b865	// 0886    ldbil  r0,(0x8765)&0xff
-//	@0444	c101	// 0888    ldbih  r1,((0x0123)>>8)&0xff
-//	@0445	b923	// 088a    ldbil  r1,(0x0123)&0xff
-//	@0446	c200	// 088c    ldbih  r2,((0x8765/0x0123)>>8)&0xff
-//	@0447	ba77	// 088e    ldbil  r2,(0x8765/0x0123)&0xff
-//	@0448	c300	// 0890    ldbih  r3,((0x8765%0x0123)>>8)&0xff
-//	@0449	bb20	// 0892    ldbil  r3,(0x8765%0x0123)&0xff
-//	@044a	7f9a	// 0894    sesrh  sreg_b_dr
-//	@044b	7d81	// 0896    divu   r0,r1
-//	@044c	7a82	// 0898    cmp    r0,r2
-//	@044d	107c	// 089a    bne    opc_rr_fail
-//	@044e	7a8b	// 089c    cmp    r1,r3
-//	@044f	107a	// 089e    bne    opc_rr_fail
+//	@0448	c087	// 0890    ldbih  r0,((0x8765)>>8)&0xff
+//	@0449	b865	// 0892    ldbil  r0,(0x8765)&0xff
+//	@044a	c101	// 0894    ldbih  r1,((0x0123)>>8)&0xff
+//	@044b	b923	// 0896    ldbil  r1,(0x0123)&0xff
+//	@044c	c200	// 0898    ldbih  r2,((0x8765/0x0123)>>8)&0xff
+//	@044d	ba77	// 089a    ldbil  r2,(0x8765/0x0123)&0xff
+//	@044e	c300	// 089c    ldbih  r3,((0x8765%0x0123)>>8)&0xff
+//	@044f	bb20	// 089e    ldbil  r3,(0x8765%0x0123)&0xff
+//	@0450	7f9a	// 08a0    sesrh  sreg_b_dr
+//	@0451	7d81	// 08a2    divu   r0,r1
+//	@0452	7a82	// 08a4    cmp    r0,r2
+//	@0453	107c	// 08a6    bne    opc_rr_fail
+//	@0454	7a8b	// 08a8    cmp    r1,r3
+//	@0455	107a	// 08aa    bne    opc_rr_fail
 //		// ================================
 //		// divs
-//	@0450	7f9a	// 08a0    sesrh  sreg_b_dr
-//	@0451	c0ab	// 08a2    ldbih  r0,((0xabcd)>>8)&0xff
-//	@0452	b8cd	// 08a4    ldbil  r0,(0xabcd)&0xff
-//	@0453	c103	// 08a6    ldbih  r1,((0x0345)>>8)&0xff
-//	@0454	b945	// 08a8    ldbil  r1,(0x0345)&0xff
-//	@0455	c2ff	// 08aa    ldbih  r2,((0xffffabcd/0x0345)>>8)&0xff
-//	@0456	bae7	// 08ac    ldbil  r2,(0xffffabcd/0x0345)&0xff
-//	@0457	c3fd	// 08ae    ldbih  r3,((0xffffabcd%0x0345)>>8)&0xff
-//	@0458	bb8a	// 08b0    ldbil  r3,(0xffffabcd%0x0345)&0xff
-//	@0459	7f9a	// 08b2    sesrh  sreg_b_dr
-//	@045a	7dc1	// 08b4    divs   r0,r1
-//	@045b	7a82	// 08b6    cmp    r0,r2
-//	@045c	106d	// 08b8    bne    opc_rr_fail
-//	@045d	7a8b	// 08ba    cmp    r1,r3
-//	@045e	106b	// 08bc    bne    opc_rr_fail
+//	@0456	7f9a	// 08ac    sesrh  sreg_b_dr
+//	@0457	c0ab	// 08ae    ldbih  r0,((0xabcd)>>8)&0xff
+//	@0458	b8cd	// 08b0    ldbil  r0,(0xabcd)&0xff
+//	@0459	c103	// 08b2    ldbih  r1,((0x0345)>>8)&0xff
+//	@045a	b945	// 08b4    ldbil  r1,(0x0345)&0xff
+//	@045b	c2ff	// 08b6    ldbih  r2,((0xffffabcd/0x0345)>>8)&0xff
+//	@045c	bae7	// 08b8    ldbil  r2,(0xffffabcd/0x0345)&0xff
+//	@045d	c3fd	// 08ba    ldbih  r3,((0xffffabcd%0x0345)>>8)&0xff
+//	@045e	bb8a	// 08bc    ldbil  r3,(0xffffabcd%0x0345)&0xff
+//	@045f	7f9a	// 08be    sesrh  sreg_b_dr
+//	@0460	7dc1	// 08c0    divs   r0,r1
+//	@0461	7a82	// 08c2    cmp    r0,r2
+//	@0462	106d	// 08c4    bne    opc_rr_fail
+//	@0463	7a8b	// 08c6    cmp    r1,r3
+//	@0464	106b	// 08c8    bne    opc_rr_fail
 //		// ================================
 //		// divur
-//	@045f	c08a	// 08be    ldbih  r0,((0x8ace)>>8)&0xff
-//	@0460	b8ce	// 08c0    ldbil  r0,(0x8ace)&0xff
-//	@0461	c101	// 08c2    ldbih  r1,((0x0135)>>8)&0xff
-//	@0462	b935	// 08c4    ldbil  r1,(0x0135)&0xff
-//	@0463	c200	// 08c6    ldbih  r2,((0x8ace/0x0135)>>8)&0xff
-//	@0464	ba72	// 08c8    ldbil  r2,(0x8ace/0x0135)&0xff
-//	@0465	c301	// 08ca    ldbih  r3,((0x8ace%0x0135)>>8)&0xff
-//	@0466	bb34	// 08cc    ldbil  r3,(0x8ace%0x0135)&0xff
-//	@0467	78e0	// 08ce    mov    r4,r0
-//	@0468	78e9	// 08d0    mov    r5,r1
-//	@0469	78fd	// 08d2    mov    r7,r5
-//	@046a	7faa	// 08d4    clsrh  sreg_b_dr
-//	@046b	7481	// 08d6    divur  r0,r1
-//	@046c	7f9a	// 08d8    sesrh  sreg_b_dr
-//	@046d	74a5	// 08da    divur  r4,r5
-//	@046e	7a90	// 08dc    cmp    r2,r0
-//	@046f	105a	// 08de    bne    opc_rr_fail
-//	@0470	7a99	// 08e0    cmp    r3,r1
-//	@0471	1058	// 08e2    bne    opc_rr_fail
-//	@0472	7a94	// 08e4    cmp    r2,r4
-//	@0473	1056	// 08e6    bne    opc_rr_fail
-//	@0474	7abd	// 08e8    cmp    r7,r5
-//	@0475	1054	// 08ea    bne    opc_rr_fail
+//	@0465	c08a	// 08ca    ldbih  r0,((0x8ace)>>8)&0xff
+//	@0466	b8ce	// 08cc    ldbil  r0,(0x8ace)&0xff
+//	@0467	c101	// 08ce    ldbih  r1,((0x0135)>>8)&0xff
+//	@0468	b935	// 08d0    ldbil  r1,(0x0135)&0xff
+//	@0469	c200	// 08d2    ldbih  r2,((0x8ace/0x0135)>>8)&0xff
+//	@046a	ba72	// 08d4    ldbil  r2,(0x8ace/0x0135)&0xff
+//	@046b	c301	// 08d6    ldbih  r3,((0x8ace%0x0135)>>8)&0xff
+//	@046c	bb34	// 08d8    ldbil  r3,(0x8ace%0x0135)&0xff
+//	@046d	78e0	// 08da    mov    r4,r0
+//	@046e	78e9	// 08dc    mov    r5,r1
+//	@046f	78fd	// 08de    mov    r7,r5
+//	@0470	7faa	// 08e0    clsrh  sreg_b_dr
+//	@0471	7481	// 08e2    divur  r0,r1
+//	@0472	7f9a	// 08e4    sesrh  sreg_b_dr
+//	@0473	74a5	// 08e6    divur  r4,r5
+//	@0474	7a90	// 08e8    cmp    r2,r0
+//	@0475	105a	// 08ea    bne    opc_rr_fail
+//	@0476	7a99	// 08ec    cmp    r3,r1
+//	@0477	1058	// 08ee    bne    opc_rr_fail
+//	@0478	7a94	// 08f0    cmp    r2,r4
+//	@0479	1056	// 08f2    bne    opc_rr_fail
+//	@047a	7abd	// 08f4    cmp    r7,r5
+//	@047b	1054	// 08f6    bne    opc_rr_fail
 //		// ================================
 //		// divsr
-//	@0476	7f9a	// 08ec    sesrh  sreg_b_dr
-//	@0477	c0ac	// 08ee    ldbih  r0,((0xace0)>>8)&0xff
-//	@0478	b8e0	// 08f0    ldbil  r0,(0xace0)&0xff
-//	@0479	c103	// 08f2    ldbih  r1,((0x0357)>>8)&0xff
-//	@047a	b957	// 08f4    ldbil  r1,(0x0357)&0xff
-//	@047b	c2ff	// 08f6    ldbih  r2,((0xfffface0/0x0357)>>8)&0xff
-//	@047c	bae8	// 08f8    ldbil  r2,(0xfffface0/0x0357)&0xff
-//	@047d	c3fd	// 08fa    ldbih  r3,((0xfffface0%0x0357)>>8)&0xff
-//	@047e	bb08	// 08fc    ldbil  r3,(0xfffface0%0x0357)&0xff
-//	@047f	78e0	// 08fe    mov    r4,r0
-//	@0480	78e9	// 0900    mov    r5,r1
-//	@0481	78fd	// 0902    mov    r7,r5
-//	@0482	7faa	// 0904    clsrh  sreg_b_dr
-//	@0483	74c1	// 0906    divsr  r0,r1
-//	@0484	7f9a	// 0908    sesrh  sreg_b_dr
-//	@0485	74e5	// 090a    divsr  r4,r5
-//	@0486	7a90	// 090c    cmp    r2,r0
-//	@0487	1042	// 090e    bne    opc_rr_fail
-//	@0488	7a99	// 0910    cmp    r3,r1
-//	@0489	1040	// 0912    bne    opc_rr_fail
-//	@048a	7a94	// 0914    cmp    r2,r4
-//	@048b	103e	// 0916    bne    opc_rr_fail
-//	@048c	7abd	// 0918    cmp    r7,r5
-//	@048d	103c	// 091a    bne    opc_rr_fail
+//	@047c	7f9a	// 08f8    sesrh  sreg_b_dr
+//	@047d	c0ac	// 08fa    ldbih  r0,((0xace0)>>8)&0xff
+//	@047e	b8e0	// 08fc    ldbil  r0,(0xace0)&0xff
+//	@047f	c103	// 08fe    ldbih  r1,((0x0357)>>8)&0xff
+//	@0480	b957	// 0900    ldbil  r1,(0x0357)&0xff
+//	@0481	c2ff	// 0902    ldbih  r2,((0xfffface0/0x0357)>>8)&0xff
+//	@0482	bae8	// 0904    ldbil  r2,(0xfffface0/0x0357)&0xff
+//	@0483	c3fd	// 0906    ldbih  r3,((0xfffface0%0x0357)>>8)&0xff
+//	@0484	bb08	// 0908    ldbil  r3,(0xfffface0%0x0357)&0xff
+//	@0485	78e0	// 090a    mov    r4,r0
+//	@0486	78e9	// 090c    mov    r5,r1
+//	@0487	78fd	// 090e    mov    r7,r5
+//	@0488	7faa	// 0910    clsrh  sreg_b_dr
+//	@0489	74c1	// 0912    divsr  r0,r1
+//	@048a	7f9a	// 0914    sesrh  sreg_b_dr
+//	@048b	74e5	// 0916    divsr  r4,r5
+//	@048c	7a90	// 0918    cmp    r2,r0
+//	@048d	1042	// 091a    bne    opc_rr_fail
+//	@048e	7a99	// 091c    cmp    r3,r1
+//	@048f	1040	// 091e    bne    opc_rr_fail
+//	@0490	7a94	// 0920    cmp    r2,r4
+//	@0491	103e	// 0922    bne    opc_rr_fail
+//	@0492	7abd	// 0924    cmp    r7,r5
+//	@0493	103c	// 0926    bne    opc_rr_fail
 //			// divc_skip:
 //		// ********************************
 //		// ================================
 //		// ldbx
-//	@048e	d400	// 091c    ldch   tr,((0)>>8)&0xff
-//	@048f	cc00	// 091e    ldcl   tr,(0)&0xff
-//	@0490	c0b1	// 0920    ldbih  r0,((0xb1e6)>>8)&0xff
-//	@0491	b8e6	// 0922    ldbil  r0,(0xb1e6)&0xff
-//	@0492	c1f0	// 0924    ldbih  r1,((idrgramt)>>8)&0xff
-//	@0493	b90c	// 0926    ldbil  r1,(idrgramt)&0xff
-//	@0494	7b89	// 0928    ldw    r1,r1
-//	@0495	9900	// 092a    addi   r1,0
-//	@0496	77c8	// 092c    stwx   r1,r0
-//	@0497	7711	// 092e    ldbx   r2,r1
-//	@0498	9901	// 0930    addi   r1,1
-//	@0499	7719	// 0932    ldbx   r3,r1
-//	@049a	78e0	// 0934    mov    r4,r0
-//	@049b	d8f8	// 0936    lsfti  r0,-8
-//	@049c	7a90	// 0938    cmp    r2,r0
-//	@049d	102c	// 093a    bne    opc_rr_fail
-//	@049e	8cff	// 093c    andi   r4,0xff
-//	@049f	7a9c	// 093e    cmp    r3,r4
-//	@04a0	1029	// 0940    bne    opc_rr_fail
+//	@0494	d400	// 0928    ldch   tr,((0)>>8)&0xff
+//	@0495	cc00	// 092a    ldcl   tr,(0)&0xff
+//	@0496	c0b1	// 092c    ldbih  r0,((0xb1e6)>>8)&0xff
+//	@0497	b8e6	// 092e    ldbil  r0,(0xb1e6)&0xff
+//	@0498	c1f0	// 0930    ldbih  r1,((idrgramt)>>8)&0xff
+//	@0499	b90c	// 0932    ldbil  r1,(idrgramt)&0xff
+//	@049a	7b89	// 0934    ldw    r1,r1
+//	@049b	9900	// 0936    addi   r1,0
+//	@049c	77c8	// 0938    stwx   r1,r0
+//	@049d	7711	// 093a    ldbx   r2,r1
+//	@049e	9901	// 093c    addi   r1,1
+//	@049f	7719	// 093e    ldbx   r3,r1
+//	@04a0	78e0	// 0940    mov    r4,r0
+//	@04a1	d8f8	// 0942    lsfti  r0,-8
+//	@04a2	7a90	// 0944    cmp    r2,r0
+//	@04a3	102c	// 0946    bne    opc_rr_fail
+//	@04a4	8cff	// 0948    andi   r4,0xff
+//	@04a5	7a9c	// 094a    cmp    r3,r4
+//	@04a6	1029	// 094c    bne    opc_rr_fail
 //		// ================================
 //		// stbx
-//	@04a1	d400	// 0942    ldch   tr,((0)>>8)&0xff
-//	@04a2	cc00	// 0944    ldcl   tr,(0)&0xff
-//	@04a3	c0e9	// 0946    ldbih  r0,((0xe941)>>8)&0xff
-//	@04a4	b841	// 0948    ldbil  r0,(0xe941)&0xff
-//	@04a5	c1f0	// 094a    ldbih  r1,((idrgramt)>>8)&0xff
-//	@04a6	b90c	// 094c    ldbil  r1,(idrgramt)&0xff
-//	@04a7	7b89	// 094e    ldw    r1,r1
-//	@04a8	9901	// 0950    addi   r1,1
-//	@04a9	78d0	// 0952    mov    r2,r0
-//	@04aa	daf8	// 0954    lsfti  r2,-8
-//	@04ab	7748	// 0956    stbx   r1,r0
-//	@04ac	a101	// 0958    subi   r1,1
-//	@04ad	774a	// 095a    stbx   r1,r2
-//	@04ae	7799	// 095c    ldwx   r3,r1
-//	@04af	7a83	// 095e    cmp    r0,r3
-//	@04b0	1019	// 0960    bne    opc_rr_fail
+//	@04a7	d400	// 094e    ldch   tr,((0)>>8)&0xff
+//	@04a8	cc00	// 0950    ldcl   tr,(0)&0xff
+//	@04a9	c0e9	// 0952    ldbih  r0,((0xe941)>>8)&0xff
+//	@04aa	b841	// 0954    ldbil  r0,(0xe941)&0xff
+//	@04ab	c1f0	// 0956    ldbih  r1,((idrgramt)>>8)&0xff
+//	@04ac	b90c	// 0958    ldbil  r1,(idrgramt)&0xff
+//	@04ad	7b89	// 095a    ldw    r1,r1
+//	@04ae	9901	// 095c    addi   r1,1
+//	@04af	78d0	// 095e    mov    r2,r0
+//	@04b0	daf8	// 0960    lsfti  r2,-8
+//	@04b1	7748	// 0962    stbx   r1,r0
+//	@04b2	a101	// 0964    subi   r1,1
+//	@04b3	774a	// 0966    stbx   r1,r2
+//	@04b4	7799	// 0968    ldwx   r3,r1
+//	@04b5	7a83	// 096a    cmp    r0,r3
+//	@04b6	1019	// 096c    bne    opc_rr_fail
 //		// ================================
 //		// ldwx
-//	@04b1	d400	// 0962    ldch   tr,((0)>>8)&0xff
-//	@04b2	cc00	// 0964    ldcl   tr,(0)&0xff
-//	@04b3	c0f9	// 0966    ldbih  r0,((0xf92b)>>8)&0xff
-//	@04b4	b82b	// 0968    ldbil  r0,(0xf92b)&0xff
-//	@04b5	c1f0	// 096a    ldbih  r1,((idrgramt)>>8)&0xff
-//	@04b6	b90c	// 096c    ldbil  r1,(idrgramt)&0xff
-//	@04b7	7b89	// 096e    ldw    r1,r1
-//	@04b8	990a	// 0970    addi   r1,10
-//	@04b9	77c8	// 0972    stwx   r1,r0
-//	@04ba	7791	// 0974    ldwx   r2,r1
-//	@04bb	7a90	// 0976    cmp    r2,r0
-//	@04bc	100d	// 0978    bne    opc_rr_fail
+//	@04b7	d400	// 096e    ldch   tr,((0)>>8)&0xff
+//	@04b8	cc00	// 0970    ldcl   tr,(0)&0xff
+//	@04b9	c0f9	// 0972    ldbih  r0,((0xf92b)>>8)&0xff
+//	@04ba	b82b	// 0974    ldbil  r0,(0xf92b)&0xff
+//	@04bb	c1f0	// 0976    ldbih  r1,((idrgramt)>>8)&0xff
+//	@04bc	b90c	// 0978    ldbil  r1,(idrgramt)&0xff
+//	@04bd	7b89	// 097a    ldw    r1,r1
+//	@04be	990a	// 097c    addi   r1,10
+//	@04bf	77c8	// 097e    stwx   r1,r0
+//	@04c0	7791	// 0980    ldwx   r2,r1
+//	@04c1	7a90	// 0982    cmp    r2,r0
+//	@04c2	100d	// 0984    bne    opc_rr_fail
 //		// ================================
 //		// stwx
-//	@04bd	d400	// 097a    ldch   tr,((0)>>8)&0xff
-//	@04be	cc00	// 097c    ldcl   tr,(0)&0xff
-//	@04bf	c001	// 097e    ldbih  r0,((0x018d)>>8)&0xff
-//	@04c0	b88d	// 0980    ldbil  r0,(0x018d)&0xff
-//	@04c1	c1f0	// 0982    ldbih  r1,((idrgramt)>>8)&0xff
-//	@04c2	b90c	// 0984    ldbil  r1,(idrgramt)&0xff
-//	@04c3	7b89	// 0986    ldw    r1,r1
-//	@04c4	9906	// 0988    addi   r1,6
-//	@04c5	77c8	// 098a    stwx   r1,r0
-//	@04c6	7799	// 098c    ldwx   r3,r1
-//	@04c7	7a83	// 098e    cmp    r0,r3
-//	@04c8	1001	// 0990    bne    opc_rr_fail
+//	@04c3	d400	// 0986    ldch   tr,((0)>>8)&0xff
+//	@04c4	cc00	// 0988    ldcl   tr,(0)&0xff
+//	@04c5	c001	// 098a    ldbih  r0,((0x018d)>>8)&0xff
+//	@04c6	b88d	// 098c    ldbil  r0,(0x018d)&0xff
+//	@04c7	c1f0	// 098e    ldbih  r1,((idrgramt)>>8)&0xff
+//	@04c8	b90c	// 0990    ldbil  r1,(idrgramt)&0xff
+//	@04c9	7b89	// 0992    ldw    r1,r1
+//	@04ca	9906	// 0994    addi   r1,6
+//	@04cb	77c8	// 0996    stwx   r1,r0
+//	@04cc	7799	// 0998    ldwx   r3,r1
+//	@04cd	7a83	// 099a    cmp    r0,r3
+//	@04ce	1001	// 099c    bne    opc_rr_fail
 //		// ================================
-//	@04c9	0803	// 0992    bra    opc_rr_pass
+//	@04cf	0803	// 099e    bra    opc_rr_pass
 //			// opc_rr_fail:
-//	@04ca	c70d	// 0994    ldbih  r7,(lab_tstfail)>>8
-//	@04cb	bf5e	// 0996    ldbil  r7,(lab_tstfail)&0xff
-//	@04cc	7f87	// 0998    jmp    r7
+//	@04d0	c70d	// 09a0    ldbih  r7,(lab_tstfail)>>8
+//	@04d1	bf6a	// 09a2    ldbil  r7,(lab_tstfail)&0xff
+//	@04d2	7f87	// 09a4    jmp    r7
 //			// opc_rr_pass:
 //		// ================================
 //		// opcode RI
 //		// ================================
 //		// ori
-//	@04cd	c000	// 099a    ldbih  r0,((0xc0)>>8)&0xff
-//	@04ce	b8c0	// 099c    ldbil  r0,(0xc0)&0xff
-//	@04cf	803a	// 099e    ori    r0,0x3a
-//	@04d0	7948	// 09a0    movfc  r1,sr
-//	@04d1	a8fa	// 09a2    cmpi   r0,0xfa
-//	@04d2	10a7	// 09a4    bne    opc_ri_fail
-//	@04d3	89f0	// 09a6    andi   r1,sreg_fg
-//	@04d4	a900	// 09a8    cmpi   r1,0x00
-//	@04d5	10a4	// 09aa    bne    opc_ri_fail
+//	@04d3	c000	// 09a6    ldbih  r0,((0xc0)>>8)&0xff
+//	@04d4	b8c0	// 09a8    ldbil  r0,(0xc0)&0xff
+//	@04d5	803a	// 09aa    ori    r0,0x3a
+//	@04d6	7948	// 09ac    movfc  r1,sr
+//	@04d7	a8fa	// 09ae    cmpi   r0,0xfa
+//	@04d8	10a7	// 09b0    bne    opc_ri_fail
+//	@04d9	89f0	// 09b2    andi   r1,sreg_fg
+//	@04da	a900	// 09b4    cmpi   r1,0x00
+//	@04db	10a4	// 09b6    bne    opc_ri_fail
 //		// ================================
 //		// andi
-//	@04d6	b0a6	// 09ac    ldbiu  r0,0xa6
-//	@04d7	7fd8	// 09ae    exsgw  r0
-//	@04d8	8859	// 09b0    andi   r0,0x59
-//	@04d9	7948	// 09b2    movfc  r1,sr
-//	@04da	a800	// 09b4    cmpi   r0,0x00
-//	@04db	109e	// 09b6    bne    opc_ri_fail
-//	@04dc	89f0	// 09b8    andi   r1,sreg_fg
-//	@04dd	a910	// 09ba    cmpi   r1,sreg_zf
-//	@04de	109b	// 09bc    bne    opc_ri_fail
+//	@04dc	b0a6	// 09b8    ldbiu  r0,0xa6
+//	@04dd	7fd8	// 09ba    exsgw  r0
+//	@04de	8859	// 09bc    andi   r0,0x59
+//	@04df	7948	// 09be    movfc  r1,sr
+//	@04e0	a800	// 09c0    cmpi   r0,0x00
+//	@04e1	109e	// 09c2    bne    opc_ri_fail
+//	@04e2	89f0	// 09c4    andi   r1,sreg_fg
+//	@04e3	a910	// 09c6    cmpi   r1,sreg_zf
+//	@04e4	109b	// 09c8    bne    opc_ri_fail
 //		// ================================
 //		// eori
-//	@04df	b030	// 09be    ldbiu  r0,0x30
-//	@04e0	906c	// 09c0    eori   r0,0x6c
-//	@04e1	7948	// 09c2    movfc  r1,sr
-//	@04e2	a85c	// 09c4    cmpi   r0,0x5c
-//	@04e3	1096	// 09c6    bne    opc_ri_fail
-//	@04e4	89f0	// 09c8    andi   r1,sreg_fg
-//	@04e5	a900	// 09ca    cmpi   r1,0x00
-//	@04e6	1093	// 09cc    bne    opc_ri_fail
+//	@04e5	b030	// 09ca    ldbiu  r0,0x30
+//	@04e6	906c	// 09cc    eori   r0,0x6c
+//	@04e7	7948	// 09ce    movfc  r1,sr
+//	@04e8	a85c	// 09d0    cmpi   r0,0x5c
+//	@04e9	1096	// 09d2    bne    opc_ri_fail
+//	@04ea	89f0	// 09d4    andi   r1,sreg_fg
+//	@04eb	a900	// 09d6    cmpi   r1,0x00
+//	@04ec	1093	// 09d8    bne    opc_ri_fail
 //		// ================================
 //		// addi
-//	@04e7	c000	// 09ce    ldbih  r0,((0x9a)>>8)&0xff
-//	@04e8	b89a	// 09d0    ldbil  r0,(0x9a)&0xff
-//	@04e9	9816	// 09d2    addi   r0,0x16
-//	@04ea	7948	// 09d4    movfc  r1,sr
-//	@04eb	a8b0	// 09d6    cmpi   r0,0x9a+0x16
-//	@04ec	108d	// 09d8    bne    opc_ri_fail
-//	@04ed	89f0	// 09da    andi   r1,sreg_fg
-//	@04ee	a900	// 09dc    cmpi   r1,0x00
-//	@04ef	108a	// 09de    bne    opc_ri_fail
+//	@04ed	c000	// 09da    ldbih  r0,((0x9a)>>8)&0xff
+//	@04ee	b89a	// 09dc    ldbil  r0,(0x9a)&0xff
+//	@04ef	9816	// 09de    addi   r0,0x16
+//	@04f0	7948	// 09e0    movfc  r1,sr
+//	@04f1	a8b0	// 09e2    cmpi   r0,0x9a+0x16
+//	@04f2	108d	// 09e4    bne    opc_ri_fail
+//	@04f3	89f0	// 09e6    andi   r1,sreg_fg
+//	@04f4	a900	// 09e8    cmpi   r1,0x00
+//	@04f5	108a	// 09ea    bne    opc_ri_fail
 //		// ================================
 //		// subi
-//	@04f0	c000	// 09e0    ldbih  r0,((0x39)>>8)&0xff
-//	@04f1	b839	// 09e2    ldbil  r0,(0x39)&0xff
-//	@04f2	a0a5	// 09e4    subi   r0,0xa5
-//	@04f3	7948	// 09e6    movfc  r1,sr
-//	@04f4	b294	// 09e8    ldbiu  r2,0x94
-//	@04f5	7fda	// 09ea    exsgw  r2
-//	@04f6	7a82	// 09ec    cmp    r0,r2
-//	@04f7	1082	// 09ee    bne    opc_ri_fail
-//	@04f8	89f0	// 09f0    andi   r1,sreg_fg
-//	@04f9	a9c0	// 09f2    cmpi   r1,sreg_nf|sreg_cf
-//	@04fa	107f	// 09f4    bne    opc_ri_fail
+//	@04f6	c000	// 09ec    ldbih  r0,((0x39)>>8)&0xff
+//	@04f7	b839	// 09ee    ldbil  r0,(0x39)&0xff
+//	@04f8	a0a5	// 09f0    subi   r0,0xa5
+//	@04f9	7948	// 09f2    movfc  r1,sr
+//	@04fa	b294	// 09f4    ldbiu  r2,0x94
+//	@04fb	7fda	// 09f6    exsgw  r2
+//	@04fc	7a82	// 09f8    cmp    r0,r2
+//	@04fd	1082	// 09fa    bne    opc_ri_fail
+//	@04fe	89f0	// 09fc    andi   r1,sreg_fg
+//	@04ff	a9c0	// 09fe    cmpi   r1,sreg_nf|sreg_cf
+//	@0500	107f	// 0a00    bne    opc_ri_fail
 //		// ================================
 //		// cmpi
-//	@04fb	c000	// 09f6    ldbih  r0,((0x91)>>8)&0xff
-//	@04fc	b891	// 09f8    ldbil  r0,(0x91)&0xff
-//	@04fd	a836	// 09fa    cmpi   r0,0x36
-//	@04fe	7948	// 09fc    movfc  r1,sr
-//	@04ff	a891	// 09fe    cmpi   r0,0x91
-//	@0500	1079	// 0a00    bne    opc_ri_fail
-//	@0501	89f0	// 0a02    andi   r1,sreg_fg
-//	@0502	a900	// 0a04    cmpi   r1,0x00
-//	@0503	1076	// 0a06    bne    opc_ri_fail
+//	@0501	c000	// 0a02    ldbih  r0,((0x91)>>8)&0xff
+//	@0502	b891	// 0a04    ldbil  r0,(0x91)&0xff
+//	@0503	a836	// 0a06    cmpi   r0,0x36
+//	@0504	7948	// 0a08    movfc  r1,sr
+//	@0505	a891	// 0a0a    cmpi   r0,0x91
+//	@0506	1079	// 0a0c    bne    opc_ri_fail
+//	@0507	89f0	// 0a0e    andi   r1,sreg_fg
+//	@0508	a900	// 0a10    cmpi   r1,0x00
+//	@0509	1076	// 0a12    bne    opc_ri_fail
 //		// ================================
 //		// ldbiu
-//	@0504	c8f0	// 0a08    ldcl   sr,sreg_fg
-//	@0505	c0ff	// 0a0a    ldbih  r0,0xff
-//	@0506	b0ae	// 0a0c    ldbiu  r0,0xae
-//	@0507	7948	// 0a0e    movfc  r1,sr
-//	@0508	c200	// 0a10    ldbih  r2,((0x00ae)>>8)&0xff
-//	@0509	baae	// 0a12    ldbil  r2,(0x00ae)&0xff
-//	@050a	7a82	// 0a14    cmp    r0,r2
-//	@050b	106e	// 0a16    bne    opc_ri_fail
-//	@050c	89f0	// 0a18    andi   r1,sreg_fg
-//	@050d	a9f0	// 0a1a    cmpi   r1,sreg_fg
-//	@050e	106b	// 0a1c    bne    opc_ri_fail
+//	@050a	c8f0	// 0a14    ldcl   sr,sreg_fg
+//	@050b	c0ff	// 0a16    ldbih  r0,0xff
+//	@050c	b0ae	// 0a18    ldbiu  r0,0xae
+//	@050d	7948	// 0a1a    movfc  r1,sr
+//	@050e	c200	// 0a1c    ldbih  r2,((0x00ae)>>8)&0xff
+//	@050f	baae	// 0a1e    ldbil  r2,(0x00ae)&0xff
+//	@0510	7a82	// 0a20    cmp    r0,r2
+//	@0511	106e	// 0a22    bne    opc_ri_fail
+//	@0512	89f0	// 0a24    andi   r1,sreg_fg
+//	@0513	a9f0	// 0a26    cmpi   r1,sreg_fg
+//	@0514	106b	// 0a28    bne    opc_ri_fail
 //		// ================================
 //		// ldbil
-//	@050f	c8f0	// 0a1e    ldcl   sr,sreg_fg
-//	@0510	c034	// 0a20    ldbih  r0,((0x3456)>>8)&0xff
-//	@0511	b856	// 0a22    ldbil  r0,(0x3456)&0xff
-//	@0512	b8c5	// 0a24    ldbil  r0,0xc5
-//	@0513	7948	// 0a26    movfc  r1,sr
-//	@0514	c234	// 0a28    ldbih  r2,((0x34c5)>>8)&0xff
-//	@0515	bac5	// 0a2a    ldbil  r2,(0x34c5)&0xff
-//	@0516	7a82	// 0a2c    cmp    r0,r2
-//	@0517	1062	// 0a2e    bne    opc_ri_fail
-//	@0518	89f0	// 0a30    andi   r1,sreg_fg
-//	@0519	a9f0	// 0a32    cmpi   r1,sreg_fg
-//	@051a	105f	// 0a34    bne    opc_ri_fail
+//	@0515	c8f0	// 0a2a    ldcl   sr,sreg_fg
+//	@0516	c034	// 0a2c    ldbih  r0,((0x3456)>>8)&0xff
+//	@0517	b856	// 0a2e    ldbil  r0,(0x3456)&0xff
+//	@0518	b8c5	// 0a30    ldbil  r0,0xc5
+//	@0519	7948	// 0a32    movfc  r1,sr
+//	@051a	c234	// 0a34    ldbih  r2,((0x34c5)>>8)&0xff
+//	@051b	bac5	// 0a36    ldbil  r2,(0x34c5)&0xff
+//	@051c	7a82	// 0a38    cmp    r0,r2
+//	@051d	1062	// 0a3a    bne    opc_ri_fail
+//	@051e	89f0	// 0a3c    andi   r1,sreg_fg
+//	@051f	a9f0	// 0a3e    cmpi   r1,sreg_fg
+//	@0520	105f	// 0a40    bne    opc_ri_fail
 //		// ================================
 //		// ldbih
-//	@051b	c8f0	// 0a36    ldcl   sr,sreg_fg
-//	@051c	b080	// 0a38    ldbiu  r0,0x80
-//	@051d	c05a	// 0a3a    ldbih  r0,0x5a
-//	@051e	7948	// 0a3c    movfc  r1,sr
-//	@051f	c200	// 0a3e    ldbih  r2,((0x5a)>>8)&0xff
-//	@0520	ba5a	// 0a40    ldbil  r2,(0x5a)&0xff
-//	@0521	da08	// 0a42    lsfti  r2,8
-//	@0522	8280	// 0a44    ori    r2,0x80
-//	@0523	7a82	// 0a46    cmp    r0,r2
-//	@0524	1055	// 0a48    bne    opc_ri_fail
-//	@0525	89f0	// 0a4a    andi   r1,sreg_fg
-//	@0526	a9f0	// 0a4c    cmpi   r1,sreg_fg
-//	@0527	1052	// 0a4e    bne    opc_ri_fail
+//	@0521	c8f0	// 0a42    ldcl   sr,sreg_fg
+//	@0522	b080	// 0a44    ldbiu  r0,0x80
+//	@0523	c05a	// 0a46    ldbih  r0,0x5a
+//	@0524	7948	// 0a48    movfc  r1,sr
+//	@0525	c200	// 0a4a    ldbih  r2,((0x5a)>>8)&0xff
+//	@0526	ba5a	// 0a4c    ldbil  r2,(0x5a)&0xff
+//	@0527	da08	// 0a4e    lsfti  r2,8
+//	@0528	8280	// 0a50    ori    r2,0x80
+//	@0529	7a82	// 0a52    cmp    r0,r2
+//	@052a	1055	// 0a54    bne    opc_ri_fail
+//	@052b	89f0	// 0a56    andi   r1,sreg_fg
+//	@052c	a9f0	// 0a58    cmpi   r1,sreg_fg
+//	@052d	1052	// 0a5a    bne    opc_ri_fail
 //		// ================================
 //		// ldcl, ldch
-//	@0528	c8f0	// 0a50    ldcl   sr,sreg_fg
-//	@0529	7940	// 0a52    movfc  r0,sr
-//	@052a	b45a	// 0a54    ldbiu  r4,0x5a
-//	@052b	7914	// 0a56    movtc  sp,r4
-//	@052c	d2c3	// 0a58    ldch   sp,0xc3
-//	@052d	794a	// 0a5a    movfc  r1,sp
-//	@052e	88f0	// 0a5c    andi   r0,sreg_fg
-//	@052f	a8f0	// 0a5e    cmpi   r0,sreg_fg
-//	@0530	1049	// 0a60    bne    opc_ri_fail
-//	@0531	c2c3	// 0a62    ldbih  r2,((0xc35a)>>8)&0xff
-//	@0532	ba5a	// 0a64    ldbil  r2,(0xc35a)&0xff
-//	@0533	7a8a	// 0a66    cmp    r1,r2
-//	@0534	1045	// 0a68    bne    opc_ri_fail
+//	@052e	c8f0	// 0a5c    ldcl   sr,sreg_fg
+//	@052f	7940	// 0a5e    movfc  r0,sr
+//	@0530	b45a	// 0a60    ldbiu  r4,0x5a
+//	@0531	7914	// 0a62    movtc  sp,r4
+//	@0532	d2c3	// 0a64    ldch   sp,0xc3
+//	@0533	794a	// 0a66    movfc  r1,sp
+//	@0534	88f0	// 0a68    andi   r0,sreg_fg
+//	@0535	a8f0	// 0a6a    cmpi   r0,sreg_fg
+//	@0536	1049	// 0a6c    bne    opc_ri_fail
+//	@0537	c2c3	// 0a6e    ldbih  r2,((0xc35a)>>8)&0xff
+//	@0538	ba5a	// 0a70    ldbil  r2,(0xc35a)&0xff
+//	@0539	7a8a	// 0a72    cmp    r1,r2
+//	@053a	1045	// 0a74    bne    opc_ri_fail
 //		// ================================
 //		// lsfti, left shift
-//	@0535	c0c3	// 0a6a    ldbih  r0,((0xc369)>>8)&0xff
-//	@0536	b869	// 0a6c    ldbil  r0,(0xc369)&0xff
-//	@0537	d8e2	// 0a6e    lsfti  r0,0xe2
-//	@0538	7948	// 0a70    movfc  r1,sr
-//	@0539	c20d	// 0a72    ldbih  r2,((0x0da4)>>8)&0xff
-//	@053a	baa4	// 0a74    ldbil  r2,(0x0da4)&0xff
-//	@053b	7a82	// 0a76    cmp    r0,r2
-//	@053c	103d	// 0a78    bne    opc_ri_fail
-//	@053d	89f0	// 0a7a    andi   r1,sreg_fg
-//	@053e	a960	// 0a7c    cmpi   r1,sreg_cf|sreg_vf
-//	@053f	103a	// 0a7e    bne    opc_ri_fail
+//	@053b	c0c3	// 0a76    ldbih  r0,((0xc369)>>8)&0xff
+//	@053c	b869	// 0a78    ldbil  r0,(0xc369)&0xff
+//	@053d	d8e2	// 0a7a    lsfti  r0,0xe2
+//	@053e	7948	// 0a7c    movfc  r1,sr
+//	@053f	c20d	// 0a7e    ldbih  r2,((0x0da4)>>8)&0xff
+//	@0540	baa4	// 0a80    ldbil  r2,(0x0da4)&0xff
+//	@0541	7a82	// 0a82    cmp    r0,r2
+//	@0542	103d	// 0a84    bne    opc_ri_fail
+//	@0543	89f0	// 0a86    andi   r1,sreg_fg
+//	@0544	a960	// 0a88    cmpi   r1,sreg_cf|sreg_vf
+//	@0545	103a	// 0a8a    bne    opc_ri_fail
 //		// lsfti, right shift
-//	@0540	c0a5	// 0a80    ldbih  r0,((0xa581)>>8)&0xff
-//	@0541	b881	// 0a82    ldbil  r0,(0xa581)&0xff
-//	@0542	d8fb	// 0a84    lsfti  r0,-5
-//	@0543	7948	// 0a86    movfc  r1,sr
-//	@0544	c205	// 0a88    ldbih  r2,((0x052c)>>8)&0xff
-//	@0545	ba2c	// 0a8a    ldbil  r2,(0x052c)&0xff
-//	@0546	7a82	// 0a8c    cmp    r0,r2
-//	@0547	1032	// 0a8e    bne    opc_ri_fail
-//	@0548	89f0	// 0a90    andi   r1,sreg_fg
-//	@0549	a900	// 0a92    cmpi   r1,0x00
-//	@054a	102f	// 0a94    bne    opc_ri_fail
+//	@0546	c0a5	// 0a8c    ldbih  r0,((0xa581)>>8)&0xff
+//	@0547	b881	// 0a8e    ldbil  r0,(0xa581)&0xff
+//	@0548	d8fb	// 0a90    lsfti  r0,-5
+//	@0549	7948	// 0a92    movfc  r1,sr
+//	@054a	c205	// 0a94    ldbih  r2,((0x052c)>>8)&0xff
+//	@054b	ba2c	// 0a96    ldbil  r2,(0x052c)&0xff
+//	@054c	7a82	// 0a98    cmp    r0,r2
+//	@054d	1032	// 0a9a    bne    opc_ri_fail
+//	@054e	89f0	// 0a9c    andi   r1,sreg_fg
+//	@054f	a900	// 0a9e    cmpi   r1,0x00
+//	@0550	102f	// 0aa0    bne    opc_ri_fail
 //		// ================================
 //		// asfti, left shift
-//	@054b	c035	// 0a96    ldbih  r0,((0x3569)>>8)&0xff
-//	@054c	b869	// 0a98    ldbil  r0,(0x3569)&0xff
-//	@054d	e006	// 0a9a    asfti  r0,0x06
-//	@054e	7948	// 0a9c    movfc  r1,sr
-//	@054f	c25a	// 0a9e    ldbih  r2,((0x5a40)>>8)&0xff
-//	@0550	ba40	// 0aa0    ldbil  r2,(0x5a40)&0xff
-//	@0551	7a82	// 0aa2    cmp    r0,r2
-//	@0552	1027	// 0aa4    bne    opc_ri_fail
-//	@0553	89f0	// 0aa6    andi   r1,sreg_fg
-//	@0554	a960	// 0aa8    cmpi   r1,sreg_cf|sreg_vf
-//	@0555	1024	// 0aaa    bne    opc_ri_fail
+//	@0551	c035	// 0aa2    ldbih  r0,((0x3569)>>8)&0xff
+//	@0552	b869	// 0aa4    ldbil  r0,(0x3569)&0xff
+//	@0553	e006	// 0aa6    asfti  r0,0x06
+//	@0554	7948	// 0aa8    movfc  r1,sr
+//	@0555	c25a	// 0aaa    ldbih  r2,((0x5a40)>>8)&0xff
+//	@0556	ba40	// 0aac    ldbil  r2,(0x5a40)&0xff
+//	@0557	7a82	// 0aae    cmp    r0,r2
+//	@0558	1027	// 0ab0    bne    opc_ri_fail
+//	@0559	89f0	// 0ab2    andi   r1,sreg_fg
+//	@055a	a960	// 0ab4    cmpi   r1,sreg_cf|sreg_vf
+//	@055b	1024	// 0ab6    bne    opc_ri_fail
 //		// asfti, right shift
-//	@0556	c0ca	// 0aac    ldbih  r0,((0xca69)>>8)&0xff
-//	@0557	b869	// 0aae    ldbil  r0,(0xca69)&0xff
-//	@0558	e0f8	// 0ab0    asfti  r0,-8
-//	@0559	7948	// 0ab2    movfc  r1,sr
-//	@055a	c2ff	// 0ab4    ldbih  r2,((0xffca)>>8)&0xff
-//	@055b	baca	// 0ab6    ldbil  r2,(0xffca)&0xff
-//	@055c	7a82	// 0ab8    cmp    r0,r2
-//	@055d	101c	// 0aba    bne    opc_ri_fail
-//	@055e	89f0	// 0abc    andi   r1,sreg_fg
-//	@055f	a980	// 0abe    cmpi   r1,sreg_nf
-//	@0560	1019	// 0ac0    bne    opc_ri_fail
+//	@055c	c0ca	// 0ab8    ldbih  r0,((0xca69)>>8)&0xff
+//	@055d	b869	// 0aba    ldbil  r0,(0xca69)&0xff
+//	@055e	e0f8	// 0abc    asfti  r0,-8
+//	@055f	7948	// 0abe    movfc  r1,sr
+//	@0560	c2ff	// 0ac0    ldbih  r2,((0xffca)>>8)&0xff
+//	@0561	baca	// 0ac2    ldbil  r2,(0xffca)&0xff
+//	@0562	7a82	// 0ac4    cmp    r0,r2
+//	@0563	101c	// 0ac6    bne    opc_ri_fail
+//	@0564	89f0	// 0ac8    andi   r1,sreg_fg
+//	@0565	a980	// 0aca    cmpi   r1,sreg_nf
+//	@0566	1019	// 0acc    bne    opc_ri_fail
 //		// ================================
 //		// csfti, left shift
-//	@0561	c057	// 0ac2    ldbih  r0,((0x579b)>>8)&0xff
-//	@0562	b89b	// 0ac4    ldbil  r0,(0x579b)&0xff
-//	@0563	7f96	// 0ac6    sesrl  sreg_b_cf
-//	@0564	e809	// 0ac8    csfti  r0,0x09
-//	@0565	7948	// 0aca    movfc  r1,sr
-//	@0566	c237	// 0acc    ldbih  r2,((0x3757)>>8)&0xff
-//	@0567	ba57	// 0ace    ldbil  r2,(0x3757)&0xff
-//	@0568	7a82	// 0ad0    cmp    r0,r2
-//	@0569	1010	// 0ad2    bne    opc_ri_fail
-//	@056a	89f0	// 0ad4    andi   r1,sreg_fg
-//	@056b	a940	// 0ad6    cmpi   r1,sreg_cf
-//	@056c	100d	// 0ad8    bne    opc_ri_fail
+//	@0567	c057	// 0ace    ldbih  r0,((0x579b)>>8)&0xff
+//	@0568	b89b	// 0ad0    ldbil  r0,(0x579b)&0xff
+//	@0569	7f96	// 0ad2    sesrl  sreg_b_cf
+//	@056a	e809	// 0ad4    csfti  r0,0x09
+//	@056b	7948	// 0ad6    movfc  r1,sr
+//	@056c	c237	// 0ad8    ldbih  r2,((0x3757)>>8)&0xff
+//	@056d	ba57	// 0ada    ldbil  r2,(0x3757)&0xff
+//	@056e	7a82	// 0adc    cmp    r0,r2
+//	@056f	1010	// 0ade    bne    opc_ri_fail
+//	@0570	89f0	// 0ae0    andi   r1,sreg_fg
+//	@0571	a940	// 0ae2    cmpi   r1,sreg_cf
+//	@0572	100d	// 0ae4    bne    opc_ri_fail
 //		// csfti, right shift
-//	@056d	c05a	// 0ada    ldbih  r0,((0x5a3c)>>8)&0xff
-//	@056e	b83c	// 0adc    ldbil  r0,(0x5a3c)&0xff
-//	@056f	7fa6	// 0ade    clsrl  sreg_b_cf
-//	@0570	e8fb	// 0ae0    csfti  r0,-5
-//	@0571	7948	// 0ae2    movfc  r1,sr
-//	@0572	c2c2	// 0ae4    ldbih  r2,((0xc2d1)>>8)&0xff
-//	@0573	bad1	// 0ae6    ldbil  r2,(0xc2d1)&0xff
-//	@0574	7a82	// 0ae8    cmp    r0,r2
-//	@0575	1004	// 0aea    bne    opc_ri_fail
-//	@0576	89f0	// 0aec    andi   r1,sreg_fg
-//	@0577	a9c0	// 0aee    cmpi   r1,sreg_nf|sreg_cf
-//	@0578	1001	// 0af0    bne    opc_ri_fail
+//	@0573	c05a	// 0ae6    ldbih  r0,((0x5a3c)>>8)&0xff
+//	@0574	b83c	// 0ae8    ldbil  r0,(0x5a3c)&0xff
+//	@0575	7fa6	// 0aea    clsrl  sreg_b_cf
+//	@0576	e8fb	// 0aec    csfti  r0,-5
+//	@0577	7948	// 0aee    movfc  r1,sr
+//	@0578	c2c2	// 0af0    ldbih  r2,((0xc2d1)>>8)&0xff
+//	@0579	bad1	// 0af2    ldbil  r2,(0xc2d1)&0xff
+//	@057a	7a82	// 0af4    cmp    r0,r2
+//	@057b	1004	// 0af6    bne    opc_ri_fail
+//	@057c	89f0	// 0af8    andi   r1,sreg_fg
+//	@057d	a9c0	// 0afa    cmpi   r1,sreg_nf|sreg_cf
+//	@057e	1001	// 0afc    bne    opc_ri_fail
 //		// ================================
-//	@0579	0803	// 0af2    bra    opc_ri_pass
+//	@057f	0803	// 0afe    bra    opc_ri_pass
 //			// opc_ri_fail:
-//	@057a	c70d	// 0af4    ldbih  r7,(lab_tstfail)>>8
-//	@057b	bf5e	// 0af6    ldbil  r7,(lab_tstfail)&0xff
-//	@057c	7f87	// 0af8    jmp    r7
+//	@0580	c70d	// 0b00    ldbih  r7,(lab_tstfail)>>8
+//	@0581	bf6a	// 0b02    ldbil  r7,(lab_tstfail)&0xff
+//	@0582	7f87	// 0b04    jmp    r7
 //			// opc_ri_pass:
 //		// ================================
 //		// extended address
 //		// ================================
 //		// skip if mcvm_has_xadr==0
-//	@057d	b000	// 0afa    ldbiu  r0,mcvm_has_xadr
-//	@057e	a800	// 0afc    cmpi   r0,0
-//	@057f	183d	// 0afe    beq    xadr_skip
+//	@0583	b000	// 0b06    ldbiu  r0,mcvm_has_xadr
+//	@0584	a800	// 0b08    cmpi   r0,0
+//	@0585	183d	// 0b0a    beq    xadr_skip
 //		// initialize sdram controller
 //		// wait for sdram controller ready
-//	@0580	c7f0	// 0b00    ldbih  r7,((sdrcctl)>>8)&0xff
-//	@0581	bff0	// 0b02    ldbil  r7,(sdrcctl)&0xff
-//	@0582	7b87	// 0b04    ldw    r0,r7
-//	@0583	8880	// 0b06    andi   r0,sdrc_sdrm
-//	@0584	1835	// 0b08    beq    xadr_fail
+//	@0586	c7f0	// 0b0c    ldbih  r7,((sdrcctl)>>8)&0xff
+//	@0587	bff0	// 0b0e    ldbil  r7,(sdrcctl)&0xff
+//	@0588	7b87	// 0b10    ldw    r0,r7
+//	@0589	8880	// 0b12    andi   r0,sdrc_sdrm
+//	@058a	1835	// 0b14    beq    xadr_fail
 //		// ********************************
 //		// test mode enable
-//	@0585	c080	// 0b0a    ldbih  r0,0x80
-//	@0586	7bf8	// 0b0c    stw    r7,r0
+//	@058b	c080	// 0b16    ldbih  r0,0x80
+//	@058c	7bf8	// 0b18    stw    r7,r0
 //		// ********************************
 //		// polling SRDY flag
-//	@0587	7b87	// 0b0e    ldw    r0,r7
-//	@0588	8840	// 0b10    andi   r0,sdrc_srdy
-//	@0589	1ffd	// 0b12    beq    pcnt-6
+//	@058d	7b87	// 0b1a    ldw    r0,r7
+//	@058e	8840	// 0b1c    andi   r0,sdrc_srdy
+//	@058f	1ffd	// 0b1e    beq    pcnt-6
 //		// ================================
 //		// ldbx
-//	@058a	cc80	// 0b14    ldcl   tr,0x80
-//	@058b	c1f0	// 0b16    ldbih  r1,((idrgfcpu)>>8)&0xff
-//	@058c	b904	// 0b18    ldbil  r1,(idrgfcpu)&0xff
-//	@058d	c077	// 0b1a    ldbih  r0,((0x77ab)>>8)&0xff
-//	@058e	b8ab	// 0b1c    ldbil  r0,(0x77ab)&0xff
-//	@058f	77c8	// 0b1e    stwx   r1,r0
-//	@0590	7711	// 0b20    ldbx   r2,r1
-//	@0591	9901	// 0b22    addi   r1,1
-//	@0592	7719	// 0b24    ldbx   r3,r1
-//	@0593	78e0	// 0b26    mov    r4,r0
-//	@0594	d8f8	// 0b28    lsfti  r0,-8
-//	@0595	7a90	// 0b2a    cmp    r2,r0
-//	@0596	1023	// 0b2c    bne    xadr_fail
-//	@0597	8cff	// 0b2e    andi   r4,0xff
-//	@0598	7a9c	// 0b30    cmp    r3,r4
-//	@0599	1020	// 0b32    bne    xadr_fail
+//	@0590	cc80	// 0b20    ldcl   tr,0x80
+//	@0591	c1f0	// 0b22    ldbih  r1,((idrgfcpu)>>8)&0xff
+//	@0592	b904	// 0b24    ldbil  r1,(idrgfcpu)&0xff
+//	@0593	c077	// 0b26    ldbih  r0,((0x77ab)>>8)&0xff
+//	@0594	b8ab	// 0b28    ldbil  r0,(0x77ab)&0xff
+//	@0595	77c8	// 0b2a    stwx   r1,r0
+//	@0596	7711	// 0b2c    ldbx   r2,r1
+//	@0597	9901	// 0b2e    addi   r1,1
+//	@0598	7719	// 0b30    ldbx   r3,r1
+//	@0599	78e0	// 0b32    mov    r4,r0
+//	@059a	d8f8	// 0b34    lsfti  r0,-8
+//	@059b	7a90	// 0b36    cmp    r2,r0
+//	@059c	1023	// 0b38    bne    xadr_fail
+//	@059d	8cff	// 0b3a    andi   r4,0xff
+//	@059e	7a9c	// 0b3c    cmp    r3,r4
+//	@059f	1020	// 0b3e    bne    xadr_fail
 //		// ================================
 //		// stbx
-//	@059a	cca3	// 0b34    ldcl   tr,0xa3
-//	@059b	c1f0	// 0b36    ldbih  r1,((idrgromt+1)>>8)&0xff
-//	@059c	b909	// 0b38    ldbil  r1,(idrgromt+1)&0xff
-//	@059d	c091	// 0b3a    ldbih  r0,((0x91df)>>8)&0xff
-//	@059e	b8df	// 0b3c    ldbil  r0,(0x91df)&0xff
-//	@059f	78d0	// 0b3e    mov    r2,r0
-//	@05a0	daf8	// 0b40    lsfti  r2,-8
-//	@05a1	7748	// 0b42    stbx   r1,r0
-//	@05a2	a101	// 0b44    subi   r1,1
-//	@05a3	774a	// 0b46    stbx   r1,r2
-//	@05a4	7799	// 0b48    ldwx   r3,r1
-//	@05a5	7a83	// 0b4a    cmp    r0,r3
-//	@05a6	1013	// 0b4c    bne    xadr_fail
+//	@05a0	cca3	// 0b40    ldcl   tr,0xa3
+//	@05a1	c1f0	// 0b42    ldbih  r1,((idrgromt+1)>>8)&0xff
+//	@05a2	b909	// 0b44    ldbil  r1,(idrgromt+1)&0xff
+//	@05a3	c091	// 0b46    ldbih  r0,((0x91df)>>8)&0xff
+//	@05a4	b8df	// 0b48    ldbil  r0,(0x91df)&0xff
+//	@05a5	78d0	// 0b4a    mov    r2,r0
+//	@05a6	daf8	// 0b4c    lsfti  r2,-8
+//	@05a7	7748	// 0b4e    stbx   r1,r0
+//	@05a8	a101	// 0b50    subi   r1,1
+//	@05a9	774a	// 0b52    stbx   r1,r2
+//	@05aa	7799	// 0b54    ldwx   r3,r1
+//	@05ab	7a83	// 0b56    cmp    r0,r3
+//	@05ac	1013	// 0b58    bne    xadr_fail
 //		// ================================
 //		// ldwx
-//	@05a7	ccc6	// 0b4e    ldcl   tr,0xc6
-//	@05a8	c1f0	// 0b50    ldbih  r1,((idrgrams)>>8)&0xff
-//	@05a9	b90e	// 0b52    ldbil  r1,(idrgrams)&0xff
-//	@05aa	c059	// 0b54    ldbih  r0,((0x5901)>>8)&0xff
-//	@05ab	b801	// 0b56    ldbil  r0,(0x5901)&0xff
-//	@05ac	77c8	// 0b58    stwx   r1,r0
-//	@05ad	7791	// 0b5a    ldwx   r2,r1
-//	@05ae	7a90	// 0b5c    cmp    r2,r0
-//	@05af	100a	// 0b5e    bne    xadr_fail
+//	@05ad	ccc6	// 0b5a    ldcl   tr,0xc6
+//	@05ae	c1f0	// 0b5c    ldbih  r1,((idrgrams)>>8)&0xff
+//	@05af	b90e	// 0b5e    ldbil  r1,(idrgrams)&0xff
+//	@05b0	c059	// 0b60    ldbih  r0,((0x5901)>>8)&0xff
+//	@05b1	b801	// 0b62    ldbil  r0,(0x5901)&0xff
+//	@05b2	77c8	// 0b64    stwx   r1,r0
+//	@05b3	7791	// 0b66    ldwx   r2,r1
+//	@05b4	7a90	// 0b68    cmp    r2,r0
+//	@05b5	100a	// 0b6a    bne    xadr_fail
 //		// ================================
 //		// stwx
-//	@05b0	cce9	// 0b60    ldcl   tr,0xe9
-//	@05b1	c1f0	// 0b62    ldbih  r1,((idrgvers)>>8)&0xff
-//	@05b2	b902	// 0b64    ldbil  r1,(idrgvers)&0xff
-//	@05b3	c0c6	// 0b66    ldbih  r0,((0xc6a1)>>8)&0xff
-//	@05b4	b8a1	// 0b68    ldbil  r0,(0xc6a1)&0xff
-//	@05b5	77c8	// 0b6a    stwx   r1,r0
-//	@05b6	7799	// 0b6c    ldwx   r3,r1
-//	@05b7	7a83	// 0b6e    cmp    r0,r3
-//	@05b8	1001	// 0b70    bne    xadr_fail
+//	@05b6	cce9	// 0b6c    ldcl   tr,0xe9
+//	@05b7	c1f0	// 0b6e    ldbih  r1,((idrgvers)>>8)&0xff
+//	@05b8	b902	// 0b70    ldbil  r1,(idrgvers)&0xff
+//	@05b9	c0c6	// 0b72    ldbih  r0,((0xc6a1)>>8)&0xff
+//	@05ba	b8a1	// 0b74    ldbil  r0,(0xc6a1)&0xff
+//	@05bb	77c8	// 0b76    stwx   r1,r0
+//	@05bc	7799	// 0b78    ldwx   r3,r1
+//	@05bd	7a83	// 0b7a    cmp    r0,r3
+//	@05be	1001	// 0b7c    bne    xadr_fail
 //		// ================================
-//	@05b9	0803	// 0b72    bra    xadr_pass
+//	@05bf	0803	// 0b7e    bra    xadr_pass
 //			// xadr_fail:
-//	@05ba	c70d	// 0b74    ldbih  r7,(lab_tstfail)>>8
-//	@05bb	bf5e	// 0b76    ldbil  r7,(lab_tstfail)&0xff
-//	@05bc	7f87	// 0b78    jmp    r7
+//	@05c0	c70d	// 0b80    ldbih  r7,(lab_tstfail)>>8
+//	@05c1	bf6a	// 0b82    ldbil  r7,(lab_tstfail)&0xff
+//	@05c2	7f87	// 0b84    jmp    r7
 //			// xadr_pass:
 //			// xadr_skip:
 //		// ================================
 //		// hfpu
 //		// ================================
 //		// skip if mcvm_has_hfpu==0
-//	@05bd	b000	// 0b7a    ldbiu  r0,mcvm_has_hfpu
-//	@05be	a800	// 0b7c    cmpi   r0,0
-//	@05bf	18ec	// 0b7e    beq    hfpu_skip
+//	@05c3	b000	// 0b86    ldbiu  r0,mcvm_has_hfpu
+//	@05c4	a800	// 0b88    cmpi   r0,0
+//	@05c5	18ec	// 0b8a    beq    hfpu_skip
 //		// ================================
 //		// half precision
 //		// hldi r0,3.14159 (=3.1415926535)
-//	@05c0	c042	// 0b80    ldbih  r0,((0x4248)>>8)&0xff
-//	@05c1	b848	// 0b82    ldbil  r0,(0x4248)&0xff
-//	@05c2	c142	// 0b84    ldbih  r1,((0x4248)>>8)&0xff
-//	@05c3	b948	// 0b86    ldbil  r1,(0x4248)&0xff
-//	@05c4	7a81	// 0b88    cmp    r0,r1
-//	@05c5	10e3	// 0b8a    bne    hfpu_fail
+//	@05c6	c042	// 0b8c    ldbih  r0,((0x4248)>>8)&0xff
+//	@05c7	b848	// 0b8e    ldbil  r0,(0x4248)&0xff
+//	@05c8	c142	// 0b90    ldbih  r1,((0x4248)>>8)&0xff
+//	@05c9	b948	// 0b92    ldbil  r1,(0x4248)&0xff
+//	@05ca	7a81	// 0b94    cmp    r0,r1
+//	@05cb	10e3	// 0b96    bne    hfpu_fail
 //		// ================================
 //		// hadd
 //		// hldi r0,102.188 (=102.188)
-//	@05c6	c056	// 0b8c    ldbih  r0,((0x5663)>>8)&0xff
-//	@05c7	b863	// 0b8e    ldbil  r0,(0x5663)&0xff
+//	@05cc	c056	// 0b98    ldbih  r0,((0x5663)>>8)&0xff
+//	@05cd	b863	// 0b9a    ldbil  r0,(0x5663)&0xff
 //		// hldi r1,57760 (=57760)
-//	@05c8	c17b	// 0b90    ldbih  r1,((0x7b0d)>>8)&0xff
-//	@05c9	b90d	// 0b92    ldbil  r1,(0x7b0d)&0xff
-//	@05ca	7001	// 0b94    hadd   r0,r1
+//	@05ce	c17b	// 0b9c    ldbih  r1,((0x7b0d)>>8)&0xff
+//	@05cf	b90d	// 0b9e    ldbil  r1,(0x7b0d)&0xff
+//	@05d0	7001	// 0ba0    hadd   r0,r1
 //		// hldi r7,57862.2 (=57760+102.188)
-//	@05cb	c77b	// 0b96    ldbih  r7,((0x7b10)>>8)&0xff
-//	@05cc	bf10	// 0b98    ldbil  r7,(0x7b10)&0xff
-//	@05cd	7a87	// 0b9a    cmp    r0,r7
-//	@05ce	10da	// 0b9c    bne    hfpu_fail
-//	@05cf	c2fc	// 0b9e    ldbih  r2,((half_inf_n)>>8)&0xff
-//	@05d0	ba00	// 0ba0    ldbil  r2,(half_inf_n)&0xff
-//	@05d1	c37b	// 0ba2    ldbih  r3,((half_max)>>8)&0xff
-//	@05d2	bbff	// 0ba4    ldbil  r3,(half_max)&0xff
-//	@05d3	7013	// 0ba6    hadd   r2,r3
-//	@05d4	c7fc	// 0ba8    ldbih  r7,((half_inf_n)>>8)&0xff
-//	@05d5	bf00	// 0baa    ldbil  r7,(half_inf_n)&0xff
-//	@05d6	7a97	// 0bac    cmp    r2,r7
-//	@05d7	10d1	// 0bae    bne    hfpu_fail
+//	@05d1	c77b	// 0ba2    ldbih  r7,((0x7b10)>>8)&0xff
+//	@05d2	bf10	// 0ba4    ldbil  r7,(0x7b10)&0xff
+//	@05d3	7a87	// 0ba6    cmp    r0,r7
+//	@05d4	10da	// 0ba8    bne    hfpu_fail
+//	@05d5	c2fc	// 0baa    ldbih  r2,((half_inf_n)>>8)&0xff
+//	@05d6	ba00	// 0bac    ldbil  r2,(half_inf_n)&0xff
+//	@05d7	c37b	// 0bae    ldbih  r3,((half_max)>>8)&0xff
+//	@05d8	bbff	// 0bb0    ldbil  r3,(half_max)&0xff
+//	@05d9	7013	// 0bb2    hadd   r2,r3
+//	@05da	c7fc	// 0bb4    ldbih  r7,((half_inf_n)>>8)&0xff
+//	@05db	bf00	// 0bb6    ldbil  r7,(half_inf_n)&0xff
+//	@05dc	7a97	// 0bb8    cmp    r2,r7
+//	@05dd	10d1	// 0bba    bne    hfpu_fail
 //		// ================================
 //		// hsub
 //		// hldi r4,12.3 (=12.3)
-//	@05d8	c44a	// 0bb0    ldbih  r4,((0x4a26)>>8)&0xff
-//	@05d9	bc26	// 0bb2    ldbil  r4,(0x4a26)&0xff
+//	@05de	c44a	// 0bbc    ldbih  r4,((0x4a26)>>8)&0xff
+//	@05df	bc26	// 0bbe    ldbil  r4,(0x4a26)&0xff
 //		// hldi r5,34.5 (=34.5)
-//	@05da	c550	// 0bb4    ldbih  r5,((0x5050)>>8)&0xff
-//	@05db	bd50	// 0bb6    ldbil  r5,(0x5050)&0xff
-//	@05dc	7065	// 0bb8    hsub   r4,r5
+//	@05e0	c550	// 0bc0    ldbih  r5,((0x5050)>>8)&0xff
+//	@05e1	bd50	// 0bc2    ldbil  r5,(0x5050)&0xff
+//	@05e2	7065	// 0bc4    hsub   r4,r5
 //		// hldi r7,-22.2 (=12.3-34.5)
-//	@05dd	c7cd	// 0bba    ldbih  r7,((0xcd8c)>>8)&0xff
-//	@05de	bf8c	// 0bbc    ldbil  r7,(0xcd8c)&0xff
-//	@05df	9f01	// 0bbe    addi   r7,1
-//	@05e0	7aa7	// 0bc0    cmp    r4,r7
-//	@05e1	10c7	// 0bc2    bne    hfpu_fail
-//	@05e2	c6fc	// 0bc4    ldbih  r6,((half_inf_n)>>8)&0xff
-//	@05e3	be00	// 0bc6    ldbil  r6,(half_inf_n)&0xff
-//	@05e4	c7fc	// 0bc8    ldbih  r7,((half_inf_n)>>8)&0xff
-//	@05e5	bf00	// 0bca    ldbil  r7,(half_inf_n)&0xff
-//	@05e6	7077	// 0bcc    hsub   r6,r7
-//	@05e7	c0fe	// 0bce    ldbih  r0,((half_nan)>>8)&0xff
-//	@05e8	b800	// 0bd0    ldbil  r0,(half_nan)&0xff
-//	@05e9	7ab0	// 0bd2    cmp    r6,r0
-//	@05ea	10be	// 0bd4    bne    hfpu_fail
+//	@05e3	c7cd	// 0bc6    ldbih  r7,((0xcd8c)>>8)&0xff
+//	@05e4	bf8c	// 0bc8    ldbil  r7,(0xcd8c)&0xff
+//	@05e5	9f01	// 0bca    addi   r7,1
+//	@05e6	7aa7	// 0bcc    cmp    r4,r7
+//	@05e7	10c7	// 0bce    bne    hfpu_fail
+//	@05e8	c6fc	// 0bd0    ldbih  r6,((half_inf_n)>>8)&0xff
+//	@05e9	be00	// 0bd2    ldbil  r6,(half_inf_n)&0xff
+//	@05ea	c7fc	// 0bd4    ldbih  r7,((half_inf_n)>>8)&0xff
+//	@05eb	bf00	// 0bd6    ldbil  r7,(half_inf_n)&0xff
+//	@05ec	7077	// 0bd8    hsub   r6,r7
+//	@05ed	c0fe	// 0bda    ldbih  r0,((half_nan)>>8)&0xff
+//	@05ee	b800	// 0bdc    ldbil  r0,(half_nan)&0xff
+//	@05ef	7ab0	// 0bde    cmp    r6,r0
+//	@05f0	10be	// 0be0    bne    hfpu_fail
 //		// ================================
 //		// hmul
 //		// hldi r1,-3.14 (=-3.14)
-//	@05eb	c1c2	// 0bd6    ldbih  r1,((0xc247)>>8)&0xff
-//	@05ec	b947	// 0bd8    ldbil  r1,(0xc247)&0xff
+//	@05f1	c1c2	// 0be2    ldbih  r1,((0xc247)>>8)&0xff
+//	@05f2	b947	// 0be4    ldbil  r1,(0xc247)&0xff
 //		// hldi r2,2.5 (=2.5)
-//	@05ed	c241	// 0bda    ldbih  r2,((0x4100)>>8)&0xff
-//	@05ee	ba00	// 0bdc    ldbil  r2,(0x4100)&0xff
-//	@05ef	708a	// 0bde    hmul   r1,r2
+//	@05f3	c241	// 0be6    ldbih  r2,((0x4100)>>8)&0xff
+//	@05f4	ba00	// 0be8    ldbil  r2,(0x4100)&0xff
+//	@05f5	708a	// 0bea    hmul   r1,r2
 //		// hldi r3,-7.85 (=-3.14*2.5)
-//	@05f0	c3c7	// 0be0    ldbih  r3,((0xc7d9)>>8)&0xff
-//	@05f1	bbd9	// 0be2    ldbil  r3,(0xc7d9)&0xff
-//	@05f2	a301	// 0be4    subi   r3,1
-//	@05f3	7a8b	// 0be6    cmp    r1,r3
-//	@05f4	10b4	// 0be8    bne    hfpu_fail
+//	@05f6	c3c7	// 0bec    ldbih  r3,((0xc7d9)>>8)&0xff
+//	@05f7	bbd9	// 0bee    ldbil  r3,(0xc7d9)&0xff
+//	@05f8	a301	// 0bf0    subi   r3,1
+//	@05f9	7a8b	// 0bf2    cmp    r1,r3
+//	@05fa	10b4	// 0bf4    bne    hfpu_fail
 //		// hldi r3,-2.34 (=-2.34)
-//	@05f5	c3c0	// 0bea    ldbih  r3,((0xc0ae)>>8)&0xff
-//	@05f6	bbae	// 0bec    ldbil  r3,(0xc0ae)&0xff
+//	@05fb	c3c0	// 0bf6    ldbih  r3,((0xc0ae)>>8)&0xff
+//	@05fc	bbae	// 0bf8    ldbil  r3,(0xc0ae)&0xff
 //		// hldi r4,0 (=0)
-//	@05f7	c400	// 0bee    ldbih  r4,((0x0000)>>8)&0xff
-//	@05f8	bc00	// 0bf0    ldbil  r4,(0x0000)&0xff
-//	@05f9	709c	// 0bf2    hmul   r3,r4
-//	@05fa	c580	// 0bf4    ldbih  r5,((half_zer_n)>>8)&0xff
-//	@05fb	bd00	// 0bf6    ldbil  r5,(half_zer_n)&0xff
-//	@05fc	7a9d	// 0bf8    cmp    r3,r5
-//	@05fd	10ab	// 0bfa    bne    hfpu_fail
+//	@05fd	c400	// 0bfa    ldbih  r4,((0x0000)>>8)&0xff
+//	@05fe	bc00	// 0bfc    ldbil  r4,(0x0000)&0xff
+//	@05ff	709c	// 0bfe    hmul   r3,r4
+//	@0600	c580	// 0c00    ldbih  r5,((half_zer_n)>>8)&0xff
+//	@0601	bd00	// 0c02    ldbil  r5,(half_zer_n)&0xff
+//	@0602	7a9d	// 0c04    cmp    r3,r5
+//	@0603	10ab	// 0c06    bne    hfpu_fail
 //		// ================================
 //		// hdiv
 //		// hldi r5,10 (=10)
-//	@05fe	c549	// 0bfc    ldbih  r5,((0x4900)>>8)&0xff
-//	@05ff	bd00	// 0bfe    ldbil  r5,(0x4900)&0xff
+//	@0604	c549	// 0c08    ldbih  r5,((0x4900)>>8)&0xff
+//	@0605	bd00	// 0c0a    ldbil  r5,(0x4900)&0xff
 //		// hldi r6,3 (=3)
-//	@0600	c642	// 0c00    ldbih  r6,((0x4200)>>8)&0xff
-//	@0601	be00	// 0c02    ldbil  r6,(0x4200)&0xff
-//	@0602	70ee	// 0c04    hdiv   r5,r6
+//	@0606	c642	// 0c0c    ldbih  r6,((0x4200)>>8)&0xff
+//	@0607	be00	// 0c0e    ldbil  r6,(0x4200)&0xff
+//	@0608	70ee	// 0c10    hdiv   r5,r6
 //		// hldi r7,3.33333 (=10/3)
-//	@0603	c742	// 0c06    ldbih  r7,((0x42aa)>>8)&0xff
-//	@0604	bfaa	// 0c08    ldbil  r7,(0x42aa)&0xff
-//	@0605	7aaf	// 0c0a    cmp    r5,r7
-//	@0606	10a2	// 0c0c    bne    hfpu_fail
+//	@0609	c742	// 0c12    ldbih  r7,((0x42aa)>>8)&0xff
+//	@060a	bfaa	// 0c14    ldbil  r7,(0x42aa)&0xff
+//	@060b	7aaf	// 0c16    cmp    r5,r7
+//	@060c	10a2	// 0c18    bne    hfpu_fail
 //		// hldi r1,-5.67 (=-5.67)
-//	@0607	c1c5	// 0c0e    ldbih  r1,((0xc5ab)>>8)&0xff
-//	@0608	b9ab	// 0c10    ldbil  r1,(0xc5ab)&0xff
-//	@0609	c080	// 0c12    ldbih  r0,((half_zer_n)>>8)&0xff
-//	@060a	b800	// 0c14    ldbil  r0,(half_zer_n)&0xff
-//	@060b	70c8	// 0c16    hdiv   r1,r0
-//	@060c	c27c	// 0c18    ldbih  r2,((half_inf)>>8)&0xff
-//	@060d	ba00	// 0c1a    ldbil  r2,(half_inf)&0xff
-//	@060e	7a8a	// 0c1c    cmp    r1,r2
-//	@060f	1099	// 0c1e    bne    hfpu_fail
+//	@060d	c1c5	// 0c1a    ldbih  r1,((0xc5ab)>>8)&0xff
+//	@060e	b9ab	// 0c1c    ldbil  r1,(0xc5ab)&0xff
+//	@060f	c080	// 0c1e    ldbih  r0,((half_zer_n)>>8)&0xff
+//	@0610	b800	// 0c20    ldbil  r0,(half_zer_n)&0xff
+//	@0611	70c8	// 0c22    hdiv   r1,r0
+//	@0612	c27c	// 0c24    ldbih  r2,((half_inf)>>8)&0xff
+//	@0613	ba00	// 0c26    ldbil  r2,(half_inf)&0xff
+//	@0614	7a8a	// 0c28    cmp    r1,r2
+//	@0615	1099	// 0c2a    bne    hfpu_fail
 //		// ================================
 //		// hneg
 //		// hldi r2,1234 (=1234)
-//	@0610	c264	// 0c20    ldbih  r2,((0x64d2)>>8)&0xff
-//	@0611	bad2	// 0c22    ldbil  r2,(0x64d2)&0xff
-//	@0612	711a	// 0c24    hneg   r3,r2
+//	@0616	c264	// 0c2c    ldbih  r2,((0x64d2)>>8)&0xff
+//	@0617	bad2	// 0c2e    ldbil  r2,(0x64d2)&0xff
+//	@0618	711a	// 0c30    hneg   r3,r2
 //		// hldi r4,-1234 (=-1234)
-//	@0613	c4e4	// 0c26    ldbih  r4,((0xe4d2)>>8)&0xff
-//	@0614	bcd2	// 0c28    ldbil  r4,(0xe4d2)&0xff
-//	@0615	7a9c	// 0c2a    cmp    r3,r4
-//	@0616	1092	// 0c2c    bne    hfpu_fail
-//	@0617	c4fe	// 0c2e    ldbih  r4,((half_nan)>>8)&0xff
-//	@0618	bc00	// 0c30    ldbil  r4,(half_nan)&0xff
-//	@0619	712c	// 0c32    hneg   r5,r4
-//	@061a	c6fe	// 0c34    ldbih  r6,((half_nan)>>8)&0xff
-//	@061b	be00	// 0c36    ldbil  r6,(half_nan)&0xff
-//	@061c	7aae	// 0c38    cmp    r5,r6
-//	@061d	108b	// 0c3a    bne    hfpu_fail
+//	@0619	c4e4	// 0c32    ldbih  r4,((0xe4d2)>>8)&0xff
+//	@061a	bcd2	// 0c34    ldbil  r4,(0xe4d2)&0xff
+//	@061b	7a9c	// 0c36    cmp    r3,r4
+//	@061c	1092	// 0c38    bne    hfpu_fail
+//	@061d	c4fe	// 0c3a    ldbih  r4,((half_nan)>>8)&0xff
+//	@061e	bc00	// 0c3c    ldbil  r4,(half_nan)&0xff
+//	@061f	712c	// 0c3e    hneg   r5,r4
+//	@0620	c6fe	// 0c40    ldbih  r6,((half_nan)>>8)&0xff
+//	@0621	be00	// 0c42    ldbil  r6,(half_nan)&0xff
+//	@0622	7aae	// 0c44    cmp    r5,r6
+//	@0623	108b	// 0c46    bne    hfpu_fail
 //		// ================================
 //		// hhalf
-//	@061e	c704	// 0c3c    ldbih  r7,((1234)>>8)&0xff
-//	@061f	bfd2	// 0c3e    ldbil  r7,(1234)&0xff
-//	@0620	7177	// 0c40    hhalf  r6,r7
+//	@0624	c704	// 0c48    ldbih  r7,((1234)>>8)&0xff
+//	@0625	bfd2	// 0c4a    ldbil  r7,(1234)&0xff
+//	@0626	7177	// 0c4c    hhalf  r6,r7
 //		// hldi r0,1234 (=1234)
-//	@0621	c064	// 0c42    ldbih  r0,((0x64d2)>>8)&0xff
-//	@0622	b8d2	// 0c44    ldbil  r0,(0x64d2)&0xff
-//	@0623	7ab0	// 0c46    cmp    r6,r0
-//	@0624	1084	// 0c48    bne    hfpu_fail
-//	@0625	c1ff	// 0c4a    ldbih  r1,((0xffff)>>8)&0xff
-//	@0626	b9ff	// 0c4c    ldbil  r1,(0xffff)&0xff
-//	@0627	7159	// 0c4e    hhalf  r3,r1
-//	@0628	c47b	// 0c50    ldbih  r4,((half_max)>>8)&0xff
-//	@0629	bcff	// 0c52    ldbil  r4,(half_max)&0xff
-//	@062a	7a9c	// 0c54    cmp    r3,r4
-//	@062b	107d	// 0c56    bne    hfpu_fail
+//	@0627	c064	// 0c4e    ldbih  r0,((0x64d2)>>8)&0xff
+//	@0628	b8d2	// 0c50    ldbil  r0,(0x64d2)&0xff
+//	@0629	7ab0	// 0c52    cmp    r6,r0
+//	@062a	1084	// 0c54    bne    hfpu_fail
+//	@062b	c1ff	// 0c56    ldbih  r1,((0xffff)>>8)&0xff
+//	@062c	b9ff	// 0c58    ldbil  r1,(0xffff)&0xff
+//	@062d	7159	// 0c5a    hhalf  r3,r1
+//	@062e	c47b	// 0c5c    ldbih  r4,((half_max)>>8)&0xff
+//	@062f	bcff	// 0c5e    ldbil  r4,(half_max)&0xff
+//	@0630	7a9c	// 0c60    cmp    r3,r4
+//	@0631	107d	// 0c62    bne    hfpu_fail
 //		// ================================
 //		// huint
 //		// hldi r5,123 (=123)
-//	@062c	c557	// 0c58    ldbih  r5,((0x57b0)>>8)&0xff
-//	@062d	bdb0	// 0c5a    ldbil  r5,(0x57b0)&0xff
-//	@062e	71bd	// 0c5c    huint  r7,r5
-//	@062f	c000	// 0c5e    ldbih  r0,((123)>>8)&0xff
-//	@0630	b87b	// 0c60    ldbil  r0,(123)&0xff
-//	@0631	7ab8	// 0c62    cmp    r7,r0
-//	@0632	1076	// 0c64    bne    hfpu_fail
+//	@0632	c557	// 0c64    ldbih  r5,((0x57b0)>>8)&0xff
+//	@0633	bdb0	// 0c66    ldbil  r5,(0x57b0)&0xff
+//	@0634	71bd	// 0c68    huint  r7,r5
+//	@0635	c000	// 0c6a    ldbih  r0,((123)>>8)&0xff
+//	@0636	b87b	// 0c6c    ldbil  r0,(123)&0xff
+//	@0637	7ab8	// 0c6e    cmp    r7,r0
+//	@0638	1076	// 0c70    bne    hfpu_fail
 //		// hldi r2,-4560 (=-4560)
-//	@0633	c2ec	// 0c66    ldbih  r2,((0xec74)>>8)&0xff
-//	@0634	ba74	// 0c68    ldbil  r2,(0xec74)&0xff
-//	@0635	71a2	// 0c6a    huint  r4,r2
-//	@0636	c311	// 0c6c    ldbih  r3,((4560)>>8)&0xff
-//	@0637	bbd0	// 0c6e    ldbil  r3,(4560)&0xff
-//	@0638	7a9c	// 0c70    cmp    r3,r4
-//	@0639	106f	// 0c72    bne    hfpu_fail
+//	@0639	c2ec	// 0c72    ldbih  r2,((0xec74)>>8)&0xff
+//	@063a	ba74	// 0c74    ldbil  r2,(0xec74)&0xff
+//	@063b	71a2	// 0c76    huint  r4,r2
+//	@063c	c311	// 0c78    ldbih  r3,((4560)>>8)&0xff
+//	@063d	bbd0	// 0c7a    ldbil  r3,(4560)&0xff
+//	@063e	7a9c	// 0c7c    cmp    r3,r4
+//	@063f	106f	// 0c7e    bne    hfpu_fail
 //		// ================================
 //		// hfrac
 //		// hldi r6,0.0123 (=0.0123)
-//	@063a	c622	// 0c74    ldbih  r6,((0x224c)>>8)&0xff
-//	@063b	be4c	// 0c76    ldbil  r6,(0x224c)&0xff
-//	@063c	71c6	// 0c78    hfrac  r0,r6
-//	@063d	c703	// 0c7a    ldbih  r7,((806)>>8)&0xff
-//	@063e	bf26	// 0c7c    ldbil  r7,(806)&0xff
-//	@063f	7a87	// 0c7e    cmp    r0,r7
-//	@0640	1068	// 0c80    bne    hfpu_fail
+//	@0640	c622	// 0c80    ldbih  r6,((0x224c)>>8)&0xff
+//	@0641	be4c	// 0c82    ldbil  r6,(0x224c)&0xff
+//	@0642	71c6	// 0c84    hfrac  r0,r6
+//	@0643	c703	// 0c86    ldbih  r7,((806)>>8)&0xff
+//	@0644	bf26	// 0c88    ldbil  r7,(806)&0xff
+//	@0645	7a87	// 0c8a    cmp    r0,r7
+//	@0646	1068	// 0c8c    bne    hfpu_fail
 //		// hldi r0,-3.33333 (=-10/3)
-//	@0641	c0c2	// 0c82    ldbih  r0,((0xc2aa)>>8)&0xff
-//	@0642	b8aa	// 0c84    ldbil  r0,(0xc2aa)&0xff
-//	@0643	71c8	// 0c86    hfrac  r1,r0
-//	@0644	c255	// 0c88    ldbih  r2,((0x5500)>>8)&0xff
-//	@0645	ba00	// 0c8a    ldbil  r2,(0x5500)&0xff
-//	@0646	7a8a	// 0c8c    cmp    r1,r2
-//	@0647	1061	// 0c8e    bne    hfpu_fail
+//	@0647	c0c2	// 0c8e    ldbih  r0,((0xc2aa)>>8)&0xff
+//	@0648	b8aa	// 0c90    ldbil  r0,(0xc2aa)&0xff
+//	@0649	71c8	// 0c92    hfrac  r1,r0
+//	@064a	c255	// 0c94    ldbih  r2,((0x5500)>>8)&0xff
+//	@064b	ba00	// 0c96    ldbil  r2,(0x5500)&0xff
+//	@064c	7a8a	// 0c98    cmp    r1,r2
+//	@064d	1061	// 0c9a    bne    hfpu_fail
 //		// ================================
 //		// hmvsg
 //		// hldi r2,65.4 (=65.4)
-//	@0648	c254	// 0c90    ldbih  r2,((0x5416)>>8)&0xff
-//	@0649	ba16	// 0c92    ldbil  r2,(0x5416)&0xff
+//	@064e	c254	// 0c9c    ldbih  r2,((0x5416)>>8)&0xff
+//	@064f	ba16	// 0c9e    ldbil  r2,(0x5416)&0xff
 //		// hldi r3,11.1 (=11.1)
-//	@064a	c349	// 0c94    ldbih  r3,((0x498c)>>8)&0xff
-//	@064b	bb8c	// 0c96    ldbil  r3,(0x498c)&0xff
-//	@064c	7213	// 0c98    hmvsg  r2,r3
+//	@0650	c349	// 0ca0    ldbih  r3,((0x498c)>>8)&0xff
+//	@0651	bb8c	// 0ca2    ldbil  r3,(0x498c)&0xff
+//	@0652	7213	// 0ca4    hmvsg  r2,r3
 //		// hldi r4,65.4 (=65.4)
-//	@064d	c454	// 0c9a    ldbih  r4,((0x5416)>>8)&0xff
-//	@064e	bc16	// 0c9c    ldbil  r4,(0x5416)&0xff
-//	@064f	7a94	// 0c9e    cmp    r2,r4
-//	@0650	1058	// 0ca0    bne    hfpu_fail
+//	@0653	c454	// 0ca6    ldbih  r4,((0x5416)>>8)&0xff
+//	@0654	bc16	// 0ca8    ldbil  r4,(0x5416)&0xff
+//	@0655	7a94	// 0caa    cmp    r2,r4
+//	@0656	1058	// 0cac    bne    hfpu_fail
 //		// hldi r5,-76.5 (=-76.5)
-//	@0651	c5d4	// 0ca2    ldbih  r5,((0xd4c8)>>8)&0xff
-//	@0652	bdc8	// 0ca4    ldbil  r5,(0xd4c8)&0xff
+//	@0657	c5d4	// 0cae    ldbih  r5,((0xd4c8)>>8)&0xff
+//	@0658	bdc8	// 0cb0    ldbil  r5,(0xd4c8)&0xff
 //		// hldi r6,22.2 (=22.2)
-//	@0653	c64d	// 0ca6    ldbih  r6,((0x4d8c)>>8)&0xff
-//	@0654	be8c	// 0ca8    ldbil  r6,(0x4d8c)&0xff
-//	@0655	722e	// 0caa    hmvsg  r5,r6
+//	@0659	c64d	// 0cb2    ldbih  r6,((0x4d8c)>>8)&0xff
+//	@065a	be8c	// 0cb4    ldbil  r6,(0x4d8c)&0xff
+//	@065b	722e	// 0cb6    hmvsg  r5,r6
 //		// hldi r7,76.5 (=76.5)
-//	@0656	c754	// 0cac    ldbih  r7,((0x54c8)>>8)&0xff
-//	@0657	bfc8	// 0cae    ldbil  r7,(0x54c8)&0xff
-//	@0658	7aaf	// 0cb0    cmp    r5,r7
-//	@0659	104f	// 0cb2    bne    hfpu_fail
+//	@065c	c754	// 0cb8    ldbih  r7,((0x54c8)>>8)&0xff
+//	@065d	bfc8	// 0cba    ldbil  r7,(0x54c8)&0xff
+//	@065e	7aaf	// 0cbc    cmp    r5,r7
+//	@065f	104f	// 0cbe    bne    hfpu_fail
 //		// ================================
 //		// hsat
 //		// hldi r0,12345 (=12345)
-//	@065a	c072	// 0cb4    ldbih  r0,((0x7207)>>8)&0xff
-//	@065b	b807	// 0cb6    ldbil  r0,(0x7207)&0xff
-//	@065c	7248	// 0cb8    hsat   r1,r0
+//	@0660	c072	// 0cc0    ldbih  r0,((0x7207)>>8)&0xff
+//	@0661	b807	// 0cc2    ldbil  r0,(0x7207)&0xff
+//	@0662	7248	// 0cc4    hsat   r1,r0
 //		// hldi r2,12345 (=12345)
-//	@065d	c272	// 0cba    ldbih  r2,((0x7207)>>8)&0xff
-//	@065e	ba07	// 0cbc    ldbil  r2,(0x7207)&0xff
-//	@065f	7a8a	// 0cbe    cmp    r1,r2
-//	@0660	1048	// 0cc0    bne    hfpu_fail
-//	@0661	c3fc	// 0cc2    ldbih  r3,((half_inf_n)>>8)&0xff
-//	@0662	bb00	// 0cc4    ldbil  r3,(half_inf_n)&0xff
-//	@0663	7263	// 0cc6    hsat   r4,r3
-//	@0664	c5fb	// 0cc8    ldbih  r5,((half_max_n)>>8)&0xff
-//	@0665	bdff	// 0cca    ldbil  r5,(half_max_n)&0xff
-//	@0666	7aa5	// 0ccc    cmp    r4,r5
-//	@0667	1041	// 0cce    bne    hfpu_fail
-//	@0668	c680	// 0cd0    ldbih  r6,((half_zer_n)>>8)&0xff
-//	@0669	be00	// 0cd2    ldbil  r6,(half_zer_n)&0xff
-//	@066a	727e	// 0cd4    hsat   r7,r6
-//	@066b	c000	// 0cd6    ldbih  r0,((half_zer)>>8)&0xff
-//	@066c	b800	// 0cd8    ldbil  r0,(half_zer)&0xff
-//	@066d	7ab8	// 0cda    cmp    r7,r0
-//	@066e	103a	// 0cdc    bne    hfpu_fail
+//	@0663	c272	// 0cc6    ldbih  r2,((0x7207)>>8)&0xff
+//	@0664	ba07	// 0cc8    ldbil  r2,(0x7207)&0xff
+//	@0665	7a8a	// 0cca    cmp    r1,r2
+//	@0666	1048	// 0ccc    bne    hfpu_fail
+//	@0667	c3fc	// 0cce    ldbih  r3,((half_inf_n)>>8)&0xff
+//	@0668	bb00	// 0cd0    ldbil  r3,(half_inf_n)&0xff
+//	@0669	7263	// 0cd2    hsat   r4,r3
+//	@066a	c5fb	// 0cd4    ldbih  r5,((half_max_n)>>8)&0xff
+//	@066b	bdff	// 0cd6    ldbil  r5,(half_max_n)&0xff
+//	@066c	7aa5	// 0cd8    cmp    r4,r5
+//	@066d	1041	// 0cda    bne    hfpu_fail
+//	@066e	c680	// 0cdc    ldbih  r6,((half_zer_n)>>8)&0xff
+//	@066f	be00	// 0cde    ldbil  r6,(half_zer_n)&0xff
+//	@0670	727e	// 0ce0    hsat   r7,r6
+//	@0671	c000	// 0ce2    ldbih  r0,((half_zer)>>8)&0xff
+//	@0672	b800	// 0ce4    ldbil  r0,(half_zer)&0xff
+//	@0673	7ab8	// 0ce6    cmp    r7,r0
+//	@0674	103a	// 0ce8    bne    hfpu_fail
 //		// ================================
 //		// hcmp
 //		// hldi r0,0.45 (=0.45)
-//	@066f	c037	// 0cde    ldbih  r0,((0x3733)>>8)&0xff
-//	@0670	b833	// 0ce0    ldbil  r0,(0x3733)&0xff
+//	@0675	c037	// 0cea    ldbih  r0,((0x3733)>>8)&0xff
+//	@0676	b833	// 0cec    ldbil  r0,(0x3733)&0xff
 //		// hldi r1,1.23 (=1.23)
-//	@0671	c13c	// 0ce2    ldbih  r1,((0x3ceb)>>8)&0xff
-//	@0672	b9eb	// 0ce4    ldbil  r1,(0x3ceb)&0xff
-//	@0673	78e0	// 0ce6    mov    r4,r0
-//	@0674	78e9	// 0ce8    mov    r5,r1
-//	@0675	7281	// 0cea    hcmp   r0,r1
-//	@0676	7950	// 0cec    movfc  r2,sr
-//	@0677	8af0	// 0cee    andi   r2,sreg_fg
-//	@0678	aa80	// 0cf0    cmpi   r2,sreg_nf
-//	@0679	102f	// 0cf2    bne    hfpu_fail
-//	@067a	7a84	// 0cf4    cmp    r0,r4
-//	@067b	102d	// 0cf6    bne    hfpu_fail
-//	@067c	7a8d	// 0cf8    cmp    r1,r5
-//	@067d	102b	// 0cfa    bne    hfpu_fail
-//	@067e	c0fe	// 0cfc    ldbih  r0,((half_nan)>>8)&0xff
-//	@067f	b800	// 0cfe    ldbil  r0,(half_nan)&0xff
-//	@0680	7280	// 0d00    hcmp   r0,r0
-//	@0681	7950	// 0d02    movfc  r2,sr
-//	@0682	8af0	// 0d04    andi   r2,sreg_fg
-//	@0683	aae0	// 0d06    cmpi   r2,sreg_nf|sreg_cf|sreg_vf
-//	@0684	c07c	// 0d08    ldbih  r0,((half_inf)>>8)&0xff
-//	@0685	b800	// 0d0a    ldbil  r0,(half_inf)&0xff
-//	@0686	c142	// 0d0c    ldbih  r1,((half_mpi)>>8)&0xff
-//	@0687	b948	// 0d0e    ldbil  r1,(half_mpi)&0xff
-//	@0688	7288	// 0d10    hcmp   r1,r0
-//	@0689	7950	// 0d12    movfc  r2,sr
-//	@068a	8af0	// 0d14    andi   r2,sreg_fg
-//	@068b	aa80	// 0d16    cmpi   r2,sreg_nf
-//	@068c	c080	// 0d18    ldbih  r0,((half_zer_n)>>8)&0xff
-//	@068d	b800	// 0d1a    ldbil  r0,(half_zer_n)&0xff
-//	@068e	c180	// 0d1c    ldbih  r1,((half_zer_n)>>8)&0xff
-//	@068f	b900	// 0d1e    ldbil  r1,(half_zer_n)&0xff
-//	@0690	7281	// 0d20    hcmp   r0,r1
-//	@0691	7950	// 0d22    movfc  r2,sr
-//	@0692	8af0	// 0d24    andi   r2,sreg_fg
-//	@0693	aa50	// 0d26    cmpi   r2,sreg_cf|sreg_zf
-//	@0694	1014	// 0d28    bne    hfpu_fail
+//	@0677	c13c	// 0cee    ldbih  r1,((0x3ceb)>>8)&0xff
+//	@0678	b9eb	// 0cf0    ldbil  r1,(0x3ceb)&0xff
+//	@0679	78e0	// 0cf2    mov    r4,r0
+//	@067a	78e9	// 0cf4    mov    r5,r1
+//	@067b	7281	// 0cf6    hcmp   r0,r1
+//	@067c	7950	// 0cf8    movfc  r2,sr
+//	@067d	8af0	// 0cfa    andi   r2,sreg_fg
+//	@067e	aa80	// 0cfc    cmpi   r2,sreg_nf
+//	@067f	102f	// 0cfe    bne    hfpu_fail
+//	@0680	7a84	// 0d00    cmp    r0,r4
+//	@0681	102d	// 0d02    bne    hfpu_fail
+//	@0682	7a8d	// 0d04    cmp    r1,r5
+//	@0683	102b	// 0d06    bne    hfpu_fail
+//	@0684	c0fe	// 0d08    ldbih  r0,((half_nan)>>8)&0xff
+//	@0685	b800	// 0d0a    ldbil  r0,(half_nan)&0xff
+//	@0686	7280	// 0d0c    hcmp   r0,r0
+//	@0687	7950	// 0d0e    movfc  r2,sr
+//	@0688	8af0	// 0d10    andi   r2,sreg_fg
+//	@0689	aae0	// 0d12    cmpi   r2,sreg_nf|sreg_cf|sreg_vf
+//	@068a	c07c	// 0d14    ldbih  r0,((half_inf)>>8)&0xff
+//	@068b	b800	// 0d16    ldbil  r0,(half_inf)&0xff
+//	@068c	c142	// 0d18    ldbih  r1,((half_mpi)>>8)&0xff
+//	@068d	b948	// 0d1a    ldbil  r1,(half_mpi)&0xff
+//	@068e	7288	// 0d1c    hcmp   r1,r0
+//	@068f	7950	// 0d1e    movfc  r2,sr
+//	@0690	8af0	// 0d20    andi   r2,sreg_fg
+//	@0691	aa80	// 0d22    cmpi   r2,sreg_nf
+//	@0692	c080	// 0d24    ldbih  r0,((half_zer_n)>>8)&0xff
+//	@0693	b800	// 0d26    ldbil  r0,(half_zer_n)&0xff
+//	@0694	c180	// 0d28    ldbih  r1,((half_zer_n)>>8)&0xff
+//	@0695	b900	// 0d2a    ldbil  r1,(half_zer_n)&0xff
+//	@0696	7281	// 0d2c    hcmp   r0,r1
+//	@0697	7950	// 0d2e    movfc  r2,sr
+//	@0698	8af0	// 0d30    andi   r2,sreg_fg
+//	@0699	aa50	// 0d32    cmpi   r2,sreg_cf|sreg_zf
+//	@069a	1014	// 0d34    bne    hfpu_fail
 //		// ================================
 //		// htrunc
 //		// hldi r0,12.34 (=12.34)
-//	@0695	c04a	// 0d2a    ldbih  r0,((0x4a2b)>>8)&0xff
-//	@0696	b82b	// 0d2c    ldbil  r0,(0x4a2b)&0xff
-//	@0697	72c8	// 0d2e    htrunc r1,r0
+//	@069b	c04a	// 0d36    ldbih  r0,((0x4a2b)>>8)&0xff
+//	@069c	b82b	// 0d38    ldbil  r0,(0x4a2b)&0xff
+//	@069d	72c8	// 0d3a    htrunc r1,r0
 //		// hldi r2,12 (=12)
-//	@0698	c24a	// 0d30    ldbih  r2,((0x4a00)>>8)&0xff
-//	@0699	ba00	// 0d32    ldbil  r2,(0x4a00)&0xff
-//	@069a	7a8a	// 0d34    cmp    r1,r2
-//	@069b	100d	// 0d36    bne    hfpu_fail
+//	@069e	c24a	// 0d3c    ldbih  r2,((0x4a00)>>8)&0xff
+//	@069f	ba00	// 0d3e    ldbil  r2,(0x4a00)&0xff
+//	@06a0	7a8a	// 0d40    cmp    r1,r2
+//	@06a1	100d	// 0d42    bne    hfpu_fail
 //		// hldi r0,-0.9876 (=-0.9876)
-//	@069c	c0bb	// 0d38    ldbih  r0,((0xbbe6)>>8)&0xff
-//	@069d	b8e6	// 0d3a    ldbil  r0,(0xbbe6)&0xff
-//	@069e	72c8	// 0d3c    htrunc r1,r0
-//	@069f	c280	// 0d3e    ldbih  r2,((half_zer_n)>>8)&0xff
-//	@06a0	ba00	// 0d40    ldbil  r2,(half_zer_n)&0xff
-//	@06a1	7a8a	// 0d42    cmp    r1,r2
-//	@06a2	1006	// 0d44    bne    hfpu_fail
-//	@06a3	c3fc	// 0d46    ldbih  r3,((half_inf_n)>>8)&0xff
-//	@06a4	bb00	// 0d48    ldbil  r3,(half_inf_n)&0xff
-//	@06a5	72e3	// 0d4a    htrunc r4,r3
-//	@06a6	7a9c	// 0d4c    cmp    r3,r4
-//	@06a7	1001	// 0d4e    bne    hfpu_fail
+//	@06a2	c0bb	// 0d44    ldbih  r0,((0xbbe6)>>8)&0xff
+//	@06a3	b8e6	// 0d46    ldbil  r0,(0xbbe6)&0xff
+//	@06a4	72c8	// 0d48    htrunc r1,r0
+//	@06a5	c280	// 0d4a    ldbih  r2,((half_zer_n)>>8)&0xff
+//	@06a6	ba00	// 0d4c    ldbil  r2,(half_zer_n)&0xff
+//	@06a7	7a8a	// 0d4e    cmp    r1,r2
+//	@06a8	1006	// 0d50    bne    hfpu_fail
+//	@06a9	c3fc	// 0d52    ldbih  r3,((half_inf_n)>>8)&0xff
+//	@06aa	bb00	// 0d54    ldbil  r3,(half_inf_n)&0xff
+//	@06ab	72e3	// 0d56    htrunc r4,r3
+//	@06ac	7a9c	// 0d58    cmp    r3,r4
+//	@06ad	1001	// 0d5a    bne    hfpu_fail
 //		// ================================
-//	@06a8	0803	// 0d50    bra    hfpu_pass
+//	@06ae	0803	// 0d5c    bra    hfpu_pass
 //			// hfpu_fail:
-//	@06a9	c70d	// 0d52    ldbih  r7,(lab_tstfail)>>8
-//	@06aa	bf5e	// 0d54    ldbil  r7,(lab_tstfail)&0xff
-//	@06ab	7f87	// 0d56    jmp    r7
+//	@06af	c70d	// 0d5e    ldbih  r7,(lab_tstfail)>>8
+//	@06b0	bf6a	// 0d60    ldbil  r7,(lab_tstfail)&0xff
+//	@06b1	7f87	// 0d62    jmp    r7
 //			// hfpu_pass:
 //			// hfpu_skip:
 //		// ================================
 //			// tstpass:
-//	@06ac	c080	// 0d58    ldbih  r0,((simpass)>>8)&0xff
-//	@06ad	b806	// 0d5a    ldbil  r0,(simpass)&0xff
-//	@06ae	0802	// 0d5c    bra    tstfnsh
+//	@06b2	c080	// 0d64    ldbih  r0,((simpass)>>8)&0xff
+//	@06b3	b806	// 0d66    ldbil  r0,(simpass)&0xff
+//	@06b4	0802	// 0d68    bra    tstfnsh
 //			// tstfail:
-//	@06af	c0ff	// 0d5e    ldbih  r0,((simfail)>>8)&0xff
-//	@06b0	b8f5	// 0d60    ldbil  r0,(simfail)&0xff
+//	@06b5	c0ff	// 0d6a    ldbih  r0,((simfail)>>8)&0xff
+//	@06b6	b8f5	// 0d6c    ldbil  r0,(simfail)&0xff
 //			// tstfnsh:
-//	@06b1	c7f0	// 0d62    ldbih  r7,((simfnsh)>>8)&0xff
-//	@06b2	bf28	// 0d64    ldbil  r7,(simfnsh)&0xff
-//	@06b3	7bf8	// 0d66    stw    r7,r0
-//	@06b4	0fff	// 0d68    bra    pcnt-2
-//	@06b5	0000	// 0d6a    nop   
+//	@06b7	c7f0	// 0d6e    ldbih  r7,((simfnsh)>>8)&0xff
+//	@06b8	bf28	// 0d70    ldbil  r7,(simfnsh)&0xff
+//	@06b9	7bf8	// 0d72    stw    r7,r0
+//	@06ba	0fff	// 0d74    bra    pcnt-2
+//	@06bb	0000	// 0d76    nop   
 //		// ================================
 //		// ================================
 //		// label lists
@@ -2577,64 +2591,64 @@
 //		//	0x8000	iramtop_rom32k
 //		//	0xc000	iramtop_rom48k
 //		//	0x0001	ivec_ve
-//		//	0x02d6	lab_bcc_fail
-//		//	0x02d8	lab_bcc_pass
-//		//	0x02e0	lab_bcs_fail
-//		//	0x02e2	lab_bcs_pass
-//		//	0x02cc	lab_beq_fail
-//		//	0x02ce	lab_beq_pass
-//		//	0x0312	lab_bge_fail
-//		//	0x0314	lab_bge_pass
-//		//	0x031c	lab_blt_fail
-//		//	0x031e	lab_blt_pass
-//		//	0x02f4	lab_bmi_fail
-//		//	0x02f6	lab_bmi_pass
-//		//	0x02c2	lab_bne_fail
-//		//	0x02c4	lab_bne_pass
-//		//	0x02ea	lab_bpl_fail
-//		//	0x02ec	lab_bpl_pass
-//		//	0x02be	lab_bra_pass
-//		//	0x02fe	lab_bvc_fail
-//		//	0x0300	lab_bvc_pass
-//		//	0x0308	lab_bvs_fail
-//		//	0x030a	lab_bvs_pass
-//		//	0x091c	lab_divc_skip
-//		//	0x02b2	lab_divl_skip
-//		//	0x0d52	lab_hfpu_fail
-//		//	0x0d58	lab_hfpu_pass
-//		//	0x0d58	lab_hfpu_skip
-//		//	0x03c0	lab_jalw_addr1
-//		//	0x03b2	lab_jalw_addr2
-//		//	0x03d6	lab_jalw_pass4
-//		//	0x038c	lab_jmp_addr1
-//		//	0x037c	lab_jmp_addr2
-//		//	0x0394	lab_jmp_addr3
-//		//	0x0384	lab_jmp_addr4
-//		//	0x039c	lab_jmp_addr5
-//		//	0x087e	lab_mulc_skip
-//		//	0x0324	lab_opc_br_fail
-//		//	0x032a	lab_opc_br_pass
-//		//	0x02b4	lab_opc_no_fail
-//		//	0x02ba	lab_opc_no_pass
-//		//	0x04f4	lab_opc_r_fail
-//		//	0x04fa	lab_opc_r_pass
-//		//	0x0af4	lab_opc_ri_fail
-//		//	0x0afa	lab_opc_ri_pass
-//		//	0x0994	lab_opc_rr_fail
-//		//	0x099a	lab_opc_rr_pass
-//		//	0x012e	lab_reg_fail
-//		//	0x0134	lab_reg_pass
-//		//	0x0186	lab_rti_mvpc
-//		//	0x019e	lab_rti_pass
-//		//	0x0190	lab_rti_retn
-//		//	0x019a	lab_rti_vect
-//		//	0x0164	lab_rtnw_pass1
-//		//	0x0d5e	lab_tstfail
-//		//	0x0d62	lab_tstfnsh
-//		//	0x0d58	lab_tstpass
-//		//	0x0b74	lab_xadr_fail
-//		//	0x0b7a	lab_xadr_pass
-//		//	0x0b7a	lab_xadr_skip
+//		//	0x02e2	lab_bcc_fail
+//		//	0x02e4	lab_bcc_pass
+//		//	0x02ec	lab_bcs_fail
+//		//	0x02ee	lab_bcs_pass
+//		//	0x02d8	lab_beq_fail
+//		//	0x02da	lab_beq_pass
+//		//	0x031e	lab_bge_fail
+//		//	0x0320	lab_bge_pass
+//		//	0x0328	lab_blt_fail
+//		//	0x032a	lab_blt_pass
+//		//	0x0300	lab_bmi_fail
+//		//	0x0302	lab_bmi_pass
+//		//	0x02ce	lab_bne_fail
+//		//	0x02d0	lab_bne_pass
+//		//	0x02f6	lab_bpl_fail
+//		//	0x02f8	lab_bpl_pass
+//		//	0x02ca	lab_bra_pass
+//		//	0x030a	lab_bvc_fail
+//		//	0x030c	lab_bvc_pass
+//		//	0x0314	lab_bvs_fail
+//		//	0x0316	lab_bvs_pass
+//		//	0x0928	lab_divc_skip
+//		//	0x02be	lab_divl_skip
+//		//	0x0d5e	lab_hfpu_fail
+//		//	0x0d64	lab_hfpu_pass
+//		//	0x0d64	lab_hfpu_skip
+//		//	0x03cc	lab_jalw_addr1
+//		//	0x03be	lab_jalw_addr2
+//		//	0x03e2	lab_jalw_pass4
+//		//	0x0398	lab_jmp_addr1
+//		//	0x0388	lab_jmp_addr2
+//		//	0x03a0	lab_jmp_addr3
+//		//	0x0390	lab_jmp_addr4
+//		//	0x03a8	lab_jmp_addr5
+//		//	0x088a	lab_mulc_skip
+//		//	0x0330	lab_opc_br_fail
+//		//	0x0336	lab_opc_br_pass
+//		//	0x02c0	lab_opc_no_fail
+//		//	0x02c6	lab_opc_no_pass
+//		//	0x0500	lab_opc_r_fail
+//		//	0x0506	lab_opc_r_pass
+//		//	0x0b00	lab_opc_ri_fail
+//		//	0x0b06	lab_opc_ri_pass
+//		//	0x09a0	lab_opc_rr_fail
+//		//	0x09a6	lab_opc_rr_pass
+//		//	0x0130	lab_reg_fail
+//		//	0x0136	lab_reg_pass
+//		//	0x0188	lab_rti_mvpc
+//		//	0x01a0	lab_rti_pass
+//		//	0x0192	lab_rti_retn
+//		//	0x019c	lab_rti_vect
+//		//	0x0166	lab_rtnw_pass1
+//		//	0x0d6a	lab_tstfail
+//		//	0x0d6e	lab_tstfnsh
+//		//	0x0d64	lab_tstpass
+//		//	0x0b80	lab_xadr_fail
+//		//	0x0b86	lab_xadr_pass
+//		//	0x0b86	lab_xadr_skip
 //		//	0x0007	led_builtin
 //		//	0x0001	led_builtin_b
 //		//	0x0004	led_builtin_g
@@ -2772,6 +2786,34 @@
 //		//	0xf12a	rtcscps
 //		//	0xf12c	rtcweek
 //		//	0xf124	rtcyear
+//		//	0x0008	sama_cmp_cf
+//		//	0x0010	sama_cmp_nf
+//		//	0x0001	sama_cmp_sf
+//		//	0x0004	sama_cmp_vf
+//		//	0x0002	sama_cmp_zf
+//		//	0x0040	sama_hcmp_cf
+//		//	0x0080	sama_hcmp_nf
+//		//	0x0020	sama_hcmp_vf
+//		//	0x0010	sama_hcmp_zf
+//		//	0x0020	sama_sts_divc
+//		//	0x0040	sama_sts_hfpu
+//		//	0x0000	sama_sts_id_0
+//		//	0x0001	sama_sts_id_1
+//		//	0x000a	sama_sts_id_10
+//		//	0x000b	sama_sts_id_11
+//		//	0x000c	sama_sts_id_12
+//		//	0x000d	sama_sts_id_13
+//		//	0x000e	sama_sts_id_14
+//		//	0x000f	sama_sts_id_15
+//		//	0x0002	sama_sts_id_2
+//		//	0x0003	sama_sts_id_3
+//		//	0x0004	sama_sts_id_4
+//		//	0x0005	sama_sts_id_5
+//		//	0x0006	sama_sts_id_6
+//		//	0x0007	sama_sts_id_7
+//		//	0x0008	sama_sts_id_8
+//		//	0x0009	sama_sts_id_9
+//		//	0x0010	sama_sts_mulc
 //		//	0x0080	sdrc_sdrm
 //		//	0x0040	sdrc_srdy
 //		//	0xf0f0	sdrcctl
@@ -2782,6 +2824,7 @@
 //		//	0x00ff	simc_intw_ff
 //		//	0x0001	simc_noto
 //		//	0x0002	simc_rtck
+//		//	0x0008	simc_smsn
 //		//	0x0004	simc_tsim
 //		//	0xf00a	simctrl
 //		//	0xfff5	simfail
@@ -3090,117 +3133,120 @@
 // ================================
 // Assemble data:
 //
-// Moscovium series macro assembler ver.1.56
+// Moscovium series macro assembler ver.1.58
 @0000
-c803a800
-1094a900
-1092aa00
-1090ab00
-108eac00
-108cad00
-108aae00
-1088af00
-1086c033
-b83378c8
-78d178da
-78e378ec
-78f578fe
-c802a800
-107aa900
-1078aa00
-1076ab00
-1074ac00
-1072ad00
-1070ae00
-106eaf00
-106cc022
-b82278c8
-78d178da
-78e378ec
-78f578fe
-c801a800
-1060a900
-105eaa00
-105cab00
-105aac00
-1058ad00
-1056ae00
-1054af00
-1052c011
-b81178c8
-78d178da
-78e378ec
-78f578fe
-c800a800
-1046a900
-1044aa00
-1042ab00
-1040ac00
-103ead00
-103cae00
-103aaf00
-1038c0ff
-b8ff78c8
-78d178da
-78e378ec
-78f578fe
-c803c033
-b8337ab8
-102ac802
+7801c803
+a8001094
+a9001092
+aa001090
+ab00108e
+ac00108c
+ad00108a
+ae001088
+af001086
+c033b833
+78c878d1
+78da78e3
+78ec78f5
+78fec802
+a800107a
+a9001078
+aa001076
+ab001074
+ac001072
+ad001070
+ae00106e
+af00106c
 c022b822
-7ab81025
-c801c011
-b8117ab8
-1020c800
+78c878d1
+78da78e3
+78ec78f5
+78fec801
+a8001060
+a900105e
+aa00105c
+ab00105a
+ac001058
+ad001056
+ae001054
+af001052
+c011b811
+78c878d1
+78da78e3
+78ec78f5
+78fec800
+a8001046
+a9001044
+aa001042
+ab001040
+ac00103e
+ad00103c
+ae00103a
+af001038
 c0ffb8ff
-7ab8101b
-7942a800
-10187943
-a8001015
-7944a800
-10127940
-d8f4880f
-1811a80f
-1001b001
-a802180c
-b002a801
-2806a80f
-20040001
-0ffec800
-0803c70d
-bf5e7f87
-c8f00000
-794088f0
-a8f010ba
-c8000000
-794088f0
-a80010b4
-b100b200
-c4f0bc0c
-7ba49c18
-7914c001
-b8647fe0
-0002b101
-b201a900
-10a5795a
-7a9c10a2
-aa0110a0
-c0f0b80c
-7b809806
-7910d301
-cb9a794b
-7941980a
-7fe0c8f0
-7ff07f81
-794088f0
-a8f01803
-088dc803
-0003c8f0
-000a7940
+78c878d1
+78da78e3
+78ec78f5
+78fec803
+c033b833
+7ab8102a
+c802c022
+b8227ab8
+1025c801
+c011b811
+7ab81020
+c800c0ff
+b8ff7ab8
+101b7942
+a8001018
+7943a800
+10157944
+a8001012
+7940d8f4
+880f1811
+a80f1001
+b001a802
+180cb002
+a8012806
+a80f2004
+00010ffe
+c8000803
+c70dbf6a
+7f87c8f0
+00007940
 88f0a8f0
-1085c800
-000a7940
+10bfc800
+00007940
 88f0a800
+10b9b100
+b200c4f0
+bc0c7ba4
+9c187914
+c001b866
+7fe00002
+b101b201
+a90010aa
+795a7a9c
+10a7aa01
+10a5c0f0
+b80c7b80
+98067910
+d301cb9c
+794b7941
+980a7fe0
+c8f07ff0
+7f817940
+88f0a8f0
+18030892
+c8030003
+c8f0000a
+794088f0
+a8f0108a
+c800000a
+794088f0
+a8001084
+b000000e
+d8f8a811
 107fb000
 a800187b
 7f9ac076
@@ -3265,7 +3311,7 @@ b202b303
 1005aa02
 1003ab03
 10010803
-c70dbf5e
+c70dbf6a
 7f870801
 0833c8ef
 10010830
@@ -3293,7 +3339,7 @@ c88057fd
 c8205801
 0803c800
 5ffd0803
-c70dbf5e
+c70dbf6a
 7f87b036
 b15a7f96
 7f007fa6
@@ -3314,20 +3360,20 @@ b5647f96
 10c3ad64
 10c1c000
 b800c503
-bd8c7f85
+bd987f85
 90aac103
-b9947f81
+b9a07f81
 8080c203
-ba9c7f82
+baa87f82
 983cc603
-be7c7f86
+be887f86
 a069c403
-bc847f84
+bc907f84
 a8ad10aa
 b300c4f0
 bc0c7ba4
 9c107914
-c703bfc0
+c703bfcc
 7f8fab00
 189f7942
 9c027a84
@@ -3335,7 +3381,7 @@ c703bfc0
 79427b88
 a4027a84
 1095c303
-bbb27a8b
+bbbe7a8b
 10917fee
 7f86c800
 7f947940
@@ -3409,7 +3455,7 @@ b8487be0
 9c027a8c
 10037a90
 10010803
-c70dbf5e
+c70dbf6a
 7f87c03c
 b8a5c196
 b9187801
@@ -3705,7 +3751,7 @@ b90c7b89
 990677c8
 77997a83
 10010803
-c70dbf5e
+c70dbf6a
 7f87c000
 b8c0803a
 7948a8fa
@@ -3793,7 +3839,7 @@ c2c2bad1
 7a821004
 89f0a9c0
 10010803
-c70dbf5e
+c70dbf6a
 7f87b000
 a800183d
 c7f0bff0
@@ -3825,7 +3871,7 @@ b902c0c6
 b8a177c8
 77997a83
 10010803
-c70dbf5e
+c70dbf6a
 7f87b000
 a80018ec
 c042b848
@@ -3945,7 +3991,7 @@ ba007a8a
 bb0072e3
 7a9c1001
 0803c70d
-bf5e7f87
+bf6a7f87
 c080b806
 0802c0ff
 b8f5c7f0

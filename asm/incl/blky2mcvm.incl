@@ -131,6 +131,10 @@ endm
 # ================================
 
 
+// ================================
+// Samarium pause code; 0x78(psei),0x01(pause)
+or		r0,r1
+
 // reject Tennessine
 // set sr
 ldch	sr,(sreg_dr|sreg_sd|sreg_nh)>>8
