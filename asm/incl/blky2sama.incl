@@ -1,0 +1,436 @@
+// ================================
+//	blky2sama run time library
+//		(c) 2026	1YEN Toru
+//
+//
+//		2026/06/06	ver.1.00
+//
+// ================================
+# ================================
+# constants
+equ		_rtlb_vers,0x0100				// beta(1),major(1),minor(2)
+equ		_rtlb_null,0x0000				// NULL pointer
+equ		_rtlb_rand_aw,16_385			// LCG parameters
+equ		_rtlb_rand_cw,12_345
+# ================================
+
+
+// ================================
+// check I-RAM
+dupl	0xaaaa
+stw		iramtop
+ldw		iramtop
+sub
+cjmp	_rtlb_err_halt
+dupl	0x5555
+stw		iramtop
+ldw		iramtop
+sub
+cjmp	_rtlb_err_halt
+
+// ================================
+// check H-FPU
+njmp	_rtlb_fpu_need,_rtlb_fpu_not_need
+and		CPU_STS,sama_sts_hfpu
+njmp	_rtlb_err_halt
+_rtlb_fpu_not_need:
+
+// ================================
+// variables
+jal		_rtlb_init_var
+
+// ================================
+// CPU#
+and		CPU_STS,sama_sts_id_15
+lsl
+add		_rtlb_cpu_jmp_tab
+ldw
+jmp
+
+// entry point jump table
+align	2
+_rtlb_cpu_jmp_tab:
+datw	_rtlb_cpu_0_1_15				// cpu0
+datw	_rtlb_cpu_0_1_15				// cpu1
+datw	_rtlb_cpu_2						// cpu2
+datw	_rtlb_cpu_3_14					// cpu3
+datw	_rtlb_cpu_3_14					// cpu4
+datw	_rtlb_cpu_3_14					// cpu5
+datw	_rtlb_cpu_3_14					// cpu6
+datw	_rtlb_cpu_3_14					// cpu7
+datw	_rtlb_cpu_3_14					// cpu8
+datw	_rtlb_cpu_3_14					// cpu9
+datw	_rtlb_cpu_3_14					// cpu10
+datw	_rtlb_cpu_3_14					// cpu11
+datw	_rtlb_cpu_3_14					// cpu12
+datw	_rtlb_cpu_3_14					// cpu13
+datw	_rtlb_cpu_3_14					// cpu14
+datw	_rtlb_cpu_0_1_15				// cpu15
+
+
+// ================================
+// main CPU (cpu0,1,15) entry
+// ================================
+_rtlb_cpu_0_1_15:
+// set interrupt vector
+push	_rtlb_isr
+ldw		_rtlb_irq
+cjmp	_rtlb_cpu0_vld
+pop
+push	_rtlb_null
+_rtlb_cpu0_vld:
+stw		_rtlb_int_vec
+// jump to the main
+jmp		_rtlb_main
+
+// ================================
+// sub CPU (cpu2) entry
+// ================================
+_rtlb_cpu_2:
+// set interrupt vector
+push	_rtlb_isr2
+ldw		_rtlb_irq2
+cjmp	_rtlb_cpu2_vld
+pop
+push	_rtlb_null
+_rtlb_cpu2_vld:
+stw		_rtlb_int_vec
+// jump to the main
+njmp	[_rtlb_cpu2],_rtlb_prog_halt
+jal		[_rtlb_cpu2]
+// halt
+jmp		_rtlb_prog_halt
+
+// ================================
+// poly CPU (cpu3~14) entry
+// ================================
+_rtlb_cpu_3_14:
+// set interrupt vector
+push	_rtlb_isrp
+ldw		_rtlb_irqp
+cjmp	_rtlb_cpup_vld
+pop
+push	_rtlb_null
+_rtlb_cpup_vld:
+stw		_rtlb_int_vec
+// jump to the main
+njmp	[_rtlb_poly],_rtlb_prog_halt
+jal		[_rtlb_poly]
+// halt
+jmp		_rtlb_prog_halt
+
+
+// ================================
+// initialize variables
+// ================================
+_rtlb_init_var:
+// clear variables
+push	_rtlb_var_top					// vtop
+_rtlb_iniv_loop:
+dupl									// vtop,vtop
+swap	0								// vtop,0,vtop
+stw										// vtop
+add		_rtlb_var_sizw					// vtop+SZW
+dupl									// vtop+SZW,vtop+SZW
+sub		_rtlb_var_static				// vtop+SZW,(vtop+SZW)-vstc
+and		SGN_BIT							// vtop+SZW,((vtop+SZW)-vstc)&SGN
+cjmp	_rtlb_iniv_loop					// vtop+SZW
+pop
+// array variables
+jal		_rtlb_alst_aryv
+// end of subroutine
+rtn
+
+
+// ================================
+// error and program halt
+_rtlb_err_halt:
+// indicate by red LED (for Cmod A7 board)
+and		[pordir],~0x07
+stw		pordir
+stw		0x07,porclr
+stw		0x02,porset
+
+// ================================
+// program halt
+_rtlb_prog_halt:
+ijal	0
+pause
+halt
+
+
+// ================================
+// ISR (interrupt service routine)
+// ================================
+//	_rtlb_isr: for cpu0,1,15
+_rtlb_isr:
+ldw		_rtlb_irq
+
+// ================================
+// subroutine jump to user task
+_rtlb_isr_comn:
+dupl
+njmp	_rtlb_isr_null
+jal
+push	0								// dummy for pop
+_rtlb_isr_null:
+pop										// discard task address
+// end of isr
+rti
+
+// ================================
+//	_rtlb_isr2: for cpu2
+_rtlb_isr2:
+ldw		_rtlb_irq2
+jmp		_rtlb_isr_comn
+
+// ================================
+//	_rtlb_isrp: for cpu3~14 (poly-core)
+_rtlb_isrp:
+ldw		_rtlb_irqp
+jmp		_rtlb_isr_comn
+
+
+// ================================
+// unsigned 16*16=16 bits shift multiply routine:
+//	operation:	pop STK1; pop STK2; push STK2*STK1
+//	memory:		_r0~_r2
+//	call:		mulu* A,B
+//	return:		A*B (also _r0=A*B)
+// ================================
+mulu:
+// parameter
+swap
+stw		_r1
+swap
+stw		_r2
+// check MULC16
+and		CPU_STS,sama_sts_mulc
+njmp	_rtlb_smu_no_mulc
+// use MULC16
+mulu	[_r2],[_r1]
+stw		_r0
+jmp		_rtlb_smu_return
+_rtlb_smu_no_mulc:
+// initialize
+stw		0,_r0
+// loop
+_rtlb_smu_loop:
+dupl	[_r1]
+and		0x01
+njmp	_rtlb_smu_not_add
+add		[_r0],[_r2]
+stw		_r0
+_rtlb_smu_not_add:
+lsr
+dupl
+stw		_r1
+// break if _r1=0
+njmp	_rtlb_smu_break
+// end of loop
+lsl		[_r2]
+dupl
+stw		_r2
+cjmp	_rtlb_smu_loop
+_rtlb_smu_break:
+// end of subroutine
+_rtlb_smu_return:
+swap	[_r0]							// Prd
+rtn
+
+// ================================
+// signed 16*16=16 bits shift multiply routine:
+//	operation:	pop STK1; pop STK2; push STK2*STK1
+//	memory:		_r0~_r3
+//	call:		muls* A,B
+//	return:		A*B (also _r0=A*B)
+// ================================
+muls:
+// parameter
+swap
+stw		_r1
+swap
+stw		_r0
+// check MULC16
+and		CPU_STS,sama_sts_mulc
+njmp	_rtlb_sms_no_mulc
+// use MULC16
+muls	[_r0],[_r1]
+dupl
+stw		_r0
+jmp		_rtlb_sms_return
+_rtlb_sms_no_mulc:
+// sign
+eor		[_r0],[_r1]
+and		SGN_BIT
+stw		_r3
+// absolute A,B
+dupl	[_r0]
+and		SGN_BIT
+njmp	_rtlb_sms_posi_a
+neg
+_rtlb_sms_posi_a:
+dupl	[_r1]
+and		SGN_BIT
+njmp	_rtlb_sms_posi_b
+neg
+_rtlb_sms_posi_b:
+// unsigned multiply
+mulu*
+// sign of product
+njmp	[_r3],_rtlb_sms_posi_p
+neg
+_rtlb_sms_posi_p:
+dupl
+stw		_r0
+// end of subroutine
+_rtlb_sms_return:
+swap
+rtn
+
+// ================================
+// unsigned 16/16=16...16 bits shift divide routine:
+//	operation:	pop STK1; pop STK2; divide; push STK2/STK1; push STK2%STK1
+//	memory:		_r0~_r3
+//	call:		divu* A,B
+//	return:		A/B (also _r0=_r2=A/B, _r1=A%B)
+// ================================
+divu:
+// parameter
+swap
+stw		_r2
+swap
+stw		_r0
+// check DIVC16
+and		CPU_STS,sama_sts_divc
+njmp	_rtlb_sdu_no_divc
+// use DIVC16
+divu	[_r0],[_r2]						// Quo
+stw		_r0								// _r0=Quo
+divr	0,0								// Rem
+stw		_r1								// _r1=Rem
+jmp		_rtlb_sdu_return
+_rtlb_sdu_no_divc:
+// initialize
+stw		0,_r1
+stw		16,_r3
+// loop
+_rtlb_sdu_loop:
+// lsl32 _r1:_r0
+dupl	[_r1]							// [_r1],[_r1]
+lsl										// [_r1],[_r1]<<1
+and		[_r0],SGN_BIT					// [_r1],[_r1]<<1,[_r0]&SGN
+njmp	_rtlb_sdu_lsl32_noc				// [_r1],[_r1]<<1
+or		1								// [_r1],[_r1]<<1|1
+_rtlb_sdu_lsl32_noc:
+dupl									// [_r1],[_r1]<<1|1,[_r1]<<1|1
+stw		_r1								// [_r1'],[_r1]; _r1=[_r1]<<1|1
+lsl		[_r0]							// [_r1'],[_r1],[_r0]<<1
+stw		_r0								// [_r1'],[_r1]; _r0=[_r0]<<1
+// quotient
+swap									// [_r1],[_r1']
+and		SGN_BIT							// [_r1],[_r1']&SGN
+njmp	_rtlb_sdu_quo_else				// [_r1]
+// can not subtract, Quo=0 and add back
+add		[_r2]							// [_r1]+[_r2]
+jmp		_rtlb_sdu_quo_endif				// [_r1]+[_r2]
+_rtlb_sdu_quo_else:
+// can subtract, Quo=1 and subtract again
+sub		[_r2]							// [_r1]-[_r2]
+or		[_r0],1							// [_r1]-[_r2],[_r0]|1
+stw		_r0								// [_r1]-[_r2]; _r0=[_r0]|1
+_rtlb_sdu_quo_endif:
+stw		_r1								// _r1=[_r1]?[_r2]
+// end of loop
+sub		[_r3],1							// [_r3]-1
+dupl									// [_r3]-1,[_r3]-1
+stw		_r3								// [_r3]; _r3=[_r3]-1
+cjmp	_rtlb_sdu_loop
+// remainder
+lsl		[_r0]							// [_r0]<<1
+stw		_r0								// _r0=Quo
+dupl	[_r1]							// [_r1],[_r1]; =Rem
+and		SGN_BIT							// [_r1],[_r1]&SGN
+njmp	_rtlb_sdu_rem_else				// [_r1]
+// can not subtract, Quo=0 and add back
+add		[_r2]							// [_r1]+[_r2]
+stw		_r1								// _r1=Rem
+jmp		_rtlb_sdu_rem_endif
+_rtlb_sdu_rem_else:
+// can subtract, Quo|=1
+pop										// discard [_r1]
+or		[_r0],1							// [_r0]|1
+stw		_r0								// _r0=Quo
+_rtlb_sdu_rem_endif:
+// end of subroutine
+_rtlb_sdu_return:
+dupl	[_r0]							// Quo,Quo
+stw		_r2								// Quo; _r2=Quo for Mc compatibility
+swap									// Quo,PRG_CNT
+rtn										// Quo
+
+// ================================
+// signed 16/16=16...16 bits shift divide routine:
+//	operation:	pop STK1; pop STK2; divide; push STK2/STK1; push STK2%STK1
+//	memory:		_r0~_r5
+//	call:		divs* A,B
+//	return:		A/B (also _r0=_r2=A/B, _r1=A%B)
+// ================================
+divs:
+// parameter
+swap
+stw		_r1
+swap
+stw		_r0
+// check DIVC16
+and		CPU_STS,sama_sts_divc
+njmp	_rtlb_sds_no_divc
+// use DIVC16
+divs	[_r0],[_r1]						// Quo
+stw		_r0								// _r0=Quo
+divr	0,0								// Rem
+stw		_r1								// _r1=Rem
+jmp		_rtlb_sds_return
+_rtlb_sds_no_divc:
+// sign of remainder
+and		[_r0],SGN_BIT					// [_r0]&SGN
+dupl									// [_r0]&SGN,[_r0]&SGN
+stw		_r5								// [_r5]; _r5=[_r0]&SGN
+// sign of quotient
+eor		[_r1]							// [_r5]^[_r1]
+and		SGN_BIT							// ([_r5]^[_r1])&SGN
+stw		_r4								// _r4=([_r5]^[_r1])&SGN
+// absolute A,B
+dupl	[_r0]							// [_r0],[_r0]
+and		SGN_BIT							// [_r0],[_r0]&SGN
+njmp	_rtlb_sds_posi_a				// [_r0]
+neg										// -[_r0]
+_rtlb_sds_posi_a:
+dupl	[_r1]							// abs([_r0]),[_r1],[_r1]
+and		SGN_BIT							// abs([_r0]),[_r1],[_r1]&SGN
+njmp	_rtlb_sds_posi_b				// abs([_r0]),[_r1]
+neg										// abs([_r0]),-[_r1]
+_rtlb_sds_posi_b:						// abs([_r0]),abs([_r1])
+// unsigned divide
+divu*									// Quo; _r1=Rem
+// sign of remainder
+njmp	[_r5],_rtlb_sds_posi_r			// Quo
+neg		[_r1]							// Quo,-Rem
+stw		_r1								// Quo; _r1=-Rem
+_rtlb_sds_posi_r:
+// sign of quotient
+njmp	[_r4],_rtlb_sds_posi_q			// Quo
+neg										// -Quo
+_rtlb_sds_posi_q:
+stw		_r0								// _r0=Quo
+// end of subroutine
+_rtlb_sds_return:
+dupl	[_r0]							// Quo,Quo
+stw		_r2								// Quo; _r2=Quo for Mc compatibility
+swap									// Quo,PRG_CNT
+rtn										// Quo
+
+
+// ================================
+// end of run time library
+// ================================
