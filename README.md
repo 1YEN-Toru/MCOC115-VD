@@ -55,7 +55,7 @@
 	- The number of cores is limited by the capacity of the FPGA chip and ability of the Vivado.
 
 ## Development of software
- Moscovium series MCU can be developed using an assembler or Blockly.
+ Moscovium series MCU can be developed using Blockly and assembler.
 
 - Moscovium macro assembler: [asm_mcvm.olv](asm/asm_mcvm.olv)
 	- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
@@ -83,13 +83,22 @@
 	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
 	- About 450\[LUT6\] / 90\[FF\] by Xilinx Vivado and Artix-7 family XC7A35T FPGA
 
- Samarium series MCU can be developed using an assembler.
+ Samarium series MCU can be developed using Blockly and assembler.
 
 - Samarium assembler: [asm_sama.olv](asm/asm_sama.olv)
 	- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
 		- You need install Olive+ on your Windows PC.
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 	- [Assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
+- [Blockly for Samarium](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#BLKY4SAMA)
+	- Block base visual programming environment.
+	![blky4sama](img/a396_blky4sama.png)
+	- Build up blocks to control MCU.
+	- Download program code in XML format, and translate it to Samarium assembler source list.
+	- Blockly.XML to Samarium.ASM translator: [blky2sama.olv](blky/blky2sama.olv)
+		- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
+		- You need install Olive+ on your Windows PC.
+		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
 --------
 # Directories and Files
@@ -108,6 +117,8 @@
 	- blky/
 		- Blockly for Moscovium
 			- Blockly.XML to Moscovium.ASM translator script and sample sources
+		- Blockly for Samarium
+			- Blockly.XML to Samarium.ASM translator script
 - Xilinx Vivado's project
 	- ip/
 		- IP units
@@ -333,6 +344,8 @@
 		- [Moscovium instruction set manual](https://hello.world.coocan.jp/ARDUINO15/a153_instset.html#MANTOP)
 		- [Nihonium instruction set manual](https://hello.world.coocan.jp/ARDUINO20/a204_instset.html#MANTOP)
 		- [Tennessine instruction set manual](https://hello.world.coocan.jp/ARDUINO26/a263_instset.html#MANTOP)
+	- [Blockly for Samarium manual](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#BLKY4SAMA)
+		- [Blockly.XML to Samarium.ASM translator](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#PROG)
 	- [Samarium assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
 		- [Samarium instruction set manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#MANTOP)
 2. FPGA board

@@ -1,12 +1,16 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="2.02";
+	macro	prog_vers="2.04";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024,2026	1YEN Toru
 //
+//
+//		2026/06/06	ver.2.04
+//			add: translator_options; @Sm@, @sama@, @Samarium@
+//			upd: logic_operation; right parameter evaluation
 //
 //		2026/04/29	ver.2.02
 //			upd: mcoc_pack; comment handling
@@ -170,7 +174,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		n_str_cnst=0;				// number of string constants
 	var		alst_cnt=0;					// number of allocation list
 	var		elst_cnt=0;					// number of equation list
-	var		need_math=false;			// lib: mathematical function blocks used
+	var		need_math=false;			// lib: Math function blocks used
 	var		need_wire=false;			// lib: Wire blocks used
 	var		need_stft=false;			// lib: SPI-TFT blocks used
 	var		need_sndg=false;			// lib: SNDG1PB blocks used
@@ -479,6 +483,12 @@ if (false)
 		static : macro	alst_asiz_#(alst_cnt)=$(asiz);
 		alst_cnt=alst_cnt + 1;
 	}
+	procedure	asm_label
+	{
+		labid=labid + 1;
+		num2str		asm_label=labid,"%04x";
+		mlet	asm_label="_auto_"$(asm_label);
+	}
 	procedure	asm_ld_var_adr	$$reg,$$vnam
 	{
 		// load address of variable vnam to general register reg
@@ -667,6 +677,22 @@ if (false)
 				}
 				opt_cpu_mod=opt_nh;
 			}
+			strcmp	cmp=$(copt#(idx)),"Sm",ics_match;
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"sama",ics_match;
+			}
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"Samarium",ics_match;
+			}
+			if (cmp=0)
+			{
+				// ERROR:
+				errmsg	"translator_options: illegal CPU mode ("
+						$(copt#(idx))")";
+				leave	stop_error;
+			}
 			strcmp	cmp=$(copt#(idx)),"sim";
 			if (cmp=0)
 			{
@@ -853,18 +879,17 @@ if (false)
 			// this code will be activated for shadow string
 
 			// assembler
-			labid=labid + 1;
-			macro	slabid;
-			num2str		slabid=labid,"%04x";
+			asm_label;
+			macro	alab=$(asm_label);
 			macro	cstr=$(do_value);
 			psub	"^"$""([^"$""]*)"$""$","\1",cstr;
 			gsub	"&lt;","<",cstr;
 			fprint	fout,"// r1="$(do_value)$,;
-			fprint	fout,"ldwi	r1,lab__auto_"$(slabid)"_text"$,;
-			fprint	fout,"bra	_auto_"$(slabid)_pool$,;
-			fprint	fout,"_auto_"$(slabid)"_text:"$,;
+			fprint	fout,"ldwi	r1,lab_"$(alab)"_text"$,;
+			fprint	fout,"bra	"$(alab)_pool$,;
+			fprint	fout,$(alab)"_text:"$,;
 			fprint	fout,"dats	"$"$(cstr)"\0"$"$,;
-			fprint	fout,"_auto_"$(slabid)"_pool:"$,;
+			fprint	fout,$(alab)"_pool:"$,;
 		}
 		else
 		{
@@ -1444,8 +1469,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		tolower		simst;
 
 		// assembler
-		fprint	fout,"$(s)// simulation finish status"$,;
 		fprint	fout,"$(s)// ********************************"$,;
+		fprint	fout,"$(s)// simulation finish status"$,;
 		fprint	fout,"$(s)ldwi	r0,"$(simst)$,;
 		fprint	fout,"$(s)ldwi	r7,simfnsh"$,;
 		fprint	fout,"$(s)stw	[r7],r0"$,;
@@ -1490,6 +1515,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		{
 			// string variable
 			asm_ld_var	"r0",$(vnam);
+
 			mlet	do_blk_mcvm_mem_addr="&"$(vnam)"[]";
 		}
 		else
@@ -1497,6 +1523,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			// variable
 			fprint	fout,"// r0=&"$(vnam)$,;
 			asm_ld_var_adr	"r0",$(vnam);
+
 			mlet	do_blk_mcvm_mem_addr="&"$(vnam);
 		}
 	}
@@ -4396,7 +4423,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			// assembler
 			fprint	fout,"ldbiu	r1,0"$,;
 			fprint	fout,"fcmp	r0,r1"$,;
-			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress slabid
+			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress asm_label
 			fprint	fout,"bne	pcnt+4"$,;
 			fprint	fout,"ldbiu	r0,0"$,;
 			fprint	fout,"bra	pcnt+4"$,;
@@ -4409,7 +4436,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			// assembler
 			fprint	fout,"ftrunc	r1,r0"$,;
 			fprint	fout,"fcmp	r0,r1"$,;
-			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress slabid
+			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress asm_label
 			fprint	fout,"bge	pcnt+2"$,;
 			fprint	fout,"fsub	r1,r0"$,;
 			fprint	fout,"mov	r0,r1"$,;
@@ -4420,7 +4447,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			// assembler
 			fprint	fout,"ftrunc	r1,r0"$,;
 			fprint	fout,"fcmp	r1,r0"$,;
-			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress slabid
+			fprint	fout,"fld$(z)i	r0,1"$,;	// to suppress asm_label
 			fprint	fout,"bge	pcnt+2"$,;
 			fprint	fout,"fadd	r1,r0"$,;
 			fprint	fout,"mov	r0,r1"$,;
@@ -4565,9 +4592,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	vels;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
+		asm_label;
+		macro	alab=$(asm_label);
 		fprint	fout,$,;
 		fprint	fout,"// if test"$,;
 
@@ -4601,7 +4627,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						// assembler
 						fprint	fout,"// test ("$(iexp)")"$,;
 						fprint	fout,"cmpi	r0,false"$,;
-						fprint	fout,"beq	_auto_"$(slabid)"_else"$,;
+						fprint	fout,"beq	"$(alab)"_else"$,;
 						fprint	fout,$,;
 						fprint	fout,"// then"$,;
 					}
@@ -4613,10 +4639,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 
 						// assembler
 						fprint	fout,"// then ("$(vthn)")"$,;
-						fprint	fout,"bra	_auto_"$(slabid)"_endif"$,;
+						fprint	fout,"bra	"$(alab)"_endif"$,;
 						fprint	fout,$,;
 						fprint	fout,"// else"$,;
-						fprint	fout,"_auto_"$(slabid)"_else:"$,;
+						fprint	fout,$(alab)"_else:"$,;
 					}
 					strcmp	cmp=$(dnam),"ELSE";
 					if (cmp=0)
@@ -4627,7 +4653,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						// assembler
 						fprint	fout,$,;
 						fprint	fout,"// else ("$(vels)")"$,;
-						fprint	fout,"_auto_"$(slabid)"_endif:"$,;
+						fprint	fout,$(alab)"_endif:"$,;
 					}
 				}
 			}
@@ -4911,6 +4937,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	rval;
 		macro	mne;
 
+		// assembler
+		asm_label;
+		macro	alab=$(asm_label);
+
 		while (true)
 		{
 			fget_xml;
@@ -4943,7 +4973,23 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					{
 						mlet	lval=$(do_$(dxml));
 
+						// operator
+						mlet	mne="xxx";
+						strcmp	cmp=$(opr),$(str_and);
+						if (cmp=0)
+						{
+							mlet	mne="beq";
+						}
+						strcmp	cmp=$(opr),$(str_or);
+						if (cmp=0)
+						{
+							mlet	mne="bne";
+						}
+
 						// assembler
+						fprint	fout,"cmpi	r0,false"$,;
+						mlet	alab=$(alab)"_b"$(opr);
+						fprint	fout,$(mne)"	"$(alab)$,;
 						fprint	fout,"push$(z)	r0"$,;
 					}
 					else
@@ -4998,6 +5044,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		// assembler
 		fprint	fout,"// r0(="$(lval)") "$(opr)" r1(="$(rval)")"$,;
 		fprint	fout,$(mne)"	r0,r1"$,;
+		fprint	fout,$(alab)":"$,;
 	}
 	procedure	do_blk_mcoc_text_label
 	{
@@ -5055,12 +5102,36 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		gsub	"&lt;","<",cstr;
 		gsub	"#","##",cstr;
 
-		// register string constants
-		labid=labid + 1;
-		static : var	str_labl#(n_str_cnst)=-labid;
-		static : macro	str_cnst#(n_str_cnst)=$(cstr);
-		static : macro	str_lnam#(n_str_cnst)=$(lnam);
-		n_str_cnst=n_str_cnst + 1;
+		// search cstr in str_cnst#
+		var		idx;
+		idx=0;
+		while (idx<n_str_cnst)
+		{
+			strcmp	cmp=$(str_cnst#(idx)),$(cstr);
+			if (cmp=0)
+			{
+				break;
+			}
+
+			// continue
+			idx=idx + 1;
+		}
+		if (idx<n_str_cnst)
+		{
+			// found same text
+			strcat	str_lnam#(idx),$(lnam)":"$,;
+		}
+		else
+		{
+			// not found, unique text
+
+			// register string constants
+			labid=labid + 1;
+			static : var	str_labl#(n_str_cnst)=-labid;
+			static : macro	str_cnst#(n_str_cnst)=$(cstr);
+			static : macro	str_lnam#(n_str_cnst)=$(lnam)":"$,;
+			n_str_cnst=n_str_cnst + 1;
+		}
 	}
 	procedure	do_blk_text
 	{
@@ -5130,14 +5201,15 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			// register string constants
 			static : var	str_labl#(n_str_cnst)=labid;
 			static : macro	str_cnst#(n_str_cnst)=$(cstr);
+			static : macro	str_lnam#(n_str_cnst)="";
 			n_str_cnst=n_str_cnst + 1;
 		}
 
 		// assembler
-		macro	slabid;
-		num2str		slabid=abs (str_labl),"%04x";
+		macro	alab;
+		num2str		alab=abs (str_labl),"%04x";
 		fprint	fout,"// r1="$(do_blk_text)$,;
-		fprint	fout,"ldwi	r1,lab__auto_"$(slabid)"_text"$,;
+		fprint	fout,"ldwi	r1,lab__auto_"$(alab)"_text"$,;
 
 		val_done=true;
 	}
@@ -7839,10 +7911,9 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	vstp;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
-		macro	slabid_loop=$(slabid);
+		asm_label;
+		macro	alab=$(asm_label);
+		macro	alab_loop=$(alab);
 		fprint	fout,$,;
 		fprint	fout,"// for loop"$,;
 
@@ -7898,7 +7969,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					fprint	fout,"cmp	r1,r0	// up count"$,;
 					fprint	fout,"bra	pcnt+2"$,;
 					fprint	fout,"cmp	r0,r1	// down count"$,;
-					fprint	fout,"blt	_auto_"$(slabid)"_break"$,;
+					fprint	fout,"blt	"$(alab)"_break"$,;
 					fprint	fout,$,;
 					fprint	fout,"// for block"$,;
 
@@ -7941,11 +8012,11 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,$,;
 					fprint	fout,"// end of for loop"$,;
-					fprint	fout,"bra	_auto_"$(slabid)"_for"$,;
+					fprint	fout,"bra	"$(alab)"_for"$,;
 					fprint	fout,$,;
-					fprint	fout,"_auto_"$(slabid)"_break:"$,;
+					fprint	fout,$(alab)"_break:"$,;
 					fprint	fout,"pop$(z)	r3	// discard"$,;
-					num2str		slabid_loop=0,"%04x";
+					mlet	alab_loop="_auto_0000";
 
 					break;
 				}
@@ -7981,8 +8052,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 							fprint	fout,"// set start mark"$,;
 							fprint	fout,"ldbiu	r3,true"$,;
 							fprint	fout,"push$(z)	r3"$,;
-							fprint	fout,"_auto_"$(slabid)"_for:"$,;
-							fprint	fout,"_auto_"$(slabid)"_continue:"$,;
+							fprint	fout,$(alab)"_for:"$,;
+							fprint	fout,$(alab)"_continue:"$,;
 						}
 						strcmp	cmp=$(dnam),"TO";
 						if (cmp=0)
@@ -8009,20 +8080,19 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	rcnt;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
-		macro	slabid_loop=$(slabid);
+		asm_label;
+		macro	alab=$(asm_label);
+		macro	alab_loop=$(alab);
 		fprint	fout,$,;
 		fprint	fout,"// repeat loop"$,;
 		fprint	fout,"// backup _rpt_cnt variable"$,;
 		asm_ld_var	"r1","_rpt_cnt";
-		asm_ld_var_adr	"r7","_rpt_cnt_"$(slabid);
+		asm_ld_var_adr	"r7",$(alab)"_rpt_cnt";
 		fprint	fout,"st$(z)	[r7],r1"$,;
 
 		// register control variable
 		register_vars	"_rpt_cnt";
-		register_vars	"_rpt_cnt_"$(slabid);
+		register_vars	$(alab)"_rpt_cnt";
 
 		while (true)
 		{
@@ -8048,10 +8118,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					asm_ld_var_adr	"r7", "_rpt_cnt";
 					fprint	fout,"st$(z)	[r7],r0"$,;
 					fprint	fout,"// repeat ("$(rcnt)")"$,;
-					fprint	fout,"_auto_"$(slabid)"_repeat:"$,;
+					fprint	fout,$(alab)"_repeat:"$,;
 					fprint	fout,"// r0(=_rpt_cnt)<1 ?"$,;
 					fprint	fout,"cmpi	r0,1"$,;
-					fprint	fout,"blt	_auto_"$(slabid)"_break"$,;
+					fprint	fout,"blt	"$(alab)"_break"$,;
 
 					// continue
 					pindex	cmp=$(cxml),"^<statement[ >]";
@@ -8092,18 +8162,18 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,$,;
 					fprint	fout,"// end of repeat loop"$,;
-					fprint	fout,"_auto_"$(slabid)"_continue:"$,;
+					fprint	fout,$(alab)"_continue:"$,;
 					asm_ld_var	"r0","_rpt_cnt", "r7";
 					fprint	fout,"subi	r0,1"$,;
 					fprint	fout,"st$(z)	[r7],r0"$,;
-					fprint	fout,"bne	_auto_"$(slabid)"_repeat"$,;
+					fprint	fout,"bne	"$(alab)"_repeat"$,;
 					fprint	fout,$,;
-					fprint	fout,"_auto_"$(slabid)"_break:"$,;
+					fprint	fout,$(alab)"_break:"$,;
 					fprint	fout,"// restore _rpt_cnt variable"$,;
 					asm_ld_var_adr	"r7","_rpt_cnt";
-					asm_ld_var	"r0","_rpt_cnt_"$(slabid);
+					asm_ld_var	"r0",$(alab)"_rpt_cnt";
 					fprint	fout,"st$(z)	[r7],r0"$,;
-					num2str		slabid_loop=0,"%04x";
+					mlet	alab_loop="_auto_0000";
 
 					break;
 				}
@@ -8134,14 +8204,13 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	wmod=$(str_whl);
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
-		macro	slabid_loop=$(slabid);
+		asm_label;
+		macro	alab=$(asm_label);
+		macro	alab_loop=$(alab);
 		fprint	fout,$,;
 		fprint	fout,"// while/until loop"$,;
-		fprint	fout,"_auto_"$(slabid)"_while:"$,;
-		fprint	fout,"_auto_"$(slabid)"_continue:"$,;
+		fprint	fout,$(alab)"_while:"$,;
+		fprint	fout,$(alab)"_continue:"$,;
 
 		while (true)
 		{
@@ -8169,12 +8238,12 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					if (cmp)
 					{
 						// while
-						fprint	fout,"beq	_auto_"$(slabid)"_break"$,;
+						fprint	fout,"beq	"$(alab)"_break"$,;
 					}
 					else
 					{
 						// until
-						fprint	fout,"bne	_auto_"$(slabid)"_break"$,;
+						fprint	fout,"bne	"$(alab)"_break"$,;
 					}
 
 					// continue
@@ -8216,10 +8285,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,$,;
 					fprint	fout,"// end of "$(wmod)" loop"$,;
-					fprint	fout,"bra	_auto_"$(slabid)"_while"$,;
+					fprint	fout,"bra	"$(alab)"_while"$,;
 					fprint	fout,$,;
-					fprint	fout,"_auto_"$(slabid)"_break:"$,;
-					num2str		slabid_loop=0,"%04x";
+					fprint	fout,$(alab)"_break:"$,;
+					mlet	alab_loop="_auto_0000";
 
 					break;
 				}
@@ -8280,7 +8349,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 
 		// assembler
 		fprint	fout,"// "$(flws)$,;
-		fprint	fout,"bra	_auto_"$(slabid_loop)"_"$(flws)$,;
+		fprint	fout,"bra	"$(alab_loop)"_"$(flws)$,;
 	}
 	procedure	do_blk_controls_if
 	{
@@ -8292,9 +8361,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	cexp;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
+		asm_label;
+		macro	alab=$(asm_label);
 		fprint	fout,$,;
 		fprint	fout,"// if statement"$,;
 
@@ -8337,7 +8405,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,"// if ("$(cexp)")"$,;
 					fprint	fout,"cmpi	r0,false"$,;
-					fprint	fout,"beq	_auto_"$(slabid)"_if0"$,;
+					fprint	fout,"beq	"$(alab)"_if0"$,;
 
 					// continue
 					pindex	cmp=$(cxml),"^<statement[ >]";
@@ -8365,9 +8433,9 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,$,;
 					fprint	fout,"// end of if block"$,;
-					fprint	fout,"bra	_auto_"$(slabid)"_endif"$,;
+					fprint	fout,"bra	"$(alab)"_endif"$,;
 					fprint	fout,$,;
-					fprint	fout,"_auto_"$(slabid)"_if0:"$,;
+					fprint	fout,$(alab)"_if0:"$,;
 
 					break;
 				}
@@ -8447,7 +8515,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						// assembler
 						fprint	fout,"// elif# ("$(cexp)")"$,,idx;
 						fprint	fout,"cmpi	r0,false"$,;
-						fprint	fout,"beq	_auto_"$(slabid)"_elif#"$,,idx;
+						fprint	fout,"beq	"$(alab)"_elif#"$,,idx;
 
 						// continue
 						pindex	cmp=$(cxml),"^<statement[ >]";
@@ -8476,9 +8544,9 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						// assembler
 						fprint	fout,$,;
 						fprint	fout,"// end of elif# block"$,,idx;
-						fprint	fout,"bra	_auto_"$(slabid)"_endif"$,;
+						fprint	fout,"bra	"$(alab)"_endif"$,;
 						fprint	fout,$,;
-						fprint	fout,"_auto_"$(slabid)"_elif#:"$,,idx;
+						fprint	fout,$(alab)"_elif#:"$,,idx;
 
 						break;
 					}
@@ -8585,7 +8653,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		// assembler
 		fprint	fout,$,;
 		fprint	fout,"// endif"$,;
-		fprint	fout,"_auto_"$(slabid)"_endif:"$,;
+		fprint	fout,$(alab)"_endif:"$,;
 	}
 	procedure	do_blk_mcoc_controls_forc
 	{
@@ -8597,10 +8665,9 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	nwth;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
-		macro	slabid_loop=$(slabid);
+		asm_label;
+		macro	alab=$(asm_label);
+		macro	alab_loop=$(alab);
 		fprint	fout,$,;
 		fprint	fout,"// for-c loop"$,;
 
@@ -8690,7 +8757,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						fprint	fout,"st$(z)	[r7],r0"$,;
 						fprint	fout,$,;
 						fprint	fout,"// for-c while "$,;
-						fprint	fout,"_auto_"$(slabid)"_forc:"$,;
+						fprint	fout,$(alab)"_forc:"$,;
 					}
 					strcmp	cmp=$(dnam),"BOOL";
 					if (cmp=0)
@@ -8701,11 +8768,11 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						// assembler
 						fprint	fout,"// while ("$(wexp)")"$,;
 						fprint	fout,"cmpi	r0,false"$,;
-						fprint	fout,"bne	_auto_"$(slabid)"_block"$,;
-						fprint	fout,"bra	_auto_"$(slabid)"_break"$,;
+						fprint	fout,"bne	"$(alab)"_block"$,;
+						fprint	fout,"bra	"$(alab)"_break"$,;
 						fprint	fout,$,;
 						fprint	fout,"// for-c with"$,;
-						fprint	fout,"_auto_"$(slabid)"_continue:"$,;
+						fprint	fout,$(alab)"_continue:"$,;
 					}
 					strcmp	cmp=$(dnam),"WITH";
 					if (cmp=0)
@@ -8716,10 +8783,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						fprint	fout,"// "$(vnam)"=r0(="$(nwth)")"$,;
 						asm_ld_var_adr	"r7",$(vnam);
 						fprint	fout,"st$(z)	[r7],r0"$,;
-						fprint	fout,"bra	_auto_"$(slabid)"_forc"$,;
+						fprint	fout,"bra	"$(alab)"_forc"$,;
 						fprint	fout,$,;
 						fprint	fout,"// for-c block"$,;
-						fprint	fout,"_auto_"$(slabid)"_block:"$,;
+						fprint	fout,$(alab)"_block:"$,;
 					}
 				}
 			}
@@ -8743,8 +8810,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		// assembler
 		fprint	fout,$,;
 		fprint	fout,"// end of for-c loop"$,;
-		fprint	fout,"bra	_auto_"$(slabid)"_continue"$,;
-		fprint	fout,"_auto_"$(slabid)"_break:"$,;
+		fprint	fout,"bra	"$(alab)"_continue"$,;
+		fprint	fout,$(alab)"_break:"$,;
 	}
 	procedure	do_blk_mcoc_controls_dorept
 	{
@@ -8754,13 +8821,12 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	wmod=$(str_whl);
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
-		macro	slabid_loop=$(slabid);
+		asm_label;
+		macro	alab=$(asm_label);
+		macro	alab_loop=$(alab);
 		fprint	fout,$,;
 		fprint	fout,"// do while/until loop"$,;
-		fprint	fout,"_auto_"$(slabid)"_dorep:"$,;
+		fprint	fout,$(alab)"_dorep:"$,;
 
 		while (true)
 		{
@@ -8841,7 +8907,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,$,;
 					fprint	fout,"// end of do "$(wmod)" loop"$,;
-					fprint	fout,"_auto_"$(slabid)"_continue:"$,;
+					fprint	fout,$(alab)"_continue:"$,;
 				}
 				do_$(dxml);
 				if (stat=0)
@@ -8866,16 +8932,16 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					if (cmp)
 					{
 						// while
-						fprint	fout,"bne	_auto_"$(slabid)"_dorep"$,;
+						fprint	fout,"bne	"$(alab)"_dorep"$,;
 					}
 					else
 					{
 						// until
-						fprint	fout,"beq	_auto_"$(slabid)"_dorep"$,;
+						fprint	fout,"beq	"$(alab)"_dorep"$,;
 					}
 					fprint	fout,$,;
-					fprint	fout,"_auto_"$(slabid)"_break:"$,;
-					num2str		slabid_loop=0,"%04x";
+					fprint	fout,$(alab)"_break:"$,;
+					mlet	alab_loop="_auto_0000";
 				}
 			}
 		}
@@ -8894,15 +8960,14 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	wexp;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
-		macro	slabid_loop=$(slabid);
+		asm_label;
+		macro	alab=$(asm_label);
+		macro	alab_loop=$(alab);
 		fprint	fout,$,;
 		fprint	fout,"// forever loop"$,;
-		fprint	fout,"_auto_"$(slabid)"_loop:"$,;
-		fprint	fout,"_auto_"$(slabid)"_continue:"$,;
-		fprint	fout,"_auto_"$(slabid)"_break:"$,;
+		fprint	fout,$(alab)"_loop:"$,;
+		fprint	fout,$(alab)"_continue:"$,;
+		fprint	fout,$(alab)"_break:"$,;
 
 		while (true)
 		{
@@ -8965,8 +9030,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					// assembler
 					fprint	fout,$,;
 					fprint	fout,"// end of forever loop"$,;
-					fprint	fout,"bra	_auto_"$(slabid)"_loop"$,;
-					num2str		slabid_loop=0,"%04x";
+					fprint	fout,"bra	"$(alab)"_loop"$,;
+					mlet	alab_loop="_auto_0000";
 
 					break;
 				}
@@ -8988,9 +9053,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	vrtn;
 
 		// assembler
-		labid=labid + 1;
-		macro	slabid;
-		num2str		slabid=labid,"%04x";
+		asm_label;
+		macro	alab=$(asm_label);
 		fprint	fout,$,;
 		fprint	fout,"// if return"$,;
 
@@ -9027,7 +9091,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						// assembler
 						fprint	fout,"// if ("$(cexp)")"$,;
 						fprint	fout,"cmpi	r0,false"$,;
-						fprint	fout,"beq	_auto_"$(slabid)"_endif"$,;
+						fprint	fout,"beq	"$(alab)"_endif"$,;
 					}
 					strcmp	cmp=$(dnam),"VALUE";
 					if (cmp=0)
@@ -9078,7 +9142,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		}
 		fprint	fout,"rtn$(z)"$,;
 		fprint	fout,$,;
-		fprint	fout,"_auto_"$(slabid)"_endif:"$,;
+		fprint	fout,$(alab)"_endif:"$,;
 	}
 	procedure	do_blk_procedures_defreturn
 	{
@@ -9339,6 +9403,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		{
 			// block type
 			macro	blktyp=$(_xml_type);
+//fprint	fout,"##@		"$(blktyp)$,;
 			do_blk_$(blktyp);
 			mlet	do_block=$(do_blk_$(blktyp));
 		}
@@ -9385,11 +9450,9 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 	}
 
 
-	// open files
+	// open input file
 	var		fin;
-	var		fout;
 	fopen	fin,$(fnam_in),"r";
-	fopen	fout,$(fnam_out),"w";
 
 	// input file size
 	var		fpos;
@@ -9403,6 +9466,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		errmsg	"Empty XML file";
 		leave	stop_error;
 	}
+
+	// open output file
+	var		fout;
+	fopen	fout,$(fnam_out),"w";
 
 	// assembler
 	fprint	fout,"// "$(prog_name)" ver."$(prog_vers)$,;
@@ -9452,6 +9519,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 	define_aryv;
 	fprint	fout,$,;
 	fprint	fout,"// task entry point"$,;
+	fprint	fout,"align	2"$,;
 	fprint	fout,"_rtlb_cpu2:"$,;
 	if (tsk_def_cpu2)
 	{
@@ -9512,13 +9580,10 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		while (idx<n_str_cnst)
 		{
 			// assembler
-			macro	slabid;
-			num2str		slabid=abs (str_labl#(idx)),"%04x";
-			fprint	fout,"_auto_"$(slabid)"_text:"$,;
-			if (str_labl#(idx)<0)
-			{
-				fprint	fout,$(str_lnam#(idx))":"$,;
-			}
+			macro	alab;
+			num2str		alab=abs (str_labl#(idx)),"%04x";
+			fprint	fout,"_auto_"$(alab)"_text:"$,;
+			fprint	fout,$(str_lnam#(idx));
 			fprint	fout,"dats	"$"$(str_cnst#(idx))"\0"$"$,;
 
 			// continue
