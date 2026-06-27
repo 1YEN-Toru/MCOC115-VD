@@ -4,6 +4,9 @@
 //		(c) 2025	1YEN Toru
 //
 //
+//	2026/06/27
+//		add: SPIBUS unit
+//
 //	2025/09/13
 //		MBOC115GS3208
 //		MB-GS=Moscovium-BS, sound generator edition
@@ -77,6 +80,7 @@
 //`define		MCOC_ADCX
 //`define		MCOC_TRNG
 `define		MCOC_SNDG
+`define		MCOC_SPIB
 
 // I/O unit (PMOD connector)
 //`define		MCOC_CM76

@@ -110,12 +110,18 @@
 `else	//	MCOC_POLY
 `undef		MCOC_CORE_MCBS
 `endif	//	MCOC_POLY
+`undef		MCOC_SPIB
 
 `else	//	MCOC_DUAL
+
+`ifdef		MCOC_SPIB
+`else	//	MCOC_SPIB
 `undef		MCOC_SMPH
+`endif	//	MCOC_SPIB
 `undef		MCOC_ICFF
 `undef		MCOC_DUAL_AMP_TS
 `undef		MCOC_DUAL_AMP_MC
+
 `endif	//	MCOC_DUAL
 
 `undef		CPU_CORE2

@@ -9,8 +9,12 @@ input	uar1_rxd,
 input	uar1_cts,
 input	intc_int0,
 input	intc_int1,
+input	spis_sck,
+input	spis_ss,
+input	spis_mosi,
 inout	stws_scl,
 inout	stws_sda,
+inout	spis_irq_n,
 inout	[7:0]	pmod_iop,
 inout	[15:0]	port_iop,
 //inout	[15:0]	user_iop,
@@ -30,6 +34,7 @@ output	dac0_pdm,
 output	dac1_pdm,
 output	sndg0_pwm,
 output	sndg1_pwm,
+output	spis_miso,
 // SRAM I/F
 inout	[7:0]	sram_dq,
 output	sram_cen,
@@ -45,13 +50,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0246
+`define		MCOC_VERS		16'h0248
 
 
 //
 //	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2026/06/27	ver.2.48
+//		corresponding to SPIBUS unit
+//		add: compile option MCOC_SPIB
 //
 //	2026/04/29	ver.2.46
 //		corresponding to Samarium
@@ -487,9 +496,12 @@ wire	[1:0]	cpuid1=2'h0;
 assign	fcmd2[2:0]=3'b001;
 assign	fadr2[15:0]=16'h0;
 assign	badrx2[15:0]=16'h0;
+`ifdef		MCOC_SPIB
+`else	//	MCOC_SPIB
 assign	badr2[15:0]=16'h0;
 assign	bcmd2[3:0]=3'h0;
 assign	bdatw2[31:0]=32'h0;
+`endif	//	MCOC_SPIB
 `endif	//	MCOC_DUAL
 
 `CPU_CORE	cpu (
@@ -1487,6 +1499,27 @@ assign	sndg1_pwm=1'b0;
 assign	sndg_sger=1'b0;
 assign	bdatr_sndg[15:0]=16'h0;
 `endif	//	MCOC_SNDG
+
+`ifdef		MCOC_SPIB
+spibus	spib (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.spis_ss(spis_ss),	// Input
+	.spis_sck(spis_sck),	// Input
+	.spis_mosi(spis_mosi),	// Input
+	.bdatr(bdatr[15:0]),	// Input
+	.spis_miso(spis_miso),	// Output
+	.bcmd(bcmd2[3:0]),	// Output
+	.badr(badr2[15:0]),	// Output
+	.bdatw(bdatw2[15:0])	// Output
+);
+assign	bdatw2[31:16]=16'h0;
+assign	spis_irq_n=(irq2)? 1'b0: 1'bz;
+`else	//	MCOC_SPIB
+assign	spis_miso=1'b0;
+assign	spis_irq_n=1'bz;
+`endif	//	MCOC_SPIB
 
 
 // bus output

@@ -230,6 +230,11 @@
 	- Synchronous two wire serial unit (I2C)
 	- Communication speed: up to 400 kHz (Fast mode)
 	- Master and slave communication
+- [SPIBUS](https://hello.world.coocan.jp/ARDUINO39/arduino39_8.html#SPIBUS)
+	- SPI (Serial Peripheral Interface) slave and memory bus bridge unit
+	- Can access internal memory and I/O units without CPU support
+		- Word size access, 16 bit (64 KB) address space
+	- 1 SPI slave port (SPI_MODE0) with 4 wire (SCK, MOSI, MISO, SS)
 
 ## I/O units
 - [PORT8I8O](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#PORT8I8O)

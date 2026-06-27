@@ -80,6 +80,7 @@
 `define		MCOC_ADCX
 //`define		MCOC_TRNG
 //`define		MCOC_SNDG
+//`define		MCOC_SPIB
 
 // I/O unit (PMOD connector)
 //`define		MCOC_CM76

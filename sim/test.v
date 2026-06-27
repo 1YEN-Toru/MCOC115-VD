@@ -10,6 +10,7 @@
 //`define		SIM_DAC		top.dac0
 //`define		SIM_UNSJ
 //`define		SIM_CAM76
+//`define		SIM_SPIBUS
 //`define		SIM_INFO
 
 
@@ -42,9 +43,13 @@ reg		uar1_rxd;
 reg		uar1_cts;
 reg		intc_int0;
 reg		intc_int1;
+reg		spis_sck;
+reg		spis_ss;
+reg		spis_mosi;
 reg		[7:0]	pmod_iop_d;
 reg		[15:0]	port_iop_d;
 reg		[15:0]	user_iop_d;
+wire	spis_miso;
 wire	[7:0]	badr8h=top.badr[23:16];
 wire	[15:0]	badr16=top.badr[15:0];
 wire	[15:0]	bdatr16=top.bdatr[15:0];
@@ -60,6 +65,7 @@ wire	[7:0]	sram_dq;
 wire	[18:0]	sram_adr;
 tri1	stws_scl;
 tri1	stws_sda;
+tri1	spis_irq_n;
 
 // count instructions
 integer		cnt_clck;
@@ -600,6 +606,11 @@ always	@(posedge clk)
 `endif	//	SIM_CAM76
 
 
+`ifdef		SIM_SPIBUS
+`include	"TEST_CT/test_ct_spibus.vh"
+`endif	//	SIM_SPIBUS
+
+
 // on board SRAM behavior
 `ifdef		MCOC_SRAM_512K
 IS61WV5128BLL	sram (
@@ -623,8 +634,12 @@ IS61WV5128BLL	sram (
 	.uar1_cts(uar1_cts),	// Input
 	.intc_int0(intc_int0),	// Input
 	.intc_int1(intc_int1),	// Input
+	.spis_sck(spis_sck),	// Input
+	.spis_ss(spis_ss),	// Input
+	.spis_mosi(spis_mosi),	// Input
 	.stws_scl(stws_scl),	// InOut
 	.stws_sda(stws_sda),	// InOut
+	.spis_irq_n(spis_irq_n),	// InOut
 	.pmod_iop(pmod_iop[7:0]),	// InOut
 	.port_iop(port_iop[15:0]),	// InOut
 //	.user_iop(user_iop[15:0]),	// InOut
@@ -635,6 +650,7 @@ IS61WV5128BLL	sram (
 	.tim0_pwmb(tim0_pwmb),	// Output
 	.tim1_pwma(tim1_pwma),	// Output
 	.tim1_pwmb(tim1_pwmb),	// Output
+	.spis_miso(spis_miso),	// Input
 	// SRAM I/F
 	.sram_dq(sram_dq[7:0]),	// InOut
 	.sram_cen(sram_cen),	// Output
