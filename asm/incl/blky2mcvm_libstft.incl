@@ -1,7 +1,12 @@
 // ================================
-//	blky2mcvm SPI-TFT (ST7735R) library
+//	blky2mcvm SPI-TFT (ST7735R/ST7789V) library
 //		(c) 2025	1YEN Toru
 //
+//
+//		2026/07/11	ver.1.06
+//			corresponding to ST7789V
+//				_rtlb_stft_st7789v=0: ST7735R
+//				_rtlb_stft_st7789v=1: ST7789V
 //
 //		2025/10/18	ver.1.04
 //			add: _stft_pixel_hsv_r2_r1_r0
@@ -28,8 +33,20 @@
 //
 // ================================
 # string macros
-def		_stft_vers,"1.04"				// library version
+def		_stft_vers,"1.06"				// library version
 # constants
+ifexp	_rtlb_stft_st7789v
+# ST7789V
+equ		_stft_ss,stft_port_1			// spi: ss pin
+equ		_stft_sck,stft_port_3			// spi: sck pin
+equ		_stft_mosi,stft_port_4			// spi: mosi pin
+equ		_stft_miso,_stft_mosi			// spi: miso pin (multiplexed)
+equ		_stft_dcx,stft_port_2			// tft: d/cx pin
+equ		_stft_res,stft_port_5			// tft: reset pin
+equ		_stft_siz_dh,240				// tft: horizontal size [dot]
+equ		_stft_siz_dv,320				// tft: vertical size [dot]
+elsi	#_rtlb_stft_st7789v
+# ST7735R
 equ		_stft_ss,stft_port_4			// spi: ss pin
 equ		_stft_sck,stft_port_3			// spi: sck pin
 equ		_stft_mosi,stft_port_0			// spi: mosi pin
@@ -38,6 +55,7 @@ equ		_stft_dcx,stft_port_1			// tft: d/cx pin
 equ		_stft_res,stft_port_2			// tft: reset pin
 equ		_stft_siz_dh,128				// tft: horizontal size [dot]
 equ		_stft_siz_dv,160				// tft: vertical size [dot]
+endi	#_rtlb_stft_st7789v
 equ		_stft_siz_ch,_stft_siz_dh/8		// tft: horizontal size [character]
 equ		_stft_siz_cv,_stft_siz_dv/8		// tft: vertical size [character]
 equ		_stft_opt_store,0				// tft: _stft_putpix() option command
@@ -45,12 +63,12 @@ equ		_stft_opt_init,1
 equ		_stft_opt_flush,2
 equ		_stft_spi_shiftl,16				// spi: additional amount of data shift
 equ		_stft_spi_shiftw,0
-# ST7735R command
-equ		_stft_st7r_caset,0x2a			// st7r: CASET
-equ		_stft_st7r_raset,0x2b			// st7r: RASET
-equ		_stft_st7r_ramwr,0x2c			// st7r: RAMWR
-equ		_stft_st7r_ramrd,0x2e			// st7r: RAMRD
-equ		_stft_st7r_colmod,0x3a			// st7r: COLMOD
+# ST77 command
+equ		_stft_st77_caset,0x2a			// st77: CASET
+equ		_stft_st77_raset,0x2b			// st77: RASET
+equ		_stft_st77_ramwr,0x2c			// st77: RAMWR
+equ		_stft_st77_ramrd,0x2e			// st77: RAMRD
+equ		_stft_st77_colmod,0x3a			// st77: COLMOD
 # pixel BGR565
 equ		_stft_black,((0x00>>3)<<11)|((0x00>>2)<<5)|(0x00>>3)		// HUE/360
 equ		_stft_blue,((0xff>>3)<<11)|((0x00>>2)<<5)|(0x00>>3)			// 240
@@ -420,6 +438,16 @@ ldb		r0,[r1]
 addi	r1,1
 ldwi	r7,stftduty
 stw		[r7],r0
+// ST7789V WRDISBV (write display brightness)
+ldvar	r2,_stft_spi_buf
+ldbiu	r1,0x51
+stb		[r2],r1
+addi	r2,1
+stb		[r2],r0
+// spi
+ldbiu	r1,2
+subi	r2,1
+jal$(z)r7	_stft_send_r1_r2
 rtn$(z)
 
 // not defined, ignore
@@ -766,7 +794,7 @@ _stft_getpix_r1_r0:
 push$(z)	r0
 // CASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_caset
+ldbiu	r0,_stft_st77_caset
 stb		[r7],r0
 addi	r7,1
 // px
@@ -786,7 +814,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_raset
+ldbiu	r0,_stft_st77_raset
 stb		[r7],r0
 addi	r7,1
 // py
@@ -807,10 +835,10 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // COLMOD ; set 18 bit color mode
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_colmod
+ldbiu	r0,_stft_st77_colmod
 stb		[r7],r0
 addi	r7,1
-ldbiu	r0,0x06
+ldbiu	r0,0x66							// ST7789=0x66, ST7735R=0x06
 stb		[r7],r0
 // spi
 ldbiu	r1,2
@@ -818,7 +846,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RAMRD
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_ramrd
+ldbiu	r0,_stft_st77_ramrd
 stb		[r7],r0
 // spi
 ldbiu	r1,5							// RAMRD, dummy read, B,G,R
@@ -826,33 +854,37 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_recv_r1_r2
 // COLMOD ; set 16 bit color mode
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_colmod
+ldbiu	r0,_stft_st77_colmod
 stb		[r7],r0
 addi	r7,1
-ldbiu	r0,0x05
+ldbiu	r0,0x55							// ST7789=0x55, ST7735R=0x05
 stb		[r7],r0
 addi	r7,1
 // spi
 ldbiu	r1,2
 ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
-// RGB888 to BGR565 conversion
+// RGB666 to BGR565 conversion
 ldvar	r7,_stft_spi_buf+2
 ldb		r0,[r7]
 addi	r7,1
 ldb		r1,[r7]
 addi	r7,1
 ldb		r2,[r7]
+#
+ifexp	_rtlb_stft_st7789v
+elsi
 # ATTN! The ST7735R datasheet states that the pixel data
 #	in the RAMRD command is left aligned RGB666 in RGB888 format,
 #	but the actual response seems to not be.
 lsli	r0,1
 lsli	r1,1
 lsli	r2,1
+endi
+#
 andi	r0,0xfc
 andi	r1,0xfc
 andi	r2,0xfc
-#
 jal$(z)r7	_stft_pixel_r2_r1_r0
 // end of subroutine
 rtn$(z)
@@ -905,7 +937,7 @@ ldwi	r7,stftpset
 ldwi	r5,stftpclr
 _stft_ss_0
 _stft_dcx_0
-ldbiu	r1,_stft_st7r_ramwr
+ldbiu	r1,_stft_st77_ramwr
 lsli	r1,8+_stft_spi_shift$(z)
 // spi 8 bits transfer
 rept	8
@@ -977,18 +1009,19 @@ ld$(z)sp	r0,[r5]
 ldbiu	r7,_stft_box_fill_px2
 ld$(z)sp	r1,[r7]
 // clip
+ldwi	r2,_stft_siz_dh-1
 cmpi	r0,0
-bhs		pcnt+2
+bge		pcnt+2
 ldbiu	r0,0
-cmpi	r0,_stft_siz_dh
-blt		pcnt+2
-ldbiu	r0,_stft_siz_dh-1
+cmp		r2,r0
+bge		pcnt+2
+mov		r0,r2
 cmpi	r1,0
-bhs		pcnt+2
+bge		pcnt+2
 ldbiu	r1,0
-cmpi	r1,_stft_siz_dh
-blt		pcnt+2
-ldbiu	r1,_stft_siz_dh-1
+cmp		r2,r1
+bge		pcnt+2
+mov		r1,r2
 // swap if need
 cmp		r0,r1
 blt		pcnt+4
@@ -1000,18 +1033,19 @@ ld$(z)sp	r0,[r5]
 ldbiu	r7,_stft_box_fill_py2
 ld$(z)sp	r1,[r7]
 // clip
+ldwi	r2,_stft_siz_dv-1
 cmpi	r0,0
-bhs		pcnt+2
+bge		pcnt+2
 ldbiu	r0,0
-cmpi	r0,_stft_siz_dv
-blt		pcnt+2
-ldbiu	r0,_stft_siz_dv-1
+cmp		r2,r0
+bge		pcnt+2
+mov		r0,r2
 cmpi	r1,0
-bhs		pcnt+2
+bge		pcnt+2
 ldbiu	r1,0
-cmpi	r1,_stft_siz_dv
-blt		pcnt+2
-ldbiu	r1,_stft_siz_dv-1
+cmp		r2,r1
+bge		pcnt+2
+mov		r1,r2
 // swap if need
 cmp		r0,r1
 blt		pcnt+4
@@ -1019,7 +1053,7 @@ st$(z)sp	[r5],r1
 st$(z)sp	[r7],r0
 // CASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_caset
+ldbiu	r0,_stft_st77_caset
 stb		[r7],r0
 addi	r7,1
 // px1
@@ -1046,7 +1080,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_raset
+ldbiu	r0,_stft_st77_raset
 stb		[r7],r0
 addi	r7,1
 // py1
@@ -1071,7 +1105,7 @@ addi	r7,1
 ldbiu	r1,5
 ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
-// calculate box square
+// calculate box size
 ldbiu	r0,_stft_box_fill_px1
 ld$(z)sp	r0,[r0]
 ldbiu	r1,_stft_box_fill_px2
@@ -1080,25 +1114,39 @@ sub		r1,r0
 addi	r1,1
 ldbiu	r0,_stft_box_fill_py1
 ld$(z)sp	r0,[r0]
-ldbiu	r2,_stft_box_fill_py2
-ld$(z)sp	r2,[r2]
-sub		r2,r0
-addi	r2,1
-mulu	r1,r2
-mov		r3,r1
+ldbiu	r3,_stft_box_fill_py2
+ld$(z)sp	r3,[r3]
+sub		r3,r0
+addi	r3,1
 // put pixel
-ldbiu	r0,_stft_opt_init
-jal$(z)r7	_stft_putpix
 ldbiu	r4,_stft_box_fill_pix
 ld$(z)sp	r4,[r4]
+push$(z)	r1
+push$(z)	r3
+push$(z)	r4
+ldbiu	r0,_stft_opt_init
+jal$(z)r7	_stft_putpix
+pop$(z)	r4
+// loop (, line)
 _stft_tbf_loop:
 mov		r1,r4
 ldbiu	r0,_stft_opt_store
 push$(z)	r3
 jal$(z)r7	_stft_putpix
 pop$(z)	r3
+// end of loop
 subi	r3,1
 bne		_stft_tbf_loop
+// end of loop, line
+pop$(z)	r3
+pop$(z)	r1
+subi	r1,1
+push$(z)	r1
+push$(z)	r3
+bne		_stft_tbf_loop
+pop$(z)	r3								// discard
+pop$(z)	r1								// discard
+// end of subroutine
 ldbiu	r0,_stft_opt_flush
 jal$(z)r7	_stft_putpix
 rtn$(z)
@@ -1198,7 +1246,7 @@ ld$(z)	r4,[r4]
 jal$(z)r7	_stft_upd_curs
 // CASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_caset
+ldbiu	r0,_stft_st77_caset
 stb		[r7],r0
 addi	r7,1
 // px1
@@ -1232,7 +1280,7 @@ ldvar	r2,_stft_spi_buf
 jal$(z)r7	_stft_send_r1_r2
 // RASET
 ldvar	r7,_stft_spi_buf
-ldbiu	r0,_stft_st7r_raset
+ldbiu	r0,_stft_st77_raset
 stb		[r7],r0
 addi	r7,1
 // py1
@@ -1453,14 +1501,14 @@ ldwi	r7,stftpset
 stw		[r7],r0
 
 // initialize spi-tft
-// reset st7735r
+// reset st77xx
 _stft_res_0
 ldbiu	r0,1
 jal$(z)r7	_delay_ms_r0
 _stft_res_1
 ldbiu	r0,120
 jal$(z)r7	_delay_ms_r0
-// initialize st7735r i/o registers
+// initialize st77xx I/O registers
 ldwi	r4,lab__stft_init_reg
 _stft_tin_loop:
 ldb		r1,[r4]
@@ -1484,9 +1532,37 @@ ldwi	r1,lab__stft_init_msg
 jal$(z)r7	_stft_print_r1
 rtn$(z)
 
-// tft (st7735r) initialization data
-//		<ndat>, <data1>~<data<ndat>>, <delay_ms>[, <trailing_0>]
-//		<trailing_0> will be exist when datb has odd byte.
+ifexp	_rtlb_stft_st7789v
+// SPI-TFT (ST7789V) initialization data
+//	<ndat>, <data1>~<data<ndat>>, <delay_ms>[, <trailing_0>]
+//	<trailing_0> will be exist when datb has odd byte.
+_stft_init_reg:
+// SWRESET
+datb	1,0x01,120
+// SLPOUT
+datb	1,0x11,5
+// COLMOD
+datb	2,_stft_st77_colmod,0x55,0
+// MADCTL
+datb	2,0x36,0x08,0
+// CASET
+datb	5,_stft_st77_caset,0x00,0x00,0x00,0xef,0
+// RASET
+datb	5,_stft_st77_raset,0x00,0x00,0x01,0x3f,0
+// WRCTRLD
+datb	2,0x53,0x24,0
+// INVON
+datb	1,0x21,0
+// NORON
+datb	1,0x13,0
+// DISPON
+datb	1,0x29,120
+// end of sequence
+datb	0xff
+elsi	#_rtlb_stft_st7789v
+// SPI-TFT (ST7735R) initialization data
+//	<ndat>, <data1>~<data<ndat>>, <delay_ms>[, <trailing_0>]
+//	<trailing_0> will be exist when datb has odd byte.
 _stft_init_reg:
 // SWRESET
 datb	1,0x01,120
@@ -1515,19 +1591,18 @@ datb	2,0xc5,0x0e,0
 // MADCTL
 datb	2,0x36,0xc8,0
 // COLMOD
-datb	2,_stft_st7r_colmod,0x05,0
-
+datb	2,_stft_st77_colmod,0x05,0
 // CASET
-datb	5,_stft_st7r_caset,0x00,0x00,0x00,0x7f,0
+datb	5,_stft_st77_caset,0x00,0x00,0x00,0x7f,0
 // RASET
-datb	5,_stft_st7r_raset,0x00,0x00,0x00,0x9f,0
-
+datb	5,_stft_st77_raset,0x00,0x00,0x00,0x9f,0
 // NORON
 datb	1,0x13,0
 // DISPON
 datb	1,0x29,120
 // end of sequence
 datb	0xff
+endi	#_rtlb_stft_st7789v
 
 // initial state:
 //	\x0c:	clear screen

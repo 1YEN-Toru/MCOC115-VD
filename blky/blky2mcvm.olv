@@ -1,12 +1,18 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="2.04";
+	macro	prog_vers="2.06";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024,2026	1YEN Toru
 //
+//
+//		2026/07/11	ver.2.06
+//			add: mcoc_pack_option
+//			upd: translator_options
+//			add: SPI-TFT(ST7789V); opt_stft_st7789v
+//			fix: mcoc_stft_affine; correct control register name
 //
 //		2026/06/06	ver.2.04
 //			add: translator_options; @Sm@, @sama@, @Samarium@
@@ -153,8 +159,9 @@ model	"Blockly.XML to Moscovium.ASM translator"
 
 
 	// constants
-	var		opt_mc=1;					// opt: Mc
-	var		opt_nh=2;					// opt: Nh
+	var		opt_core_df=0;				// opt: default
+	var		opt_core_mc=1;				// opt: Mc
+	var		opt_core_nh=2;				// opt: Nh
 	macro	str_and="AND";				// str: "and"
 	tolower		str_and;
 	macro	str_or="OR";				// str: "or"
@@ -183,7 +190,8 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		tsk_def_irq=false;			// tsk: task IRQ defined
 	var		tsk_def_irq2=false;			// tsk: task IRQ2 defined
 	var		tsk_def_irqp=false;			// tsk: task IRQP defined
-	var		opt_cpu_mod=0;				// opt: CPU mode Mc (0,1) / Nh (2)
+	var		opt_blky2mcvm=true;			// opt: blky2mcvm
+	var		opt_cpu_mod=opt_core_df;	// opt: CPU mode Mc (0,1) / Nh (2)
 	var		opt_sim_mod=false;			// opt: simulation mode
 	var		opt_mul_need=false;			// opt: need MULC16 / or not
 	var		opt_div_need=false;			// opt: need DIVC32 / or not
@@ -627,6 +635,8 @@ if (false)
 		var		cmp;
 		var		num;
 		macro	copt;
+		macro	vnam;
+		macro	nval;
 
 		// translator options
 		mlet	copt=$(cmnt);
@@ -648,14 +658,14 @@ if (false)
 			}
 			if (cmp=0)
 			{
-				if (opt_cpu_mod=opt_nh)
+				if (opt_cpu_mod=opt_core_nh)
 				{
 					// ERROR:
 					errmsg	"translator_options: re-defined CPU mode ("
 							$(copt#(idx))")";
 					leave	stop_error;
 				}
-				opt_cpu_mod=opt_mc;
+				opt_cpu_mod=opt_core_mc;
 			}
 			strcmp	cmp=$(copt#(idx)),"Nh",ics_match;
 			if (cmp)
@@ -668,14 +678,14 @@ if (false)
 			}
 			if (cmp=0)
 			{
-				if (opt_cpu_mod=opt_mc)
+				if (opt_cpu_mod=opt_core_mc)
 				{
 					// ERROR:
 					errmsg	"translator_options: re-defined CPU mode ("
 							$(copt#(idx))")";
 					leave	stop_error;
 				}
-				opt_cpu_mod=opt_nh;
+				opt_cpu_mod=opt_core_nh;
 			}
 			strcmp	cmp=$(copt#(idx)),"Sm",ics_match;
 			if (cmp)
@@ -717,19 +727,22 @@ if (false)
 				opt_iram_need=true;
 				opt_iram_stack=true;
 			}
+
+			// define opt_<opt_name>[=<val>]
+			mlet	vnam=$(copt#(idx));
+			psub	"=.*","",vnam;
 			index	cmp=$(copt#(idx)),"=";
 			if (cmp>0)
 			{
-				macro	vnam;
-				macro	nval;
-
-				mlet	vnam=$(copt#(idx));
-				psub	"=.*","",vnam;
 				mlet	nval=$(copt#(idx));
 				psub	".*=","",nval;
-				static : nvar	opt_$(vnam);
-				opt_$(vnam)=$(nval);
 			}
+			else
+			{
+				mlet	nval="true";
+			}
+			static : nvar	opt_$(vnam);
+			opt_$(vnam)=$(nval);
 
 			// continue
 			idx=idx + 1;
@@ -1225,14 +1238,14 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		}
 		tolower		opcd;
 		strcmp	cmp=$(opcd),"";
-		if (opt_cpu_mod=opt_nh & cmp=0)
+		if (opt_cpu_mod=opt_core_nh & cmp=0)
 		{
 			mlet	opcd="cend$(z)";
 			errmsg	"mcvm_cpu_cend: block definition is outdated,"
 					$,"    check your Blockly code.";
 		}
 		strcmp	cmp=$(opcd),"cendl";
-		if (opt_cpu_mod!=opt_nh & cmp=0)
+		if (opt_cpu_mod!=opt_core_nh & cmp=0)
 		{
 			// ERROR:
 			errmsg	"mcvm_cpu_cend: need @Nh@ translator option for cendl";
@@ -1284,7 +1297,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		}
 		tolower		opcd;
 		strcmp	cmp=$(opcd),"exsgl";
-		if (opt_cpu_mod!=opt_nh & cmp=0)
+		if (opt_cpu_mod!=opt_core_nh & cmp=0)
 		{
 			// ERROR:
 			errmsg	"mcvm_cpu_exsg: need @Nh@ translator option for exsgl";
@@ -1812,7 +1825,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 
 		// check
 		strcmp	cmp=$(siz),"l";
-		if (cmp=0 & opt_cpu_mod!=opt_nh)
+		if (cmp=0 & opt_cpu_mod!=opt_core_nh)
 		{
 			// ERROR:
 			errmsg	"mcvm_mem_read: need @Nh@ translator option"
@@ -1923,7 +1936,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 
 		// check
 		strcmp	cmp=$(siz),"l";
-		if (cmp=0 & opt_cpu_mod!=opt_nh)
+		if (cmp=0 & opt_cpu_mod!=opt_core_nh)
 		{
 			// ERROR:
 			errmsg	"mcvm_mem_write: need @Nh@ translator option"
@@ -2754,6 +2767,149 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						else
 						{
 							mlet	cmnt=$(do_$(dxml));
+						}
+					}
+				}
+			}
+		}
+	}
+	procedure	do_blk_mcoc_pack_option
+	{
+		var		cmp;
+		var		stat;
+		var		cnts;
+		macro	enbl;
+		macro	cmnt;
+		macro	optn;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						// pack
+						strcmp	cmp=$(enbl),"true";
+						if (cmp=0)
+						{
+							stat=1;
+
+							// comment
+							strcmp	cmp=$(cmnt),"";
+							if (cmp)
+							{
+								strcmp	cmp=$(cmnt),"#",left;
+								if (cmp)
+								{
+									strcmp	cmp=$(cmnt),"//",left;
+								}
+								if (cmp)
+								{
+									mlet	cmnt="// "$(cmnt);
+								}
+								
+								// assembler
+								fputl	fout,$(cmnt);
+							}
+						}
+						else
+						{
+							stat=3;
+						}
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+						mlet	enbl="false";
+					}
+				}
+			}
+			if (stat=1 | stat=3)
+			{
+				// pack block
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp>0)
+				{
+					cnts=cnts + 1;
+				}
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of statement
+					if (cnts>0)
+					{
+						cnts=cnts - 1;
+						continue;
+					}
+
+					// end of pack
+					stat=2;
+					continue;
+				}
+				if (stat=3)
+				{
+					// disabled pack
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of pack
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	optn=$(do_$(dxml));
+
+						// if defined
+						tolower		optn;
+						nvar	opt_$(optn)=false;
+						if (opt_$(optn))
+						{
+							mlet	enbl="true";
+							mlet	cmnt="# pack option @"$(optn)"@";
+						}
+						else
+						{
+							mlet	enbl="false";
+							mlet	cmnt="";
 						}
 					}
 				}
@@ -6471,7 +6627,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		}
 		tolower		siz;
 		strcmp	cmp=$(siz),"long";
-		if (opt_cpu_mod!=opt_nh & cmp=0)
+		if (opt_cpu_mod!=opt_core_nh & cmp=0)
 		{
 			// ERROR:
 			errmsg	"mcoc_uart_put: need @Nh@ translator option for long";
@@ -6522,7 +6678,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		}
 		tolower		siz;
 		strcmp	cmp=$(siz),"long";
-		if (opt_cpu_mod!=opt_nh & cmp=0)
+		if (opt_cpu_mod!=opt_core_nh & cmp=0)
 		{
 			// ERROR:
 			errmsg	"mcoc_uart_get: need @Nh@ translator option for long";
@@ -7404,7 +7560,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 
 		// assembler
 		fprint	fout,"// SPI-TFT affine ("$(affn)")"$,;
-		fprint	fout,"ldwi	r7,fnjpcod"$,;
+		fprint	fout,"ldwi	r7,fnjpctl"$,;
 		fprint	fout,"ldbiu	r0,"$(scod)$,;
 		fprint	fout,"stw	[r7],r0"$,;
 		asm_ld_var_adr	"r7","_stft_prn_2x2";
@@ -9737,6 +9893,11 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			}
 			if (need_stft)
 			{
+				nvar	opt_stft_st7789v=false;
+
+				fprint	fout,$,;
+				fprint	fout,"## SPI-TFT translator option"$,;
+				fprint	fout,"equ	_rtlb_stft_st7789v,#"$,,opt_stft_st7789v;
 				fprint	fout,$,;
 				fprint	fout,"## define SPI-TFT buffers"$,;
 				fprint	fout,"equ	_stft_spi_max,8	// byte"$,;
@@ -9793,7 +9954,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		sub		"@fpu_need@",$(str_bool#(opt_fpu_need)),lbuf;
 		sub		"@iram_need@",$(str_bool#(opt_iram_need)),lbuf;
 		sub		"@iram_stack@",$(str_bool#(opt_iram_stack)),lbuf;
-		if (opt_cpu_mod=opt_nh)
+		if (opt_cpu_mod=opt_core_nh)
 		{
 			sub		"@cpu_mod@","l",lbuf;
 		}

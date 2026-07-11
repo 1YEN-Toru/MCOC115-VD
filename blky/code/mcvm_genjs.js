@@ -404,6 +404,14 @@ else
   return code;
 };
 
+javascript.javascriptGenerator.forBlock['mcoc_pack_option'] = function(block, generator) {
+  var text_opt = block.getFieldValue('OPT');
+  var statements_pac = generator.statementToCode(block, 'PAC');
+  // TODO: Assemble javascript into code variable.
+  var code = 'if (option (@' + text_opt + '@)) {\n' + statements_pac + '}\n';
+  return code;
+};
+
 javascript.javascriptGenerator.forBlock['mcoc_swap'] = function(block, generator) {
   var variable_a = generator.nameDB_.getName(block.getFieldValue('A'), Blockly.Variables.NAME_TYPE);
   var variable_b = generator.nameDB_.getName(block.getFieldValue('B'), Blockly.Variables.NAME_TYPE);

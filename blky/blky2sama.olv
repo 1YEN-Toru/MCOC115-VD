@@ -1,12 +1,17 @@
 model	"Blockly.XML to Samarium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Samarium.ASM translator";
-	macro	prog_vers="1.00";
+	macro	prog_vers="1.02";
 // ================================
 //
 //	Samarium series Blockly.XML to Samarium.ASM translator
 //		(c) 2026	1YEN Toru
 //
+//
+//		2026/07/11	ver.1.02
+//			add: mcoc_pack_option
+//			upd: translator_options
+//			fix: mcoc_math_arithmetic; min / max operator
 //
 //		2026/06/06	ver.1.00
 //			based on: Blockly.XML to Moscovium.ASM translator ver.2.04
@@ -51,6 +56,7 @@ model	"Blockly.XML to Samarium.ASM translator"
 	var		tsk_def_irq=false;			// tsk: task IRQ defined
 	var		tsk_def_irq2=false;			// tsk: task IRQ2 defined
 	var		tsk_def_irqp=false;			// tsk: task IRQP defined
+	var		opt_blky2sama=true;			// opt: blky2sama
 	var		opt_fpu_need=false;			// opt: need FPU / or not
 	macro	vlst_vars;					// list of variables
 	macro	dir,mynam,ext;
@@ -548,6 +554,8 @@ if (false)
 		var		cmp;
 		var		num;
 		macro	copt;
+		macro	vnam;
+		macro	nval;
 
 		// translator options
 		mlet	copt=$(cmnt);
@@ -594,19 +602,22 @@ if (false)
 						$,"	use Float blocks instead.";
 				leave	stop_error;
 			}
+
+			// define opt_<opt_name>[=<val>]
+			mlet	vnam=$(copt#(idx));
+			psub	"=.*","",vnam;
 			index	cmp=$(copt#(idx)),"=";
 			if (cmp>0)
 			{
-				macro	vnam;
-				macro	nval;
-
-				mlet	vnam=$(copt#(idx));
-				psub	"=.*","",vnam;
 				mlet	nval=$(copt#(idx));
 				psub	".*=","",nval;
-				static : nvar	opt_$(vnam);
-				opt_$(vnam)=$(nval);
 			}
+			else
+			{
+				mlet	nval="true";
+			}
+			static : nvar	opt_$(vnam);
+			opt_$(vnam)=$(nval);
 
 			// continue
 			idx=idx + 1;
@@ -2453,6 +2464,149 @@ if (false)
 			}
 		}
 	}
+	procedure	do_blk_mcoc_pack_option
+	{
+		var		cmp;
+		var		stat;
+		var		cnts;
+		macro	enbl;
+		macro	cmnt;
+		macro	optn;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			if (stat=0)
+			{
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^<next[ >]";
+				}
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// continue
+					pindex	cmp=$(cxml),"^<statement[ >]";
+					if (cmp>0)
+					{
+						// pack
+						strcmp	cmp=$(enbl),"true";
+						if (cmp=0)
+						{
+							stat=1;
+
+							// comment
+							strcmp	cmp=$(cmnt),"";
+							if (cmp)
+							{
+								strcmp	cmp=$(cmnt),"#",left;
+								if (cmp)
+								{
+									strcmp	cmp=$(cmnt),"//",left;
+								}
+								if (cmp)
+								{
+									mlet	cmnt="// "$(cmnt);
+								}
+								
+								// assembler
+								fputl	fout,$(cmnt);
+							}
+						}
+						else
+						{
+							stat=3;
+						}
+						continue;
+					}
+					else
+					{
+						// empty block
+						stat=2;
+						mlet	enbl="false";
+					}
+				}
+			}
+			if (stat=1 | stat=3)
+			{
+				// pack block
+				pindex	cmp=$(cxml),"^<statement[ >]";
+				if (cmp>0)
+				{
+					cnts=cnts + 1;
+				}
+				pindex	cmp=$(cxml),"^</statement[ >]";
+				if (cmp>0)
+				{
+					// end of statement
+					if (cnts>0)
+					{
+						cnts=cnts - 1;
+						continue;
+					}
+
+					// end of pack
+					stat=2;
+					continue;
+				}
+				if (stat=3)
+				{
+					// disabled pack
+					continue;
+				}
+			}
+			if (stat=2)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(cxml),"^</block[ >]";
+				}
+				if (cmp>0)
+				{
+					// end of pack
+					break;
+				}
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				if (stat=0)
+				{
+					strcmp	cmp=$(dxml),"field";
+					if (cmp=0)
+					{
+						mlet	optn=$(do_$(dxml));
+
+						// if defined
+						tolower		optn;
+						nvar	opt_$(optn)=false;
+						if (opt_$(optn))
+						{
+							mlet	enbl="true";
+							mlet	cmnt="# pack option @"$(optn)"@";
+						}
+						else
+						{
+							mlet	enbl="false";
+							mlet	cmnt="";
+						}
+					}
+				}
+			}
+		}
+	}
 	procedure	do_blk_mcoc_swap
 	{
 		var		cmp;
@@ -2898,7 +3052,7 @@ if (false)
 		{
 			// minimum / maximum operator
 			mlet	mne="cjmp";
-			strcmp	cmp=$(opr),"min";
+			strcmp	cmp=$(opr),"max";
 			if (cmp=0)
 			{
 				mlet	mne="njmp";

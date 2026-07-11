@@ -214,7 +214,7 @@ Blockly.Blocks['mcvm_mem_alloc'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("mem allocate")
-        .appendField(new Blockly.FieldTextInput("lname"), "NAME");
+        .appendField(new Blockly.FieldTextInput("name"), "NAME");
     this.appendDummyInput()
         .appendField("byte")
         .appendField(new Blockly.FieldTextInput("12"), "SIZE");
@@ -559,7 +559,7 @@ Blockly.Blocks['mcoc_math_label'] = {
   init: function() {
     this.appendDummyInput()
         .appendField("define label")
-        .appendField(new Blockly.FieldTextInput("lname"), "NAME");
+        .appendField(new Blockly.FieldTextInput("name"), "NAME");
     this.appendDummyInput()
         .appendField("=")
         .appendField(new Blockly.FieldTextInput("0x01"), "VAL");
@@ -614,6 +614,23 @@ Blockly.Blocks['mcoc_pack'] = {
   }
 };
 
+Blockly.Blocks['mcoc_pack_option'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("pack option @")
+        .appendField(new Blockly.FieldTextInput("name"), "OPT")
+        .appendField("@");
+    this.appendStatementInput("PAC")
+        .setCheck(null);
+    this.setInputsInline(false);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(30);
+ this.setTooltip("packing block with translator option");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKSTND");
+  }
+};
+
 Blockly.Blocks['mcoc_swap'] = {
   init: function() {
     this.appendDummyInput()
@@ -650,7 +667,7 @@ Blockly.Blocks['mcoc_text_label'] = {
     this.appendDummyInput()
         .appendField("text label")
         .appendField("lab_")
-        .appendField(new Blockly.FieldTextInput("lname"), "NAME");
+        .appendField(new Blockly.FieldTextInput("name"), "NAME");
     this.appendDummyInput()
         .appendField("=\"")
         .appendField(new Blockly.FieldTextInput(""), "TEXT")
