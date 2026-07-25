@@ -157,6 +157,7 @@ set_property PULLTYPE PULLDOWN [get_ports spis_sck]
 set_property PULLTYPE PULLUP [get_ports spis_ss]
 set_property PULLTYPE PULLDOWN [get_ports spis_mosi]
 set_property PULLTYPE PULLUP [get_ports spis_irq_n]
+set_property PULLTYPE PULLDOWN [get_ports {pmod_iop[5]}]
 
 ## output ports
 set_property DRIVE 4 [get_ports tled_led1]
