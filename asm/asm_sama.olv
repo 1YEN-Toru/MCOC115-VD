@@ -1,11 +1,14 @@
 model	"Samarium series assembler"
 {
 	macro	prog_name="Samarium series assembler";
-	macro	prog_vers="1.04";
+	macro	prog_vers="1.06";
 // ================================
 // Samarium series assembler
 //		(c) 2026	1YEN Toru
 //
+//
+//		2026/08/29	ver.1.06
+//			fix: "#" character in string constants and "//" comments
 //
 //		2026/05/30	ver.1.04
 //			add: pseudo: datb
@@ -156,9 +159,12 @@ model	"Samarium series assembler"
 		fgetl	fin2,ibuf;
 		while (fNF>0)
 		{
-			pgsub	"//(.*)#","//\1\x23",ibuf;
+			repeat
+			{
+				psub	"//(.*)#","//\1\x23",ibuf;
+			} until (status=0);
 			psub	"^([^/].*)//.*","\1",ibuf;
-			psub	"#.*","",ibuf;
+			rmv_cmnt	ibuf;
 			psub	"^[ 	]+","",ibuf;
 			psub	"[ 	]+$","",ibuf;
 			strcmp	cmp=$(ibuf),"";
@@ -536,6 +542,7 @@ model	"Samarium series assembler"
 		if (cmp)
 		{
 			gsub	"	"," ",cmnt;
+			gsub	"#","##",cmnt;
 			mlet	cmnt="	// "$(cmnt);
 		}
 
@@ -588,6 +595,32 @@ model	"Samarium series assembler"
 			get_code=@(get_code + (out_cod#(idx2)&0xff));
 		}
 		num2str		get_code=get_code,"%08x";
+	}
+	procedure	rmv_cmnt	$$mstr
+	{
+		// remove "#" comment, saving string constants
+
+		// replace \" in string constants
+		gsub	"\"$","\X22",$(mstr);
+
+		// replace '#' in string constants
+		repeat
+		{
+			psub	$""([^"$""]*)#",$""\1\X23",$(mstr);
+		} until (status=0);
+
+		// replace '#' in "//" constants
+		repeat
+		{
+			psub	"//([^#]*)#","//\1\X23",$(mstr);
+		} until (status=0);
+
+		// remove "#" comment
+		psub	"#.*","",$(mstr);
+
+		// restore
+		gsub	"\X22","\"$",$(mstr);
+		gsub	"\X23","#",$(mstr);
 	}
 
 
@@ -673,7 +706,7 @@ macro	log,tbuf;
 
 		pgsub	"//(.*)#","//\1\x23",lbuf;
 		psub	"^([^/].*)//.*","\1",lbuf;
-		psub	"#.*","",lbuf;
+		rmv_cmnt	lbuf;
 		psub	"^[ 	]+","",lbuf;
 		psub	"[ 	]+$","",lbuf;
 		strcmp	cmp=$(lbuf),"";
@@ -755,7 +788,7 @@ macro	log,tbuf;
 		progress	"Constant label...",100*(facm + fpos)/fsiz;
 
 		psub	"^([^/].*)//.*","\1",lbuf;
-		pgsub	"([ -~].*)#.*","\1",lbuf;
+		rmv_cmnt	lbuf;
 		pgsub	"^[ 	]+","",lbuf;
 		pgsub	"[ 	]+$","",lbuf;
 
@@ -864,7 +897,7 @@ macro	log,tbuf;
 		{
 			fputl	fout,"//	\x23"$(lbuf);
 			psub	"\*$","",lbuf1;
-			psub	"#.*","",lbuf2;
+			rmv_cmnt	lbuf2;
 			psub	"//.*","",lbuf2;
 			strcmp	cmp=$(lbuf2),"";
 			if (fNF=1 | cmp=0)
@@ -992,7 +1025,7 @@ macro	log,tbuf;
 			macro	tmp;
 
 			fputl	fout,"//	"$(lbuf);
-			psub	"#.*","",lbuf2;
+			rmv_cmnt	lbuf2;
 			psub	"//.*","",lbuf2;
 			strcmp	cmp=$(lbuf2),"";
 			if (fNF<2 | cmp=0)
@@ -1270,7 +1303,7 @@ macro	log,tbuf;
 		ftell	fin,fpos;
 		progress	"Address label...",100*(facm + fpos)/fsiz;
 
-		pgsub	"^#.*","",lbuf;
+		rmv_cmnt	lbuf;
 		strcmp	cmp=$(lbuf),"";
 		if (cmp=0)
 		{

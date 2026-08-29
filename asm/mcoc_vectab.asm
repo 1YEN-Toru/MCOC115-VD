@@ -1,5 +1,5 @@
 // ================================
-//	MCOC115 Combinational Test
+//	MCOC115 Combination Test
 //		INTC: interrupt vector & level sample
 //		(c) 2022	1YEN Toru
 // ================================

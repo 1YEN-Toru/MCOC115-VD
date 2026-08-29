@@ -45,7 +45,7 @@ javascript.javascriptGenerator.forBlock['mcvm_cpu_set'] = function(block, genera
   var dropdown_reg = block.getFieldValue('REG');
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = 'cpu.' + dropdown_reg + ' = ' + value_val + '\n';
+  var code = 'cpu.' + dropdown_reg + ' = ' + value_val + ';\n';
   return code;
 };
 
@@ -408,7 +408,7 @@ javascript.javascriptGenerator.forBlock['mcoc_pack_option'] = function(block, ge
   var text_opt = block.getFieldValue('OPT');
   var statements_pac = generator.statementToCode(block, 'PAC');
   // TODO: Assemble javascript into code variable.
-  var code = 'if (option (@' + text_opt + '@)) {\n' + statements_pac + '}\n';
+  var code = 'if (option ("@' + text_opt + '@")) {\n' + statements_pac + '}\n';
   return code;
 };
 
