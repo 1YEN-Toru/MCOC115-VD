@@ -1,7 +1,7 @@
 javascript.javascriptGenerator.forBlock['mcvm_cpu_asm'] = function(block, generator) {
   var text_asm = block.getFieldValue('ASM');
   // TODO: Assemble javascript into code variable.
-text_asm=text_asm.replace (/^#/,'//');
+text_asm=text_asm.replace (/^#/,'// #');
   var code = 'cpu.asm (' + generator.quote_(text_asm) + ');\n';
 if (text_asm.match (/^\/\//)!=null)
 	code=text_asm + '\n';
@@ -395,7 +395,7 @@ javascript.javascriptGenerator.forBlock['mcoc_pack'] = function(block, generator
 if (text_cmnt==null || text_cmnt=='')
 	text_cmnt='';
 else if (text_cmnt.match (/^#/)!=null)
-	text_cmnt='  ' + text_cmnt.replace (/^#/,'//') + '\n';
+	text_cmnt='  ' + text_cmnt.replace (/^#/,'// #') + '\n';
 else if (text_cmnt.match (/^\/\//)!=null)
 	text_cmnt='  ' + text_cmnt + '\n';
 else

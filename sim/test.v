@@ -19,6 +19,13 @@
 //`include	"mcoc115ca0408.vh"
 
 
+`ifdef		MCOC_POLY
+`define		TOP_CORE		top.cpu.punit0.core
+`else	//	MCOC_POLY
+`define		TOP_CORE		top.cpu.core
+`endif	//	MCOC_POLY
+
+
 module	test;
 
 
@@ -100,6 +107,7 @@ initial
 		$dumpfile ("test_ct_boot.vcd");
 		$dumpvars (4, test);
 		$dumpvars (0, test.top.cpu);
+//		$dumpvars (0, test.top.cpu2);
 		$dumpvars (0, test.top.uart);
 `else	//	SIM_BOOTMD
 		$dumpfile ("test.vcd");
@@ -545,13 +553,13 @@ initial
 always	@(posedge clk)
 	begin
 		// stack pointer
-		if (sama_stk_max[15:0]<top.cpu.core.sptr.sptr[15:0])
-			sama_stk_max[15:0]<=top.cpu.core.sptr.sptr[15:0];
+		if (sama_stk_max[15:0]<`TOP_CORE.sptr.sptr[15:0])
+			sama_stk_max[15:0]<=`TOP_CORE.sptr.sptr[15:0];
 
 		// stack under run
 		if (simctrl[simctrl_SMSN]===1'b0 &&
-			top.cpu.core.sptr.sptr[15:0]==15'd0 &&
-			top.cpu.core.sptr.ctl_mmsp && !top.cpu.core.sptr.ctl_sppp)
+			`TOP_CORE.sptr.sptr[15:0]==15'd0 &&
+			`TOP_CORE.sptr.ctl_mmsp && !`TOP_CORE.sptr.ctl_sppp)
 			begin
 				$display ("finish: %t stack under run",$stime);
 				@(posedge clk);
@@ -560,8 +568,8 @@ always	@(posedge clk)
 
 		// stack over run
 		if (simctrl[simctrl_SMSN]===1'b0 &&
-			top.cpu.core.sptr.sptr[15:0]==`SAMA_STK_SIZ &&
-			!top.cpu.core.sptr.ctl_mmsp && top.cpu.core.sptr.ctl_sppp)
+			`TOP_CORE.sptr.sptr[15:0]==`SAMA_STK_SIZ &&
+			!`TOP_CORE.sptr.ctl_mmsp && `TOP_CORE.sptr.ctl_sppp)
 			begin
 				$display ("finish: %t stack over run",$stime);
 				@(posedge clk);
@@ -679,30 +687,27 @@ always	@(posedge clk)
 		if (top.rst_n)
 			cnt_clck=cnt_clck + 1;
 `ifdef		MCOC_CORE_NHSS
-		if (top.rst_n && top.cpu.core.fch_term)
+		if (top.rst_n && `TOP_CORE.fch_term)
 			begin
 				cnt_inst=cnt_inst + 1;
-				if (top.cpu.core.fch.fch_issu1)
+				if (`TOP_CORE.fch.fch_issu1)
 					begin
 						cnt_inst=cnt_inst + 1;
 						cnt_isu1=cnt_isu1 + 2;
 					end
 			end
 `elsif		MCOC_CORE_MCSS
-		if (top.rst_n && top.cpu.core.fch_term)
+		if (top.rst_n && `TOP_CORE.fch_term)
 			begin
 				cnt_inst=cnt_inst + 1;
-				if (top.cpu.core.fch.fch_issu1)
+				if (`TOP_CORE.fch.fch_issu1)
 					begin
 						cnt_inst=cnt_inst + 1;
 						cnt_isu1=cnt_isu1 + 2;
 					end
 			end
-`elsif		MCOC_POLY
-		if (top.rst_n && top.cpu.punit0.core.ctl_fetch)
-			cnt_inst=cnt_inst + 1;
 `else
-		if (top.rst_n && top.cpu.core.ctl_fetch)
+		if (top.rst_n && `TOP_CORE.ctl_fetch)
 			cnt_inst=cnt_inst + 1;
 `endif
 	end
@@ -715,17 +720,15 @@ reg		[15:0]	inst_cur;
 reg		[15:0]	inst_msk;
 reg		[15:0]	inst_cod;
 `ifdef		MCOC_CORE_SM
-wire	[15:0]	inst_ir={ 8'h0,top.cpu.core.ctl.ir[7:0] };
+wire	[15:0]	inst_ir={ 8'h0,`TOP_CORE.ctl.ir[7:0] };
 `elsif		MCOC_CORE_NHSS
-wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
+wire	[15:0]	inst_ir=`TOP_CORE.fch.ir0[15:0];
 `elsif		MCOC_CORE_NHPI
-wire	[15:0]	inst_ir=top.cpu.core.eastg.ir[15:0];
+wire	[15:0]	inst_ir=`TOP_CORE.eastg.ir[15:0];
 `elsif		MCOC_CORE_MCSS
-wire	[15:0]	inst_ir=top.cpu.core.fch.ir0[15:0];
-`elsif		MCOC_POLY
-wire	[15:0]	inst_ir=top.cpu.punit0.core.fch.ir[15:0];
+wire	[15:0]	inst_ir=`TOP_CORE.fch.ir0[15:0];
 `else
-wire	[15:0]	inst_ir=top.cpu.core.fch.ir[15:0];
+wire	[15:0]	inst_ir=`TOP_CORE.fch.ir[15:0];
 `endif
 initial
 	begin
@@ -758,60 +761,11 @@ always	@(posedge clk)
 
 
 // simulation convenience
-`ifdef		MCOC_POLY
-
-`ifdef		MCOC_CORE_MCBS
-// PUNIT#0 (Moscovium-BS)  general register value with bank selection
-wire	[1:0]	bank=top.cpu.punit0.core.rgf.sreg.sr[1:0];
-wire	[15:0]	r0=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr00[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr00[15:0]:
-		16'hx;
-wire	[15:0]	r1=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr01[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr01[15:0]:
-		16'hx;
-wire	[15:0]	r2=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr02[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr02[15:0]:
-		16'hx;
-wire	[15:0]	r3=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr03[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr03[15:0]:
-		16'hx;
-wire	[15:0]	r4=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr04[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr04[15:0]:
-		16'hx;
-wire	[15:0]	r5=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr05[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr05[15:0]:
-		16'hx;
-wire	[15:0]	r6=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr06[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr06[15:0]:
-		16'hx;
-wire	[15:0]	r7=
-		(bank[1:0]===2'h0)? top.cpu.punit0.core.rgf.bank02.gr07[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.punit0.core.rgf.bank13.gr07[15:0]:
-		16'hx;
-`else	//	MCOC_CORE_MCBS
-// PUNIT#0 (Tennessine) general register value
-wire	[15:0]	r0=top.cpu.punit0.core.rgf.bank.gr00[15:0];
-wire	[15:0]	r1=top.cpu.punit0.core.rgf.bank.gr01[15:0];
-wire	[15:0]	r2=top.cpu.punit0.core.rgf.bank.gr02[15:0];
-wire	[15:0]	r3=top.cpu.punit0.core.rgf.bank.gr03[15:0];
-wire	[15:0]	r4=top.cpu.punit0.core.rgf.bank.gr04[15:0];
-wire	[15:0]	r5=top.cpu.punit0.core.rgf.bank.gr05[15:0];
-wire	[15:0]	r6=top.cpu.punit0.core.rgf.bank.gr06[15:0];
-wire	[15:0]	r7=top.cpu.punit0.core.rgf.bank.gr07[15:0];
-`endif	//	MCOC_CORE_MCBS
-
-`elsif		MCOC_CORE_SM
+`ifdef		MCOC_CORE_SM
 
 // Samarium stack value
-wire	[15:0]	sptr=top.cpu.core.sptr.sptr[15:0];
-`define		STK		top.cpu.core.stk.mem
+wire	[15:0]	sptr=`TOP_CORE.sptr.sptr[15:0];
+`define		STK		`TOP_CORE.stk.mem
 //wire	[15:0]	stk0=(sptr[15:0]>=0)? `STK[sptr[15:0] - 0]: 16'hz;
 wire	[15:0]	stk1=(sptr[15:0]>=1)? `STK[sptr[15:0] - 1]: 16'hz;
 wire	[15:0]	stk2=(sptr[15:0]>=2)? `STK[sptr[15:0] - 2]: 16'hz;
@@ -824,166 +778,166 @@ wire	[15:0]	stk8=(sptr[15:0]>=8)? `STK[sptr[15:0] - 8]: 16'hz;
 
 `elsif		MCOC_CORE_TS
 // Tennessine general register value
-wire	[15:0]	r0=top.cpu.core.rgf.bank.gr00[15:0];
-wire	[15:0]	r1=top.cpu.core.rgf.bank.gr01[15:0];
-wire	[15:0]	r2=top.cpu.core.rgf.bank.gr02[15:0];
-wire	[15:0]	r3=top.cpu.core.rgf.bank.gr03[15:0];
-wire	[15:0]	r4=top.cpu.core.rgf.bank.gr04[15:0];
-wire	[15:0]	r5=top.cpu.core.rgf.bank.gr05[15:0];
-wire	[15:0]	r6=top.cpu.core.rgf.bank.gr06[15:0];
-wire	[15:0]	r7=top.cpu.core.rgf.bank.gr07[15:0];
+wire	[15:0]	r0=`TOP_CORE.rgf.bank.gr00[15:0];
+wire	[15:0]	r1=`TOP_CORE.rgf.bank.gr01[15:0];
+wire	[15:0]	r2=`TOP_CORE.rgf.bank.gr02[15:0];
+wire	[15:0]	r3=`TOP_CORE.rgf.bank.gr03[15:0];
+wire	[15:0]	r4=`TOP_CORE.rgf.bank.gr04[15:0];
+wire	[15:0]	r5=`TOP_CORE.rgf.bank.gr05[15:0];
+wire	[15:0]	r6=`TOP_CORE.rgf.bank.gr06[15:0];
+wire	[15:0]	r7=`TOP_CORE.rgf.bank.gr07[15:0];
 `elsif		MCOC_CORE_NH
 // Nihonium general register value with bank selection
-wire	[1:0]	bank=top.cpu.core.rgf.sreg.sr[1:0];
+wire	[1:0]	bank=`TOP_CORE.rgf.sreg.sr[1:0];
 wire	[31:0]	r0=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr20[15:0],
-			top.cpu.core.rgf.bank02.gr00[15:0] }:
+			`TOP_CORE.rgf.bank02.gr20[15:0],
+			`TOP_CORE.rgf.bank02.gr00[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr20[15:0],
-			top.cpu.core.rgf.bank13.gr00[15:0] }:
+			`TOP_CORE.rgf.bank13.gr20[15:0],
+			`TOP_CORE.rgf.bank13.gr00[15:0] }:
 		32'hx;
 wire	[31:0]	r1=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr21[15:0],
-			top.cpu.core.rgf.bank02.gr01[15:0] }:
+			`TOP_CORE.rgf.bank02.gr21[15:0],
+			`TOP_CORE.rgf.bank02.gr01[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr21[15:0],
-			top.cpu.core.rgf.bank13.gr01[15:0] }:
+			`TOP_CORE.rgf.bank13.gr21[15:0],
+			`TOP_CORE.rgf.bank13.gr01[15:0] }:
 		32'hx;
 wire	[31:0]	r2=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr22[15:0],
-			top.cpu.core.rgf.bank02.gr02[15:0] }:
+			`TOP_CORE.rgf.bank02.gr22[15:0],
+			`TOP_CORE.rgf.bank02.gr02[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr22[15:0],
-			top.cpu.core.rgf.bank13.gr02[15:0] }:
+			`TOP_CORE.rgf.bank13.gr22[15:0],
+			`TOP_CORE.rgf.bank13.gr02[15:0] }:
 		32'hx;
 wire	[31:0]	r3=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr23[15:0],
-			top.cpu.core.rgf.bank02.gr03[15:0] }:
+			`TOP_CORE.rgf.bank02.gr23[15:0],
+			`TOP_CORE.rgf.bank02.gr03[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr23[15:0],
-			top.cpu.core.rgf.bank13.gr03[15:0] }:
+			`TOP_CORE.rgf.bank13.gr23[15:0],
+			`TOP_CORE.rgf.bank13.gr03[15:0] }:
 		32'hx;
 wire	[31:0]	r4=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr24[15:0],
-			top.cpu.core.rgf.bank02.gr04[15:0] }:
+			`TOP_CORE.rgf.bank02.gr24[15:0],
+			`TOP_CORE.rgf.bank02.gr04[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr24[15:0],
-			top.cpu.core.rgf.bank13.gr04[15:0] }:
+			`TOP_CORE.rgf.bank13.gr24[15:0],
+			`TOP_CORE.rgf.bank13.gr04[15:0] }:
 		32'hx;
 wire	[31:0]	r5=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr25[15:0],
-			top.cpu.core.rgf.bank02.gr05[15:0] }:
+			`TOP_CORE.rgf.bank02.gr25[15:0],
+			`TOP_CORE.rgf.bank02.gr05[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr25[15:0],
-			top.cpu.core.rgf.bank13.gr05[15:0] }:
+			`TOP_CORE.rgf.bank13.gr25[15:0],
+			`TOP_CORE.rgf.bank13.gr05[15:0] }:
 		32'hx;
 wire	[31:0]	r6=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr26[15:0],
-			top.cpu.core.rgf.bank02.gr06[15:0] }:
+			`TOP_CORE.rgf.bank02.gr26[15:0],
+			`TOP_CORE.rgf.bank02.gr06[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr26[15:0],
-			top.cpu.core.rgf.bank13.gr06[15:0] }:
+			`TOP_CORE.rgf.bank13.gr26[15:0],
+			`TOP_CORE.rgf.bank13.gr06[15:0] }:
 		32'hx;
 wire	[31:0]	r7=
 		(bank[0]===1'b0)? {
-			top.cpu.core.rgf.bank02.gr27[15:0],
-			top.cpu.core.rgf.bank02.gr07[15:0] }:
+			`TOP_CORE.rgf.bank02.gr27[15:0],
+			`TOP_CORE.rgf.bank02.gr07[15:0] }:
 		(bank[0]===1'b1)? {
-			top.cpu.core.rgf.bank13.gr27[15:0],
-			top.cpu.core.rgf.bank13.gr07[15:0] }:
+			`TOP_CORE.rgf.bank13.gr27[15:0],
+			`TOP_CORE.rgf.bank13.gr07[15:0] }:
 		32'hx;
 `elsif		MCOC_CORE_MCBS
 // Moscovium-BS general register value with bank selection
-wire	[1:0]	bank=top.cpu.core.rgf.sreg.sr[1:0];
+wire	[1:0]	bank=`TOP_CORE.rgf.sreg.sr[1:0];
 wire	[15:0]	r0=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr00[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr00[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr00[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr00[15:0]:
 		16'hx;
 wire	[15:0]	r1=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr01[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr01[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr01[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr01[15:0]:
 		16'hx;
 wire	[15:0]	r2=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr02[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr02[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr02[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr02[15:0]:
 		16'hx;
 wire	[15:0]	r3=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr03[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr03[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr03[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr03[15:0]:
 		16'hx;
 wire	[15:0]	r4=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr04[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr04[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr04[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr04[15:0]:
 		16'hx;
 wire	[15:0]	r5=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr05[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr05[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr05[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr05[15:0]:
 		16'hx;
 wire	[15:0]	r6=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr06[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr06[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr06[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr06[15:0]:
 		16'hx;
 wire	[15:0]	r7=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr07[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr07[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr07[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr07[15:0]:
 		16'hx;
 `else
 // Moscovium general register value with bank selection
-wire	[1:0]	bank=top.cpu.core.rgf.sreg.sr[1:0];
+wire	[1:0]	bank=`TOP_CORE.rgf.sreg.sr[1:0];
 wire	[15:0]	r0=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr00[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr00[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr20[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr20[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr00[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr00[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr20[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr20[15:0]:
 		16'hx;
 wire	[15:0]	r1=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr01[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr01[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr21[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr21[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr01[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr01[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr21[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr21[15:0]:
 		16'hx;
 wire	[15:0]	r2=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr02[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr02[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr22[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr22[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr02[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr02[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr22[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr22[15:0]:
 		16'hx;
 wire	[15:0]	r3=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr03[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr03[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr23[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr23[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr03[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr03[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr23[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr23[15:0]:
 		16'hx;
 wire	[15:0]	r4=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr04[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr04[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr24[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr24[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr04[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr04[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr24[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr24[15:0]:
 		16'hx;
 wire	[15:0]	r5=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr05[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr05[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr25[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr25[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr05[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr05[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr25[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr25[15:0]:
 		16'hx;
 wire	[15:0]	r6=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr06[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr06[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr26[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr26[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr06[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr06[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr26[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr26[15:0]:
 		16'hx;
 wire	[15:0]	r7=
-		(bank[1:0]===2'h0)? top.cpu.core.rgf.bank02.gr07[15:0]:
-		(bank[1:0]===2'h1)? top.cpu.core.rgf.bank13.gr07[15:0]:
-		(bank[1:0]===2'h2)? top.cpu.core.rgf.bank02.gr27[15:0]:
-		(bank[1:0]===2'h3)? top.cpu.core.rgf.bank13.gr27[15:0]:
+		(bank[1:0]===2'h0)? `TOP_CORE.rgf.bank02.gr07[15:0]:
+		(bank[1:0]===2'h1)? `TOP_CORE.rgf.bank13.gr07[15:0]:
+		(bank[1:0]===2'h2)? `TOP_CORE.rgf.bank02.gr27[15:0]:
+		(bank[1:0]===2'h3)? `TOP_CORE.rgf.bank13.gr27[15:0]:
 		16'hx;
 `endif
 

@@ -199,7 +199,7 @@ model	"Blockly.XML to Moscovium.ASM translator"
 	var		opt_iram_need=false;		// opt: need I-RAM / or not
 	var		opt_iram_stack=false;		// opt: set stack area to I-RAM
 	var		opt_cstr_siz=64;			// opt: string buffer size
-	var		opt_rom_siz=4*1024;			// opt: instruction ROM size
+	var		opt_rom_siz=4*1_024;		// opt: instruction ROM size
 	var		opt_isr_bank=1;				// opt: general register bank for isr
 	var		opt_uart_baud=9600;			// opt: UART8N1 baud rate
 	macro	vlst_vars;					// list of variables

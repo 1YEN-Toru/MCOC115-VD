@@ -50,13 +50,16 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0248
+`define		MCOC_VERS		16'h0250
 
 
 //
 //	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2026/09/12	ver.2.50
+//		fix: poly-core: boot mode and fbcmd
 //
 //	2026/06/27	ver.2.48
 //		corresponding to SPIBUS unit
@@ -294,45 +297,45 @@ defparam	idrg.romtop=$clog2 (`MCOC_ERAM);
 defparam	idrg.romtop=16'h0000;
 `endif	//	MCOC_ERAM
 `ifdef		MCOC_ROM_48K
-defparam	idrg.romsiz=16'd48*16'd1024;
+defparam	idrg.romsiz=16'd48*16'd1_024;
 defparam	idrg.ramtop=16'hd000;
 `elsif		MCOC_ROM_32K
-defparam	idrg.romsiz=16'd32*16'd1024;
+defparam	idrg.romsiz=16'd32*16'd1_024;
 defparam	idrg.ramtop=16'h9000;
 `elsif		MCOC_ROM_16K
-defparam	idrg.romsiz=16'd16*16'd1024;
+defparam	idrg.romsiz=16'd16*16'd1_024;
 defparam	idrg.ramtop=16'h5000;
 `elsif		MCOC_ROM_8K
-defparam	idrg.romsiz=16'd8*16'd1024;
+defparam	idrg.romsiz=16'd8*16'd1_024;
 defparam	idrg.ramtop=16'h5000;
 `else
-defparam	idrg.romsiz=16'd4*16'd1024;
+defparam	idrg.romsiz=16'd4*16'd1_024;
 defparam	idrg.ramtop=16'h5000;
 `endif
 `ifdef		MCOC_ERAM
 
 `ifdef		MCOC_ROM_48K
-defparam	idrg.ramsiz=16'd8*16'd1024;
+defparam	idrg.ramsiz=16'd8*16'd1_024;
 `elsif		MCOC_ROM_32K
-defparam	idrg.ramsiz=16'd24*16'd1024;
+defparam	idrg.ramsiz=16'd24*16'd1_024;
 `else
-defparam	idrg.ramsiz=16'd40*16'd1024;
+defparam	idrg.ramsiz=16'd40*16'd1_024;
 `endif
 
 `elsif		MCOC_RAM_LE1K
 defparam	idrg.ramsiz=`MCOC_RAM_LE1K;
 `elsif		MCOC_RAM_4K
-defparam	idrg.ramsiz=16'd4*16'd1024;
+defparam	idrg.ramsiz=16'd4*16'd1_024;
 `elsif		MCOC_RAM_40K
-defparam	idrg.ramsiz=16'd40*16'd1024;
+defparam	idrg.ramsiz=16'd40*16'd1_024;
 `elsif		MCOC_RAM_32K
-defparam	idrg.ramsiz=16'd32*16'd1024;
+defparam	idrg.ramsiz=16'd32*16'd1_024;
 `elsif		MCOC_RAM_24K
-defparam	idrg.ramsiz=16'd24*16'd1024;
+defparam	idrg.ramsiz=16'd24*16'd1_024;
 `elsif		MCOC_RAM_16K
-defparam	idrg.ramsiz=16'd16*16'd1024;
+defparam	idrg.ramsiz=16'd16*16'd1_024;
 `else
-defparam	idrg.ramsiz=16'd8*16'd1024;
+defparam	idrg.ramsiz=16'd8*16'd1_024;
 `endif
 
 // memory bus
@@ -474,7 +477,7 @@ assign	user_iop[15]=(!user_iop_enb[15])? 1'bz: user_iop_out[15];
 	.bdatw(bdatw2[15:0]),	// Output
 	// poly-core I/F
 	.bootmd(bootmd),	// Input
-	.btm_bcmdw_rom(!bcs_rom_n && bcmdr),	// Input
+	.btm_bcmdw_rom(bcmdw && !bcs_rom_n),	// Input
 	.btm_badr(badr[15:0]),	// Input
 	.btm_bdatw(bdatw[15:0]),	// Input
 	.poly_pirq_half(poly_pirq_ev[6:0])	// Input
@@ -527,7 +530,7 @@ assign	bdatw2[31:0]=32'h0;
 	.bdatw(bdatw1[15:0]),	// Output
 	// poly-core I/F
 	.bootmd(bootmd),	// Input
-	.btm_bcmdw_rom(!bcs_rom_n && bcmdr),	// Input
+	.btm_bcmdw_rom(bcmdw && !bcs_rom_n),	// Input
 	.btm_badr(badr[15:0]),	// Input
 	.btm_bdatw(bdatw[15:0]),	// Input
 	.poly_pirq_half(poly_pirq_od[6:0])	// Input
@@ -771,8 +774,8 @@ wire	[31:0]	rom_fdat1;
 wire	[31:0]	rom_fdat2;
 
 `ifdef		MCOC_POLY
-wire	frdy1=1'b1;
-wire	frdy2=1'b1;
+assign	frdy1=1'b1;
+assign	frdy2=1'b1;
 assign	rom_fdat1[31:0]=32'h0;
 assign	rom_fdat2[31:0]=32'h0;
 assign	bdatr_rom[31:0]=32'h0;

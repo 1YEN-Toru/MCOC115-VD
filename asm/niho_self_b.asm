@@ -458,12 +458,12 @@ bne		hfpu_fail
 // hfrac
 hldi	r6,0.0123
 hfrac	r0,r6							// **
-ldwi	r7,806							// 806=0.0123*65536
+ldwi	r7,806							// 806=0.0123*65_536
 cmp		r0,r7
 bne		hfpu_fail
 hldi	r0,-10/3
 hfrac	r1,r0							// **
-ldwi	r2,0x5500						// 0x5500=((10/3)%1)*65536
+ldwi	r2,0x5500						// 0x5500=((10/3)%1)*65_536
 cmp		r1,r2
 bne		hfpu_fail
 // ================================

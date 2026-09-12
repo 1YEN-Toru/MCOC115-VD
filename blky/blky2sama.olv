@@ -1,12 +1,15 @@
 model	"Blockly.XML to Samarium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Samarium.ASM translator";
-	macro	prog_vers="1.02";
+	macro	prog_vers="1.04";
 // ================================
 //
 //	Samarium series Blockly.XML to Samarium.ASM translator
 //		(c) 2026	1YEN Toru
 //
+//
+//		2026/09/12	ver.1.04
+//			fix: mcoc_matf_compare; NCVZ flag operation
 //
 //		2026/07/11	ver.1.02
 //			add: mcoc_pack_option
@@ -3801,6 +3804,7 @@ if (false)
 			fprint	fout,"swap"$,;
 			fprint	fout,"fcmp"$,;
 		}
+		asm_cjmp	$(mne),true;
 		asm_bool;
 
 		mlet	do_blk_mcoc_matf_compare=$(lval)" "

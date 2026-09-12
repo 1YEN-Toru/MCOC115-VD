@@ -165,7 +165,7 @@ _rtlb_rjts_not_ts:
 #	ram_siz:	RAM size
 #		ram_siz=idrgrams
 #	iram_top:	I-RAM top address
-#		iram_top=ram_top - 4096
+#		iram_top=ram_top - 4_096
 #	stk_btm:	stack area bottom address
 #		stk_btm=ram_btm
 #	stk_btm2:	stack area bottom address for cpu2
@@ -184,7 +184,7 @@ ldwi	r2,idrgrams
 ldw		r2,[r2]
 // r3=iram_top
 mov		r3,r1
-ldwi	r0,4*1024
+ldwi	r0,4*1_024
 sub		r3,r0
 // r6=var_top
 ldbiu	r0,_rtlb_iram_need

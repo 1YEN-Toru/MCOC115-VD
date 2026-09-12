@@ -68,8 +68,7 @@ endm
 
 macro	negl	rnh,rnl
 // negl $(rnh):$(rnl)
-# ATTN! neg instruction implemented by Rn'=0 - Rn,
-#		so C flag is inverted as sub instruction.
+# ATTN! add C flag, because borrowing before neg instruction
 neg		$(rnl)
 adcz	$(rnh)
 neg		$(rnh)

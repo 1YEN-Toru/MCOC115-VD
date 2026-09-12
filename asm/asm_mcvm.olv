@@ -434,7 +434,7 @@ model	"Moscovium series macro assembler"
 
 	// variables
 	var		DATFMT=DFMEM;				// output data file format
-	var		ROMSIZ=4096;				// DFDAT: ROM size [byte]
+	var		ROMSIZ=4_096;				// DFDAT: ROM size [byte]
 	var		LISOUT=false;				// true=output .lis file
 	var		TGTCORE=TGTANY;				// TGTANY=all
 	var		ASMBIT=32;					// output data width [bit]

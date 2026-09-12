@@ -65,6 +65,7 @@ wire	[15:0]	pc6_bdatr;
 
 assign	bcmd[3]=1'b0;
 assign	bdatwx[15:0]=16'h0;
+assign	fcmd[2:0]=3'h0;
 assign	fadr[15:0]=16'h0;
 
 
@@ -456,6 +457,7 @@ moscoviumbs		core (
 );
 
 `else	// MCOC_CORE_MCBS
+
 assign	cpu_badrx[15:0]=16'h0;
 
 
@@ -509,8 +511,6 @@ wire	[15:0]	cbus_mulc=16'h0;
 
 `ifdef		MCVM_COPR_DIV
 wire	[15:0]	cbus_divc;
-
-`ifdef		MCOC_CORE_MCBS
 divc16	divc (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input
@@ -520,18 +520,6 @@ divc16	divc (
 	.crdy(crdy_divc),	// Output
 	.cbus(cbus_divc[15:0])	// Output
 );
-`else	//	MCOC_CORE_MCBS
-divc32	divc (
-	.clk(clk),	// Input
-	.rst_n(rst_n),	// Input
-	.ccmd(ccmd[4:0]),	// Input
-	.abus(abus_o[15:0]),	// Input
-	.bbus(bbus_o[15:0]),	// Input
-	.crdy(crdy_divc),	// Output
-	.cbus(cbus_divc[15:0])	// Output
-);
-`endif	//	MCOC_CORE_MCBS
-
 `else	//	MCVM_COPR_DIV
 wire	crdy_divc=1'b1;
 wire	[15:0]	cbus_divc=16'h0;

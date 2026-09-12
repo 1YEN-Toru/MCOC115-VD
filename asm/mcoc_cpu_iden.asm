@@ -1,6 +1,6 @@
 // ================================
 //	MxOC115 / NxOC113 / TSOC117 Combination Test
-//		cpu recognition (dual / poly core cpu ready)
+//		cpu recognition (dual / poly-core cpu ready)
 //		(c) 2023,2026	1YEN Toru
 // ================================
 asm		"mcoc_irom.mem"
@@ -60,7 +60,7 @@ movfc	r4,sr
 cendw	r4
 lsri	r4,sreg_b_id0-8
 andi	r4,sreg_id_15>>sreg_b_id0
-// dual core or poly core
+// dual core or poly-core
 mov		r0,r5
 andi	r0,0xff
 cmpi	r0,core_mcbs&0xff
@@ -75,8 +75,8 @@ ldbiu	r4,sreg_id_1>>sreg_b_id0
 bra		fin_cpu_recg
 
 mcbs_or_ts:
-// poly core ready: Mc-BS or Ts
-cmpi	r4,sreg_id_15>>sreg_b_id0		// poly core main cpu
+// poly-core ready: Mc-BS or Ts
+cmpi	r4,sreg_id_15>>sreg_b_id0		// poly-core main cpu
 bne		pcnt+2
 ldbiu	r4,sreg_id_1>>sreg_b_id0
 
@@ -84,7 +84,7 @@ ldbiu	r4,sreg_id_1>>sreg_b_id0
 //	r4(cpu id):
 //		0 (single core)
 //		1~2 (dualcore)
-//		1~14 (poly core)
+//		1~14 (poly-core)
 //	r5(cpu type):
 //		Ts=		0x1170
 //		Mc=		0x1150
@@ -187,10 +187,10 @@ bra		tstfail
 // print and finish
 print_and_finish:
 jalwr7	print
-// cpu0 (single core cpu) or cpu1 (dual / poly core main cpu)
+// cpu0 (single core cpu) or cpu1 (dual / poly-core main cpu)
 cmpi	r4,sreg_id_2>>sreg_b_id0
 blo		tstpass
-// cpu2~14 (dual / poly core sub cpu)
+// cpu2~14 (dual / poly-core sub cpu)
 // halt
 pause
 bra		pcnt-4

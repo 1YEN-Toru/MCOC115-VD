@@ -938,23 +938,23 @@ mcoc_boot32		rombt (
 // instruction rom
 `ifdef		MCOC_ROM_48K
 `define		MCOC_ROM_ABIT	14
-`define		MCOC_ROM_SIZB	48*1024*8
+`define		MCOC_ROM_SIZB	48*1_024*8
 
 `elsif		MCOC_ROM_32K
 `define		MCOC_ROM_ABIT	13
-`define		MCOC_ROM_SIZB	32*1024*8
+`define		MCOC_ROM_SIZB	32*1_024*8
 
 `elsif		MCOC_ROM_16K
 `define		MCOC_ROM_ABIT	12
-`define		MCOC_ROM_SIZB	16*1024*8
+`define		MCOC_ROM_SIZB	16*1_024*8
 
 `elsif		MCOC_ROM_8K
 `define		MCOC_ROM_ABIT	11
-`define		MCOC_ROM_SIZB	8*1024*8
+`define		MCOC_ROM_SIZB	8*1_024*8
 
 `else
 `define		MCOC_ROM_ABIT	10
-`define		MCOC_ROM_SIZB	4*1024*8
+`define		MCOC_ROM_SIZB	4*1_024*8
 
 `endif
 
@@ -1099,7 +1099,7 @@ xpm_memory_tdpram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(4*1024*8),				// DECIMAL
+	.MEMORY_SIZE(4*1_024*8),			// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_DATA_WIDTH_B(32),				// DECIMAL
@@ -1340,7 +1340,7 @@ ram_wrap32	ramwp (
 
 
 `ifdef		MCOC_ERAM
-`define		MCOC_ERAM_ABIT	$clog2 (`MCOC_ERAM*1024/4)
+`define		MCOC_ERAM_ABIT	$clog2 (`MCOC_ERAM*1_024/4)
 
 xpm_memory_spram	#(
 	.ADDR_WIDTH_A(`MCOC_ERAM_ABIT),		// DECIMAL
@@ -1352,7 +1352,7 @@ xpm_memory_spram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(`MCOC_ERAM*1024*8),	// DECIMAL
+	.MEMORY_SIZE(`MCOC_ERAM*1_024*8),	// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -1400,7 +1400,7 @@ xpm_memory_spram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(8*1024*8),				// DECIMAL
+	.MEMORY_SIZE(8*1_024*8),			// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -1444,7 +1444,7 @@ xpm_memory_spram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(8*1024*8),				// DECIMAL
+	.MEMORY_SIZE(8*1_024*8),			// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -1487,7 +1487,7 @@ xpm_memory_spram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(8*1024*8),				// DECIMAL
+	.MEMORY_SIZE(8*1_024*8),			// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -1528,7 +1528,7 @@ xpm_memory_spram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(8*1024*8),				// DECIMAL
+	.MEMORY_SIZE(8*1_024*8),			// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -1568,7 +1568,7 @@ xpm_memory_spram	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("true"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(8*1024*8),				// DECIMAL
+	.MEMORY_SIZE(8*1_024*8),			// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(32),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -1660,25 +1660,25 @@ output	bcs_sndg_n);
 //
 //
 //	2025/09/13	ver.1.18
-//		add: bcs_sndg_n; SNDG1PB unit, Sound Generator unit
+//		add: bcs_sndg_n; SNDG1PB unit
 //
 //	2025/05/10	ver.1.16
-//		add: bcs_trng_n; TRNG32 unit, True Random Number Generator unit
+//		add: bcs_trng_n; TRNG32 unit
 //
 //	2025/02/22	ver.1.14
-//		add: bcs_poly_n; POLYC144 unit, Poly-core controller
+//		add: bcs_poly_n; POLYC144 unit
 //
 //	2024/12/14	ver.1.12
-//		add: bcs_stft_n; STFT61 unit, SPI-TFT controller
+//		add: bcs_stft_n; STFT61 unit
 //
 //	2024/09/21	ver.1.10
 //		add: compile option MCOC_ROM_32K, MCOC_ROM_48K
 //
 //	2024/06/15	ver.1.08
-//		add: bcs_cm76_n; CAM7670 unit, OV7670 camera I/F
+//		add: bcs_cm76_n; CAM7670 unit
 //
 //	2024/01/20	ver.1.06
-//		add: bcs_adcx_n; ADCX122 unit, XADC on the Xilinx Artix-7 FPGA chip
+//		add: bcs_adcx_n; ADCX122 unit
 //
 //	2023/11/18	ver.1.04
 //		add: bcs_eram_n; Extended RAM area for the Xilinx Artix-7 FPGA chip
@@ -2188,7 +2188,7 @@ xpm_memory_sprom	#(
 	.MEMORY_INIT_PARAM("0"),			// String
 	.MEMORY_OPTIMIZATION("false"),		// String
 	.MEMORY_PRIMITIVE("auto"),			// String
-	.MEMORY_SIZE(64*8192),				// DECIMAL
+	.MEMORY_SIZE(64*8_192),				// DECIMAL
 	.MESSAGE_CONTROL(0),				// DECIMAL
 	.READ_DATA_WIDTH_A(64),				// DECIMAL
 	.READ_LATENCY_A(1),					// DECIMAL
@@ -2433,7 +2433,7 @@ cam7670		cm76 (
 );
 
 `ifndef		MCOC_CM76_FIFO_SIZE
-`define		MCOC_CM76_FIFO_SIZE		4096
+`define		MCOC_CM76_FIFO_SIZE		4_096
 `endif	//	MCOC_CM76_FIFO_SIZE
 xpm_fifo_async	#(
 	.CDC_SYNC_STAGES(2),				// DECIMAL

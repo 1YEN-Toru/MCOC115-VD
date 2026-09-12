@@ -38,6 +38,7 @@
 `ifdef		MCOC_POLY
 `define		MCOC_CORE_MCBS
 `undef		MCOC_CORE_NH
+`undef		MCOC_CORE_NHPI
 `undef		MCOC_CORE_NHSS
 `undef		MCOC_CORE_MCSS
 `undef		MCOC_DUAL_AMP_TS
@@ -52,6 +53,7 @@
 `define		SAMA_STK_SIZ	64
 `undef		MCOC_CORE_TS
 `undef		MCOC_CORE_NH
+`undef		MCOC_CORE_NHPI
 `undef		MCOC_CORE_NHSS
 `undef		MCOC_CORE_MCBS
 `undef		MCOC_CORE_MCSS
@@ -69,6 +71,7 @@
 `elsif		MCOC_CORE_TS
 `define		CPU_CORE		tennessinec
 `undef		MCOC_CORE_NH
+`undef		MCOC_CORE_NHPI
 `undef		MCOC_CORE_NHSS
 `undef		MCOC_CORE_MCBS
 `undef		MCOC_CORE_MCSS
@@ -89,8 +92,13 @@
 
 `else
 `define		CPU_CORE		moscoviumc
+`undef		MCOC_CORE_NHPI
 `undef		MCOC_CORE_NHSS
 `undef		MCVM_COPR_FPUS
+
+`ifdef		MCOC_CORE_NHPI
+`undef		MCOC_CORE_NHSS
+`endif	//	MCOC_CORE_NHPI
 
 `ifdef		MCOC_CORE_MCSS
 `undef		MCOC_CORE_MCBS
@@ -108,6 +116,8 @@
 
 `ifdef		MCOC_POLY
 `else	//	MCOC_POLY
+`undef		MCOC_CORE_SM
+`undef		MCOC_CORE_TS
 `undef		MCOC_CORE_MCBS
 `endif	//	MCOC_POLY
 `undef		MCOC_SPIB
@@ -175,4 +185,3 @@
 `endif	//	MCOC_STFT
 
 `define		MCOC_PORT_HIZO				// default now
-
