@@ -114,6 +114,14 @@ javascript.javascriptGenerator.forBlock['mcvm_sim_pass'] = function(block, gener
   return code;
 };
 
+javascript.javascriptGenerator.forBlock['mcvm_inject'] = function(block, generator) {
+  var dropdown_typ = block.getFieldValue('TYP');
+  var text_txt = block.getFieldValue('TXT');
+  // TODO: Assemble javascript into code variable.
+  var code = 'inject.' + dropdown_typ + ' (\'' + text_txt + '\');\n';
+  return code;
+};
+
 javascript.javascriptGenerator.forBlock['mcvm_mem_addr'] = function(block, generator) {
   var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
   // TODO: Assemble javascript into code variable.
@@ -408,7 +416,7 @@ javascript.javascriptGenerator.forBlock['mcoc_pack_option'] = function(block, ge
   var text_opt = block.getFieldValue('OPT');
   var statements_pac = generator.statementToCode(block, 'PAC');
   // TODO: Assemble javascript into code variable.
-  var code = 'if (option ("@' + text_opt + '@")) {\n' + statements_pac + '}\n';
+  var code = 'if (option (\'@' + text_opt + '@\')) {\n' + statements_pac + '}\n';
   return code;
 };
 
@@ -858,7 +866,7 @@ javascript.javascriptGenerator.forBlock['mcoc_matf_variables_set'] = function(bl
   var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = generator.getVariableName(block.getFieldValue('VAR')) + " = " + value_val + ';\n';
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + ' = ' + value_val + ';\n';
   return code;
 };
 
@@ -866,7 +874,7 @@ javascript.javascriptGenerator.forBlock['mcoc_matf_array_get'] = function(block,
   var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
   var value_idx = generator.valueToCode(block, 'IDX', javascript.Order.ATOMIC);
   // TODO: Assemble javascript into code variable.
-  var code = generator.getVariableName(block.getFieldValue('VAR')) + "[" + value_idx + "]";
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + '[' + value_idx + ']';
   // TODO: Change ORDER_NONE to the correct strength.
   return [code, javascript.Order.ATOMIC];
 };
@@ -876,7 +884,7 @@ javascript.javascriptGenerator.forBlock['mcoc_matf_array_set'] = function(block,
   var value_idx = generator.valueToCode(block, 'IDX', javascript.Order.ATOMIC);
   var value_val = generator.valueToCode(block, 'VAL', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = generator.getVariableName(block.getFieldValue('VAR')) + "[" + value_idx + "] = " + value_val + ';\n';
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + '[' + value_idx + '] = ' + value_val + ';\n';
   return code;
 };
 
@@ -884,7 +892,7 @@ javascript.javascriptGenerator.forBlock['mcoc_matf_change'] = function(block, ge
   var variable_var = generator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
   var value_delta = generator.valueToCode(block, 'DELTA', javascript.Order.NONE);
   // TODO: Assemble javascript into code variable.
-  var code = generator.getVariableName(block.getFieldValue('VAR')) + " += " + value_delta + ';\n';
+  var code = generator.getVariableName(block.getFieldValue('VAR')) + ' += ' + value_delta + ';\n';
   return code;
 };
 

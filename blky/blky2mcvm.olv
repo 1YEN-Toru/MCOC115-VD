@@ -1,12 +1,15 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="2.06";
+	macro	prog_vers="2.08";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024,2026	1YEN Toru
 //
+//
+//		2026/09/26	ver.2.08
+//			add: mcvm_inject
 //
 //		2026/07/11	ver.2.06
 //			add: mcoc_pack_option
@@ -1488,6 +1491,73 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		fprint	fout,"$(s)ldwi	r7,simfnsh"$,;
 		fprint	fout,"$(s)stw	[r7],r0"$,;
 		fprint	fout,"$(s)// ********************************"$,;
+	}
+	procedure	do_blk_mcvm_inject
+	{
+		var		cmp;
+		nmacro	drct;
+		nmacro	smsg;
+
+		while (true)
+		{
+			fget_xml;
+			macro	cxml=$(fget_xml);
+			pindex	cmp=$(cxml),"^</block[ >]";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(cxml),"^<next[ >]";
+			}
+			if (cmp>0)
+			{
+				break;
+			}
+
+			pindex	cmp=$(cxml),"^<[^/]";
+			if (cmp>0)
+			{
+				static : analyze_xml	$(cxml);
+				macro	dxml=$(_xml_);
+				nmacro	_xml_name;
+				macro	dnam=$(_xml_name);
+				do_$(dxml);
+				strcmp	cmp=$(dxml),"field";
+				if (cmp=0)
+				{
+					strcmp	cmp=$(dnam),"TYP";
+					if (cmp=0)
+					{
+						mlet	drct=$(do_$(dxml));
+					}
+					else
+					{
+						mlet	smsg=$(do_$(dxml));
+					}
+				}
+			}
+		}
+
+		strcmp	cmp=$(drct),"";
+		if (cmp=0)
+		{
+			mlet	drct="ERROR";
+		}
+
+		// assembler
+		fprint	fout,"// "$(drct)": "$(smsg)$,;
+
+		gsub	"\n",$,,smsg;
+		strcmp	cmp=$(drct),"ERROR", ics_match;
+		if (cmp=0)
+		{
+			// ERROR:
+			errmsg	$(drct)": "$(smsg);
+			leave	stop_error;
+		}
+		else
+		{
+			// message
+			message		$(drct)": "$(smsg);
+		}
 	}
 	procedure	do_blk_mcvm_mem_addr
 	{

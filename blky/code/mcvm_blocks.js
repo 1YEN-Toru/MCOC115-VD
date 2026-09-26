@@ -197,6 +197,22 @@ Blockly.Blocks['mcvm_sim_pass'] = {
   }
 };
 
+Blockly.Blocks['mcvm_inject'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("inject")
+        .appendField(new Blockly.FieldDropdown([["ERROR","ERROR"], ["WARNING","WARNING"], ["INFORM","INFORM"]]), "TYP");
+    this.appendDummyInput()
+        .appendField(new Blockly.FieldTextInput("message"), "TXT");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(0);
+ this.setTooltip("inject message during compile time");
+ this.setHelpUrl("https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#BLKMCVM");
+  }
+};
+
 Blockly.Blocks['mcvm_mem_addr'] = {
   init: function() {
     this.appendDummyInput()
