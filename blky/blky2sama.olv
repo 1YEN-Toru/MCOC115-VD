@@ -1,12 +1,17 @@
 model	"Blockly.XML to Samarium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Samarium.ASM translator";
-	macro	prog_vers="1.06";
+	macro	prog_vers="1.08";
 // ================================
 //
 //	Samarium series Blockly.XML to Samarium.ASM translator
 //		(c) 2026	1YEN Toru
 //
+//
+//		2026/10/03	ver.1.08
+//			upd: mcoc_pack_option; corresponding to "COND" field
+//			upd: mcvm_cpu_reg: control registers; sr, pc, sp, iv
+//			upd: mcvm_cpu_set: control registers; pc, iv
 //
 //		2026/09/26	ver.1.06
 //			add: mcvm_inject
@@ -1109,6 +1114,7 @@ if (false)
 	procedure	do_blk_mcvm_cpu_reg
 	{
 		var		cmp;
+		var		rgctl;
 		macro	rnam;
 
 		while (true)
@@ -1140,13 +1146,47 @@ if (false)
 		}
 		mlet	do_blk_mcvm_cpu_reg="_"$(rnam);
 
+		strcmp	cmp=$(rnam),"sr";
+		if (cmp=0)
+		{
+			mlet	rnam="CPU_STS";
+			rgctl=true;
+		}
+		strcmp	cmp=$(rnam),"pc";
+		if (cmp=0)
+		{
+			mlet	rnam="PRG_CNT";
+			rgctl=true;
+		}
+		strcmp	cmp=$(rnam),"sp";
+		if (cmp=0)
+		{
+			mlet	rnam="STK_PTR";
+			rgctl=true;
+		}
+		strcmp	cmp=$(rnam),"iv";
+		if (cmp=0)
+		{
+			mlet	rnam="INT_VEC";
+			rgctl=true;
+		}
+
 		// assembler
-		fprint	fout,"// _"$(rnam)$,;
-		fprint	fout,"ldw	_"$(rnam)$,;
+		if (!rgctl)
+		{
+			fprint	fout,"// "$(do_blk_mcvm_cpu_reg)$,;
+			fprint	fout,"ldw	_"$(rnam)$,;
+		}
+		else
+		{
+			fprint	fout,"// "$(do_blk_mcvm_cpu_reg)$,;
+			fprint	fout,"push	"$(rnam)$,;
+		}
 	}
 	procedure	do_blk_mcvm_cpu_set
 	{
 		var		cmp;
+		var		rgctl;
 		macro	rnam;
 		macro	nval;
 
@@ -1183,9 +1223,31 @@ if (false)
 			}
 		}
 
+		strcmp	cmp=$(rnam),"pc";
+		if (cmp=0)
+		{
+			rgctl=true;
+
+			// assembler
+			fprint	fout,"// _"$(rnam)"="$(nval)$,;
+			fprint	fout,"setpc"$,;
+		}
+		strcmp	cmp=$(rnam),"iv";
+		if (cmp=0)
+		{
+			rgctl=true;
+
+			// assembler
+			fprint	fout,"// _"$(rnam)"="$(nval)$,;
+			fprint	fout,"setiv"$,;
+		}
+
 		// assembler
-		fprint	fout,"// _"$(rnam)"="$(nval)$,;
-		fprint	fout,"stw	_"$(rnam)$,;
+		if (!rgctl)
+		{
+			fprint	fout,"// _"$(rnam)"="$(nval)$,;
+			fprint	fout,"stw	_"$(rnam)$,;
+		}
 	}
 	procedure	do_blk_mcvm_sim_stat
 	{
@@ -1473,7 +1535,7 @@ if (false)
 
 		// assembler
 		fprint	fout,"// "$(vnam)"["$(nidx)"]"$,;
-		fprint	fout,"asl"$,;
+		fprint	fout,"lsl"$,;
 		fprint	fout,"add	["$(vnam)"]"$,;
 		fprint	fout,"ldw"$,;
 	}
@@ -1521,6 +1583,9 @@ if (false)
 					if (cmp=0)
 					{
 						mlet	nidx=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"lsl"$,;
 					}
 					strcmp	cmp=$(dnam),"VAL";
 					if (cmp=0)
@@ -1534,7 +1599,6 @@ if (false)
 		// assembler
 		fprint	fout,"// "$(vnam)"["$(nidx)"]="$(nval)$,;
 		fprint	fout,"swap"$,;
-		fprint	fout,"asl"$,;
 		fprint	fout,"add	["$(vnam)"]"$,;
 		fprint	fout,"stw"$,;
 	}
@@ -2545,6 +2609,7 @@ if (false)
 		macro	enbl;
 		macro	cmnt;
 		macro	optn;
+		macro	optc="true";
 
 		while (true)
 		{
@@ -2660,15 +2725,24 @@ if (false)
 					strcmp	cmp=$(dxml),"field";
 					if (cmp=0)
 					{
-						mlet	optn=$(do_$(dxml));
+						strcmp	cmp=$(_xml_name),"OPT";
+						if (cmp=0)
+						{
+							mlet	optn=$(do_$(dxml));
+						}
+						else
+						{
+							mlet	optc=$(do_$(dxml));
+						}
 
 						// if defined
 						tolower		optn;
+						tolower		optc;
 						nvar	opt_$(optn)=false;
-						if (opt_$(optn))
+						if (( opt_$(optn)!=false )=$(optc))
 						{
 							mlet	enbl="true";
-							mlet	cmnt="# pack option @"$(optn)"@";
+							mlet	cmnt="# pack option @"$(optn)"@ = "$(optc);
 						}
 						else
 						{
@@ -3404,7 +3478,7 @@ if (false)
 
 		// assembler
 		fprint	fout,"// "$(vnam)"["$(nidx)"]"$,;
-		fprint	fout,"asl"$,;
+		fprint	fout,"lsl"$,;
 		fprint	fout,"add	["$(vnam)"]"$,;
 		fprint	fout,"ldw"$,;
 	}
@@ -3452,6 +3526,9 @@ if (false)
 					if (cmp=0)
 					{
 						mlet	nidx=$(do_$(dxml));
+
+						// assembler
+						fprint	fout,"lsl"$,;
 					}
 					strcmp	cmp=$(dnam),"VAL";
 					if (cmp=0)
@@ -3465,7 +3542,6 @@ if (false)
 		// assembler
 		fprint	fout,"// "$(vnam)"["$(nidx)"]="$(nval)$,;
 		fprint	fout,"swap"$,;
-		fprint	fout,"asl"$,;
 		fprint	fout,"add	["$(vnam)"]"$,;
 		fprint	fout,"stw"$,;
 	}

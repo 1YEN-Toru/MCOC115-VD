@@ -1651,13 +1651,18 @@ output	bcs_cm76_n,
 output	bcs_stft_n,
 output	bcs_poly_n,
 output	bcs_trng_n,
-output	bcs_sndg_n);
+output	bcs_sndg_n,
+output	bcs_wfrm_n,
+output	bcs_wfr2_n);
 
 
 //
 //	MCOC address decoder
 //		(c) 2023	1YEN Toru
 //
+//
+//	2026/10/03	ver.1.20
+//		add: bcs_wfrm_n, bcs_wfr2_n; WFORM1R1T unit
 //
 //	2025/09/13	ver.1.18
 //		add: bcs_sndg_n; SNDG1PB unit
@@ -1778,6 +1783,8 @@ assign	bcs_stft_n=(!bcs_iou_n && badr[11:4]==8'h19)? 1'b0: 1'b1;
 assign	bcs_poly_n=(!bcs_iou_n && badr[11:4]==8'h1a)? 1'b0: 1'b1;
 assign	bcs_trng_n=(!bcs_iou_n && badr[11:4]==8'h1b)? 1'b0: 1'b1;
 assign	bcs_sndg_n=(!bcs_iou_n && badr[11:4]==8'h1c)? 1'b0: 1'b1;
+assign	bcs_wfrm_n=(!bcs_iou_n && badr[11:4]==8'h1d)? 1'b0: 1'b1;
+assign	bcs_wfr2_n=(!bcs_iou_n && badr[11:4]==8'h1e)? 1'b0: 1'b1;
 
 
 endmodule
@@ -2540,4 +2547,359 @@ assign	trng_lcgi[31:0]=trng_lcgo[31:0]*32'd1_103_515_245 + 32'd12_345;
 
 endmodule
 `endif	//	MCOC_TRNG
+
+`ifdef		MCOC_WFRM
+module	mcoc_wfrm (
+// Waveform Receiver Transmitter unit
+input	clk,
+input	rst_n,
+input	brdy,
+input	bcmdr,
+input	bcmdw,
+input	bcmdb,
+input	bcs_wfrm_n,
+input	bcs_wfr2_n,
+input	wfrm0_inp,
+input	wfrm1_inp,
+input	wfrm2_inp,
+input	wfrm3_inp,
+input	[3:0]	badr,
+input	[15:0]	bdatw,
+output	wfrm0_enb,
+output	wfrm1_enb,
+output	wfrm2_enb,
+output	wfrm3_enb,
+output	wfrm0_out,
+output	wfrm1_out,
+output	wfrm2_out,
+output	wfrm3_out,
+output	[15:0]	bdatr);
+
+
+wire	bcs_wfrm0_n=bcs_wfrm_n | badr[3];
+wire	bcs_wfrm1_n=bcs_wfrm_n | (~badr[3]);
+wire	bcs_wfrm2_n=bcs_wfr2_n | badr[3];
+wire	bcs_wfrm3_n=bcs_wfr2_n | (~badr[3]);
+wire	[3:0]	wfrm_cenb;
+wire	[3:0]	wfrm_cabt;
+wire	[7:0]	wfrx0_dato;
+wire	[7:0]	wfrx0_dati;
+wire	[7:0]	wftx0_dato;
+wire	[7:0]	wftx0_dati;
+wire	[15:0]	bdatr_wfrm0;
+wire	[15:0]	bdatr_wfrm1;
+wire	[15:0]	bdatr_wfrm2;
+wire	[15:0]	bdatr_wfrm3;
+
+
+wform1r1t	wfrm0 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcs_wfrm_n(bcs_wfrm0_n),	// Input
+	.wfrm_inp(wfrm0_inp),	// Input
+	.wfrm_cmnd_enb(wfrm_cenb[0]),	// Input
+	.wfrm_cmnd_abt(wfrm_cabt[0]),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.wfrm_enb(wfrm0_enb),	// Output
+	.wfrm_out(wfrm0_out),	// Output
+	.wfrm_cenb(wfrm_cenb[3:0]),	// Output
+	.wfrm_cabt(wfrm_cabt[3:0]),	// Output
+	.bdatr(bdatr_wfrm0[15:0]),	// Output
+	.wfrx_empty(wfrx0_empty),	// Input
+	.wfrx_full(wfrx0_full),	// Input
+	.wfrx_dato(wfrx0_dato[7:0]),	// Input
+	.wfrx_read(wfrx0_read),	// Output
+	.wfrx_frst(wfrx0_frst),	// Output
+	.wfrx_write(wfrx0_write),	// Output
+	.wfrx_dati(wfrx0_dati[7:0]),	// Output
+	.wftx_empty(wftx0_empty),	// Input
+	.wftx_full(wftx0_full),	// Input
+	.wftx_dato(wftx0_dato[7:0]),	// Input
+	.wftx_read(wftx0_read),	// Output
+	.wftx_frst(wftx0_frst),	// Output
+	.wftx_write(wftx0_write),	// Output
+	.wftx_dati(wftx0_dati[7:0])	// Output
+);
+
+wfrm_fifo	rfifo0 (
+	.clk(clk),	// Input
+	.rst_n(~wfrx0_frst),	// Input
+	.wfxx_read(wfrx0_read),	// Input
+	.wfxx_write(wfrx0_write),	// Input
+	.wfxx_dati(wfrx0_dati[7:0]),	// Input
+	.wfxx_empty(wfrx0_empty),	// Output
+	.wfxx_full(wfrx0_full),	// Output
+	.wfxx_dato(wfrx0_dato[7:0])	// Output
+);
+
+wfrm_fifo	tfifo0 (
+	.clk(clk),	// Input
+	.rst_n(~wftx0_frst),	// Input
+	.wfxx_read(wftx0_read),	// Input
+	.wfxx_write(wftx0_write),	// Input
+	.wfxx_dati(wftx0_dati[7:0]),	// Input
+	.wfxx_empty(wftx0_empty),	// Output
+	.wfxx_full(wftx0_full),	// Output
+	.wfxx_dato(wftx0_dato[7:0])	// Output
+);
+
+`ifdef		MCOC_WFRM123
+// channel #1: Rx FIFO=0, Tx FIFO=2KB
+wire	[7:0]	wfrx1_dato;
+wire	[7:0]	wfrx1_dati;
+wire	[7:0]	wftx1_dato;
+wire	[7:0]	wftx1_dati;
+wire	[3:0]	wfrm1_cenb_open;
+wire	[3:0]	wfrm1_cabt_open;
+
+wform1r1t	wfrm1 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcs_wfrm_n(bcs_wfrm1_n),	// Input
+	.wfrm_inp(wfrm1_inp),	// Input
+	.wfrm_cmnd_enb(wfrm_cenb[1]),	// Input
+	.wfrm_cmnd_abt(wfrm_cabt[1]),	// Input
+	.badr(badr[3:0] ^ 4'h8),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.wfrm_enb(wfrm1_enb),	// Output
+	.wfrm_out(wfrm1_out),	// Output
+	.wfrm_cenb(wfrm1_cenb_open[3:0]),	// Output
+	.wfrm_cabt(wfrm1_cabt_open[3:0]),	// Output
+	.bdatr(bdatr_wfrm1[15:0]),	// Output
+	.wfrx_empty(wfrx1_empty),	// Input
+	.wfrx_full(wfrx1_full),	// Input
+	.wfrx_dato(wfrx1_dato[7:0]),	// Input
+	.wfrx_read(wfrx1_read),	// Output
+	.wfrx_frst(wfrx1_frst),	// Output
+	.wfrx_write(wfrx1_write),	// Output
+	.wfrx_dati(wfrx1_dati[7:0]),	// Output
+	.wftx_empty(wftx1_empty),	// Input
+	.wftx_full(wftx1_full),	// Input
+	.wftx_dato(wftx1_dato[7:0]),	// Input
+	.wftx_read(wftx1_read),	// Output
+	.wftx_frst(wftx1_frst),	// Output
+	.wftx_write(wftx1_write),	// Output
+	.wftx_dati(wftx1_dati[7:0])	// Output
+);
+
+fifo8s64	rfifo1 (
+	.clk_wr(clk),	// Input
+	.clk_rd(clk),	// Input
+	.rst_wr_n(~wfrx1_frst),	// Input
+	.wr_n(~wfrx1_write),	// Input
+	.rd_n(~wfrx1_read),	// Input
+	.dat_wr(wfrx1_dati[7:0]),	// Input
+	.full_wr(wfrx1_full),	// Output
+	.full_wr_adv(wfrx1_afull_open),	// Output
+	.empty_rd(wfrx1_empty),	// Output
+	.empty_rd_adv(wfrx1_aempty_open),	// Output
+	.dat_rd(wfrx1_dato[7:0])	// Output
+);
+
+wfrm_fifo	tfifo1 (
+	.clk(clk),	// Input
+	.rst_n(~wftx1_frst),	// Input
+	.wfxx_read(wftx1_read),	// Input
+	.wfxx_write(wftx1_write),	// Input
+	.wfxx_dati(wftx1_dati[7:0]),	// Input
+	.wfxx_empty(wftx1_empty),	// Output
+	.wfxx_full(wftx1_full),	// Output
+	.wfxx_dato(wftx1_dato[7:0])	// Output
+);
+
+// channel #2: Rx FIFO=0, Tx FIFO=2KB
+wire	[7:0]	wfrx2_dati_open;
+wire	[7:0]	wftx2_dato;
+wire	[7:0]	wftx2_dati;
+wire	[3:0]	wfrm2_cenb_open;
+wire	[3:0]	wfrm2_cabt_open;
+
+wform1r1t	wfrm2 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcs_wfrm_n(bcs_wfrm2_n),	// Input
+	.wfrm_inp(wfrm2_inp),	// Input
+	.wfrm_cmnd_enb(wfrm_cenb[2]),	// Input
+	.wfrm_cmnd_abt(wfrm_cabt[2]),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.wfrm_enb(wfrm2_enb),	// Output
+	.wfrm_out(wfrm2_out),	// Output
+	.wfrm_cenb(wfrm2_cenb_open[3:0]),	// Output
+	.wfrm_cabt(wfrm2_cabt_open[3:0]),	// Output
+	.bdatr(bdatr_wfrm2[15:0]),	// Output
+	.wfrx_empty(1'b1),	// Input
+	.wfrx_full(1'b0),	// Input
+	.wfrx_dato(8'h0),	// Input
+	.wfrx_read(wfrx2_read_open),	// Output
+	.wfrx_frst(wfrx2_frst_open),	// Output
+	.wfrx_write(wfrx2_write_open),	// Output
+	.wfrx_dati(wfrx2_dati_open[7:0]),	// Output
+	.wftx_empty(wftx2_empty),	// Input
+	.wftx_full(wftx2_full),	// Input
+	.wftx_dato(wftx2_dato[7:0]),	// Input
+	.wftx_read(wftx2_read),	// Output
+	.wftx_frst(wftx2_frst),	// Output
+	.wftx_write(wftx2_write),	// Output
+	.wftx_dati(wftx2_dati[7:0])	// Output
+);
+
+wfrm_fifo	tfifo2 (
+	.clk(clk),	// Input
+	.rst_n(~wftx2_frst),	// Input
+	.wfxx_read(wftx2_read),	// Input
+	.wfxx_write(wftx2_write),	// Input
+	.wfxx_dati(wftx2_dati[7:0]),	// Input
+	.wfxx_empty(wftx2_empty),	// Output
+	.wfxx_full(wftx2_full),	// Output
+	.wfxx_dato(wftx2_dato[7:0])	// Output
+);
+
+// channel #3: Rx FIFO=0, Tx FIFO=64B
+wire	[7:0]	wfrx3_dati_open;
+wire	[7:0]	wftx3_dato;
+wire	[7:0]	wftx3_dati;
+wire	[3:0]	wfrm3_cenb_open;
+wire	[3:0]	wfrm3_cabt_open;
+
+wform1r1t	wfrm3 (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcs_wfrm_n(bcs_wfrm3_n),	// Input
+	.wfrm_inp(wfrm3_inp),	// Input
+	.wfrm_cmnd_enb(wfrm_cenb[3]),	// Input
+	.wfrm_cmnd_abt(wfrm_cabt[3]),	// Input
+	.badr(badr[3:0] ^ 4'h8),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.wfrm_enb(wfrm3_enb),	// Output
+	.wfrm_out(wfrm3_out),	// Output
+	.wfrm_cenb(wfrm3_cenb_open[3:0]),	// Output
+	.wfrm_cabt(wfrm3_cabt_open[3:0]),	// Output
+	.bdatr(bdatr_wfrm3[15:0]),	// Output
+	.wfrx_empty(1'b1),	// Input
+	.wfrx_full(1'b0),	// Input
+	.wfrx_dato(8'h0),	// Input
+	.wfrx_read(wfrx3_read_open),	// Output
+	.wfrx_frst(wfrx3_frst_open),	// Output
+	.wfrx_write(wfrx3_write_open),	// Output
+	.wfrx_dati(wfrx3_dati_open[7:0]),	// Output
+	.wftx_empty(wftx3_empty),	// Input
+	.wftx_full(wftx3_full),	// Input
+	.wftx_dato(wftx3_dato[7:0]),	// Input
+	.wftx_read(wftx3_read),	// Output
+	.wftx_frst(wftx3_frst),	// Output
+	.wftx_write(wftx3_write),	// Output
+	.wftx_dati(wftx3_dati[7:0])	// Output
+);
+
+fifo8s64	tfifo3 (
+	.clk_wr(clk),	// Input
+	.clk_rd(clk),	// Input
+	.rst_wr_n(~wftx3_frst),	// Input
+	.wr_n(~wftx3_write),	// Input
+	.rd_n(~wftx3_read),	// Input
+	.dat_wr(wftx3_dati[7:0]),	// Input
+	.full_wr(wftx3_full),	// Output
+	.full_wr_adv(wftx3_afull_open),	// Output
+	.empty_rd(wftx3_empty),	// Output
+	.empty_rd_adv(wftx3_aempty_open),	// Output
+	.dat_rd(wftx3_dato[7:0])	// Output
+);
+`else	//	MCOC_WFRM123
+assign	wfrm1_enb=1'b0;
+assign	wfrm1_out=1'b0;
+assign	wfrm2_enb=1'b0;
+assign	wfrm2_out=1'b0;
+assign	wfrm3_enb=1'b0;
+assign	wfrm3_out=1'b0;
+assign	bdatr_wfrm1[15:0]=16'h0;
+assign	bdatr_wfrm2[15:0]=16'h0;
+assign	bdatr_wfrm3[15:0]=16'h0;
+`endif	//	MCOC_WFRM123
+
+// bus output
+assign	bdatr[15:0]=
+			bdatr_wfrm0[15:0] |
+			bdatr_wfrm1[15:0] |
+			bdatr_wfrm2[15:0] |
+			bdatr_wfrm3[15:0];
+
+endmodule
+
+module	wfrm_fifo (
+// WFORM1R1T FIFO 2KB
+input	clk,
+input	rst_n,
+input	wfxx_read,
+input	wfxx_write,
+input	[7:0]	wfxx_dati,
+output	wfxx_empty,
+output	wfxx_full,
+output	[7:0]	wfxx_dato);
+
+
+xpm_fifo_sync	#(
+	.DOUT_RESET_VALUE("0"),				// String
+	.ECC_MODE("no_ecc"),				// String
+	.FIFO_MEMORY_TYPE("auto"),			// String
+	.FIFO_READ_LATENCY(1),				// DECIMAL
+	.FIFO_WRITE_DEPTH(2_048),			// DECIMAL
+	.FULL_RESET_VALUE(0),				// DECIMAL
+	.PROG_EMPTY_THRESH(2_048/4),		// DECIMAL
+	.PROG_FULL_THRESH(2_048*3/4),		// DECIMAL
+	.RD_DATA_COUNT_WIDTH(1),			// DECIMAL
+	.READ_DATA_WIDTH(8),				// DECIMAL
+	.READ_MODE("std"),					// String
+	.SIM_ASSERT_CHK(0),					// DECIMAL
+	.USE_ADV_FEATURES("0707"),			// String
+	.WAKEUP_TIME(0),					// DECIMAL
+	.WRITE_DATA_WIDTH(8),				// DECIMAL
+	.WR_DATA_COUNT_WIDTH(1)				// DECIMAL
+)	fifo (
+	.almost_empty(almost_empty_open),
+	.almost_full(almost_full_open),
+	.data_valid(data_valid_open),
+	.dbiterr(dbiterr_open),
+	.dout(wfxx_dato[7:0]),
+	.empty(wfxx_empty),
+	.full(wfxx_full),
+	.overflow(overflow_open),
+	.prog_empty(prog_empty_open),
+	.prog_full(prog_full_open),
+	.rd_data_count(rd_data_count_open),
+	.rd_rst_busy(rd_rst_busy_open),
+	.sbiterr(sbiterr_open),
+	.underflow(underflow_open),
+	.wr_ack(wr_ack_open),
+	.wr_data_count(wr_data_count_open),
+	.wr_rst_busy(wr_rst_busy_open),
+	.din(wfxx_dati[7:0]),
+	.injectdbiterr(1'b0),
+	.injectsbiterr(1'b0),
+	.rd_en(wfxx_read),
+	.rst(~rst_n),
+	.sleep(1'b0),
+	.wr_clk(clk),
+	.wr_en(wfxx_write)
+);
+
+endmodule
+`endif	//	MCOC_WFRM
 

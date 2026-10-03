@@ -1,12 +1,15 @@
 model	"Blockly.XML to Moscovium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Moscovium.ASM translator";
-	macro	prog_vers="2.08";
+	macro	prog_vers="2.10";
 // ================================
 //
 //	Moscovium series Blockly.XML to Moscovium.ASM translator
 //		(c) 2024,2026	1YEN Toru
 //
+//
+//		2026/10/03	ver.2.10
+//			upd: mcoc_pack_option; corresponding to "COND" field
 //
 //		2026/09/26	ver.2.08
 //			add: mcvm_inject
@@ -2851,6 +2854,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		macro	enbl;
 		macro	cmnt;
 		macro	optn;
+		macro	optc="true";
 
 		while (true)
 		{
@@ -2966,15 +2970,24 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 					strcmp	cmp=$(dxml),"field";
 					if (cmp=0)
 					{
-						mlet	optn=$(do_$(dxml));
+						strcmp	cmp=$(_xml_name),"OPT";
+						if (cmp=0)
+						{
+							mlet	optn=$(do_$(dxml));
+						}
+						else
+						{
+							mlet	optc=$(do_$(dxml));
+						}
 
 						// if defined
 						tolower		optn;
+						tolower		optc;
 						nvar	opt_$(optn)=false;
-						if (opt_$(optn))
+						if (( opt_$(optn)!=false )=$(optc))
 						{
 							mlet	enbl="true";
-							mlet	cmnt="# pack option @"$(optn)"@";
+							mlet	cmnt="# pack option @"$(optn)"@ = "$(optc);
 						}
 						else
 						{

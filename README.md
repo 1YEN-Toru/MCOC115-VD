@@ -235,6 +235,15 @@
 	- Can access internal memory and I/O units without CPU support
 		- Word size access, 16 bit (64 KB) address space
 	- 1 SPI slave port (SPI_MODE0) with 4 wire (SCK, MOSI, MISO, SS)
+- [WFORM1R1T](https://hello.world.coocan.jp/ARDUINO40/arduino40_8.html#WFORM1R1T)
+	- Waveform Receiver Transmitter unit
+	- Port level: OPEN / CAPT / LOW / HIGH
+		- Normal I/O port: LOW / HIGH
+		- Open drain port: LOW / OPEN
+		- Input port: OPEN / CAPT
+		- Using as bi-directional port is also applicable
+	- 6 bit duration counter with 8 bit prescaler
+	- Can generate clock signal up to frequency of fcpu/2 
 
 ## I/O units
 - [PORT8I8O](https://hello.world.coocan.jp/ARDUINO15/arduino15_7.html#PORT8I8O)

@@ -123,7 +123,7 @@ model	"Samarium series assembler"
 		"ffrac","0x18",		// half obtain fraction: C=uint16 (abs (A)*(2**16))
 		"fmvsg","0x19",		// half move sign: C=A*sgn (A)*sgn (B)
 		"fsat","0x1a",		// half saturate: INF, ZERO, NaN
-		"fcmp","0x1b",		// half compare: C=NCVZ (flag for A-B)
+		"fcmp","0x1b",		// half compare: C=NCVZ (A-B)
 		"ftrunc","0x1c",	// half truncate towards zero: C=trunc (A)
 		".";
 	macro	NOT="NOT";

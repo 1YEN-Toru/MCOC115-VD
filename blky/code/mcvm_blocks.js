@@ -633,12 +633,15 @@ Blockly.Blocks['mcoc_pack'] = {
 Blockly.Blocks['mcoc_pack_option'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField("pack option @")
+        .appendField("pack option");
+    this.appendDummyInput()
+        .appendField("@")
         .appendField(new Blockly.FieldTextInput("name"), "OPT")
-        .appendField("@");
+        .appendField("@ is")
+        .appendField(new Blockly.FieldDropdown([["true","true"], ["false","false"]]), "COND");
     this.appendStatementInput("PAC")
         .setCheck(null);
-    this.setInputsInline(false);
+    this.setInputsInline(true);
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setColour(30);

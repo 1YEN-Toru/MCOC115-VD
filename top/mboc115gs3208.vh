@@ -54,7 +54,7 @@
 `define		MCOC_ROM_32K
 //`define		MCOC_ROM_48K
 //`define		MCOC_IRAM_4K
-//`define		MCOC_RAM_LE1K	256		// 32~1024[B], power of 2
+//`define		MCOC_RAM_LE1K	256		// 256~1_024[B], power of 2
 //`define		MCOC_RAM_16K
 //`define		MCOC_RAM_24K
 //`define		MCOC_RAM_32K
@@ -81,6 +81,8 @@
 //`define		MCOC_TRNG
 `define		MCOC_SNDG
 `define		MCOC_SPIB
+//`define		MCOC_WFRM
+//`define		MCOC_WFRM123
 
 // I/O unit (PMOD connector)
 //`define		MCOC_CM76

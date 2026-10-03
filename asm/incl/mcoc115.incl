@@ -933,5 +933,45 @@ equ		sndg_leng_a,0x007f
 equ		sndgctl1,0xf1c8					// sndg1, RW, word
 equ		sndgt1281,0xf1cc				// sndg1, RW, word
 equ		sndgfifo1,0xf1ce				// sndg1, RW, word
+# WFORM1R1T#0
+equ		wfrmctl0,0xf1d0					// wfrm0, RW, word, (R, higher byte)
+equ		wfrmpsc0,0xf1d2					// wfrm0, RW, word
+equ		wfrmfifo0,0xf1d4				// wfrm0, RW, word
+equ		wfrm_cabt_3,0x8000				// wfrmctl[CABT] Field
+equ		wfrm_cabt_2,0x4000
+equ		wfrm_cabt_1,0x2000
+equ		wfrm_cabt_0,0x1000
+equ		wfrm_cabt_a,0xf000
+equ		wfrm_cenb_3,0x0800				// wfrmctl[CENB] Field
+equ		wfrm_cenb_2,0x0400
+equ		wfrm_cenb_1,0x0200
+equ		wfrm_cenb_0,0x0100
+equ		wfrm_cenb_a,0x0f00
+equ		wfrm_frst,0x80					// wfrmctl[FRST] bit
+equ		wfrm_fful,0x20					// wfrmctl[FFUL] flag
+equ		wfrm_femp,0x10					// wfrmctl[FEMP] flag
+equ		wfrm_lfst,0x08					// wfrmctl[LFST] bit
+equ		wfrm_pors,0x04					// wfrmctl[PORS] flag
+equ		wfrm_busy,0x02					// wfrmctl[BUSY] flag
+equ		wfrm_enbl,0x01					// wfrmctl[ENBL] bit
+equ		wfrm_open,0x00					// wfrmfifo[LEV] field
+equ		wfrm_capt,0x40
+equ		wfrm_low,0x80
+equ		wfrm_high,0xc0
+equ		wfrm_lev_m,0xc0
+equ		wfrm_dur_64,0x00				// wfrmfifo[DUR] field
+equ		wfrm_dur_m,0x3f
+# WFORM1R1T#1
+equ		wfrmctl1,0xf1d8					// wfrm1, RW, word
+equ		wfrmpsc1,0xf1da					// wfrm1, RW, word
+equ		wfrmfifo1,0xf1dc				// wfrm1, RW, word
+# WFORM1R1T#2
+equ		wfrmctl2,0xf1e0					// wfrm2, RW, word
+equ		wfrmpsc2,0xf1e2					// wfrm2, RW, word
+equ		wfrmfifo2,0xf1e4				// wfrm2, RW, word
+# WFORM1R1T#3
+equ		wfrmctl3,0xf1e8					// wfrm3, RW, word
+equ		wfrmpsc3,0xf1ea					// wfrm3, RW, word
+equ		wfrmfifo3,0xf1ec				// wfrm3, RW, word
 # ================================
 

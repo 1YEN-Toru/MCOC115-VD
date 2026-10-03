@@ -15,6 +15,10 @@ input	spis_mosi,
 inout	stws_scl,
 inout	stws_sda,
 inout	spis_irq_n,
+inout	wfrm0_iop,
+inout	wfrm1_iop,
+inout	wfrm2_iop,
+inout	wfrm3_iop,
 inout	[7:0]	pmod_iop,
 inout	[15:0]	port_iop,
 //inout	[15:0]	user_iop,
@@ -50,13 +54,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0250
+`define		MCOC_VERS		16'h0252
 
 
 //
 //	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2026/10/03	ver.2.52
+//		corresponding to WFORM1R1T unit
+//		add: compile option MCOC_WFRM, MCOC_WFRM123
 //
 //	2026/09/12	ver.2.50
 //		fix: poly-core: boot mode and fbcmd
@@ -380,6 +388,7 @@ wire	[15:0]	bdatr_stft;
 wire	[15:0]	bdatr_poly;
 wire	[15:0]	bdatr_trng;
 wire	[15:0]	bdatr_sndg;
+wire	[15:0]	bdatr_wfrm;
 
 // memory bus command alias
 wire	bcmdr=bcmd[0];
@@ -677,7 +686,9 @@ mcoc_adrdec		adec (
 	.bcs_stft_n(bcs_stft_n),	// Output
 	.bcs_poly_n(bcs_poly_n),	// Output
 	.bcs_trng_n(bcs_trng_n),	// Output
-	.bcs_sndg_n(bcs_sndg_n)	// Output
+	.bcs_sndg_n(bcs_sndg_n),	// Output
+	.bcs_wfrm_n(bcs_wfrm_n),	// Output
+	.bcs_wfr2_n(bcs_wfr2_n)	// Output
 );
 
 `ifdef		MCOC_FCPU_32M
@@ -1524,6 +1535,55 @@ assign	spis_miso=1'b0;
 assign	spis_irq_n=1'bz;
 `endif	//	MCOC_SPIB
 
+`ifdef		MCOC_WFRM
+wire	wfrm0_inp=wfrm0_iop;
+wire	wfrm1_inp=wfrm1_iop;
+wire	wfrm2_inp=wfrm2_iop;
+wire	wfrm3_inp=wfrm3_iop;
+
+mcoc_wfrm	wfrm (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.bcmdr(bcmdr),	// Input
+	.bcmdw(bcmdw),	// Input
+	.bcmdb(bcmdb),	// Input
+	.bcs_wfrm_n(bcs_wfrm_n),	// Input
+	.bcs_wfr2_n(bcs_wfr2_n),	// Input
+	.wfrm0_inp(wfrm0_inp),	// Input
+	.wfrm1_inp(wfrm1_inp),	// Input
+	.wfrm2_inp(wfrm2_inp),	// Input
+	.wfrm3_inp(wfrm3_inp),	// Input
+	.badr(badr[3:0]),	// Input
+	.bdatw(bdatw[15:0]),	// Input
+	.wfrm0_enb(wfrm0_enb),	// Output
+	.wfrm1_enb(wfrm1_enb),	// Output
+	.wfrm2_enb(wfrm2_enb),	// Output
+	.wfrm3_enb(wfrm3_enb),	// Output
+	.wfrm0_out(wfrm0_out),	// Output
+	.wfrm1_out(wfrm1_out),	// Output
+	.wfrm2_out(wfrm2_out),	// Output
+	.wfrm3_out(wfrm3_out),	// Output
+	.bdatr(bdatr_wfrm[15:0])	// Output
+);
+`else	//	MCOC_WFRM
+assign	wfrm0_enb=1'b0;
+assign	wfrm0_out=1'b0;
+assign	wfrm1_enb=1'b0;
+assign	wfrm1_out=1'b0;
+assign	wfrm2_enb=1'b0;
+assign	wfrm2_out=1'b0;
+assign	wfrm3_enb=1'b0;
+assign	wfrm3_out=1'b0;
+assign	bdatr_wfrm[15:0]=16'h0;
+`endif	//	MCOC_WFRM
+
+// i/o buffer
+assign	wfrm0_iop=(wfrm0_enb)? wfrm0_out: 1'bz;
+assign	wfrm1_iop=(wfrm1_enb)? wfrm1_out: 1'bz;
+assign	wfrm2_iop=(wfrm2_enb)? wfrm2_out: 1'bz;
+assign	wfrm3_iop=(wfrm3_enb)? wfrm3_out: 1'bz;
+
 
 // bus output
 assign	bdatr[15:0]=
@@ -1555,7 +1615,8 @@ assign	bdatr[15:0]=
 	bdatr_stft[15:0] |
 	bdatr_poly[15:0] |
 	bdatr_trng[15:0] |
-	bdatr_sndg[15:0];
+	bdatr_sndg[15:0] |
+	bdatr_wfrm[15:0];
 
 assign	bdatr[31:16]=
 	bdatr_rom[31:16] |

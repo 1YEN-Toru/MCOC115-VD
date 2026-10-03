@@ -68,10 +68,10 @@ set_property -dict {PACKAGE_PIN N2 IOSTANDARD LVCMOS33} [get_ports uar1_cts]
 set_property -dict {PACKAGE_PIN P1 IOSTANDARD LVCMOS33} [get_ports uar1_rts]
 #set_property -dict { PACKAGE_PIN R3    IOSTANDARD LVCMOS33 } [get_ports { pio26 }]; #IO_L2P_T0_34 Sch=pio[26]
 #set_property -dict { PACKAGE_PIN T3    IOSTANDARD LVCMOS33 } [get_ports { pio27 }]; #IO_L2N_T0_34 Sch=pio[27]
-#set_property -dict { PACKAGE_PIN R2    IOSTANDARD LVCMOS33 } [get_ports { pio28 }]; #IO_L1P_T0_34 Sch=pio[28]
-#set_property -dict { PACKAGE_PIN T1    IOSTANDARD LVCMOS33 } [get_ports { pio29 }]; #IO_L3P_T0_DQS_34 Sch=pio[29]
-#set_property -dict { PACKAGE_PIN T2    IOSTANDARD LVCMOS33 } [get_ports { pio30 }]; #IO_L1N_T0_34 Sch=pio[30]
-#set_property -dict { PACKAGE_PIN U1    IOSTANDARD LVCMOS33 } [get_ports { pio31 }]; #IO_L3N_T0_DQS_34 Sch=pio[31]
+set_property -dict {PACKAGE_PIN R2 IOSTANDARD LVCMOS33} [get_ports wfrm3_iop];
+set_property -dict {PACKAGE_PIN T1 IOSTANDARD LVCMOS33} [get_ports wfrm2_iop];
+set_property -dict {PACKAGE_PIN T2 IOSTANDARD LVCMOS33} [get_ports wfrm1_iop];
+set_property -dict {PACKAGE_PIN U1 IOSTANDARD LVCMOS33} [get_ports wfrm0_iop];
 set_property -dict {PACKAGE_PIN W2 IOSTANDARD LVCMOS33} [get_ports spis_irq_n]
 set_property -dict {PACKAGE_PIN V2 IOSTANDARD LVCMOS33} [get_ports spis_miso]
 set_property -dict {PACKAGE_PIN W3 IOSTANDARD LVCMOS33} [get_ports spis_mosi]

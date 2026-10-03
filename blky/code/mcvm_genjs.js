@@ -118,7 +118,7 @@ javascript.javascriptGenerator.forBlock['mcvm_inject'] = function(block, generat
   var dropdown_typ = block.getFieldValue('TYP');
   var text_txt = block.getFieldValue('TXT');
   // TODO: Assemble javascript into code variable.
-  var code = 'inject.' + dropdown_typ + ' (\'' + text_txt + '\');\n';
+  var code = '_inject.' + dropdown_typ + ' (\'' + text_txt + '\');\n';
   return code;
 };
 
@@ -414,9 +414,12 @@ else
 
 javascript.javascriptGenerator.forBlock['mcoc_pack_option'] = function(block, generator) {
   var text_opt = block.getFieldValue('OPT');
+  var dropdown_cond = block.getFieldValue('COND');
   var statements_pac = generator.statementToCode(block, 'PAC');
   // TODO: Assemble javascript into code variable.
-  var code = 'if (option (\'@' + text_opt + '@\')) {\n' + statements_pac + '}\n';
+if (dropdown_cond=='false')		dropdown_cond='!';
+else							dropdown_cond='';
+  var code = 'if (' + dropdown_cond + '_option (\'@' + text_opt + '@\')) {\n' + statements_pac + '}\n';
   return code;
 };
 

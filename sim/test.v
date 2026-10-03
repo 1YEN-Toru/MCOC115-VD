@@ -648,6 +648,10 @@ IS61WV5128BLL	sram (
 	.stws_scl(stws_scl),	// InOut
 	.stws_sda(stws_sda),	// InOut
 	.spis_irq_n(spis_irq_n),	// InOut
+	.wfrm0_iop(wfrm0_iop),	// InOut
+	.wfrm1_iop(wfrm1_iop),	// InOut
+	.wfrm2_iop(wfrm2_iop),	// InOut
+	.wfrm3_iop(wfrm3_iop),	// InOut
 	.pmod_iop(pmod_iop[7:0]),	// InOut
 	.port_iop(port_iop[15:0]),	// InOut
 //	.user_iop(user_iop[15:0]),	// InOut
