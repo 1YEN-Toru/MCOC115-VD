@@ -163,6 +163,14 @@
 `define		MCOC_FCPU_MHZ	8'h24
 `endif
 
+`ifdef		MCOC_ROM_48K
+`elsif		MCOC_ROM_32K
+`elsif		MCOC_ROM_16K
+`elsif		MCOC_ROM_8K
+`else
+`undef		MCOC_IRAM_LE2K
+`endif
+
 `ifdef		MCOC_ROM_32K
 `undef		MCOC_RAM_32K
 `undef		MCOC_RAM_40K
@@ -174,6 +182,13 @@
 `undef		MCOC_RAM_32K
 `undef		MCOC_RAM_40K
 `endif	//	MCOC_ROM_48K
+
+`ifdef		MCOC_IRAM_LE2K
+`ifdef		MCOC_POLY
+`else	//	MCOC_POLY
+`define		MCOC_IRAM_4K
+`endif	//	MCOC_POLY
+`endif	//	MCOC_IRAM_LE2K
 
 `ifdef		MCOC_ERAM
 `undef		MCOC_RAM_LE1K

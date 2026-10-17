@@ -1024,6 +1024,145 @@ assign	fdat2[31:0]=(bootmd)? 32'h0001_0001: fdat2_rom[31:0];
 endmodule
 
 
+`ifdef		MCOC_IRAM_LE2K
+module	mcoc_iram (
+// Instruction RAM less than 2[KB]
+input	clk,
+input	rst_n,
+input	brdy,
+input	bcmdr,
+input	bcmdw,
+input	bcmdb,
+input	bcmdl,
+input	bcs_iram_n,
+input	[2:0]	fcmd,
+input	[15:0]	fadr,
+input	[15:0]	badr,
+input	[31:0]	bdatw,
+input	[31:0]	rom_fdat,
+output	[31:0]	fdat,
+output	[31:0]	bdatr);
+
+
+//
+//	Instruction RAM less than 2KB
+//		(c) 2026	1YEN Toru
+//
+//
+//	2026/10/17	ver.1.00
+//
+
+
+// compile options
+`ifndef		MCOC_IRAM_LE2K
+`define		MCOC_IRAM_LE2K	256			// 256~2_048[B], power of 2
+`endif	//	MCOC_IRAM_LE2K
+
+
+`ifdef		MCOC_ROM_48K
+wire	[15:0]	fadr_top=16'hc000;
+`elsif		MCOC_ROM_32K
+wire	[15:0]	fadr_top=16'h8000;
+`else
+wire	[15:0]	fadr_top=16'h4000;
+
+
+`endif
+// fetch bus control
+wire	fcmdr=fcmd[0];
+wire	fcmdl=fcmd[1];
+wire	fcmdb=fcmd[2];
+reg		fcmdl_dp;
+reg		fcmdb_dp;
+reg		fread_dp;
+reg		[10:0]	fadr_dp;
+always	@(posedge clk)
+	begin
+		if (!rst_n)
+			begin
+				fread_dp<=1'b0;
+				fcmdl_dp<=1'b0;
+				fcmdb_dp<=1'b0;
+				fadr_dp[10:0]<=11'h0;
+			end
+		else
+			begin
+				fread_dp<=( fadr[15:0]>=fadr_top[15:0] && fcmdr );
+				fcmdl_dp<=fcmdl;
+				fcmdb_dp<=fcmdb;
+				fadr_dp[10:0]<=fadr[10:0];
+			end
+	end
+
+// memory bus control
+wire	bwrit=( !bcs_iram_n && bcmdw && !bcmdr );
+wire	bread=( !bcs_iram_n && !bcmdw && bcmdr );
+reg		bread_dp;
+reg		bcmdb_dp;
+reg		bcmdl_dp;
+reg		[10:0]	badr_dp;
+always	@(posedge clk)
+	begin
+		if (!rst_n)
+			begin
+				bread_dp<=1'b0;
+				bcmdb_dp<=1'b0;
+				bcmdl_dp<=1'b0;
+				badr_dp[10:0]<=11'h0;
+			end
+		else if (brdy)
+			begin
+				bread_dp<=bread;
+				bcmdb_dp<=bcmdb;
+				bcmdl_dp<=bcmdl;
+				badr_dp[10:0]<=badr[10:0];
+			end
+	end
+
+// memory
+(* ram_style = "distributed" *)
+reg		[31:0]	mem[0:`MCOC_IRAM_LE2K/4 - 1];
+always	@(posedge clk)
+	begin
+		if (bwrit)
+			begin
+				if (bcmdb && badr[1:0]==2'b00)
+					mem[badr[10:2]][31:24]<=bdatw[15:8];
+				else if (bcmdb && badr[1:0]==2'b01)
+					mem[badr[10:2]][23:16]<=bdatw[7:0];
+				else if (bcmdb && badr[1:0]==2'b10)
+					mem[badr[10:2]][15:8]<=bdatw[15:8];
+				else if (bcmdb && badr[1:0]==2'b11)
+					mem[badr[10:2]][7:0]<=bdatw[7:0];
+				else if (bcmdl)
+					mem[badr[10:2]][31:0]<=bdatw[31:0];
+				else if (badr[1]==1'b0)
+					mem[badr[10:2]][31:16]<=bdatw[15:0];
+				else if (badr[1]==1'b1)
+					mem[badr[10:2]][15:0]<=bdatw[15:0];
+			end
+	end
+
+// output fetch bus
+wire	[31:0]	fdat_lg=mem[fadr_dp[10:2]][31:0];
+wire	[15:0]	fdat_wd=(!fadr_dp[1])? fdat_lg[31:16]: fdat_lg[15:0];
+wire	[7:0]	fdat_by=(!fadr_dp[0])? fdat_wd[15:8]: fdat_wd[7:0];
+assign	fdat[31:0]=
+		(!fread_dp)? rom_fdat[31:0]:
+		(fcmdb_dp)? { 16'h0,fdat_by[7:0],fdat_by[7:0] }:
+		(fcmdl_dp)? fdat_lg[31:0]: { 16'h0,fdat_wd[15:0] };
+
+// output memory bus
+wire	[31:0]	bdatr_lg=mem[badr_dp[10:2]][31:0];
+wire	[15:0]	bdatr_wd=(!badr_dp[1])? bdatr_lg[31:16]: bdatr_lg[15:0];
+wire	[7:0]	bdatr_by=(!badr_dp[0])? bdatr_wd[15:8]: bdatr_wd[7:0];
+assign	bdatr[31:0]=
+		(!bread_dp)? 32'h0:
+		(bcmdb_dp)? {16'h0,bdatr_by[7:0],bdatr_by[7:0] }:
+		(bcmdl_dp)? bdatr_lg[31:0]: { 16'h0,bdatr_wd[15:0] };
+
+endmodule
+`else	//	MCOC_IRAM_LE2K
 module	mcoc_iram (
 // mcoc115 iram
 input	clk,
@@ -1146,6 +1285,7 @@ xpm_memory_tdpram	#(
 );
 
 endmodule
+`endif	//	MCOC_IRAM_LE2K
 
 
 `ifdef		MCOC_RAM_LE1K

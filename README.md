@@ -50,7 +50,7 @@
 	- Moscovium / Tennessine can be selected as AMP sub CPU.
 - SMP poly-core CPU edition available.
 	- [Poly-core](https://hello.world.coocan.jp/ARDUINO33/arduino33_5.html) (The poly-core CPU is the same meaning as multi-core CPU.)
-	- Moscovium-BS / Tennessine can be selected.
+	- Moscovium-BS / Tennessine / Samarium can be selected.
 	- Even number cores from 4(tetra) cores up to 14(tetradeca) cores.
 	- The number of cores is limited by the capacity of the FPGA chip and ability of the Vivado.
 

@@ -3,6 +3,10 @@
 //		(c) 2026	1YEN Toru
 //
 //
+//		2026/10/17	ver.1.02
+//			upd: change variables area: iramtop to ramtop
+//				because CPU can not access to I-RAM in poly-core boot mode
+//
 //		2026/04/29	ver.1.00
 //
 // ================================
@@ -18,12 +22,12 @@ asm		"mcoc_boot_sm.v"
 incl	"mcoc115.incl"
 # ================================
 # constants
-equ		prog_vers,0x0100				// program version (bcd)
+equ		prog_vers,0x0102				// program version (bcd)
 equ		baud,9600						// baud rate
 equ		uart_baud,fcpu/baud-1			// uartbaud setting
 equ		max_lbuf,20						// size of lbuf (<256 & even)
 # variables
-equ		va,iramtop
+equ		va,ramtop
 equ		r0,va
 equ		va,va+2
 equ		r1,va

@@ -54,13 +54,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0252
+`define		MCOC_VERS		16'h0254
 
 
 //
 //	Moscovium / Nihonium / Tennessine / Samarium On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2026/10/17	ver.2.54
+//		corresponding to Samarium poly-core edition
+//		add: compile option MCOC_IRAM_LE2K
 //
 //	2026/10/03	ver.2.52
 //		corresponding to WFORM1R1T unit

@@ -456,7 +456,86 @@ moscoviumbs		core (
 	.bbus_o(bbus_o[15:0])	// Output
 );
 
-`else	// MCOC_CORE_MCBS
+`elsif		MCOC_CORE_SM
+
+wire	[15:0]	cbus_i_sm;
+assign	cpu_fcmd[2:0]=3'b101;
+assign	cpu_badrx[15:0]=16'h0;
+
+// CPU_STS
+wire	[2:0]	copr_en;
+wire	[15:0]	cpu_sts={ 8'h0,1'b0,copr_en[2:0],cpuid[3:0] };
+
+
+samarium	core (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(cpu_brdy),	// Input
+	.irq(irq),	// Input
+	.cpu_sts(cpu_sts[15:0]),	// Input
+	.fdat(cpu_fdat[7:0]),	// Input
+	.bdatr(cpu_bdatr[15:0]),	// Input
+	.fadr(cpu_fadr[15:0]),	// Output
+	.bcmd(cpu_bcmd[2:0]),	// Output
+	.badr(cpu_badr[15:0]),	// Output
+	.bdatw(cpu_bdatw[15:0]),	// Output
+	// Co-processor I/F
+	.crdy(crdy),	// Input
+	.cbus_i(cbus_i_sm[15:0]),	// Input
+	.ccmd(ccmd[4:0]),	// Output
+	.abus_o(abus_o[15:0]),	// Output
+	.bbus_o(bbus_o[15:0])	// Output
+);
+
+`ifdef		MCVM_COPR_MUL
+assign	copr_en[0]=1'b1;
+// MULC16 latency register
+reg		[15:0]	cbus_mulc_sm;
+always	@(posedge clk)
+	cbus_mulc_sm[15:0]<=cbus_i[15:0];
+`else	//	MCVM_COPR_MUL
+assign	copr_en[0]=1'b0;
+wire	[15:0]	cbus_mulc_sm=16'h0;
+`endif	//	MCVM_COPR_MUL
+
+`ifdef		MCVM_COPR_DIV
+assign	copr_en[1]=1'b1;
+// DIVC16 latency register
+parameter	[4:0]	DVWU=5'h0e;		// unsigned divide (16 bits): A/B
+parameter	[4:0]	DVWS=5'h0f;		// signed divide (16 bits): A/B
+reg		[4:0]	ccmd_rg;
+reg		[15:0]	cbus_divc_rg;
+always	@(posedge clk)
+	begin
+		if (!rst_n)
+			ccmd_rg[4:0]<=5'h0;
+		else if (crdy)
+			ccmd_rg[4:0]<=ccmd[4:0];
+
+		if (crdy && (ccmd_rg[4:0]==DVWU || ccmd_rg[4:0]==DVWS))
+			cbus_divc_rg[15:0]<=16'h0;
+		else
+			cbus_divc_rg[15:0]<=cbus_i[15:0];
+	end
+wire	[15:0]	cbus_divc_sm=
+		(crdy && (ccmd_rg[4:0]==DVWU || ccmd_rg[4:0]==DVWS))?
+			cbus_i[15:0]:
+			cbus_divc_rg[15:0];
+`else	//	MCVM_COPR_DIV
+assign	copr_en[1]=1'b0;
+wire	[15:0]	cbus_divc_sm=16'h0;
+`endif	//	MCVM_COPR_DIV
+
+`ifdef		MCVM_COPR_FPUH
+assign	copr_en[2]=1'b1;
+`else	//	MCVM_COPR_FPUH
+assign	copr_en[2]=1'b0;
+`endif	//	MCVM_COPR_FPUH
+
+// co-processor bus output for Samarium
+assign	cbus_i_sm[15:0]=cbus_mulc_sm[15:0] | cbus_divc_sm[15:0];
+
+`else
 
 assign	cpu_badrx[15:0]=16'h0;
 
@@ -491,7 +570,7 @@ tennessine	core (
 	.tnsn_dsp_b(tnsn_dsp_b[8:0])	// Output
 );
 
-`endif	// MCOC_CORE_MCBS
+`endif
 
 `ifdef		MCVM_COPR_MUL
 wire	[15:0]	cbus_mulc;

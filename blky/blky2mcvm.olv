@@ -654,14 +654,6 @@ if (false)
 		while (idx<=num)
 		{
 			strcmp	cmp=$(copt#(idx)),"Mc",ics_match;
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"mcvm",ics_match;
-			}
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"Moscovium",ics_match;
-			}
 			if (cmp=0)
 			{
 				if (opt_cpu_mod=opt_core_nh)
@@ -674,14 +666,6 @@ if (false)
 				opt_cpu_mod=opt_core_mc;
 			}
 			strcmp	cmp=$(copt#(idx)),"Nh",ics_match;
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"niho",ics_match;
-			}
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"Nihonium",ics_match;
-			}
 			if (cmp=0)
 			{
 				if (opt_cpu_mod=opt_core_mc)
@@ -694,14 +678,6 @@ if (false)
 				opt_cpu_mod=opt_core_nh;
 			}
 			strcmp	cmp=$(copt#(idx)),"Sm",ics_match;
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"sama",ics_match;
-			}
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"Samarium",ics_match;
-			}
 			if (cmp=0)
 			{
 				// ERROR:

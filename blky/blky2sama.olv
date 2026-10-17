@@ -488,13 +488,12 @@ if (false)
 
 		// assembler
 		asm_label;
-		macro	alab=$(asm_label);
-		fprint	fout,$(mne)"	"$(alab)"_bool"$,;
+		fprint	fout,$(mne)"	"$(asm_label)"_bool"$,;
 		fprint	fout,"push	true"$,;
-		fprint	fout,"jmp	"$(alab)"_endb"$,;
-		fprint	fout,$(alab)"_bool:"$,;
+		fprint	fout,"jmp	"$(asm_label)"_endb"$,;
+		fprint	fout,$(asm_label)"_bool:"$,;
 		fprint	fout,"push	false"$,;
-		fprint	fout,$(alab)"_endb:"$,;
+		fprint	fout,$(asm_label)"_endb:"$,;
 	}
 	procedure	define_aryv
 	{
@@ -580,23 +579,7 @@ if (false)
 			strcmp	cmp=$(copt#(idx)),"Mc",ics_match;
 			if (cmp)
 			{
-				strcmp	cmp=$(copt#(idx)),"mcvm",ics_match;
-			}
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"Moscovium",ics_match;
-			}
-			if (cmp)
-			{
 				strcmp	cmp=$(copt#(idx)),"Nh",ics_match;
-			}
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"niho",ics_match;
-			}
-			if (cmp)
-			{
-				strcmp	cmp=$(copt#(idx)),"Nihonium",ics_match;
 			}
 			if (cmp=0)
 			{
@@ -2742,7 +2725,7 @@ if (false)
 						if (( opt_$(optn)!=false )=$(optc))
 						{
 							mlet	enbl="true";
-							mlet	cmnt="# pack option @"$(optn)"@ = "$(optc);
+							mlet	cmnt="# pack option @"$(optn)"="$(optc)"@";
 						}
 						else
 						{
