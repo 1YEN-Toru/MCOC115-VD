@@ -63,7 +63,7 @@
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
 - [Blockly for Moscovium](https://hello.world.coocan.jp/ARDUINO31/a316_blky2mcvm.html#MANTOP)
-	- Block base visual programming environment.
+	- Block base visual programming environment.<br>
 	![blky](img/a316_blky_edit.png)
 	- Build up blocks to control MCU.
 	- Download program code in XML format, and translate it to Moscovium assembler source list.
@@ -91,10 +91,8 @@
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 	- [Assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
 - [Blockly for Samarium](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#BLKY4SAMA)
-	- Block base visual programming environment.
-
-		![blky4sama](img/a396_blky4sama.png)
-
+	- Block base visual programming environment.<br>
+	![blky4sama](img/a396_blky4sama.png)
 	- Build up blocks to control MCU.
 	- Download program code in XML format, and translate it to Samarium assembler source list.
 	- Blockly.XML to Samarium.ASM translator: [blky2sama.olv](blky/blky2sama.olv)
@@ -375,5 +373,6 @@
 > All data in this repository are unsupported and unguaranteed.
 >
 > Use at your own risk.
+
 --------
 ![1YEN Toru](img/1YEN_sign.png)
