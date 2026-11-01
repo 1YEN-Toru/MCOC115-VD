@@ -92,7 +92,9 @@
 	- [Assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
 - [Blockly for Samarium](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#BLKY4SAMA)
 	- Block base visual programming environment.
-	![blky4sama](img/a396_blky4sama.png)
+
+		![blky4sama](img/a396_blky4sama.png)
+
 	- Build up blocks to control MCU.
 	- Download program code in XML format, and translate it to Samarium assembler source list.
 	- Blockly.XML to Samarium.ASM translator: [blky2sama.olv](blky/blky2sama.olv)
