@@ -74,7 +74,7 @@
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
 ## Samarium series
- Samarium is an [original ultra-small CPU core](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html).
+ Samarium is an [original 16 bit ultra-small CPU core](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html).
 
 ![Samarium](img/a391_cpublk.png)
 
@@ -99,6 +99,10 @@
 		- A script of [Olive+](https://hello.world.coocan.jp/VA008835/OLIVE+/Olive+.html).
 		- You need install Olive+ on your Windows PC.
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
+	- With peephole optimizer: [blky2sama_optimz.olv](blky/blky2sama_optimz.olv)
+		- By [adopting optimizer](https://hello.world.coocan.jp/ARDUINO41/arduino41_6.html#COMPARE),
+			- Execution speed about 16% faster.
+			- Object code size about 14% smaller.
 
 --------
 # Directories and Files
@@ -159,7 +163,7 @@
 	- Original 32 bit CPU core
 	- [Super Scalar](https://hello.world.coocan.jp/ARDUINO20/arduino20_8.html#NHSS) edition
 - [Samarium](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html)
-	- Original ultra-small CPU core
+	- Original 16 bit ultra-small CPU core
 	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
 
 ## Co-processor

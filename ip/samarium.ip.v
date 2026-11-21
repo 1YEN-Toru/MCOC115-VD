@@ -6991,7 +6991,7 @@ module samarium
     abus_o,
     bbus_o);
 //
-//	Samarium ultra-small CPU core
+//	Samarium original 16 bit ultra-small CPU core
 //		(c) 2026	1YEN Toru
 //
 //

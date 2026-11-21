@@ -299,7 +299,7 @@ wire	signed	[32:0]	core_dsp_b;
 wire	signed	[65:0]	core_dsp_c=core_dsp_a*core_dsp_b;
 
 
-wire	[15:0]	fadrx;
+wire	[15:0]	fadrx_open;
 
 nihoniumpi	core (
 	.clk(clk),	// Input
@@ -313,7 +313,7 @@ nihoniumpi	core (
 	.fdat({ fdatx[15:0],fdat[15:0] }),	// Input
 	.bdatr({ bdatrx[15:0],bdatr[15:0] }),	// Input
 	.fcmd(fcmd[2:0]),	// Output
-	.fadr({ fadrx[15:0],fadr[15:0] }),	// Output
+	.fadr({ fadrx_open[15:0],fadr[15:0] }),	// Output
 	.bcmd(bcmd[3:0]),	// Output
 	.badr({ badrx[15:0],badr[15:0] }),	// Output
 	.bdatw({ bdatwx[15:0],bdatw[15:0] }),	// Output

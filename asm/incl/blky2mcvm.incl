@@ -65,36 +65,36 @@ equ		_rtlb_iramsiz,0x1000			// i-ram size 4KB
 equ		high,1							// HIGH / LOW level
 equ		low,0
 # CPU
-equ		_rtlb_max_intl,0x7fff_ffff		// cpu: int32: maximum number
 equ		_rtlb_max_intw,0x7fff			// cpu: int16: maximum number
-equ		_rtlb_min_intl,0x8000_0000		// cpu: int32: minimum number
 equ		_rtlb_min_intw,0x8000			// cpu: int16: minimum number
+equ		_rtlb_max_intl,0x7fff_ffff		// cpu: int32: maximum number
+equ		_rtlb_min_intl,0x8000_0000		// cpu: int32: minimum number
 # FPU
-equ		_rtlb_infl,sngl_inf				// fpu: float: infinite number
-equ		_rtlb_infl_n,sngl_inf_n			// fpu: float: negative infinite number
 equ		_rtlb_infw,half_inf				// fpu: half: infinite number
 equ		_rtlb_infw_n,half_inf_n			// fpu: half: negative infinite number
-equ		_rtlb_maxl,sngl_max				// fpu: float: 3.4028235e+38
-equ		_rtlb_maxl_n,sngl_max_n			// fpu: float: -3.4028235e+38
 equ		_rtlb_maxw,half_max				// fpu: half: 65504
 equ		_rtlb_maxw_n,half_max_n			// fpu: half: -65504
-equ		_rtlb_minl,sngl_min				// fpu: float: 1.1754944e-38
-equ		_rtlb_minl_n,sngl_min_n			// fpu: float: -1.1754944e-38
 equ		_rtlb_minw,half_min				// fpu: half: 6.10e-05
 equ		_rtlb_minw_n,half_min_n			// fpu: half: -6.10e-05
-equ		_rtlb_nanl,sngl_nan				// fpu: float: not a number
 equ		_rtlb_nanw,half_nan				// fpu: half: not a number
-equ		_rtlb_zerl,sngl_zer				// fpu: float: zero
-equ		_rtlb_zerl_n,sngl_zer_n			// fpu: float: negative zero
 equ		_rtlb_zerw,half_zer				// fpu: half: zero
 equ		_rtlb_zerw_n,half_zer_n			// fpu: half: negative zero
+equ		_rtlb_infl,sngl_inf				// fpu: float: infinite number
+equ		_rtlb_infl_n,sngl_inf_n			// fpu: float: negative infinite number
+equ		_rtlb_maxl,sngl_max				// fpu: float: 3.4028235e+38
+equ		_rtlb_maxl_n,sngl_max_n			// fpu: float: -3.4028235e+38
+equ		_rtlb_minl,sngl_min				// fpu: float: 1.1754944e-38
+equ		_rtlb_minl_n,sngl_min_n			// fpu: float: -1.1754944e-38
+equ		_rtlb_nanl,sngl_nan				// fpu: float: not a number
+equ		_rtlb_zerl,sngl_zer				// fpu: float: zero
+equ		_rtlb_zerl_n,sngl_zer_n			// fpu: float: negative zero
 # i/o registers
-equ		_rtlb_sytmtckl,sytmtckh			// iorg: systim i/o register
-equ		_rtlb_sytmtckw,sytmtckl
-equ		_rtlb_sytmmcrl,sytmmcrh
+equ		_rtlb_sytmtckw,sytmtckl			// iorg: systim i/o register
 equ		_rtlb_sytmmcrw,sytmmcrl
-equ		_rtlb_sytmmill,sytmmilh
 equ		_rtlb_sytmmilw,sytmmill
+equ		_rtlb_sytmtckl,sytmtckh
+equ		_rtlb_sytmmcrl,sytmmcrh
+equ		_rtlb_sytmmill,sytmmilh
 # ================================
 # user macros
 macro	ldvar	rd,vnam

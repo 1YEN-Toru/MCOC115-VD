@@ -659,7 +659,7 @@ if (false)
 				if (opt_cpu_mod=opt_core_nh)
 				{
 					// ERROR:
-					errmsg	"translator_options: re-defined CPU mode ("
+					errmsg	"translator_options: redefined CPU mode ("
 							$(copt#(idx))")";
 					leave	stop_error;
 				}
@@ -671,7 +671,7 @@ if (false)
 				if (opt_cpu_mod=opt_core_mc)
 				{
 					// ERROR:
-					errmsg	"translator_options: re-defined CPU mode ("
+					errmsg	"translator_options: redefined CPU mode ("
 							$(copt#(idx))")";
 					leave	stop_error;
 				}
@@ -2963,7 +2963,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						if (( opt_$(optn)!=false )=$(optc))
 						{
 							mlet	enbl="true";
-							mlet	cmnt="# pack option @"$(optn)"@ = "$(optc);
+							mlet	cmnt="# pack option @"$(optn)"="$(optc)"@";
 						}
 						else
 						{
@@ -3146,7 +3146,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 						if (tsk_def_$(tskf))
 						{
 							// ERROR:
-							errmsg	"mcoc_task: re-defined task "$(tskf);
+							errmsg	"mcoc_task: redefined task "$(tskf);
 							leave	stop_error;
 						}
 						tsk_def_$(tskf)=true;
@@ -3520,11 +3520,11 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		if (cmp=0)
 		{
 			// minimum / maximum operator
-			mlet	mne="bge";
-			strcmp	cmp=$(opr),"min";
+			mlet	mne="blt";
+			strcmp	cmp=$(opr),"max";
 			if (cmp=0)
 			{
-				mlet	mne="blt";
+				mlet	mne="bge";
 			}
 		}
 
@@ -5141,8 +5141,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 		fprint	fout,"b"$(mne)"	pcnt+2"$,;
 		fprint	fout,"ldbiu	r0,false"$,;
 
-		mlet	do_blk_logic_compare=$(lval)" "$(do_blk_logic_compare)" "
-				$(rval);
+		mlet	do_blk_logic_compare=$(lval)" "
+				$(do_blk_logic_compare)" "$(rval);
 	}
 	procedure	do_blk_logic_operation
 	{
@@ -9890,8 +9890,8 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 			fprint	fout,$,;
 			fprint	fout,"## define variables"$,;
 			fprint	fout,"equ	_rtlb_var_sizw,2"$,;
-			fprint	fout,"equ	_rtlb_var_sizl,4"$,;
 			fprint	fout,"equ	_rtlb_var_sftw,1"$,;
+			fprint	fout,"equ	_rtlb_var_sizl,4"$,;
 			fprint	fout,"equ	_rtlb_var_sftl,2"$,;
 			fprint	fout,"equ	_va,0"$,;
 			fprint	fout,"equ	_rtlb_var_top,_va"$,;
@@ -10044,7 +10044,7 @@ fprint	fout,"// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ # #"$,,val_done,cmp;
 	// assembler
 	fprint	fout,$,;
 	fprint	fout,"// program size / variable area size"$,;
-	fprint	fout,"align	4"$,;
+	fprint	fout,"align	_rtlb_var_siz$(z)"$,;
 	fprint	fout,"_rtlb_prog_size:"$,;
 	fprint	fout,"dat$(z)	lab__rtlb_prog_bottom"$,;
 	fprint	fout,"// array buffer (bottom address)"$,;

@@ -29,7 +29,7 @@ sub
 cjmp	_rtlb_err_halt
 
 // ================================
-// check H-FPU
+// check FPU
 njmp	_rtlb_fpu_need,_rtlb_fpu_not_need
 and		CPU_STS,sama_sts_hfpu
 njmp	_rtlb_err_halt
@@ -130,11 +130,11 @@ _rtlb_iniv_loop:
 dupl									// vtop,vtop
 swap	0								// vtop,0,vtop
 stw										// vtop
-add		_rtlb_var_sizw					// vtop+SZW
-dupl									// vtop+SZW,vtop+SZW
-sub		_rtlb_var_static				// vtop+SZW,(vtop+SZW)-vstc
-and		SGN_BIT							// vtop+SZW,((vtop+SZW)-vstc)&SGN
-cjmp	_rtlb_iniv_loop					// vtop+SZW
+add		_rtlb_var_sizw					// vtop+SIZ
+dupl									// vtop+SIZ,vtop+SIZ
+sub		_rtlb_var_static				// vtop+SIZ,(vtop+SIZ)-vstc
+and		SGN_BIT							// vtop+SIZ,((vtop+SIZ)-vstc)&SGN
+cjmp	_rtlb_iniv_loop					// vtop+SIZ
 pop
 // array variables
 jal		_rtlb_alst_aryv
@@ -290,7 +290,7 @@ rtn
 
 // ================================
 // unsigned 16/16=16...16 bits shift divide routine:
-//	operation:	pop STK1; pop STK2; divide; push STK2/STK1; push STK2%STK1
+//	operation:	pop STK1; pop STK2; divide; push STK2/STK1;
 //	memory:		_r0~_r3
 //	call:		divu* A,B
 //	return:		A/B (also _r0=_r2=A/B, _r1=A%B)
@@ -371,7 +371,7 @@ rtn										// Quo
 
 // ================================
 // signed 16/16=16...16 bits shift divide routine:
-//	operation:	pop STK1; pop STK2; divide; push STK2/STK1; push STK2%STK1
+//	operation:	pop STK1; pop STK2; divide; push STK2/STK1;
 //	memory:		_r0~_r5
 //	call:		divs* A,B
 //	return:		A/B (also _r0=_r2=A/B, _r1=A%B)

@@ -1,15 +1,21 @@
 model	"Blockly.XML to Samarium.ASM translator"
 {
 	macro	prog_name="Blockly.XML to Samarium.ASM translator";
-	macro	prog_vers="1.08";
+	macro	prog_vers="1.10";
 // ================================
 //
 //	Samarium series Blockly.XML to Samarium.ASM translator
 //		(c) 2026	1YEN Toru
 //
 //
+//		2026/11/21	ver.1.10
+//			add: translator_options: @optimz@
+//				@optimz@ needs "blky2sama_optimz.olv" script
+//			add: asm_cjmp: "le"(<=) and "gt"(>) condition
+//			upd: mcoc_math_bit_binary: << operator
+//
 //		2026/10/03	ver.1.08
-//			upd: mcoc_pack_option; corresponding to "COND" field
+//			upd: mcoc_pack_option: corresponding to "COND" field
 //			upd: mcvm_cpu_reg: control registers; sr, pc, sp, iv
 //			upd: mcvm_cpu_set: control registers; pc, iv
 //
@@ -17,12 +23,12 @@ model	"Blockly.XML to Samarium.ASM translator"
 //			add: mcvm_inject
 //
 //		2026/09/12	ver.1.04
-//			fix: mcoc_matf_compare; NCVZ flag operation
+//			fix: mcoc_matf_compare: NCVZ flag operation
 //
 //		2026/07/11	ver.1.02
 //			add: mcoc_pack_option
 //			upd: translator_options
-//			fix: mcoc_math_arithmetic; min / max operator
+//			fix: mcoc_math_arithmetic: min / max operator
 //
 //		2026/06/06	ver.1.00
 //			based on: Blockly.XML to Moscovium.ASM translator ver.2.04
@@ -361,9 +367,14 @@ if (false)
 			mlet	asm_cjmp="njmp";
 		}
 
+		// if true, need boolean NOT operation after 'asm_cjmp' called
+		asm_cjmp=false;
+
 		// assembler
 		fprint	fout,"// condition ("$(cnd)")"$,;
-		index	idx="eq ne lt ge feq fne flt fge ",$(cnd)" ";
+		//			__________111111111122222222223333333333444
+		//			0123456789012345678901234567890123456789012
+		index	idx="eq ne lt ge feq fne flt fge le gt fle fgt ",$(cnd)" ";
 		if (idx=1)
 		{
 			// eq: Z
@@ -416,6 +427,32 @@ if (false)
 			}
 			fprint	fout,"and	sama_cmp_sf"$,;
 		}
+		elif (idx=29)
+		{
+			// le: Z | S
+			if (for_cjmp=false)
+			{
+				asm_cjmp=true;
+			}
+			elif (for_cjmp<0)
+			{
+				mlet	asm_cjmp="cjmp";
+			}
+			fprint	fout,"and	sama_cmp_zf|sama_cmp_sf"$,;
+		}
+		elif (idx=32)
+		{
+			// gt: !(Z | S)
+			if (for_cjmp=true)
+			{
+				asm_cjmp=true;
+			}
+			elif (for_cjmp<0)
+			{
+				mlet	asm_cjmp="njmp";
+			}
+			fprint	fout,"and	sama_cmp_zf|sama_cmp_sf"$,;
+		}
 		elif (idx=13)
 		{
 			// feq: Z
@@ -467,6 +504,32 @@ if (false)
 				mlet	asm_cjmp="njmp";
 			}
 			fprint	fout,"and	sama_hcmp_nf"$,;
+		}
+		elif (idx=35)
+		{
+			// fle: N | Z
+			if (for_cjmp=false)
+			{
+				asm_cjmp=true;
+			}
+			elif (for_cjmp<0)
+			{
+				mlet	asm_cjmp="cjmp";
+			}
+			fprint	fout,"and	sama_hcmp_nf|sama_hcmp_zf"$,;
+		}
+		elif (idx=39)
+		{
+			// fgt: !(N | Z)
+			if (for_cjmp=true)
+			{
+				asm_cjmp=true;
+			}
+			elif (for_cjmp<0)
+			{
+				mlet	asm_cjmp="njmp";
+			}
+			fprint	fout,"and	sama_hcmp_nf|sama_hcmp_zf"$,;
 		}
 		else
 		{
@@ -976,19 +1039,18 @@ if (false)
 			}
 		}
 		tolower		opcd;
-		strcmp	cmp=$(opcd),"cendw";
-		if (cmp)
+		strcmp	cmp=$(opcd),"cendl";
+		if (cmp=0)
 		{
 			// ERROR:
 			errmsg	"mcvm_cpu_cend: illegal operation ("$(opcd)")";
 			leave	stop_error;
 		}
-		mlet	opcd="cend";
 		mlet	do_blk_mcvm_cpu_cend=$(opcd)" ("$(nval)")";
 
 		// assembler
 		fprint	fout,"// convert endian: "$(opcd)" ("$(nval)")"$,;
-		fprint	fout,$(opcd)$,;
+		fprint	fout,"cend"$,;
 	}
 	procedure	do_blk_mcvm_cpu_exsg
 	{
@@ -1029,14 +1091,13 @@ if (false)
 			}
 		}
 		tolower		opcd;
-		strcmp	cmp=$(opcd),"exsgw";
-		if (cmp)
+		strcmp	cmp=$(opcd),"exsgl";
+		if (cmp=0)
 		{
 			// ERROR:
 			errmsg	"mcvm_cpu_exsg: illegal operation ("$(opcd)")";
 			leave	stop_error;
 		}
-		mlet	opcd="exsg";
 		mlet	do_blk_mcvm_cpu_exsg=$(opcd)" ("$(nval)")";
 
 		// assembler
@@ -1825,18 +1886,21 @@ if (false)
 			// assembler
 			fprint	fout,"// rand"$,;
 			fprint	fout,"mulu*	[_rtlb_rnd_seed],_rtlb_rand_aw"$,;
-			fprint	fout,"add	_rtlb_rand_cw"$,;		// X,RND
+			fprint	fout,"add	_rtlb_rand_cw"$,;	// X,RND
 			fprint	fout,"// rand % "$(nval)$,;
-			fprint	fout,"swap"$,;						// RND,X
-			fprint	fout,"dupl"$,;						// RND,X,X
+			fprint	fout,"swap"$,;					// RND,X
+			fprint	fout,"dupl"$,;					// RND,X,X
 			asm_label;
-			fprint	fout,"njmp	"$(asm_label)$,;		// RND,X
-			fprint	fout,"divu*"$,;						// RND/X
-			fprint	fout,"pop	// discard Quo"$,;
-			fprint	fout,"ldw	_r1	// load Rem"$,;		// RND%X
-			fprint	fout,"push	0	// dummy"$,;		// RND%X,0
+			fprint	fout,"njmp	"$(asm_label)$,;	// RND,X
+			fprint	fout,"divu*"$,;					// RND/X
+			fprint	fout,"// discard Quo"$,;
+			fprint	fout,"pop"$,;
+			fprint	fout,"// load Rem"$,;
+			fprint	fout,"ldw	_r1"$,;				// RND%X
+			fprint	fout,"// dummy"$,;
+			fprint	fout,"push	0"$,;				// RND%X,0
 			fprint	fout,$(asm_label)":"$,;
-			fprint	fout,"pop"$,;						// RND%X
+			fprint	fout,"pop"$,;					// RND%X
 		}
 		strcmp	cmp=$(func),"rseed";
 		if (cmp=0)
@@ -2356,7 +2420,8 @@ if (false)
 			else
 			{
 				// assembler
-				fprint	fout,"pop	// discard rval(="$(rval)")"$,;
+				fprint	fout,"// discard rval(="$(rval)")"$,;
+				fprint	fout,"pop"$,;
 			}
 			if ($(rval)<0 | 15<$(rval))
 			{
@@ -2390,6 +2455,13 @@ if (false)
 			// bit wise shift operator
 			var		sft=$(rval);
 
+			// more than or equal to 7 (left only)
+			strcmp	cmp=$(opr),"<<";
+			while (cmp=0 & sft>=7)
+			{
+				fprint	fout,"sldi	0"$,;
+				sft=sft - 7;
+			}
 			// more than 7
 			if (sft>7)
 			{
@@ -2404,18 +2476,18 @@ if (false)
 				strcmp	cmp=$(opr),">>";
 				if (false & cmp=0)	// false: Using 8 asr has more advantage.
 				{
+					fprint	fout,"cend"$,;
 					fprint	fout,"dupl"$,;
-					fprint	fout,"and	SGN_BIT"$,;
+					fprint	fout,"and	BYTE_SG"$,;
 					asm_label;
 					fprint	fout,"cjmp	"$(asm_label)"_else"$,;
 					fprint	fout,"// positive"$,;
-					fprint	fout,"cend"$,;
 					fprint	fout,"and	BYTE_LO"$,;
 					fprint	fout,"jmp	"$(asm_label)"_endif"$,;
 					fprint	fout,$(asm_label)"_else:"$,;
 					fprint	fout,"// negative"$,;
-					fprint	fout,"or	BYTE_LO"$,;
-					fprint	fout,"cend"$,;
+					fprint	fout,$(str_not)"	BYTE_LO"$,;
+					fprint	fout,$(str_or)$,;
 					fprint	fout,$(asm_label)"_endif:"$,;
 
 					sft=sft - 8;
@@ -2890,7 +2962,7 @@ if (false)
 						if (tsk_def_$(tskf))
 						{
 							// ERROR:
-							errmsg	"mcoc_task: re-defined task "$(tskf);
+							errmsg	"mcoc_task: redefined task "$(tskf);
 							leave	stop_error;
 						}
 						tsk_def_$(tskf)=true;
@@ -3207,8 +3279,10 @@ if (false)
 		{
 			fprint	fout,$(mne)$,;
 			fprint	fout,"// divs* returns Quo (also _r0=_r2=Quo, _r1=Rem)"$,;
-			fprint	fout,"pop	// discard Quo"$,;
-			fprint	fout,"ldw	_r1	// load Rem"$,;
+			fprint	fout,"// discard Quo"$,;
+			fprint	fout,"pop"$,;
+			fprint	fout,"// load Rem"$,;
+			fprint	fout,"ldw	_r1"$,;
 
 			mlet	opr="";
 		}
@@ -3279,7 +3353,7 @@ if (false)
 		}
 		gsub	"&lt;","<",nval;
 		pgsub	"[ 	]+","",nval;
-		mlet	do_blk_mcoc_matf_number="half["$(nval)"]";
+		mlet	do_blk_mcoc_matf_number="float["$(nval)"]";
 
 		// assembler
 		fprint	fout,"push	half["$(nval)"]"$,;
@@ -3896,45 +3970,10 @@ if (false)
 		mlet	do_blk_mcoc_matf_compare=$(opr);
 
 		// assembler
-		fprint	fout,"// "$(lval)" "$(opr)" "$(rval);
-		strcmp	cmp=$(opr),"==";
-		if (cmp)
-		{
-			strcmp	cmp=$(opr),"!=";
-		}
-		if (cmp)
-		{
-			strcmp	cmp=$(opr),">=";
-		}
-		if (cmp)
-		{
-			strcmp	cmp=$(opr),"<";
-		}
-		if (cmp=0)
-		{
-			fprint	fout,$,;
-			fprint	fout,"fcmp"$,;
-		}
-		strcmp	cmp=$(opr),">";
-		if (cmp=0)
-		{
-			mlet	opr="<";
-			mlet	mne="flt";
-			fprint	fout," ==> "$(rval)" "$(opr)" "$(lval)$,;
-			fprint	fout,"swap"$,;
-			fprint	fout,"fcmp"$,;
-		}
-		strcmp	cmp=$(opr),"<=";
-		if (cmp=0)
-		{
-			mlet	opr=">=";
-			mlet	mne="fge";
-			fprint	fout," ==> "$(rval)" "$(opr)" "$(lval)$,;
-			fprint	fout,"swap"$,;
-			fprint	fout,"fcmp"$,;
-		}
+		fprint	fout,"// "$(lval)" "$(opr)" "$(rval)$,;
+		fprint	fout,"fcmp"$,;
 		asm_cjmp	$(mne),true;
-		asm_bool;
+		asm_bool	asm_cjmp;
 
 		mlet	do_blk_mcoc_matf_compare=$(lval)" "
 				$(do_blk_mcoc_matf_compare)" "$(rval);
@@ -4162,22 +4201,24 @@ if (false)
 if (true)
 {
 //	%%%%%%%%%%%%%%%%	blky2sama_math.incl
-		fprint	fout,"dupl"$,;								// A,A
-		fprint	fout,"swap	false	// 0 or positive"$,;	// A,false,A
-		fprint	fout,"and	SGN_BIT"$,;						// A,false,A&SGN
+		fprint	fout,"dupl"$,;							// A,A
+		fprint	fout,"swap	false"$,;					// A,false,A
+		fprint	fout,"and	SGN_BIT"$,;					// A,false,A&SGN
 		asm_label;
-		fprint	fout,"njmp	"$(asm_label)"_else"$,;			// A,false
-		fprint	fout,"or	true	// negative"$,;			// A,true
-		fprint	fout,"swap"$,;								// true,A
-		fprint	fout,"neg"$,;								// true,-A
-		fprint	fout,"jmp	"$(asm_label)"_endif"$,;
+		fprint	fout,"njmp	"$(asm_label)"_else"$,;		// A,false
+		fprint	fout,"// negative"$,;
+		fprint	fout,"or	true"$,;					// A,true
+		fprint	fout,"swap"$,;							// true,A
+		fprint	fout,"neg"$,;							// true,-A
+		fprint	fout,"jmp	"$(asm_label)"_endif"$,;	// true,abs(A)
 		fprint	fout,$(asm_label)"_else:"$,;
-		fprint	fout,"swap"$,;								// false,A
+		fprint	fout,"// 0 or positive"$,;
+		fprint	fout,"swap"$,;							// false,A
 		fprint	fout,$(asm_label)"_endif:"$,;
-		fprint	fout,"fhalf	0"$,;							// Cond,half(A')
-		fprint	fout,"swap"$,;								// half(A'),Cond
-		fprint	fout,"njmp	"$(asm_label)"_posi"$,;			// half(A')
-		fprint	fout,"fneg	0"$,;							// -half(A')
+		fprint	fout,"fhalf	0"$,;						// Cond,half(abs(A))
+		fprint	fout,"swap"$,;							// half(abs(A)),Cond
+		fprint	fout,"njmp	"$(asm_label)"_posi"$,;		// half(abs(A))
+		fprint	fout,"fneg	0"$,;						// -half(abs(A))
 		fprint	fout,$(asm_label)"_posi:"$,;
 }
 else
@@ -4221,22 +4262,24 @@ else
 if (true)
 {
 //	%%%%%%%%%%%%%%%%	blky2sama_math.incl
-		fprint	fout,"dupl"$,;								// A,A
-		fprint	fout,"swap	false	// 0 or positive"$,;	// A,false,A
-		fprint	fout,"and	SGN_BIT"$,;						// A,false,A&SGN
+		fprint	fout,"dupl"$,;							// A,A
+		fprint	fout,"swap	false"$,;					// A,false,A
+		fprint	fout,"and	SGN_BIT"$,;					// A,false,A&SGN
 		asm_label;
-		fprint	fout,"njmp	"$(asm_label)"_else"$,;			// A,false
-		fprint	fout,"or	true	// negative"$,;			// A,true
-		fprint	fout,"swap"$,;								// true,A
-		fprint	fout,"fneg	0"$,;							// true,-A
-		fprint	fout,"jmp	"$(asm_label)"_endif"$,;
+		fprint	fout,"njmp	"$(asm_label)"_else"$,;		// A,false
+		fprint	fout,"// negative"$,;
+		fprint	fout,"or	true"$,;					// A,true
+		fprint	fout,"swap"$,;							// true,A
+		fprint	fout,"fneg	0"$,;						// true,-A
+		fprint	fout,"jmp	"$(asm_label)"_endif"$,;	// true,fabs(A)
 		fprint	fout,$(asm_label)"_else:"$,;
-		fprint	fout,"swap"$,;								// false,A
+		fprint	fout,"// 0 or positive"$,;
+		fprint	fout,"swap"$,;							// false,A
 		fprint	fout,$(asm_label)"_endif:"$,;
-		fprint	fout,"fuint	0"$,;							// Cond,int(A')
-		fprint	fout,"swap"$,;								// int(A'),Cond
-		fprint	fout,"njmp	"$(asm_label)"_posi"$,;			// int(A')
-		fprint	fout,"neg"$,;								// -int(A')
+		fprint	fout,"fuint	0"$,;						// Cond,uint(fabs(A))
+		fprint	fout,"swap"$,;							// uint(fabs(A)),Cond
+		fprint	fout,"njmp	"$(asm_label)"_posi"$,;		// uint(fabs(A))
+		fprint	fout,"neg"$,;							// -uint(fabs(A))
 		fprint	fout,$(asm_label)"_posi:"$,;
 }
 else
@@ -4523,48 +4566,13 @@ else
 		mlet	do_blk_logic_compare=$(opr);
 
 		// assembler
-		fprint	fout,"// "$(lval)" "$(opr)" "$(rval);
-		strcmp	cmp=$(opr),"==";
-		if (cmp)
-		{
-			strcmp	cmp=$(opr),"!=";
-		}
-		if (cmp)
-		{
-			strcmp	cmp=$(opr),">=";
-		}
-		if (cmp)
-		{
-			strcmp	cmp=$(opr),"<";
-		}
-		if (cmp=0)
-		{
-			fprint	fout,$,;
-			fprint	fout,"cmp"$,;
-		}
-		strcmp	cmp=$(opr),">";
-		if (cmp=0)
-		{
-			mlet	opr="<";
-			mlet	mne="lt";
-			fprint	fout," ==> "$(rval)" "$(opr)" "$(lval)$,;
-			fprint	fout,"swap"$,;
-			fprint	fout,"cmp"$,;
-		}
-		strcmp	cmp=$(opr),"<=";
-		if (cmp=0)
-		{
-			mlet	opr=">=";
-			mlet	mne="ge";
-			fprint	fout," ==> "$(rval)" "$(opr)" "$(lval)$,;
-			fprint	fout,"swap"$,;
-			fprint	fout,"cmp"$,;
-		}
+		fprint	fout,"// "$(lval)" "$(opr)" "$(rval)$,;
+		fprint	fout,"cmp"$,;
 		asm_cjmp	$(mne),true;
-		asm_bool;
+		asm_bool	asm_cjmp;
 
-		mlet	do_blk_logic_compare=$(lval)" "$(do_blk_logic_compare)" "
-				$(rval);
+		mlet	do_blk_logic_compare=$(lval)" "
+				$(do_blk_logic_compare)" "$(rval);
 	}
 	procedure	do_blk_logic_operation
 	{
@@ -6328,7 +6336,7 @@ fprint	fout,"//incl	"$"$(mynam)"_libstnd$(z).incl"$"$,;
 	// assembler
 	fprint	fout,$,;
 	fprint	fout,"// program size / variable area size"$,;
-	fprint	fout,"align	2"$,;
+	fprint	fout,"align	_rtlb_var_sizw"$,;
 	fprint	fout,"_rtlb_prog_size:"$,;
 	fprint	fout,"datw	lab__rtlb_prog_bottom"$,;
 	fprint	fout,"// array buffer (bottom address)"$,;
@@ -6347,6 +6355,18 @@ fprint	fout,"//incl	"$"$(mynam)"_libstnd$(z).incl"$"$,;
 
 	// replace output file
 	fmove	$(fnam_tmp),$(fnam_out), force;
+
+
+	// peephole optimization
+	nvar	opt_optimz=false;
+	if (opt_optimz>0)
+	{
+		// switch to the optimizer
+		setenv	BLKY2SAMA_ASM_SRC=$(fnam_out);
+		setenv	BLKY2SAMA_OPTIMZ=#(opt_optimz);
+
+		leave	stop_error, $(mynam)"_optimz.olv";
+	}
 
 
 	leave	stop_error;

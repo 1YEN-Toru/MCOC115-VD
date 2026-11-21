@@ -300,10 +300,12 @@ njmp	tstfail
 push	stx_ram_adr
 njmp	stw_skip
 stw		0x33cc,stx_ram_adr				// **
-sub		[stx_ram_adr],0x33cc
+ldw		stx_ram_adr
+sub		0x33cc
 cjmp	tstfail
 stw		0xaa55,stx_ram_adr				// **
-sub		[stx_ram_adr],0xaa55
+ldw		stx_ram_adr
+sub		0xaa55
 cjmp	tstfail
 stw_skip:
 
@@ -313,7 +315,8 @@ push	stx_ram_adr
 njmp	stb_skip
 stb		0xaa,stx_ram_adr				// **
 stb		0x55,stx_ram_adr+1				// **
-sub		[stx_ram_adr],0xaa55
+ldw		stx_ram_adr
+sub		0xaa55
 cjmp	tstfail
 stb_skip:
 

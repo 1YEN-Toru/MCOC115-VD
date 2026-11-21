@@ -1,11 +1,16 @@
 model	"Samarium series assembler"
 {
 	macro	prog_name="Samarium series assembler";
-	macro	prog_vers="1.06";
+	macro	prog_vers="1.08";
 // ================================
 // Samarium series assembler
 //		(c) 2026	1YEN Toru
 //
+//
+//		2026/11/21	ver.1.08
+//			upd: alias
+//			upd: pseudo: pusha
+//			fix: pseudo: align v.s. padr
 //
 //		2026/08/29	ver.1.06
 //			fix: "#" character in string constants and "//" comments
@@ -87,6 +92,20 @@ model	"Samarium series assembler"
 		"5c "
 		"60 "
 		"80 ";
+	strcat	mnem_list,					// alias
+		"exchw "
+		"rtn   "
+		"setpc "
+		"rti   "
+		"setiv "
+		"asl   ";
+	strcat	opcd_list,					// alias
+		"21 "
+		"35 "
+		"35 "
+		"37 "
+		"36 "
+		"22 ";
 	marray	psei_list:0=
 		"MIN_UINT",	"0x00",
 		"ZERO",		"0x00",
@@ -95,7 +114,6 @@ model	"Samarium series assembler"
 		"MAX_INT",	"0x11",
 		"MIN_INT",	"0x12",
 		"SGN_BIT",	"0x12",
-		"WORD_SG",	"0x12",
 		"BYTE_LO",	"0x13",
 		"BYTE_SG",	"0x14",
 		"CORE_ID",	"0x18",
@@ -104,27 +122,27 @@ model	"Samarium series assembler"
 		"PRG_CNT",	"0x1b",
 		"INT_VEC",	"0x1c",
 		"CPU_STS",	"0x1d",
-		".";
+		".",		"0";
 	marray	copr_list:0=
 		"mulu","0x01",		// unsigned multiply: C=Prd=A*B
 		"muls","0x02",		// signed multiply: C=Prd=A*B
 		"mulh","0x03",		// load high word: C=Prd[31:16]
-		"divq","0x0b",		// load quotient low word: Quo[15:0]
-		"divr","0x0d",		// load remainder low word: Rem[15:0]
-		"divu","0x0e",		// unsigned divide (16 bits): 16'h0, A/B
-		"divs","0x0f",		// signed divide (16 bits): 16'h0, A/B
-		"fadd","0x11",		// half add: C=A+B
-		"fsub","0x12",		// half subtract: C=A-B
-		"fmul","0x13",		// half multiply: C=A*B
-		"fdiv","0x14",		// half divide: C=A/B
-		"fneg","0x15",		// half negate: C=-A
-		"fhalf","0x16",		// cast uint16 to half: C=half (A)
-		"fuint","0x17",		// cast half to uint16: C=uint16 (abs (A))
-		"ffrac","0x18",		// half obtain fraction: C=uint16 (abs (A)*(2**16))
-		"fmvsg","0x19",		// half move sign: C=A*sgn (A)*sgn (B)
-		"fsat","0x1a",		// half saturate: INF, ZERO, NaN
-		"fcmp","0x1b",		// half compare: C=NCVZ (A-B)
-		"ftrunc","0x1c",	// half truncate towards zero: C=trunc (A)
+		"divq","0x0b",		// load quotient: C=Quo
+		"divr","0x0d",		// load remainder: C=Rem
+		"divu","0x0e",		// unsigned divide: C=Quo=A/B
+		"divs","0x0f",		// signed divide: C=Quo=A/B
+		"fadd","0x11",		// float add: C=A+B
+		"fsub","0x12",		// float subtract: C=A-B
+		"fmul","0x13",		// float multiply: C=A*B
+		"fdiv","0x14",		// float divide: C=A/B
+		"fneg","0x15",		// float negate: C=-A
+		"fhalf","0x16",		// cast uint16 to half: C=half(A)
+		"fuint","0x17",		// cast float to uint: C=uint(abs(A))
+		"ffrac","0x18",		// float obtain fraction: C=uint(abs(A)*(2**N))
+		"fmvsg","0x19",		// float move sign: C=A*sgn(A)*sgn(B)
+		"fsat","0x1a",		// float saturate: INF, ZERO, NaN
+		"fcmp","0x1b",		// float compare: C=NCVZ(A-B)
+		"ftrunc","0x1c",	// float truncate towards zero: C=trunc(A)
 		".";
 	macro	NOT="NOT";
 	tolower		NOT;
@@ -159,12 +177,6 @@ model	"Samarium series assembler"
 		fgetl	fin2,ibuf;
 		while (fNF>0)
 		{
-			repeat
-			{
-				psub	"//(.*)#","//\1\x23",ibuf;
-			} until (status=0);
-			psub	"^([^/].*)//.*","\1",ibuf;
-			rmv_cmnt	ibuf;
 			psub	"^[ 	]+","",ibuf;
 			psub	"[ 	]+$","",ibuf;
 			strcmp	cmp=$(ibuf),"";
@@ -178,8 +190,24 @@ model	"Samarium series assembler"
 			strcmp	cmp=$(ibuf1),"incl";
 			if (cmp=0)
 			{
+				macro	ibuf2=$(ibuf);
+				psub	"^incl[ 	]+","",ibuf2;
+				pindex	cmp=$(ibuf2),"^"$""(.+)"$""$";
+				if (cmp<=0)
+				{
+					// ERROR:
+					gsub	"#","##",ibuf;
+					errmsg	"ERR: incl syntax"$,$(ibuf)$,;
+					leave	stop_error;
+				}
 				extr_incl	$(ibuf2);
+
+				// continue
+				fgetl	fin2,ibuf;
+				continue;
 			}
+
+			// output
 			fputl	fout,$(ibuf);
 
 			// continue
@@ -189,23 +217,23 @@ model	"Samarium series assembler"
 		// close file
 		fclose	fin2;
 	}
-	procedure	extr_push	$$imm16, ful16,$$cmnt
+	procedure	extr_push	$$imm16,$$cmnt
 	{
 		var		idx;
 		var		num;
-		nvar	ful16=false;
 		nmacro	cmnt="";
 
 		// half[]
 		pindex	cmp=$(imm16),"^half\[(.*)\]$";
 		if (cmp>0)
 		{
-			psub	"^half\[(.*)\]$","\1",imm16;
+			psub	"^[a-z]+\[(.*)\]$","\1",imm16;
 			dbl2half	$(imm16);
-			fprint	fout,"//		\x23half["$(imm16)"]="$(dbl2half)$,;
+			fprint	fout,"//		##half["$(imm16)"]="$(dbl2half)$,;
 			mlet	imm16=$(dbl2half);
 		}
 
+		// encoded immediate
 		idx=0;
 		while (true)
 		{
@@ -232,7 +260,7 @@ model	"Samarium series assembler"
 			return;
 		}
 
-		// pusha
+		// constant number
 		pindex	idx=$(imm16),"^[+\-]?[0-9_]+$";		// decimal
 		if (idx<=0)
 		{
@@ -246,9 +274,11 @@ model	"Samarium series assembler"
 		{
 			pindex	idx=$(imm16),"^[+\-]?0a.$";		// ascii
 		}
-		pindex	cmp=$(imm16),"[+\-*/%!&|^<>]";
+		// not contain formulas
+		pindex	cmp=$(imm16),"[+\-*/%!~&|^<>]";
 		if (cmp<=0 & idx<=0)
 		{
+			// not defined labels
 			ifnvar	$(imm16)
 			{
 				fprint	fout,"pusha	"$(imm16)$,;
@@ -257,16 +287,16 @@ model	"Samarium series assembler"
 			}
 		}
 
+		// extract push
 		num=@(($(imm16))&0xffff);
 		if (cmp>0 | idx<=0)
 		{
 			num2str		shex=num,"%04x";
 			mprint	cmnt,$(cmnt)" (0x"$(shex)")";
 		}
-		if (!ful16)
+		// combination of 1 operand instructions
+		if (true)
 		{
-			var		num_n;
-
 			// psei
 			if (0<=num & num<=3)
 			{
@@ -306,6 +336,8 @@ model	"Samarium series assembler"
 			}
 
 			// psei; not
+			var		num_n;
+
 			num_n=@((~num)&0xffff);
 			if (0xfffc<=num_n)
 			{
@@ -486,21 +518,17 @@ model	"Samarium series assembler"
 	}
 	procedure	extr_para	$$prmt
 	{
+		// empty parameter, nothing to do
+		strcmp	cmp=$(prmt),"";
+		if (cmp=0)
+		{
+			return;
+		}
+
 		field	num=prmt,",";
 		idx=1;
 		while (idx<=num)
 		{
-			// half[]
-			pindex	cmp=$(prmt#(idx)),"^half\[(.*)\]$";
-			if (cmp>0)
-			{
-				psub	"^half\[(.*)\]$","\1",prmt#(idx);
-				dbl2half	$(prmt#(idx));
-				fprint	fout,"//		\x23half["$(prmt#(idx))"]="
-						$(dbl2half)$,;
-				mlet	prmt#(idx)=$(dbl2half);
-			}
-
 			pindex	cmp=$(prmt#(idx)),"^\[.*\]$";
 			if (cmp>0)
 			{
@@ -513,7 +541,7 @@ model	"Samarium series assembler"
 					errmsg	"ERR: empty indirect constant"$,$(prmt)$,;
 					leave	stop_error;
 				}
-				extr_push	$(prmt#(idx)), false,"	// ldw	"$(prmt#(idx));
+				extr_push	$(prmt#(idx)),"	// ldw	"$(prmt#(idx));
 				fprint	fout,"ldw"$,;
 			}
 			else
@@ -526,7 +554,7 @@ model	"Samarium series assembler"
 					errmsg	"ERR: empty direct constant"$,$(prmt)$,;
 					leave	stop_error;
 				}
-				extr_push	$(prmt#(idx)), false,"	// push	"$(prmt#(idx));
+				extr_push	$(prmt#(idx)),"	// push	"$(prmt#(idx));
 			}
 
 			// continue
@@ -595,32 +623,6 @@ model	"Samarium series assembler"
 			get_code=@(get_code + (out_cod#(idx2)&0xff));
 		}
 		num2str		get_code=get_code,"%08x";
-	}
-	procedure	rmv_cmnt	$$mstr
-	{
-		// remove "#" comment, saving string constants
-
-		// replace \" in string constants
-		gsub	"\"$","\X22",$(mstr);
-
-		// replace '#' in string constants
-		repeat
-		{
-			psub	$""([^"$""]*)#",$""\1\X23",$(mstr);
-		} until (status=0);
-
-		// replace '#' in "//" constants
-		repeat
-		{
-			psub	"//([^#]*)#","//\1\X23",$(mstr);
-		} until (status=0);
-
-		// remove "#" comment
-		psub	"#.*","",$(mstr);
-
-		// restore
-		gsub	"\X22","\"$",$(mstr);
-		gsub	"\X23","#",$(mstr);
 	}
 
 
@@ -704,9 +706,6 @@ macro	log,tbuf;
 		ftell	fin,fpos;
 		progress	"Pre-process...",100*(facm + fpos)/fsiz;
 
-		pgsub	"//(.*)#","//\1\x23",lbuf;
-		psub	"^([^/].*)//.*","\1",lbuf;
-		rmv_cmnt	lbuf;
 		psub	"^[ 	]+","",lbuf;
 		psub	"[ 	]+$","",lbuf;
 		strcmp	cmp=$(lbuf),"";
@@ -717,7 +716,17 @@ macro	log,tbuf;
 			continue;
 		}
 
-		// asm (pseudo instruction)
+		nmacro	lbuf2;
+		if (fNF=1)
+		{
+			mlet	lbuf2="";
+		}
+		psub	"^//.*","",lbuf1;
+		psub	"^#.*","",lbuf1;
+		psub	"^//.*","",lbuf2;
+		psub	"^#.*","",lbuf2;
+
+		// asm pseudo instruction
 		strcmp	cmp=$(lbuf1),"asm";
 		if (cmp=0)
 		{
@@ -741,10 +750,21 @@ macro	log,tbuf;
 			continue;
 		}
 
-		// incl (pseudo instruction)
+		// incl pseudo instruction
 		strcmp	cmp=$(lbuf1),"incl";
 		if (cmp=0)
 		{
+			mlet	lbuf2=$(lbuf);
+			psub	"^incl[ 	]+","",lbuf2;
+			pindex	cmp=$(lbuf2),"^"$""(.+)"$""$";
+			if (cmp<=0)
+			{
+				// ERROR:
+				gsub	"#","##",lbuf;
+				errmsg	"ERR: incl syntax"$,$(lbuf)$,;
+				leave	stop_error;
+			}
+			psub	"^"$""(.+)"$""$","\1",lbuf2;
 			extr_incl	$(lbuf2);
 
 			// continue
@@ -787,10 +807,15 @@ macro	log,tbuf;
 		ftell	fin,fpos;
 		progress	"Constant label...",100*(facm + fpos)/fsiz;
 
-		psub	"^([^/].*)//.*","\1",lbuf;
-		rmv_cmnt	lbuf;
-		pgsub	"^[ 	]+","",lbuf;
-		pgsub	"[ 	]+$","",lbuf;
+		nmacro	lbuf2;
+		if (fNF=1)
+		{
+			mlet	lbuf2="";
+		}
+		psub	"^//.*","",lbuf1;
+		psub	"^#.*","",lbuf1;
+		psub	"^//.*","",lbuf2;
+		psub	"^#.*","",lbuf2;
 
 		// equ
 		strcmp	cmp=$(lbuf1),"equ";
@@ -799,22 +824,28 @@ macro	log,tbuf;
 			// equ pseudo instruction
 			fputl	fout,"#"$(lbuf);
 
-			field	num=lbuf,"";
-			mlet	lbuf=$(lbuf2);
-			field	num=lbuf,",";
+			field	num=lbuf2,",";
+			strcmp	cmp=$(lbuf21),"";
+			if (num!=2 | cmp=0)
+			{
+				// ERROR:
+				gsub	"#","##",lbuf;
+				errmsg	"ERR: equ syntax"$,$(lbuf)$,;
+				leave	stop_error;
+			}
 
 			// half[]
-			pindex	cmp=$(lbuf2),"^half\[(.*)\]$";
+			pindex	cmp=$(lbuf22),"^half\[(.*)\]$";
 			if (cmp>0)
 			{
-				psub	"^half\[(.*)\]$","\1",lbuf2;
-				dbl2half	$(lbuf2);
-				mlet	lbuf2=$(dbl2half);
+				psub	"^[a-z]+\[(.*)\]$","\1",lbuf22;
+				dbl2half	$(lbuf22);
+				mlet	lbuf22=$(dbl2half);
 			}
 
 			// define constant label
-			static : nvar	$(lbuf1);
-			$(lbuf1)=@($(lbuf2));
+			static : nvar	$(lbuf21);
+			$(lbuf21)=@($(lbuf22));
 
 			// continue
 			fgetl	fin,lbuf;
@@ -825,7 +856,7 @@ macro	log,tbuf;
 		strcmp	cmp=$(lbuf1),"halt";
 		if (cmp=0)
 		{
-			fputl	fout,"//	\x23"$(lbuf);
+			fputl	fout,"//	#"$(lbuf);
 			fprint	fout,"sub		PRG_CNT,1"$,;
 			fprint	fout,"jmp"$,;
 
@@ -834,73 +865,14 @@ macro	log,tbuf;
 			continue;
 		}
 
-		// rtn / setpc (alias)
-		strcmp	cmp=$(lbuf1),"rtn";
-		if (cmp)
-		{
-			strcmp	cmp=$(lbuf1),"setpc";
-		}
-		if (cmp=0)
-		{
-			fputl	fout,"//	\x23"$(lbuf);
-			sub		"rtn","jmp",lbuf;
-			sub		"setpc","jmp",lbuf;
-			fprint	fout,$(lbuf)$,;
-
-			// continue
-			fgetl	fin,lbuf;
-			continue;
-		}
-
-		// rti (alias)
-		strcmp	cmp=$(lbuf1),"rti";
-		if (cmp=0)
-		{
-			fputl	fout,"//	\x23"$(lbuf);
-			sub		"rti","ijmp",lbuf;
-			fprint	fout,$(lbuf)$,;
-
-			// continue
-			fgetl	fin,lbuf;
-			continue;
-		}
-
-		// setiv (alias)
-		strcmp	cmp=$(lbuf1),"setiv";
-		if (cmp=0)
-		{
-			fputl	fout,"//	\x23"$(lbuf);
-			sub		"setiv","ijal",lbuf;
-			fprint	fout,$(lbuf)$,;
-
-			// continue
-			fgetl	fin,lbuf;
-			continue;
-		}
-
-		// asl (alias)
-		strcmp	cmp=$(lbuf1),"asl";
-		if (cmp=0)
-		{
-			fputl	fout,"//	\x23"$(lbuf);
-			sub		"asl","lsl",lbuf;
-			fprint	fout,$(lbuf)$,;
-
-			// continue
-			fgetl	fin,lbuf;
-			continue;
-		}
-
 		// subroutine macro
-		strcmp	cmp=$(lbuf1),"*",right;
-		if (cmp=0)
+		pindex	cmp=$(lbuf1),"\*$";
+		if (cmp>0)
 		{
-			fputl	fout,"//	\x23"$(lbuf);
+			fputl	fout,"//	#"$(lbuf);
 			psub	"\*$","",lbuf1;
-			rmv_cmnt	lbuf2;
-			psub	"//.*","",lbuf2;
 			strcmp	cmp=$(lbuf2),"";
-			if (fNF=1 | cmp=0)
+			if (cmp=0)
 			{
 				// no parameter
 				fprint	fout,"jal	"$(lbuf1)$,;
@@ -917,32 +889,12 @@ macro	log,tbuf;
 		}
 
 		// Co-processor instruction
-		idx=0;
-		while (true)
-		{
-			strcmp	cmp=$(copr_list#(idx)),".";
-			if (cmp=0)
-			{
-				// not found
-				idx=-1;
-				break;
-			}
-			strcmp	cmp=$(copr_list#(idx)),$(lbuf1);
-			if (cmp=0)
-			{
-				// found
-				break;
-			}
-
-			// continue
-			idx=idx + 2;
-		}
-		if (idx>=0)
+		ifvar	copr_$(lbuf1)
 		{
 			mlet	lbuf1="copr_"$(lbuf1);
 
 			// output
-			fputl	fout,"//	\x23"$(lbuf);
+			fputl	fout,"//	#"$(lbuf);
 			strcmp	cmp=$(lbuf2),"";
 			if (cmp=0 | fNF=1)
 			{
@@ -1002,6 +954,16 @@ macro	log,tbuf;
 			continue;
 		}
 
+		nmacro	lbuf2;
+		if (fNF=1)
+		{
+			mlet	lbuf2="";
+		}
+		psub	"^//.*","",lbuf1;
+		psub	"^#.*","",lbuf1;
+		psub	"^//.*","",lbuf2;
+		psub	"^#.*","",lbuf2;
+
 		// sldi / psei
 		strcmp	cmp=$(lbuf1),"sldi";
 		if (cmp)
@@ -1025,16 +987,15 @@ macro	log,tbuf;
 			macro	tmp;
 
 			fputl	fout,"//	"$(lbuf);
-			rmv_cmnt	lbuf2;
-			psub	"//.*","",lbuf2;
 			strcmp	cmp=$(lbuf2),"";
-			if (fNF<2 | cmp=0)
+			if (cmp=0)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: push has no operand"$,$(lbuf)$,;
 				leave	stop_error;
 			}
-			extr_push	$(lbuf2),false,"	// push "$(lbuf2);
+			extr_push	$(lbuf2),"	// push "$(lbuf2);
 
 			// continue
 			fgetl	fin,lbuf;
@@ -1047,19 +1008,31 @@ macro	log,tbuf;
 		{
 			fputl	fout,"//	"$(lbuf);
 
-			macro	tmp=$(lbuf2);
-			field	num=tmp,",";
+			field	num=lbuf2,",";
 			idx=1;
 			while (idx<=num)
 			{
-				strcmp	cmp=$(tmp#(idx)),"";
+				strcmp	cmp=$(lbuf2#(idx)),"";
 				if (cmp=0)
 				{
 					// ERROR:
+					gsub	"#","##",lbuf;
 					errmsg	"ERR: empty 'datw' data"$,$(lbuf)$,;
 					leave	stop_error;
 				}
-				fprint	fout,"datw	"$(tmp#(idx))$,;
+
+				// half[]
+				pindex	cmp=$(lbuf2#(idx)),"^half\[(.*)\]$";
+				if (cmp>0)
+				{
+					psub	"^[a-z]+\[(.*)\]$","\1",lbuf2#(idx);
+					dbl2half	$(lbuf2#(idx));
+					fprint	fout,"//		##half["$(lbuf2#(idx))"]="
+							$(dbl2half)$,;
+					mlet	lbuf2#(idx)=$(dbl2half);
+				}
+
+				fprint	fout,"datw	"$(lbuf2#(idx))$,;
 
 				// continue
 				idx=idx + 1;
@@ -1084,6 +1057,7 @@ macro	log,tbuf;
 			if (cmp)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: bad 'dats' string constant"$,$(lbuf)$,;
 				leave	stop_error;
 			}
@@ -1098,7 +1072,7 @@ macro	log,tbuf;
 					break;
 				}
 
-				if (num>255)
+				if (num>=256)
 				{
 					// S-JIS 2 byte code
 					num2str		chr=num,"%04x";
@@ -1158,6 +1132,7 @@ macro	log,tbuf;
 			if (num=0)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: bad 'dats' string constant"$,$(lbuf)$,;
 				leave	stop_error;
 			}
@@ -1182,6 +1157,7 @@ macro	log,tbuf;
 			if (idx<4)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: empty 'dats' string constant"$,$(lbuf)$,;
 				leave	stop_error;
 			}
@@ -1196,23 +1172,24 @@ macro	log,tbuf;
 		if (cmp=0)
 		{
 			macro	bdat;
-			macro	bbuf;
 
 			fputl	fout,"//	"$(lbuf);
 
-			mlet	bbuf=$(lbuf2);
-			field	num=bbuf,",";
-			if (fNF<2 | num<1)
-			{
-				// ERROR:
-				errmsg	"ERR: 'datb' empty data"$,$(lbuf)$,;
-				leave	stop_error;
-			}
 			mlet	shex="";
+			field	num=lbuf2,",";
 			idx=1;
 			while (idx<=num)
 			{
-				num2str		bdat=@($(bbuf#(idx))&0xff),"%02x";
+				strcmp	cmp=$(lbuf2#(idx)),"";
+				if (cmp=0)
+				{
+					// ERROR:
+					gsub	"#","##",lbuf;
+					errmsg	"ERR: 'datb' empty data"$,$(lbuf)$,;
+					leave	stop_error;
+				}
+
+				num2str		bdat=@(($(lbuf2#(idx)))&0xff),"%02x";
 				strcat	shex,$(bdat);
 
 				// continue
@@ -1303,7 +1280,7 @@ macro	log,tbuf;
 		ftell	fin,fpos;
 		progress	"Address label...",100*(facm + fpos)/fsiz;
 
-		rmv_cmnt	lbuf;
+		pgsub	"^#.*","",lbuf;
 		strcmp	cmp=$(lbuf),"";
 		if (cmp=0)
 		{
@@ -1311,6 +1288,16 @@ macro	log,tbuf;
 			fgetl	fin,lbuf;
 			continue;
 		}
+
+		nmacro	lbuf2;
+		if (fNF=1)
+		{
+			mlet	lbuf2="";
+		}
+		psub	"^//.*","",lbuf1;
+		psub	"^#.*","",lbuf1;
+		psub	"^//.*","",lbuf2;
+		psub	"^#.*","",lbuf2;
 
 		// align pseudo instruction
 		strcmp	cmp=$(lbuf1),"align";
@@ -1320,20 +1307,16 @@ macro	log,tbuf;
 			var		algn;
 
 			strcmp	cmp=$(lbuf2),"";
-			if (fNF<2 | cmp=0)
+			if (cmp=0)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: align has no operand"$,$(lbuf)$,;
 				leave	stop_error;
 			}
 			algn=$(lbuf2);
-			pcnt=int ((adr + algn - 1)/algn)*algn;
-			if (pcnt<0 | 0xffff<pcnt | pcnt%2=1)
-			{
-				errmsg	"illegal align size: "$(lbuf);
-				leave	stop_error;
-			}
-			while (pcnt>adr)
+			pcnt=int ((adr + adr_ofst + algn - 1)/algn)*algn;
+			while (pcnt>adr + adr_ofst)
 			{
 				fprint	fout,"nop"$,;
 				adr=adr + 1;
@@ -1351,12 +1334,11 @@ macro	log,tbuf;
 			ifvar	$(lbuf2)
 			{
 				sub		"pusha","push",lbuf;
-				extr_push	$(lbuf2), false,"	//	"$(lbuf);
+				extr_push	$(lbuf2),"	//	"$(lbuf);
 				adr=adr + extr_push;
 			}
 			else
 			{
-				sub		"pusha","pushf",lbuf;
 				fputl	fout,$(lbuf);
 				adr=adr + 3;
 			}
@@ -1370,7 +1352,8 @@ macro	log,tbuf;
 		strcmp	cmp=$(lbuf1),"padr";
 		if (cmp=0)
 		{
-			if (fNF<2)
+			strcmp	cmp=$(lbuf2),"";
+			if (cmp=0)
 			{
 				adr_ofst=0;
 			}
@@ -1395,6 +1378,7 @@ macro	log,tbuf;
 			ifvar	$(lbuf1)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: duplicate defined address label"$,$(lbuf)$,;
 				leave	stop_error;
 			}
@@ -1409,14 +1393,12 @@ macro	log,tbuf;
 			fgetl	fin,lbuf;
 			continue;
 		}
+
+		// output
 		fputl	fout,$(lbuf);
 
 		// comment
-		strcmp	cmp=$(lbuf1),"//",left;
-		if (cmp)
-		{
-			strcmp	cmp=$(lbuf1),"asm";
-		}
+		strcmp	cmp=$(lbuf),"//",left;
 		if (cmp=0)
 		{
 			// continue
@@ -1429,6 +1411,17 @@ macro	log,tbuf;
 		if (cmp=0)
 		{
 			adr=adr + 2;
+
+			// continue
+			fgetl	fin,lbuf;
+			continue;
+		}
+
+		// pusha pseudo instruction
+		strcmp	cmp=$(lbuf1),"pusha";
+		if (cmp=0)
+		{
+			adr=adr + 3;
 
 			// continue
 			fgetl	fin,lbuf;
@@ -1487,7 +1480,6 @@ macro	log,tbuf;
 		ftell	fin,fpos;
 		progress	"Assemble...",100*(facm + fpos)/fsiz;
 
-		pgsub	"//(.*)\\x23","//\1#",lbuf;
 		pgsub	"^#.*","",lbuf;
 		strcmp	cmp=$(lbuf),"";
 		if (cmp=0)
@@ -1497,8 +1489,18 @@ macro	log,tbuf;
 			continue;
 		}
 
+		nmacro	lbuf2;
+		if (fNF=1)
+		{
+			mlet	lbuf2="";
+		}
+		psub	"^//.*","",lbuf1;
+		psub	"^#.*","",lbuf1;
+		psub	"^//.*","",lbuf2;
+		psub	"^#.*","",lbuf2;
+
 		// comment
-		strcmp	cmp=$(lbuf1),"//",left;
+		strcmp	cmp=$(lbuf),"//",left;
 		if (cmp=0)
 		{
 			fputl	fout,"	"$(lbuf);
@@ -1512,15 +1514,6 @@ macro	log,tbuf;
 		strcmp	cmp=$(lbuf1),"datw";
 		if (cmp=0)
 		{
-			// half[]
-			pindex	cmp=$(lbuf2),"^half\[(.*)\]$";
-			if (cmp>0)
-			{
-				psub	"^half\[(.*)\]$","\1",lbuf2;
-				dbl2half	$(lbuf2);
-				mlet	lbuf2=$(dbl2half);
-			}
-
 			// data
 			opc=@(($(lbuf2))&0xffff);
 			num2str		shex=opc,"%04x";
@@ -1580,37 +1573,80 @@ macro	log,tbuf;
 			continue;
 		}
 
-		// pusha
-		strcmp	cmp=$(lbuf1),"pusha";
+		// pushf / pusha
+		strcmp	cmp=$(lbuf1),"pushf";
 		if (cmp)
 		{
-			strcmp	cmp=$(lbuf1),"pushf";
+			strcmp	cmp=$(lbuf1),"pusha";
 		}
 		if (cmp=0)
 		{
+			var		num0;
+			var		cnt;
+			var		max_cnt;
+			var		opc_psei;
+			var		opc_sldi;
+
 			strcmp	cmp=$(lbuf2),"";
-			if (fNF<2 | cmp=0)
+			if (cmp=0)
 			{
 				// ERROR:
+				gsub	"#","##",lbuf;
 				errmsg	"ERR: pushf has no operand"$,$(lbuf)$,;
 				leave	stop_error;
 			}
-			num=@(($(lbuf2))&0xffff);
 
-			// full 16 bit immediate
+			// operand
+			num=@($(lbuf2));
+			num=@(num&0xffff);
+			num0=num;
+
+			// count of instructions
+			max_cnt=3;
+
+			// opecode, psei and sldi
 			index	idx=$(mnem_list),"psei ";
 			substr	shex=$(opcd_list),(idx - 1)/MSIZ*3 + 1,2;
-			opc=0x$(shex);
-			num2str		shex=num,"%04x";
-			case_line	adr,@(opc + num>>14),$(lbuf)" (0x"$(shex)")";
-			adr=adr + 1;
+			opc_psei=0x$(shex);
 			index	idx=$(mnem_list),"sldi ";
 			substr	shex=$(opcd_list),(idx - 1)/MSIZ*3 + 1,2;
-			opc=0x$(shex);
-			case_line	adr,@(opc + (num>>7)&0x7f);
+			opc_sldi=0x$(shex);
+
+			// extruct to psei and sldi
+			cnt=0;
+			static : while (cnt<max_cnt)
+			{
+				var		num#(max_cnt - cnt)=@(num&0x7f);
+				num=@(num>>7);
+
+				// continue
+				cnt=cnt + 1;
+			}
+			num2str		shex=num0,"%04x";
+			if (num#(1)>3)
+			{
+				num#(1)=-1;
+			}
+			psub	"^pusha	","push	",lbuf;
+			if (num!=0 | num#(1)<0 | cnt<max_cnt)
+			{
+				// ERROR:
+				errmsg	"ERR: push(a) out of range."
+						$,"	check 'mode' pseudo instruction."
+						$,$(lbuf)" (0x"$(shex)", #)",max_cnt;
+				leave	stop_error;
+			}
+			case_line	adr,@(opc_psei + num#(1)),$(lbuf)" (0x"$(shex)")";
 			adr=adr + 1;
-			case_line	adr,@(opc + num&0x7f);
-			adr=adr + 1;
+			cnt=2;
+			while (cnt<=max_cnt)
+			{
+				case_line	adr,@(opc_sldi + num#(cnt));
+				adr=adr + 1;
+
+				// continue
+				cnt=cnt + 1;
+			}
 
 			// continue
 			fgetl	fin,lbuf;
@@ -1626,8 +1662,10 @@ macro	log,tbuf;
 			// instruction
 			substr	shex=$(opcd_list),(idx - 1)/MSIZ*3 + 1,2;
 			opc=0x$(shex);
-			if (fNF>1)
+			strcmp	cmp=$(lbuf2),"";
+			if (cmp)
 			{
+				// has operand; psei or sldi
 				strcmp	cmp=$(lbuf1),"sldi ",left;
 				if (cmp=0)
 				{
@@ -1636,6 +1674,7 @@ macro	log,tbuf;
 					if (num<0 | 0x7f<num)
 					{
 						// ERROR:
+						gsub	"#","##",lbuf;
 						errmsg	"ERR: sldi operand out of range"$,$(lbuf)$,;
 						leave	stop_error;
 					}
@@ -1674,6 +1713,7 @@ macro	log,tbuf;
 						if (idx<0 | 0x1f<idx)
 						{
 							// ERROR:
+							gsub	"#","##",lbuf;
 							errmsg	"ERR: psei operand out of range"$,$(lbuf)$,;
 							leave	stop_error;
 						}
@@ -1683,7 +1723,7 @@ macro	log,tbuf;
 			}
 			else
 			{
-				// fNF<1
+				// no operand
 				strcmp	cmp=$(lbuf1),"sldi ",left;
 				if (cmp)
 				{
@@ -1692,6 +1732,7 @@ macro	log,tbuf;
 				if (cmp=0)
 				{
 					// ERROR:
+					gsub	"#","##",lbuf;
 					errmsg	"ERR: sldi / psei has no operand"$,$(lbuf)$,;
 					leave	stop_error;
 				}
@@ -1707,6 +1748,7 @@ macro	log,tbuf;
 		}
 
 		// ERROR:
+		gsub	"#","##",lbuf;
 		errmsg	"ERR: undefined mnemonic"$,$(lbuf)$,;
 		leave	stop_error;
 
