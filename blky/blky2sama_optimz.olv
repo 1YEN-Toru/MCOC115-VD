@@ -1,0 +1,895 @@
+model	"Samarium.ASM peep hole optimizer"
+{
+// ================================
+//
+//	Samarium.ASM peep hole optimizer
+//		for assembler source code output by blky2sama.olv
+//		(c) 2026	1YEN Toru
+//
+// ================================
+
+
+	// parameters
+	var		optm_enb_bool_cnjmp=true;
+	var		optm_enb_push_pop=true;
+	var		optm_enb_jmp_jmp=true;
+	var		optm_enb_puld_swap=true;
+	var		optm_enb_push_cnjmp=true;
+	var		optm_enb_push_uopr=true;
+	var		optm_enb_push_push=true;
+	var		optm_enb_sttc_ldst=true;
+	var		cmbi_enb_puld_opr=true;
+
+
+	// constants
+	macro	inst_1opr=					// 1 parameter instructions
+			" not    "
+			" cend   "
+			" neg    "
+			" ldb    "
+			" ldw    "
+			" dupl   "
+			"";
+	macro	inst_2opr=					// 2 parameter instructions
+			" and    "
+			" or     "
+			" eor    "
+			" add    "
+			" sub    "
+			" cmp    "
+			" stb    "
+			" stw    "
+			" mulu   "
+			" muls   "
+			" mulh   "
+			" divq   "
+			" divr   "
+			" divu   "
+			" divs   "
+			" fadd   "
+			" fsub   "
+			" fmul   "
+			" fdiv   "
+			" fneg   "
+			" fhalf  "
+			" fuint  "
+			" ffrac  "
+			" fmvsg  "
+			" fsat   "
+			" fcmp   "
+			" ftrunc "
+			" muls*  "
+			" mulu*  "
+			" divs*  "
+			" divu*  "
+			"";
+	macro	psei_eimm5=
+			"push	0        "
+			"push	1        "
+			"push	2        "
+			"push	3        "
+			"push	MIN_UINT "
+			"push	ZERO     "
+			"push	MAX_UINT "
+			"push	MINUS1   "
+			"push	MAX_INT  "
+			"push	MIN_INT  "
+			"push	SGN_BIT  "
+			"push	BYTE_LO  "
+			"push	BYTE_SG  "
+			"push	CORE_ID  "
+			"push	STK_SIZ  "
+			"push	STK_PTR  "
+			"push	PRG_CNT  "
+			"push	INT_VEC  "
+			"push	CPU_STS  "
+			"push	true     "
+			"push	false    "
+			"";
+	macro	str_not="NOT";
+	tolower		str_not;
+
+
+	// variables
+	var		idx;
+	var		cmp;
+	var		fin;
+	var		fout;
+	var		fpos;
+	var		fsiz;
+	var		n_iter;
+	var		decl_var;
+	macro	lbuf;
+	macro	nbuf;
+	macro	cbuf;
+	macro	inst;
+	macro	dir,mynam,ext;
+	pathsplit	$(pathname), dir,mynam,ext;
+	psub	"_.*","",mynam;
+
+
+	// procedures
+	procedure	get_next_inst
+	{
+		// get next instruction
+		var		cmp;
+		var		errcod;
+
+		repeat
+		{
+			fgets	fin,nbuf;
+			errcod=status;
+			pindex	cmp=$(nbuf),"^[ 	]*//";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(nbuf),"^[ 	]*#";
+			}
+			if (cmp<=0)
+			{
+				strcmp	cmp=$(nbuf),"";
+				if (cmp=0)
+				{
+					cmp=1;
+				}
+				else
+				{
+					cmp=-1;
+				}
+			}
+			if (cmp>0)
+			{
+				strcat	cbuf,$(nbuf)$,;
+			}
+		} until (!(cmp>0 & errcod>=0));
+	}
+	procedure	optm_bool_cnjmp
+	{
+		macro	abuf;
+
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		strcat	abuf,$,$(lbuf);
+		get_next_inst;
+		strcat	abuf,$,$(nbuf);
+		pindex	cmp=$(nbuf),"^push	";
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+		get_next_inst;
+		strcat	abuf,$,$(nbuf);
+		pindex	cmp=$(nbuf),"^jmp	";
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+		get_next_inst;
+		strcat	abuf,$,$(nbuf);
+		pindex	cmp=$(nbuf),"^_auto_";
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+		get_next_inst;
+		strcat	abuf,$,$(nbuf);
+		pindex	cmp=$(nbuf),"^push	";
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+		get_next_inst;
+		strcat	abuf,$,$(nbuf);
+		pindex	cmp=$(nbuf),"^_auto_";
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+
+		// next instruction
+		get_next_inst;
+		psub	"^"$,,"",abuf;
+
+		pindex	cmp=$(nbuf),"^[cn]jmp	";
+		if (cmp>0)
+		{
+			strcmp	cmp=$(abuf),"cjmp	",left;
+			if (cmp=0)
+			{
+				// boolean not
+				sub		"c","n",nbuf;
+				if (!status)
+				{
+					sub		"n","c",nbuf;
+				}
+			}
+			fputs	fout,$(cbuf);
+			fputl	fout,$(nbuf);
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_push_pop
+	{
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+		pindex	cmp=$(nbuf),"^pop";
+		if (cmp>0)
+		{
+			fputs	fout,$(cbuf);
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_jmp_jmp
+	{
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+		strcmp	cmp=$(nbuf),"jmp	",left;
+		if (cmp=0)
+		{
+			fputl	fout,$(lbuf);
+			fputs	fout,$(cbuf);
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_puld_swap
+	{
+		macro	nbuf2;
+
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+		mlet	nbuf2=$(nbuf);
+		pindex	cmp=$(nbuf),"^push	";
+		if (cmp<=0)
+		{
+			pindex	cmp=$(nbuf),"^ld[bw]	";
+		}
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+
+			return;
+		}
+		get_next_inst;
+		pindex	cmp=$(nbuf),"^swap$";
+		if (cmp>0)
+		{
+			fputl	fout,$(nbuf2);
+			fputl	fout,$(lbuf);
+			fputs	fout,$(cbuf);
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_push_cnjmp
+	{
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+		pindex	cmp=$(nbuf),"^[cn]jmp	";
+		if (cmp>0)
+		{
+			var		cnx;
+			var		num;
+
+			// constant value to boolean conversion
+			field	num=lbuf;
+			pindex	cmp=$(lbuf2),"^[+-]?[0-9_]+$";
+			if (cmp<=0)
+			{
+				pindex	cmp=$(lbuf2),"^[+-]?0x[0-9a-fA-F_]+$";
+			}
+			if (cmp<=0)
+			{
+				pindex	cmp=$(lbuf2),"^[+-]?0b[01_]+$";
+			}
+			if (cmp>0)
+			{
+				if ($(lbuf2))
+				{
+					mlet	lbuf="push	true";
+				}
+				else
+				{
+					mlet	lbuf="push	false";
+				}
+			}
+
+			strcmp	cmp=$(lbuf),"push	true";
+			if (cmp)
+			{
+				strcmp	cmp=$(lbuf),"push	false";
+			}
+			if (cmp)
+			{
+				fseek	fin,fpos;
+
+				return;
+			}
+			strcmp	cmp=$(lbuf),"push	true";
+			strcmp	cnx=$(nbuf),"n",left;
+			if (!cmp & cnx | cmp & !cnx)
+			{
+				// always jump
+				psub	"^[cn]","",nbuf;
+			}
+			else
+			{
+				// always not jump
+				mlet	nbuf="";
+			}
+			fputs	fout,$(cbuf);
+			strcmp	cmp=$(nbuf),"";
+			if (cmp)
+			{
+				fputl	fout,$(nbuf);
+			}
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_push_uopr
+	{
+		var		num;
+		var		do_post;
+		var		can_calc;
+
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+
+		field	num=lbuf;
+		pindex	cmp=$(lbuf2),"^[+-]?[0-9_]+$";
+		if (cmp<=0)
+		{
+			pindex	cmp=$(lbuf2),"^[+-]?0x[0-9a-fA-F_]+$";
+		}
+		if (cmp<=0)
+		{
+			pindex	cmp=$(lbuf2),"^[+-]?0b[01_]+$";
+		}
+		if (cmp>0)
+		{
+			can_calc=true;
+		}
+
+		strcmp	cmp=$(nbuf),$(str_not);
+		if (cmp=0)
+		{
+			mlet	lbuf2="~("$(lbuf2)")";
+			do_post=true;
+		}
+		strcmp	cmp=$(nbuf),"lsl";
+		if (cmp)
+		{
+			strcmp	cmp=$(nbuf),"asl";
+		}
+		if (cmp=0)
+		{
+			mlet	lbuf2="("$(lbuf2)")<<1";
+			do_post=true;
+		}
+		strcmp	cmp=$(nbuf),"lsr";
+		if (cmp=0)
+		{
+			mlet	lbuf2="(("$(lbuf2)")>>1)&0x7fff";
+			do_post=true;
+		}
+		strcmp	cmp=$(nbuf),"asr";
+		if (cmp=0)
+		{
+			mlet	lbuf2="((("$(lbuf2)")<<16)>>16)>>1";
+			do_post=true;
+		}
+		strcmp	cmp=$(nbuf),"cend";
+		if (cmp=0)
+		{
+			mlet	lbuf2="((("$(lbuf2)")&0xff)<<8)|((("$(lbuf2)")>>8)&0xff)";
+			do_post=true;
+		}
+		strcmp	cmp=$(nbuf),"neg";
+		if (cmp=0)
+		{
+			mlet	lbuf2="-("$(lbuf2)")";
+			do_post=true;
+		}
+
+		if (do_post)
+		{
+			if (can_calc)
+			{
+				num2str		lbuf2=@($(lbuf2)),"%x";
+				mlet	lbuf2="0x"$(lbuf2);
+				strlen	num=$(lbuf2);
+				if (num=3)
+				{
+					num2str		lbuf2=@($(lbuf2)),"%d";
+				}
+			}
+
+			fputs	fout,$(cbuf);
+			fputl	fout,$(lbuf1)"	"$(lbuf2);
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_push_push
+	{
+		index	cmp=$(psei_eimm5),$(lbuf);
+		if (cmp%14=1)
+		{
+			return;
+		}
+
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+
+		strcmp	cmp=$(nbuf),$(lbuf);
+		if (cmp=0)
+		{
+			fputl	fout,$(lbuf);
+			fputs	fout,$(cbuf);
+			fputl	fout,"dupl";
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	optm_sttc_ldst
+	{
+		var		num;
+		var		sttc;
+		var		ldst;					// ld=0 / st=1
+		var		asiz;					// b=0 / w=1
+
+		field	num=lbuf;
+		psub	"//.*","",lbuf2;
+		psub	"#.*","",lbuf2;
+		strcmp	cmp=$(lbuf2),"";
+		index	num=$(lbuf2),",";
+		ifvar	sttc_$(lbuf2)
+		{
+			sttc=true;
+		}
+		if (cmp=0 | num>0 | !sttc)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+
+		strcmp	cmp=$(lbuf),"ld",left;
+		if (cmp)
+		{
+			// stb/stw
+			ldst=0b10;
+		}
+		pindex	cmp=$(lbuf),"^..w	";
+		if (cmp>0)
+		{
+			// ldw/stw
+			asiz=0x10;
+		}
+
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+		pindex	cmp=$(nbuf),"^ld[bw]	";
+		if (cmp<=0)
+		{
+			pindex	cmp=$(nbuf),"^st[bw]	";
+		}
+		if (cmp<=0)
+		{
+			fseek	fin,fpos;
+			return;
+		}
+		strcmp	cmp=$(nbuf),"ld",left;
+		if (cmp)
+		{
+			// stb/stw
+			ldst=@(ldst | 0b01);
+		}
+		pindex	cmp=$(nbuf),"^..w	";
+		if (cmp>0)
+		{
+			// ldw/stw
+			asiz=@(asiz | 0x01);
+		}
+
+		field	num=nbuf;
+		psub	"//.*","",nbuf2;
+		psub	"#.*","",nbuf2;
+		index	num=$(nbuf2),",";
+		strcmp	cmp=$(lbuf2),$(nbuf2);
+		if (num>0 | cmp | !(asiz=0x00 | asiz=0x11))
+		{
+			fseek	fin,fpos;
+			return;
+		}
+
+		if (ldst=0b00)
+		{
+			// ld?; ld?
+			fputl	fout,$(lbuf);
+			fputs	fout,$(cbuf);
+			fputl	fout,"dupl";
+		}
+		elif (ldst=0b01)
+		{
+			// ld?; st?
+			fputs	fout,$(cbuf);
+		}
+		elif (ldst=0b10)
+		{
+			// st?; ld?
+			fputl	fout,"dupl";
+			fputl	fout,$(lbuf);
+			fputs	fout,$(cbuf);
+		}
+		elif (ldst=0b11)
+		{
+			// st?; st?
+			fputl	fout,"pop";
+			fputs	fout,$(cbuf);
+			fputl	fout,$(lbuf);
+		}
+
+		mlet	lbuf="##//";
+	}
+	procedure	cmbi_puld_opr
+	{
+		var		num;
+		var		push_ldwx;
+		macro	ebuf;
+
+		// operand check
+		strcmp	push_ldwx=$(lbuf),"ld",left;
+		if (push_ldwx=0)
+		{
+			field	num=lbuf;
+			if (num>1)
+			{
+				psub	"//.*","",lbuf2;
+				psub	"#.*","",lbuf2;
+				strcmp	cmp=$(lbuf2),"[",left;
+				if (cmp)
+				{
+					strcmp	cmp=$(lbuf2),"";
+				}
+				if (cmp=0)
+				{
+					// no valid operand
+					return;
+				}
+			}
+		}
+
+		mlet	cbuf="";
+		ftell	fin,fpos;
+		get_next_inst;
+		field	num=nbuf;
+		if (num>1)
+		{
+			// already have operand
+			fseek	fin,fpos;
+			return;
+		}
+
+		substr	ebuf=" "$(nbuf1)"        ", 1,8;
+		index	cmp=$(inst),$(ebuf);
+		if (cmp%8=1)
+		{
+			fputs	fout,$(cbuf);
+			if (push_ldwx)
+			{
+				sub		"push	",$(nbuf)"	",lbuf;
+			}
+			else
+			{
+				psub	"ld[^	]+	",$(nbuf)"	[",lbuf;
+				strcat	lbuf,"]";
+			}
+			fputl	fout,$(lbuf);
+			mlet	lbuf="##//";
+
+			return;
+		}
+		fseek	fin,fpos;
+	}
+	procedure	fcomp	$$fnam_src,$$fnam_dst
+	{
+		var		fin_src;
+		var		fin_dst;
+
+		fopen	fin_src,$(fnam_src),"r";
+		fopen	fin_dst,$(fnam_dst),"r";
+
+		fcomp=1;
+		repeat
+		{
+			fgets	fin_src,lbuf_src;
+			if (status<0)
+			{
+				break;
+			}
+			fgets	fin_dst,lbuf_dst;
+			if (status<0)
+			{
+				break;
+			}
+			strcmp	fcomp=$(lbuf_src),$(lbuf_dst);
+		} until (fcomp);
+
+		fclose	fin_src;
+		fclose	fin_dst;
+
+		fcomp=( fcomp=0 );
+	}
+
+
+	// input file name
+	var		rtn;
+	macro	fnam;
+	macro	fnam_in;
+	macro	fnam_out;
+	macro	fnam_env;
+
+	getenv	fnam_env="BLKY2SAMA_ASM_SRC";
+	setenv	BLKY2SAMA_ASM_SRC="";
+	strcmp	cmp=$(fnam_env),"";
+	if (cmp)
+	{
+		mlet	fnam_in=$(fnam_env);
+	}
+	else
+	{
+		gui		openfile, rtn, "Input File","",fnam_in;
+		if (rtn=guiCancel)
+		{
+			ifacc	$(mynam)".asm"
+			{
+				mlet	fnam_in="."$/$(mynam)".asm";
+			}
+			else
+			{
+				leave	stop_error;
+			}
+		}
+	}
+	pathsplit	$(fnam_in), dir,fnam,ext;
+	mlet	fnam_out=$(dir)$/$(fnam)"_out.asm";
+
+	// input file check
+	fopen	fin,$(fnam_in),"r";
+	fseek	fin,-1;
+	ftell	fin,fsiz;
+	fclose	fin;
+	if (fsiz<16)
+	{
+		// ERROR:
+		errmsg	"empty or too small input file";
+		leave	stop_error;
+	}
+
+	// parameter from Blockly for Samarium
+	getenv	lbuf="BLKY2SAMA_OPTIMZ";
+	setenv	BLKY2SAMA_OPTIMZ="";
+	n_iter=$(lbuf) + 0;
+	clip	n_iter=1,9;
+
+	// iteration
+	strcat	inst,$(inst_1opr)$(inst_2opr);
+	idx=0;
+	while (idx<n_iter)
+	{
+		// open files
+		fopen	fin,$(fnam_in),"r";
+		fopen	fout,$(fnam_out),"w";
+
+		// file size
+		fseek	fin,-1;
+		ftell	fin,fpos;
+		fseek	fin,0;
+		fsiz=fpos;
+
+		fgets	fin,lbuf;
+		while (status>=0)
+		{
+			ftell	fin,fpos;
+			progress	"Optimizing("#(idx + 1)"/"#(n_iter)")...",
+						100*(idx*fsiz + fpos)/(fsiz*n_iter);
+
+			// variable declaration
+			if (decl_var=0)
+			{
+				strcmp	cmp=$(lbuf),"equ	_rtlb_var_top,_va";
+				if (cmp=0)
+				{
+					decl_var=1;
+					fputl	fout,$(lbuf);
+
+					// continue
+					fgets	fin,lbuf;
+					continue;
+				}
+			}
+			elif (decl_var=1)
+			{
+				strcmp	cmp=$(lbuf),"equ	_rtlb_var_static,_va";
+				if (cmp=0)
+				{
+					decl_var=2;
+					fputl	fout,$(lbuf);
+
+					// continue
+					fgets	fin,lbuf;
+					continue;
+				}
+
+				pindex	cmp=$(lbuf),"^equ	*([^,]+),_va$";
+				if (cmp>0)
+				{
+					macro	vnam;
+
+					mlet	vnam=$(lbuf);
+					psub	"^equ	*([^,]+),_va$","\1",vnam;
+					static : nvar	sttc_$(vnam)=true;
+				}
+			}
+
+			// optimization
+			if (optm_enb_bool_cnjmp)
+			{
+				pindex	cmp=$(lbuf),"^[cn]jmp	_auto_.*_bool$";
+				if (cmp>0)
+				{
+					optm_bool_cnjmp;
+				}
+			}
+			if (optm_enb_push_pop)
+			{
+				strcmp	cmp=$(lbuf),"push	",left;
+				if (cmp=0)
+				{
+					optm_push_pop;
+				}
+			}
+			if (optm_enb_jmp_jmp)
+			{
+				strcmp	cmp=$(lbuf),"jmp	",left;
+				if (cmp=0)
+				{
+					optm_jmp_jmp;
+				}
+			}
+			if (optm_enb_puld_swap)
+			{
+				pindex	cmp=$(lbuf),"^push	";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(lbuf),"^ld[bw]	";
+				}
+				if (cmp>0)
+				{
+					optm_puld_swap;
+				}
+			}
+			if (optm_enb_push_cnjmp)
+			{
+				strcmp	cmp=$(lbuf),"push	",left;
+				if (cmp=0)
+				{
+					optm_push_cnjmp;
+				}
+			}
+			if (optm_enb_push_uopr)
+			{
+				strcmp	cmp=$(lbuf),"push	",left;
+				if (cmp=0)
+				{
+					optm_push_uopr;
+				}
+			}
+			if (optm_enb_push_push)
+			{
+				strcmp	cmp=$(lbuf),"push	",left;
+				if (cmp=0)
+				{
+					optm_push_push;
+				}
+			}
+			if (optm_enb_sttc_ldst)
+			{
+				pindex	cmp=$(lbuf),"^ld[bw]	";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(lbuf),"^st[bw]	";
+				}
+				if (cmp>0)
+				{
+					optm_sttc_ldst;
+				}
+			}
+
+			// format the source list
+			if (cmbi_enb_puld_opr)
+			{
+				pindex	cmp=$(lbuf),"^push	";
+				if (cmp<=0)
+				{
+					pindex	cmp=$(lbuf),"^ldw	";
+				}
+				if (cmp>0)
+				{
+					cmbi_puld_opr;
+				}
+			}
+
+			// output
+			strcmp	cmp=$(lbuf),"##//";
+			if (cmp)
+			{
+				fputl	fout,$(lbuf);
+			}
+
+			// continue
+			fgets	fin,lbuf;
+		}
+
+		// close files
+		fclose	fin;
+		fclose	fout;
+
+		// compare input and output files
+		fcomp	$(fnam_in),$(fnam_out);
+
+		// rename output file
+		strcmp	cmp=$(fnam_env),"";
+		if (cmp | n_iter>1)
+		{
+if (true & idx=0)
+{
+	macro	fnam_bak=$(fnam_in)".bak";
+	fcopy	$(fnam_in),$(fnam_bak);
+}
+			fdel	$(fnam_in);
+			fren	$(fnam_out),$(fnam_in);
+		}
+
+		// break, if input and output files are same
+		if (fcomp)
+		{
+			break;
+		}
+
+		// continue
+		idx=idx + 1;
+	}
+
+
+	leave	stop_error;
+}
+
