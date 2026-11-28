@@ -9,7 +9,7 @@
 - MCOC: Moscovium (Mc) On Chip
 	- 115 is the atomic number of Mc (Moscovium).
 	- 117 for Ts (Tennessine), 113 for Nh (Nihonium).
-	- 062 for Sm (Samarium).
+	- 062 for Sm (Samarium), 060 for Nd (Neodymium).
 
 ## Moscovium series
  Moscovium is an [original 16 bit CPU core](https://hello.world.coocan.jp/ARDUINO15/arduino15_3.html).
@@ -74,7 +74,7 @@
 		- Olive+ can be download from [here](http://www.vector.co.jp/soft/winnt/art/se437034.html).
 
 ## Samarium series
- Samarium is an [original 16 bit ultra-small CPU core](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html).
+ Samarium is an [original 16 bit ultra-small CPU core](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html). Neodymium, a 32 bit edition of Samarium is also available.
 
 ![Samarium](img/a391_cpublk.png)
 
@@ -82,6 +82,13 @@
 	- 16 bit data path
 	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
 	- About 450\[LUT6\] / 90\[FF\] by Xilinx Vivado and Artix-7 family XC7A35T FPGA
+
+2. Neodymium
+	- 32 bit data path
+	- Stack machine
+	- About 870\[LUT6\] / 150\[FF\] by Xilinx Vivado and Artix-7 family XC7A35T FPGA
+	- Neodymium share the same instruction code as Samarium.
+		- They are downward compatible instruction sets.
 
  Samarium series MCU can be developed using Blockly and assembler.
 
@@ -165,6 +172,9 @@
 - [Samarium](https://hello.world.coocan.jp/ARDUINO38/arduino38_9.html)
 	- Original 16 bit ultra-small CPU core
 	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
+- [Neodymium](https://hello.world.coocan.jp/ARDUINO41/arduino41_7.html)
+	- Original 32 bit very-small CPU core
+	- [Stack machine](https://hello.world.coocan.jp/ARDUINO39/arduino39_1.html#HWDSGN)
 
 ## Co-processor
 - [MULC16](https://hello.world.coocan.jp/ARDUINO16/arduino16_2.html#FLSHMUL)
@@ -187,7 +197,7 @@
 		- for Moscovium / Moscovium-BS / Moscovium-SS / Nihonium / Nihonium-SS / Samarium
 - [S-FPU](https://hello.world.coocan.jp/ARDUINO24/arduino24_5.html)
 	- 32 bit Single precision Floating Point Unit (FPU)
-		- for Nihonium / Nihonium-SS
+		- for Nihonium / Nihonium-SS / Neodymium
 
 ## System units
 - [SYSCA7](https://hello.world.coocan.jp/ARDUINO27/arduino27_3.html#SYSCA7)
@@ -364,8 +374,8 @@
 		- [Tennessine instruction set manual](https://hello.world.coocan.jp/ARDUINO26/a263_instset.html#MANTOP)
 	- [Blockly for Samarium manual](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#BLKY4SAMA)
 		- [Blockly.XML to Samarium.ASM translator](https://hello.world.coocan.jp/ARDUINO39/arduino39_6.html#PROG)
-	- [Samarium assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
-		- [Samarium instruction set manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#MANTOP)
+	- [Samarium / Neodymium assembler manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#ASM)
+		- [Samarium / Neodymium instruction set manual](https://hello.world.coocan.jp/ARDUINO38/a389_instset.html#MANTOP)
 2. FPGA board
 	- [Digilent Cmod A7](https://digilent.com/reference/programmable-logic/cmod-a7/start)
 	- [Xilinx Artix-7 family XC7A35T](https://www.xilinx.com/products/silicon-devices/fpga/artix-7.html)

@@ -565,6 +565,7 @@ model	"Moscovium series macro assembler"
 			{
 				break;
 			}
+
 			// continue
 			idx2=idx2 + 1;
 		}

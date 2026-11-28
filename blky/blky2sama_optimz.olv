@@ -201,10 +201,10 @@ model	"Samarium.ASM peep hole optimizer"
 			if (cmp=0)
 			{
 				// boolean not
-				sub		"c","n",nbuf;
+				psub	"^cjmp	","njmp	",nbuf;
 				if (!status)
 				{
-					sub		"n","c",nbuf;
+					psub	"^njmp	","cjmp	",nbuf;
 				}
 			}
 			fputs	fout,$(cbuf);

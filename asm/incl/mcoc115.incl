@@ -126,19 +126,20 @@ equ		sngl_inf_n,0xff80_0000			// sfpu, -inf
 equ		sngl_nan,0xffc0_0000			// sfpu, nan
 equ		sngl_mpi,0x4049_0fdb			// sfpu, pi
 # ================================
-equ		sama_cmp_nf,0x0010				// Samarium cmp[N] flag
-equ		sama_cmp_cf,0x0008				// Samarium cmp[C] flag
-equ		sama_cmp_vf,0x0004				// Samarium cmp[V] flag
-equ		sama_cmp_zf,0x0002				// Samarium cmp[Z] flag
-equ		sama_cmp_sf,0x0001				// Samarium cmp[S] flag (=N^V)
-equ		sama_hcmp_nf,0x0080				// Samarium hcmp[N] flag
-equ		sama_hcmp_cf,0x0040				// Samarium hcmp[C] flag
-equ		sama_hcmp_vf,0x0020				// Samarium hcmp[V] flag
-equ		sama_hcmp_zf,0x0010				// Samarium hcmp[Z] flag
-equ		sama_sts_hfpu,0x0040			// Samarium CPU_STS[HFPU] bit
-equ		sama_sts_divc,0x0020			// Samarium CPU_STS[DIVC] bit
-equ		sama_sts_mulc,0x0010			// Samarium CPU_STS[MULC] bit
-equ		sama_sts_id_0,0x0000			// Samarium CPU_STS[IDn] field
+equ		sama_cmp_nf,0x0010				// Sm/Nd: cmp[N] flag
+equ		sama_cmp_cf,0x0008				// Sm/Nd: cmp[C] flag
+equ		sama_cmp_vf,0x0004				// Sm/Nd: cmp[V] flag
+equ		sama_cmp_zf,0x0002				// Sm/Nd: cmp[Z] flag
+equ		sama_cmp_sf,0x0001				// Sm/Nd: cmp[S] flag (=N^V)
+equ		sama_hcmp_nf,0x0080				// Sm/Nd: hcmp[N] flag
+equ		sama_hcmp_cf,0x0040				// Sm/Nd: hcmp[C] flag
+equ		sama_hcmp_vf,0x0020				// Sm/Nd: hcmp[V] flag
+equ		sama_hcmp_zf,0x0010				// Sm/Nd: hcmp[Z] flag
+equ		sama_sts_hfpu,0x0040			// Sm/Nd: CPU_STS[HFPU] bit
+equ		sama_sts_sfpu,0x0040			// Sm/Nd: CPU_STS[SFPU] bit
+equ		sama_sts_divc,0x0020			// Sm/Nd: CPU_STS[DIVC] bit
+equ		sama_sts_mulc,0x0010			// Sm/Nd: CPU_STS[MULC] bit
+equ		sama_sts_id_0,0x0000			// Sm/Nd: CPU_STS[IDn] field
 equ		sama_sts_id_1,0x0001
 equ		sama_sts_id_2,0x0002
 equ		sama_sts_id_3,0x0003

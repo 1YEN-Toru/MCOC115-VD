@@ -25,6 +25,13 @@
 `define		TOP_CORE		top.cpu.core
 `endif	//	MCOC_POLY
 
+`ifdef		MCOC_CORE_SM
+`define		MCOC_CORE_SMND
+`endif	//	MCOC_CORE_SM
+`ifdef		MCOC_CORE_ND
+`define		MCOC_CORE_SMND
+`endif	//	MCOC_CORE_ND
+
 
 module	test;
 
@@ -147,10 +154,10 @@ initial
 		$display ("CPI: %d/%d(%d)=%d/1000",
 			cnt_clck,cnt_inst,cnt_isu1,1000*cnt_clck/cnt_inst);
 
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_SMND
 		// Samarium CPU stack pointer (MAX)
 		$display ("STK_PTR: %d (MAX)",sama_stk_max[15:0]);
-`endif	//	MCOC_CORE_SM
+`endif	//	MCOC_CORE_SMND
 
 		// finish simulation
 		repeat (8)
@@ -546,7 +553,7 @@ always	@(posedge clk)
 	end
 
 
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_SMND
 reg		[15:0]	sama_stk_max;
 initial
 	sama_stk_max[15:0]=16'h0;
@@ -576,7 +583,7 @@ always	@(posedge clk)
 				$finish;
 			end
 	end
-`endif	//	MCOC_CORE_SM
+`endif	//	MCOC_CORE_SMND
 
 
 `ifdef		SIM_BOOTMD
@@ -723,7 +730,7 @@ reg		[4:0]	inst_max;
 reg		[15:0]	inst_cur;
 reg		[15:0]	inst_msk;
 reg		[15:0]	inst_cod;
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_SMND
 wire	[15:0]	inst_ir={ 8'h0,`TOP_CORE.ctl.ir[7:0] };
 `elsif		MCOC_CORE_NHSS
 wire	[15:0]	inst_ir=`TOP_CORE.fch.ir0[15:0];
@@ -765,7 +772,22 @@ always	@(posedge clk)
 
 
 // simulation convenience
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_ND
+
+// Neodymium stack value
+wire	[15:0]	sptr=`TOP_CORE.sptr.sptr[15:0];
+`define		STK		`TOP_CORE.stk.mem
+//wire	[31:0]	stk0=(sptr[15:0]>=0)? `STK[sptr[15:0] - 0]: 32'hz;
+wire	[31:0]	stk1=(sptr[15:0]>=1)? `STK[sptr[15:0] - 1]: 32'hz;
+wire	[31:0]	stk2=(sptr[15:0]>=2)? `STK[sptr[15:0] - 2]: 32'hz;
+wire	[31:0]	stk3=(sptr[15:0]>=3)? `STK[sptr[15:0] - 3]: 32'hz;
+wire	[31:0]	stk4=(sptr[15:0]>=4)? `STK[sptr[15:0] - 4]: 32'hz;
+wire	[31:0]	stk5=(sptr[15:0]>=5)? `STK[sptr[15:0] - 5]: 32'hz;
+wire	[31:0]	stk6=(sptr[15:0]>=6)? `STK[sptr[15:0] - 6]: 32'hz;
+wire	[31:0]	stk7=(sptr[15:0]>=7)? `STK[sptr[15:0] - 7]: 32'hz;
+wire	[31:0]	stk8=(sptr[15:0]>=8)? `STK[sptr[15:0] - 8]: 32'hz;
+
+`elsif		MCOC_CORE_SM
 
 // Samarium stack value
 wire	[15:0]	sptr=`TOP_CORE.sptr.sptr[15:0];

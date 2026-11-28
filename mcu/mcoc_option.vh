@@ -37,6 +37,7 @@
 
 `ifdef		MCOC_POLY
 `define		MCOC_CORE_MCBS
+`undef		MCOC_CORE_ND
 `undef		MCOC_CORE_NH
 `undef		MCOC_CORE_NHPI
 `undef		MCOC_CORE_NHSS
@@ -48,7 +49,28 @@
 `undef		MCOC_IRAM_4K
 `endif	//	MCOC_POLY
 
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_ND
+`define		CPU_CORE		neodymiumc
+`define		SAMA_STK_SIZ	64
+`undef		MCOC_CORE_SM
+`undef		MCOC_CORE_TS
+`undef		MCOC_CORE_NH
+`undef		MCOC_CORE_NHPI
+`undef		MCOC_CORE_NHSS
+`undef		MCOC_CORE_MCBS
+`undef		MCOC_CORE_MCSS
+`undef		MCOC_DUAL
+`undef		MCVM_COPR_MUL
+`undef		MCVM_COPR_DIV
+`undef		MCVM_COPR_FPUH
+`undef		MCOC_ROM_32K
+`undef		MCOC_ROM_48K
+`ifdef		MCOC_POLY
+`else	//	MCOC_POLY
+`define		MCOC_IRAM_4K
+`endif	//	MCOC_POLY
+
+`elsif		MCOC_CORE_SM
 `define		CPU_CORE		samariumc
 `define		SAMA_STK_SIZ	64
 `undef		MCOC_CORE_TS

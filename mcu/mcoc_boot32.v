@@ -15,6 +15,12 @@ wire	[31:0]	rom_dat;
 
 // boot rom: read latency 0
 `ifdef		MCOC_CORE_SM
+`define		MCOC_CORE_SMND
+`endif	//	MCOC_CORE_SM
+`ifdef		MCOC_CORE_ND
+`define		MCOC_CORE_SMND
+`endif	//	MCOC_CORE_ND
+`ifdef		MCOC_CORE_SMND
 mcoc_boot_sm	matbt (
 	.clk(clk),	// Input
 	.rst_n(rst_n),	// Input

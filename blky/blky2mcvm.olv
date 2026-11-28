@@ -676,8 +676,14 @@ if (false)
 					leave	stop_error;
 				}
 				opt_cpu_mod=opt_core_nh;
+				static : nvar	opt__core32;
+				opt__core32=true;
 			}
 			strcmp	cmp=$(copt#(idx)),"Sm",ics_match;
+			if (cmp)
+			{
+				strcmp	cmp=$(copt#(idx)),"Nd",ics_match;
+			}
 			if (cmp=0)
 			{
 				// ERROR:

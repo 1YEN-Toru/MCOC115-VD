@@ -1,4 +1,132 @@
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_ND
+
+module	neodymiumc (
+// Samarium
+input	clk,
+input	rst_n,
+input	frdy,
+input	brdy,
+input	irq,
+input	[1:0]	cpuid,
+input	[1:0]	irq_lev,
+input	[5:0]	irq_vec,
+input	[15:0]	fdatx,
+input	[15:0]	fdat,
+input	[15:0]	bdatrx,
+input	[15:0]	bdatr,
+output	[2:0]	fcmd,
+output	[15:0]	fadr,
+output	[3:0]	bcmd,
+output	[15:0]	badrx,
+output	[15:0]	badr,
+output	[15:0]	bdatwx,
+output	[15:0]	bdatw);
+
+
+// compile option
+//`define		MCVM_COPR_MUL
+//`define		MCVM_COPR_DIV
+//`define		MCVM_COPR_FPUS
+
+
+wire	crdy;
+wire	[7:0]	ccmd;
+wire	[7:0]	ccmdx_open;
+wire	[15:0]	fadrx_open;
+wire	[31:0]	abus_o;
+wire	[31:0]	bbus_o;
+wire	[31:0]	cbus_i;
+
+assign	fcmd[2:0]=3'b101;
+
+
+// CPU_STS
+wire	[2:0]	copr_en;
+wire	[31:0]	cpu_sts={ 24'h0,1'b0,copr_en[2:0],2'h0,cpuid[1:0] };
+
+
+neodymium	core (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.brdy(brdy),	// Input
+	.irq(irq),	// Input
+	.cpu_sts(cpu_sts[31:0]),	// Input
+	.fdat(fdat[7:0]),	// Input
+	.bdatr({ bdatrx[15:0],bdatr[15:0] }),	// Input
+	.fadr({ fadrx_open[15:0],fadr[15:0] }),	// Output
+	.bcmd(bcmd[3:0]),	// Output
+	.badr({ badrx[15:0],badr[15:0] }),	// Output
+	.bdatw({ bdatwx[15:0],bdatw[15:0] }),	// Output
+	.crdy(crdy),	// Input
+	.cbus_i(cbus_i[31:0]),	// Input
+	.ccmd({ ccmdx_open[7:0],ccmd[7:0] }),	// Output
+	.abus_o(abus_o[31:0]),	// Output
+	.bbus_o(bbus_o[31:0])	// Output
+);
+
+
+`ifdef		MCVM_COPR_MUL
+assign	copr_en[0]=1'b1;
+wire	[31:0]	cbus_mulc;
+mulc32_nd	mulc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[7:0]),	// Input
+	.abus(abus_o[31:0]),	// Input
+	.bbus(bbus_o[31:0]),	// Input
+	.crdy(crdy_mulc),	// Output
+	.cbus(cbus_mulc[31:0])	// Output
+);
+`else	//	MCVM_COPR_MUL
+assign	copr_en[0]=1'b0;
+wire	crdy_mulc=1'b1;
+wire	[31:0]	cbus_mulc=32'h0;
+`endif	//	MCVM_COPR_MUL
+
+`ifdef		MCVM_COPR_DIV
+assign	copr_en[1]=1'b1;
+wire	[31:0]	cbus_divc;
+divc32_nd	divc (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd[7:0]),	// Input
+	.abus(abus_o[31:0]),	// Input
+	.bbus(bbus_o[31:0]),	// Input
+	.crdy(crdy_divc),	// Output
+	.cbus(cbus_divc[31:0])	// Output
+);
+`else	//	MCVM_COPR_DIV
+assign	copr_en[1]=1'b0;
+wire	crdy_divc=1'b1;
+wire	[31:0]	cbus_divc=32'h0;
+`endif	//	MCVM_COPR_DIV
+
+`ifdef		MCVM_COPR_FPUS
+assign	copr_en[2]=1'b1;
+wire	[31:0]	cbus_sfpu;
+wire	[4:0]	ccmd_sfpu=(ccmd[7:0]<8'h20)? ccmd[4:0]: 5'h0;
+mcoc_sfpu	sfpu (
+	.clk(clk),	// Input
+	.rst_n(rst_n),	// Input
+	.ccmd(ccmd_sfpu[4:0]),	// Input
+	.abus(abus_o[31:0]),	// Input
+	.bbus(bbus_o[31:0]),	// Input
+	.crdy(crdy_sfpu),	// Output
+	.cbus(cbus_sfpu[31:0])	// Output
+);
+`else	//	MCVM_COPR_FPUS
+assign	copr_en[2]=1'b0;
+wire	crdy_sfpu=1'b1;
+wire	[31:0]	cbus_sfpu=32'h0;
+`endif	//	MCVM_COPR_FPUS
+
+// co-processor bus output
+assign	crdy=crdy_mulc&crdy_divc&crdy_sfpu;
+assign	cbus_i[31:0]=cbus_mulc[31:0] | cbus_divc[31:0] | cbus_sfpu[31:0];
+
+endmodule
+
+`elsif		MCOC_CORE_SM
 
 module	samariumc (
 // Samarium

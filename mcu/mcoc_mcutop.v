@@ -1,5 +1,5 @@
 module	`MCOC_TOP_NAME (
-// Moscovium / Nihonium / Tennessine / Samarium On Chip
+// Moscovium / Nihonium / Tennessine / Samarium / Neodymium On Chip
 input	sys_clock,
 input	sys_reset,
 input	sys_bootr,
@@ -54,13 +54,17 @@ input	adcx_ain1p,
 input	adcx_ain1n);
 
 
-`define		MCOC_VERS		16'h0254
+`define		MCOC_VERS		16'h0256
 
 
 //
-//	Moscovium / Nihonium / Tennessine / Samarium On Chip
+//	Moscovium / Nihonium / Tennessine / Samarium / Neodymium On Chip
 //		(c) 2021,2023	1YEN Toru
 //
+//
+//	2026/11/28	ver.2.56
+//		corresponding to Neodymium
+//		add: compile option MCOC_CORE_ND
 //
 //	2026/10/17	ver.2.54
 //		corresponding to Samarium poly-core edition
@@ -282,7 +286,9 @@ input	adcx_ain1n);
 
 
 // definitions for ID register unit
-`ifdef		MCOC_CORE_SM
+`ifdef		MCOC_CORE_ND
+defparam	idrg.idcode=16'h0600;
+`elsif		MCOC_CORE_SM
 defparam	idrg.idcode=16'h0620;
 `elsif		MCOC_CORE_TS
 defparam	idrg.idcode=16'h1170;
